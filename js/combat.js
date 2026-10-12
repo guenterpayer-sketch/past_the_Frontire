@@ -272,7 +272,7 @@
     // Ausweichen hängt an der zurückgehaltenen Aktivität: ½ immer, die andere ½ anteilig zur Reserve
     reserveOf(u) { return this.current === u ? Math.max(0, u.act) : (u.reserve || 0); }
 
-    defenseMods(att, def, w, from, to, sense) {
+    defenseMods(att, def, w, from, to, sense, facing = def.facing) {
       const mods = [];
       if (w.psi) {
         mods.push({ label: 'Psi-Verteidigung', val: Math.max(0, Rules.skillTotal(def, 'psiVerteidigung')) });
@@ -282,7 +282,7 @@
       const dodge = Math.max(0, Rules.skillTotal(def, 'ausweichen'));
       const reserve = this.reserveOf(def);
       const normal = Math.floor(dodge / 2) + Math.floor((dodge / 2) * reserve / 100);
-      const sector = Hex.sector(to, def.facing, from);
+      const sector = Hex.sector(to, facing, from);
       const surprised = sector !== 'vorne';
       if (def.stun > 0) mods.push({ label: 'Ausweichen (betäubt)', val: 0 });
       else if (surprised && sense) mods.push({ label: 'Ausweichen (überrascht, Kampfsinn gelungen: ½)', val: Math.floor(normal / 2) });
@@ -307,7 +307,8 @@
       const w = WEAPONS[wid];
       const from = opts.from || this.tileOf(att);
       const pct = opts.pct || NORMAL_ATTACK;
-      const to = this.tileOf(def);
+      const to = opts.to || this.tileOf(def); // opts.to/defFacing: hypothetische Lage des Ziels (Vorschau)
+      const defFacing = opts.defFacing !== undefined ? opts.defFacing : def.facing;
       const dist = Hex.distance(from, to);
       const bad = reason => ({ valid: false, reason, weapon: w });
       if (def.state !== 'ok') return bad('Ziel ist kampfunfähig');
@@ -334,15 +335,15 @@
       const aMod = activityMod(pct);
       if (aMod) ob.push({ label: `Aktivität ${pct} %`, val: aMod });
       if (opts.reaction) ob.push({ label: 'Reaktion (Feuerbereitschaft)', val: REACTION_MOD });
-      if (att.ran && !opts.reaction) ob.push({ label: 'gelaufen', val: GAITS.laufen.attackMod });
-      const sector = Hex.sector(to, def.facing, from);
+      if (att.ran && !opts.reaction && !opts.preview) ob.push({ label: 'gelaufen', val: GAITS.laufen.attackMod });
+      const sector = Hex.sector(to, defFacing, from);
       if (FACING_MOD[sector]) ob.push({ label: sector === 'flanke' ? 'Flanke' : 'Rücken', val: FACING_MOD[sector] });
       if (att.crouched && !w.melee) ob.push({ label: 'geduckt (ruhiger Anschlag)', val: CROUCH.ob });
       if (def.crouched && w.melee) ob.push({ label: 'Ziel geduckt', val: CROUCH.meleeOb });
       if (w.ob) ob.push({ label: 'Feuerstoß', val: w.ob });
       if (att.nextAttackMalus) ob.push({ label: 'Waffe klemmt', val: att.nextAttackMalus });
       if (att.malus) ob.push({ label: 'Wunden', val: att.malus });
-      const db = this.defenseMods(att, def, w, from, to, opts.sense);
+      const db = this.defenseMods(att, def, w, from, to, opts.sense, defFacing);
       const net = sum(ob) - sum(db);
       const cls = ARMOR[def.armor].cls;
       const thr = ATTACK_TABLES[w.table].hit[cls];

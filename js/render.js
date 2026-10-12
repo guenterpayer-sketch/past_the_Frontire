@@ -12,6 +12,8 @@
   const S3 = Math.sqrt(3);
   const ANG = [-90, -30, 30, 90, 150, 210].map(a => (a * Math.PI) / 180);
 
+  const RANGE_COLORS = [null, '#6fdc6f', '#ffd24a', '#ff9a3c', '#ff5a5a'];
+
   function shade(hex, f) {
     const n = parseInt(hex.slice(1), 16);
     const ch = s => Math.max(0, Math.min(255, Math.round(((n >> s) & 255) * f)));
@@ -167,6 +169,7 @@
       // Umrisse aller Figuren obenauf, damit verdeckte sichtbar bleiben
       for (const { u, p } of placed) if (u.state === 'ok') this.drawGhost(ctx, u, p, view);
       if (view.path && view.path.length > 1) this.drawPath(ctx, view.path);
+      if (view.preview) this.drawPreview(ctx, view.preview, placed);
       this.drawShots(ctx, now);
       this.drawFloats(ctx, now);
     }
@@ -207,6 +210,11 @@
       if (view.aidTiles && view.aidTiles.has(k)) hl = 'rgba(120,230,140,0.40)';
       if (view.hover === t) hl = 'rgba(255,255,255,0.28)';
       if (hl) poly(ctx, this.hexPts(c.x, c.y), hl);
+      if (view.range && view.range.has(k)) {
+        ctx.fillStyle = RANGE_COLORS[view.range.get(k)] || '#ff5a5a';
+        ctx.beginPath(); ctx.ellipse(c.x, c.y, 5, 5 * SQ, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1; ctx.stroke();
+      }
       if (view.hover === t) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; strokePoly(ctx, top); }
     }
 
@@ -303,6 +311,28 @@
       ctx.restore();
       text(ctx, u.letter, x, by + bodyH / 2 + 1, '#111', 12, 'bold');
       this.drawBars(ctx, u, x, by);
+    }
+
+    // Linien und Chancen vom Zielfeld zu treffbaren Gegnern (grün) und Bedrohungen (rot)
+    drawPreview(ctx, pv, placed) {
+      const at = this.topPos(pv.tile);
+      const pos = new Map(placed.map(x => [x.u, x.p]));
+      const draw = (map, color, prefix, dy) => {
+        for (const [o, ch] of map) {
+          const p = pos.get(o); if (!p) continue;
+          ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]); ctx.globalAlpha = 0.8;
+          ctx.beginPath(); ctx.moveTo(at.x, at.y - 18); ctx.lineTo(p.x, p.y - 16); ctx.stroke();
+          ctx.setLineDash([]); ctx.globalAlpha = 1;
+          const label = `${prefix} ${ch}%`;
+          ctx.font = 'bold 10px system-ui, sans-serif';
+          const w = ctx.measureText(label).width + 8;
+          ctx.fillStyle = 'rgba(10,14,24,0.85)';
+          ctx.fillRect(p.x - w / 2, p.y - 54 - dy, w, 13);
+          text(ctx, label, p.x, p.y - 47.5 - dy, color, 10, 'bold');
+        }
+      };
+      draw(pv.threat, '#ff6b6b', '⚠', 0);
+      draw(pv.hit, '#6fdc6f', '◎', 15);
     }
 
     drawPath(ctx, path) {

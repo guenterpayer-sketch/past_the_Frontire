@@ -232,6 +232,7 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Waffe | Grundreichweite | Stufen | max. |
 |---|---|---|---|
 | Laserpistole | 10 m | 4 | 40 m |
+| Laserkarabiner (Fertigkeit Pistolen) | 15 m | 4 | 60 m |
 | Sturmgewehr | 25 m | 4 | 100 m |
 | Schweres MG | 20 m | 4 | 80 m |
 | Raketenwerfer | 30 m | 3 | 90 m (mind. 6 m Abstand) |

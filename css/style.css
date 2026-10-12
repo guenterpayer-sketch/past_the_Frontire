@@ -75,6 +75,8 @@ main { display: flex; height: calc(100% - 50px); min-height: 520px; }
 .seg button { flex: 1; padding: 4px 2px; font-size: 12px; text-align: center; }
 .seg button small { display: block; font-size: 10px; color: var(--muted); }
 .seg.pct button { padding: 3px 0; font-size: 11px; }
+.pv-hit { color: #8fe39b; margin-top: 3px; }
+.pv-threat { color: #ff8a8a; }
 .tip-warn { color: #ffb74d; font-size: 12px; margin: 3px 0; }
 .end.pulse { animation: blink 0.8s infinite alternate; border-color: var(--accent); }
 .bar span { position: relative; z-index: 1; font-size: 12px; padding-left: 6px; line-height: 18px; }

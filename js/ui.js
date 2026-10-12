@@ -10,8 +10,14 @@
   const FREE_XP = 3;
 
   function loadRoster() {
-    try { const s = localStorage.getItem(STORE); if (s) return JSON.parse(s); } catch (e) { /* kein Speicher verfügbar */ }
-    return PTF.Units.clone(PTF.CREW_TEMPLATE);
+    const fresh = PTF.Units.clone(PTF.CREW_TEMPLATE);
+    try {
+      const s = localStorage.getItem(STORE);
+      if (!s) return fresh;
+      // gespeicherte Fertigkeiten behalten, Ausrüstung kommt immer aus der aktuellen Vorlage
+      const saved = JSON.parse(s);
+      return fresh.map(t => { const o = saved.find(x => x.id === t.id); if (o) t.skills = o.skills; return t; });
+    } catch (e) { return fresh; }
   }
   function saveRoster(r) { try { localStorage.setItem(STORE, JSON.stringify(r)); } catch (e) { /* ignorieren */ } }
 
@@ -153,8 +159,12 @@
           this.reachCache = { u, key, reach: c.moveRange(u, this.gait) };
         }
         v.reach = this.reachCache.reach;
-        if (this.hover && !this.hoverUnit && v.reach.has(Hex.key(this.hover.q, this.hover.r))) v.path = this.map.pathTo(v.reach, this.hover);
+        if (this.hover && !this.hoverUnit && v.reach.has(Hex.key(this.hover.q, this.hover.r))) {
+          v.path = this.map.pathTo(v.reach, this.hover);
+          if (v.path.length > 1) v.preview = this.previewFor(u, this.hover, v.path, v.reach);
+        }
       } else if (this.mode === 'move') this.reachCache = null;
+      if (this.showRange) v.range = this.rangeFor(u, this.weaponOf(u));
       if (this.mode === 'aid') v.aidTiles = new Set(c.firstAidTargets(u).map(o => Hex.key(o.pos.q, o.pos.r)));
       if (this.mode === 'psi') v.aidTiles = new Set(c.psiShieldTargets(u).map(o => Hex.key(o.pos.q, o.pos.r)));
       if (c.canAttack(u)) {
@@ -165,6 +175,59 @@
         }
       }
       return v;
+    },
+
+    // Vorschau für ein Zielfeld: wen kann ich von dort treffen, wer kann mich dort treffen?
+    previewFor(u, tile, path, reach) {
+      const c = this.combat, CB = PTF.COMBAT;
+      const key = [u.id, tile.q, tile.r, u.act, u.freeHex, u.moveSpare, this.gait, this.weaponOf(u), c.round].join('|');
+      if (this.previewCache && this.previewCache.key === key) return this.previewCache.val;
+      const cost = reach.get(Hex.key(tile.q, tile.r)).cost;
+      const left = u.act - c.movePct(u, this.gait, cost);
+      const facing = Hex.dirToward(path[path.length - 2], path[path.length - 1]);
+      const hit = new Map(), threat = new Map();
+      if (!u.hasAttacked && !u.stunnedNow && this.gait !== 'sprinten') {
+        const runMod = this.gait === 'laufen' && !u.ran ? CB.GAITS.laufen.attackMod : 0;
+        for (const w of c.usableWeapons(u)) {
+          const pct = Math.min(100, Math.floor((left - (w !== u.weapon ? CB.COST.swap : 0)) / 10) * 10);
+          if (pct < CB.MIN_ATTACK) continue;
+          for (const t of c.opponents(u)) {
+            const info = c.attackInfo(u, t, w, { from: tile, pct });
+            if (!info.valid) continue;
+            const ch = Math.max(0, Math.min(100, info.chance + runMod));
+            if (!hit.has(t) || ch > hit.get(t)) hit.set(t, ch);
+          }
+        }
+      }
+      for (const e of c.opponents(u)) {
+        for (const w of c.usableWeapons(e)) {
+          const info = c.attackInfo(e, u, w, { to: tile, defFacing: facing, pct: CB.NORMAL_ATTACK, preview: true });
+          if (info.valid && (!threat.has(e) || info.chance > threat.get(e))) threat.set(e, info.chance);
+        }
+      }
+      const val = { tile, hit, threat, left };
+      this.previewCache = { key, val };
+      return val;
+    },
+
+    // Reichweitenstufen der gewählten Waffe auf alle sichtbaren Felder (vom aktuellen Standort)
+    rangeFor(u, wid) {
+      const W = WEAPONS[wid];
+      const key = [u.id, u.pos.q, u.pos.r, wid].join('|');
+      if (this.rangeCache && this.rangeCache.key === key) return this.rangeCache.val;
+      const val = new Map();
+      if (!W.melee) {
+        const from = this.combat.tileOf(u);
+        for (const t of this.map.list) {
+          if (!this.map.walkable(t) || t === from) continue;
+          const m = Hex.distance(from, t) * PTF.MAP_CONST.HEX_M;
+          const stage = Math.max(1, Math.ceil(m / W.inc));
+          if (stage > W.stages || (W.minRange && m < W.minRange)) continue;
+          if (this.map.lineOfSight(from, t).visible) val.set(Hex.key(t.q, t.r), stage);
+        }
+      }
+      this.rangeCache = { key, val };
+      return val;
     },
 
     preferTiles() {
@@ -219,6 +282,13 @@
         if (e && e.cost > 0) {
           const pct = c.movePct(u, this.gait, e.cost);
           info += `<br><b>${PTF.COMBAT.GAITS[this.gait].name}:</b> ${e.cost} Hex-Kosten = <b>${pct} %</b> Aktivität (bleiben ${u.act - pct} %)`;
+          const path = this.map.pathTo(reach, t);
+          const pv = path.length > 1 ? this.previewFor(u, t, path, reach) : null;
+          if (pv) {
+            const list = m => [...m].sort((a, b) => b[1] - a[1]).map(([o, ch]) => `${esc(o.name)} ${ch} %`).join(', ');
+            info += `<div class="pv-hit">Von hier treffbar: ${pv.hit.size ? list(pv.hit) : '<i>niemand</i>'}</div>`;
+            info += `<div class="pv-threat">Gefahr dort: ${pv.threat.size ? list(pv.threat) : '<i>niemand sieht das Feld</i>'}</div>`;
+          }
         }
       }
       h += `<div class="tip-tile">${info}</div>`;
@@ -261,6 +331,7 @@
       if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
       if (e.key === 'Escape') { if (!$('#modal').hidden) this.closeModal(); else this.mode = 'move'; }
       if (e.key === 'Enter' && this.playerTurn()) this.combat.endTurn();
+      if (e.key === 'r' || e.key === 'R') this.showRange = !this.showRange;
       const pan = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60], a: [60, 0], d: [-60, 0], w: [0, 60], s: [0, -60] }[e.key];
       if (pan) { e.preventDefault(); this.renderer.panBy(pan[0], pan[1]); }
       if (e.key === '+') this.renderer.zoomAt(this.renderer.w / 2, this.renderer.h / 2, 1.2);
@@ -286,6 +357,7 @@
         case 'face': this.mode = this.mode === 'face' ? 'move' : 'face'; break;
         case 'end': c.endTurn(); break;
         case 'crouch': c.doCrouch(u); break;
+        case 'range': this.showRange = !this.showRange; break;
         case 'wait': c.doWait(u); break;
       }
       this.dirty = true;
@@ -345,6 +417,7 @@
           ${reload.map(id => `<button data-act="reload" data-w="${id}" ${dis(c.canDo(u, CB.COST.reload))}>Nachladen (${CB.COST.reload} %)</button>`).join('')}
           <button data-act="aid" class="${this.mode === 'aid' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.aid) && c.firstAidTargets(u).length)} title="Benachbarte Figur behandeln (Erste Hilfe, Mittel)">Erste Hilfe (${CB.COST.aid} %)</button>
           ${Rules.skillRank(u, 'psiWirken') > 0 ? `<button data-act="psi" class="${this.mode === 'psi' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.psi) && c.psiShieldTargets(u).length)} title="Psi wirken, 2 PP: +20 VW für bis zu 3 Runden, Reichweite 4">Psi-Schild (${CB.COST.psi} %)</button>` : ''}
+          <button data-act="range" class="${this.showRange ? 'sel' : ''}" ${dis(true)} title="Taste R. Zeigt, welche Felder die gewählte Waffe von hier sieht – Punktfarbe = Reichweitenstufe: grün ±0, gelb −20, orange −40, rot −60.">Reichweite (R)</button>
           <button data-act="face" class="${this.mode === 'face' ? 'sel' : ''}" ${dis(true)} title="Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ: Rechtsklick auf ein Feld.">Ausrichten</button>
           <button data-act="end" class="end ${u.act < 10 && !freeMove ? 'pulse' : ''}" ${dis(true)} title="Enter. Übrige Aktivität zählt bis zum nächsten Zug als Ausweichen.">Zug beenden${u.act > 0 ? ` (${u.act} % → Ausweichen)` : ''}</button>
         </div>
@@ -355,7 +428,7 @@
       if (this.mode === 'aid') return 'Grün markierte Figur anklicken. Esc bricht ab.';
       if (this.mode === 'psi') return 'Grün markierte Figur für den Psi-Schild anklicken.';
       if (this.mode === 'face') return 'Feld anklicken, in dessen Richtung die Figur schauen soll.';
-      return 'Blaue Felder: Bewegung (Kosten im Tooltip). Rot umrandet: angreifbar. Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.';
+      return 'Maus über ein blaues Feld: grüne Linien = von dort treffbar, rote Linien = wer dich dort treffen kann (mit Chance). Blaue Felder: Bewegung (Kosten im Tooltip). Rot umrandet: angreifbar. Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.';
     },
 
     addLog(text, cls = '') {

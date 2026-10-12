@@ -19,7 +19,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 - **Erste Hilfe** auf Leicht, Medikit +20 (3×); die KI versorgt Verwundete.
 - **Soundeffekte** (synthetisch, Web Audio), abschaltbar über „Ton“.
 - **Blickrichtung**: Sichtfeld 180°; Angriffe von der Flanke (+15) oder von hinten (+30) überraschen das Ziel (kein Ausweichen, kein Schild; Kampfsinn-Probe halbiert).
-- Crew (Sturmgewehr, 2× Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
+- Crew (Sturmgewehr, 2× Laserkarabiner + Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
 - Nach dem Kampf: Erfahrung pro benutzter Fertigkeit, Ränge steigern, 3 freie EP pro Figur. Der Fortschritt wird im Browser gespeichert (`localStorage`).
 
 **Bedienung**
@@ -30,6 +30,8 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | Angreifen | Aktivität für den Angriff wählen (20–100 %), rot umrandeten Gegner anklicken; Maus darüber zeigt Trefferchance und alle Modifikatoren |
 | Feuerbereitschaft / Nachladen | Buttons im rechten Panel |
 | Drehen | Rechtsklick auf ein Feld oder „Ausrichten“ |
+| Vorschau | Maus über ein blaues Feld: grüne Linien/◎ = von dort treffbar, rote Linien/⚠ = wer dich dort treffen kann |
+| Reichweite | Taste R oder Button: Punkte auf allen Feldern, die die gewählte Waffe sieht (grün/gelb/orange/rot = Reichweitenstufe 1–4) |
 | Ducken / Abwarten | Buttons im Panel; Einspringen über „einspringen“ in der Initiative-Liste |
 | Waffe wählen | Waffen-Buttons im rechten Panel |
 | Erste Hilfe / Psi-Schild | Button, dann grün markierte Figur anklicken |

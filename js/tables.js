@@ -44,6 +44,7 @@
     faeuste: { name: 'Fäuste', skill: 'waffenlos', table: 'wucht', melee: true, max: 110, fumble: 2, dmg: 0.5 },
     vibroklinge: { name: 'Vibroklinge', skill: 'einhand', table: 'klinge', melee: true, max: 150, fumble: 3, dmg: 1.1 },
     energiehammer: { name: 'Energiehammer', skill: 'zweihand', table: 'wucht', melee: true, max: 150, fumble: 5, dmg: 1.4 },
+    laserkarabiner: { name: 'Laserkarabiner', skill: 'pistolen', table: 'strahl', inc: 15, stages: 4, max: 140, fumble: 2, dmg: 0.9 },
     laserpistole: { name: 'Laserpistole', skill: 'pistolen', table: 'strahl', inc: 10, stages: 4, max: 130, fumble: 2, dmg: 0.8 },
     sturmgewehr: { name: 'Sturmgewehr', skill: 'gewehre', table: 'projektil', inc: 25, stages: 4, max: 150, fumble: 3, dmg: 1.0 },
     mg: { name: 'Schweres MG (Feuerstoß)', skill: 'schnellfeuer', table: 'projektil', inc: 20, stages: 4, max: 150, fumble: 5, dmg: 1.1, ob: 15 },
