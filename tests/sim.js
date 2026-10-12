@@ -70,6 +70,28 @@ console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / 
   assert.deepStrictEqual([20, 50, 60, 70, 100].map(m), [-40, -10, 0, 5, 20]);
 }
 
+// Abwarten und Einspringen, Ducken
+{
+  PTF.Dice.setSeed(7);
+  const c = new PTF.Combat(PTF.generateMap(4711, 'mittel'), PTF.CREW_TEMPLATE, PTF.ENEMY_TEMPLATE, () => {});
+  c.start();
+  const first = c.current, second = c.order[c.turnIdx + 1];
+  assert.ok(c.doWait(first), 'Abwarten möglich');
+  assert.strictEqual(c.current, second, 'nach dem Abwarten ist der Nächste dran');
+  assert.strictEqual(c.order[c.order.length - 1], first, 'Wartender steht am Ende');
+  assert.ok(c.requestJump(first));
+  c.endTurn();
+  assert.strictEqual(c.current, first, 'Einsprung direkt nach dem laufenden Zug');
+  assert.strictEqual(first.act, 90, 'Abwarten kostet 10 %');
+  assert.ok(!c.canWait(first), 'nur einmal pro Runde');
+  const g = PTF.COMBAT;
+  const budget = c.moveBudget(first, 'gehen');
+  assert.ok(c.doCrouch(first) && first.crouched && first.act === 80);
+  assert.strictEqual(c.moveBudget(first, 'gehen'), Math.floor(8 * 0.5), 'geduckt: 1 Hex je 20 %, keine Gratis-Felder');
+  assert.ok(!c.canMove(first, 'laufen'), 'geduckt nicht laufen');
+  assert.ok(budget > c.moveBudget(first, 'gehen'));
+}
+
 const fights = Number(process.argv[2] || 200);
 const stats = { sieg: 0, niederlage: 0, rounds: [], stuck: 0, crewDead: 0, crewKo: 0 };
 const t0 = Date.now();

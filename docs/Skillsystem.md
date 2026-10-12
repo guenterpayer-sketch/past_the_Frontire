@@ -294,14 +294,23 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 
 | Handlung | Aktivität |
 |---|---|
-| Erste Hilfe (Mittel) | 50 % |
+| Erste Hilfe (Leicht, +20 mit Medikit) | 50 % |
+| Ducken / Aufstehen | 10 % |
+| Abwarten (siehe 7.2) | 10 % |
 | Psi-Schild (Psi wirken, Mittel, 2 PP): +20 VW und +20 Psi-VW für 1–3 Runden | 40 % |
 | Nachladen (Raketenwerfer: 1 Schuss pro Ladung, 2 insgesamt) | 30 % |
 | Aufstehen | 30 % |
 | Waffe wechseln | 10 % |
 | Drehen (Blickrichtung ändern) | kostenlos, jederzeit im eigenen Zug |
 
-### 7.2 Feuerbereitschaft und Blickrichtung
+### 7.2 Ducken, Abwarten, Feuerbereitschaft und Blickrichtung
+
+**Ducken** (10 %, Aufstehen ebenfalls 10 %): Geduckte Figuren bekommen +15 VW gegen Fernkampf und schießen ruhiger (+10 AW im Fernkampf). Geduckt hinter halber Deckung zählt als **volle Deckung**. Nahkämpfer bekommen +10 AW gegen Geduckte. Geduckt kann man nur gehen, mit halber Geschwindigkeit (1 Hex je 20 %, ohne Gratis-Felder).
+
+**Abwarten** (10 %): Solange eine Figur in dieser Runde noch nichts getan hat, kann sie ihren Zug nach hinten schieben. Nach jedem beliebigen anderen Zug kann sie einspringen (im Spiel über „einspringen“ in der Initiative-Liste); wer nicht einspringt, handelt am Rundenende. Einmal pro Runde. Beim Einspringen stehen 10 % weniger Aktivität zur Verfügung; während des Wartens zählt die noch freie Aktivität als Ausweichreserve.
+
+**Erste Hilfe:** Probe auf **Leicht** (+20). Jedes Crewmitglied trägt ein **Medikit** mit 3 Anwendungen (+20 auf die Probe). Auch die KI versorgt bewusstlose oder stark blutende Kameraden.
+
 
 **Feuerbereitschaft:** Wer noch nicht angegriffen hat und mindestens 30 % übrig hat, kann die gesamte restliche Aktivität zurückhalten; der Zug endet damit. Handelt danach ein Gegner im Sichtfeld und in Reichweite (bewegt sich Feld für Feld oder setzt zum Angriff an), wird sofort geschossen: Modifikator nach den zurückgehaltenen Prozent (Tabelle oben) und −10 für die Reaktion. Ein Treffer kann den Gegner mitten in der Bewegung stoppen. Einmal pro Runde; die Bereitschaft endet mit dem nächsten eigenen Zug. Danach ist keine Ausweichreserve mehr übrig.
 
@@ -323,6 +332,8 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 - Fässer, Barrieren, Säulen und Wände sind nicht begehbar
 
 ### 7.3 Schauplatz Lagerhalle (Prototyp)
+
+Hindernisse (Regalreihen, Container, Barrieren, Kistenwände) stehen waagerecht oder senkrecht, damit es Deckung in beide Richtungen gibt.
 
 Die Größe wird im Testmodus pro Mission zufällig gewählt: **klein ca. 30×21 m**, **mittel ca. 45×30 m**, **groß ca. 60×40 m**. Die Halle enthält:
 - **Galerie / Laufstege** in 4,5 m Höhe an der Rückwand (ab „mittel“ auch an der rechten Wand), erreichbar über Treppen und Leitern

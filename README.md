@@ -15,6 +15,9 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 - **Deckung**: halb (+30 VW, Kisten/Fässer/Barrieren) und voll (+50 VW, Container/Regale/Säulen), zählt in den 2 Feldern vor dem Ziel; neben voller Deckung kann man um die Ecke schießen. Von oben herab sinkt die Deckung um eine Stufe.
 - **Aktivitätssystem im RMSS-Stil**: Runde = 10 s, jede Figur hat 100 % Aktivität und teilt sie frei auf (Gehen/Laufen/Sprinten, Angriff mit 20–100 % = −40 bis +20, Erste Hilfe, Nachladen …). Übrige Aktivität ist Ausweichreserve. Initiative jede Runde neu, Crew und Gegner handeln gemischt.
 - **Feuerbereitschaft**: Aktivität zurückhalten und auf den ersten Gegner schießen, der im Sichtfeld handelt.
+- **Ducken** (+15 VW, +10 AW im Fernkampf, halbe Deckung wird voll; langsamer), **Abwarten** mit Einspringen nach jedem anderen Zug (10 %).
+- **Erste Hilfe** auf Leicht, Medikit +20 (3×); die KI versorgt Verwundete.
+- **Soundeffekte** (synthetisch, Web Audio), abschaltbar über „Ton“.
 - **Blickrichtung**: Sichtfeld 180°; Angriffe von der Flanke (+15) oder von hinten (+30) überraschen das Ziel (kein Ausweichen, kein Schild; Kampfsinn-Probe halbiert).
 - Crew (Sturmgewehr, 2× Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
 - Nach dem Kampf: Erfahrung pro benutzter Fertigkeit, Ränge steigern, 3 freie EP pro Figur. Der Fortschritt wird im Browser gespeichert (`localStorage`).
@@ -27,6 +30,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | Angreifen | Aktivität für den Angriff wählen (20–100 %), rot umrandeten Gegner anklicken; Maus darüber zeigt Trefferchance und alle Modifikatoren |
 | Feuerbereitschaft / Nachladen | Buttons im rechten Panel |
 | Drehen | Rechtsklick auf ein Feld oder „Ausrichten“ |
+| Ducken / Abwarten | Buttons im Panel; Einspringen über „einspringen“ in der Initiative-Liste |
 | Waffe wählen | Waffen-Buttons im rechten Panel |
 | Erste Hilfe / Psi-Schild | Button, dann grün markierte Figur anklicken |
 | Abbrechen | Esc |
@@ -54,5 +58,6 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | `js/ai.js` | Gegner-KI |
 | `js/render.js` | isometrische Canvas-Grafik |
 | `js/ui.js` | Steuerung, Panels, Charakterbogen, Tabellen, Kampfende |
+| `js/audio.js` | Soundeffekte (Web Audio, ohne Dateien) |
 
 Test (Regeln + 200 Kämpfe KI gegen KI): `node tests/sim.js`

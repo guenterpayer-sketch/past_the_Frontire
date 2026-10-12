@@ -220,57 +220,71 @@
       for (let row = mid - 1; row <= mid; row++) { const t = m.off(cols - 1, row); t.terrain = 'wand'; }
     }
 
-    // 2. Hochregale: parallele Reihen mit Gängen, je eine Leiter am Ende
+    // Linie aus Feldern ab (c0, r0): waagerecht (gleiche Reihe) oder senkrecht (gleiche Spalte, Zickzack im Hexraster)
+    const lineTiles = (c0, r0, len, vertical, width = 1) => {
+      const out = [];
+      for (let w = 0; w < width; w++) {
+        for (let k = 0; k < len; k++) out.push(vertical ? m.off(c0 + w, r0 + k) : m.off(c0 + k, r0 + w));
+      }
+      return out;
+    };
+
+    // 2. Hochregale: parallele Reihen mit Gängen (waagerecht oder senkrecht), je eine Leiter am Ende
     const shelfRows = size.id === 'klein' ? 2 : size.id === 'mittel' ? 3 : 5;
     const leftHalf = rng() < 0.5;
     const sx0 = leftHalf ? 6 : Math.floor(cols / 2) + 1, sx1 = leftHalf ? Math.floor(cols / 2) - 1 : cols - 7;
-    let sr = ri(5, 6);
-    for (let i = 0; i < shelfRows && sr < rows - 3; i++, sr += 3) {
-      const len = Math.min(ri(4, 7), sx1 - sx0);
-      if (len < 3) break;
-      const c0 = ri(sx0, sx1 - len);
-      const tiles = [];
-      for (let c = c0; c < c0 + len; c++) tiles.push(m.off(c, sr));
+    const shelfVertical = rng() < 0.5;
+    for (let i = 0; i < shelfRows; i++) {
+      const len = ri(4, 7);
+      let tiles;
+      if (shelfVertical) {
+        const c = sx0 + 1 + i * 3, r0 = ri(5, Math.max(5, rows - 3 - len));
+        if (c > sx1) break;
+        tiles = lineTiles(c, r0, len, true);
+      } else {
+        const r = ri(5, 6) + i * 3, l = Math.min(len, sx1 - sx0);
+        if (r >= rows - 3 || l < 3) break;
+        tiles = lineTiles(ri(sx0, sx1 - l), r, l, false);
+      }
       if (!tiles.every(free)) continue;
       tiles.forEach(t => set(t, 'regal', 3));
-      const lad = m.off(rng() < 0.5 ? c0 - 1 : c0 + len, sr);
+      const first = tiles[0], last = tiles[tiles.length - 1];
+      const lad = shelfVertical ? m.off(first.col, rng() < 0.5 ? first.row - 1 : last.row + 1)
+                                : m.off(rng() < 0.5 ? first.col - 1 : last.col + 1, first.row);
       if (free(lad)) set(lad, 'leiter', 0);
     }
 
-    // 3. Container (3 Felder lang, 1–2 breit), teils doppelt gestapelt
+    // 3. Container (3 Felder lang, 1–2 breit, waagerecht oder senkrecht), teils doppelt gestapelt
     const nCont = size.id === 'klein' ? 3 : size.id === 'mittel' ? 6 : 11;
     for (let i = 0, tries = 0; i < nCont && tries < 200; tries++) {
-      const wide = rng() < 0.4;
-      const c0 = ri(5, cols - 9), r0 = ri(4, rows - 3 - (wide ? 1 : 0));
-      const tiles = [];
-      for (let dr = 0; dr <= (wide ? 1 : 0); dr++) for (let c = c0; c < c0 + 3; c++) tiles.push(m.off(c, r0 + dr));
+      const wide = rng() < 0.4, vertical = rng() < 0.5;
+      const c0 = ri(5, cols - 9), r0 = ri(4, rows - 5);
+      const tiles = lineTiles(c0, r0, 3, vertical, wide ? 2 : 1);
       if (!tiles.every(t => free(t) && !crewZone(t)) || !ringFree(tiles)) continue;
       const h = rng() < 0.25 ? 4 : 2;
       const color = CONTAINER_COLORS[ri(0, CONTAINER_COLORS.length - 1)];
       tiles.forEach(t => set(t, 'container', h, { color }));
       // Aufstieg: Leiter oder Kiste an einem Ende
-      const endT = m.off(rng() < 0.5 ? c0 - 1 : c0 + 3, r0);
+      const endT = vertical ? m.off(c0, rng() < 0.5 ? r0 - 1 : r0 + 3) : m.off(rng() < 0.5 ? c0 - 1 : c0 + 3, r0);
       if (free(endT)) { if (h === 4 || rng() < 0.5) set(endT, 'leiter', 0); else set(endT, 'kiste', 1); }
       i++;
     }
 
-    // 4. Kleinzeug: Kistenstapel, Fässer, Betonbarrieren, Säulen
+    // 4. Kleinzeug: Kistenstapel, Fässer, Betonbarrieren (Linien eher senkrecht, quer zur Schussrichtung), Säulen
     const area = cols * rows;
-    const scatter = (terrain, h, count, len) => {
+    const scatter = (terrain, h, count, minLen, maxLen) => {
       for (let i = 0, tries = 0; i < count && tries < count * 20; tries++) {
-        const c0 = ri(2, cols - 3), r0 = ri(4, rows - 2);
-        const dir = [[1, 0], [0, 1]][ri(0, 1)];
-        const tiles = [];
-        for (let k = 0; k < len; k++) tiles.push(m.off(c0 + dir[0] * k, r0 + dir[1] * k));
+        const len = ri(minLen, maxLen);
+        const tiles = lineTiles(ri(2, cols - 3), ri(4, rows - 1 - len), len, rng() < 0.65);
         if (!tiles.every(free)) continue;
         tiles.forEach(t => set(t, terrain, h));
         i++;
       }
     };
-    scatter('kiste', 1, Math.round(area / 40), 1);
-    scatter('kiste', 1, Math.round(area / 90), 2);
-    scatter('fass', 0, Math.round(area / 80), 1);
-    scatter('barriere', 0, Math.round(area / 110), 3);
+    scatter('kiste', 1, Math.round(area / 40), 1, 1);
+    scatter('kiste', 1, Math.round(area / 80), 2, 4);
+    scatter('fass', 0, Math.round(area / 80), 1, 2);
+    scatter('barriere', 0, Math.round(area / 90), 3, 5);
     for (let c = 7; c < cols - 5; c += 7) {
       for (let r = 6; r < rows - 2; r += 6) { const t = m.off(c, r); if (free(t)) set(t, 'saeule', 0); }
     }
@@ -297,5 +311,5 @@
   PTF.BattleMap = BattleMap;
   PTF.MAP_SIZES = SIZES;
   PTF.generateMap = generate;
-  PTF.MAP_CONST = { HEX_M, EYE, AIM, FULL, HALF };
+  PTF.MAP_CONST = { HEX_M, EYE, AIM, FULL, HALF, COVER_BONUS };
 })(window.PTF = window.PTF || {});

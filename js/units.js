@@ -38,10 +38,10 @@
   const ENEMIES = [
     { id: 'e1', name: 'Plünderer', letter: 'P', role: 'Söldner', color: '#c0392b',
       attrs: { STA: 65, GEW: 65, KOO: 78, KON: 70, INT: 45, EMP: 30, MEN: 55 },
-      skills: sk({ gewehre: 7, ausweichen: 4, kampfsinn: 3 }), weapons: ['sturmgewehr'], armor: 'leicht' },
+      skills: sk({ gewehre: 7, ausweichen: 4, kampfsinn: 3, ersteHilfe: 5 }), weapons: ['sturmgewehr'], armor: 'leicht' },
     { id: 'e2', name: 'Plünderer', letter: 'P', role: 'Söldner', color: '#c0392b',
       attrs: { STA: 70, GEW: 60, KOO: 74, KON: 72, INT: 40, EMP: 30, MEN: 60 },
-      skills: sk({ gewehre: 7, ausweichen: 4, kampfsinn: 3 }), weapons: ['sturmgewehr'], armor: 'leicht' },
+      skills: sk({ gewehre: 7, ausweichen: 4, kampfsinn: 3, ersteHilfe: 3 }), weapons: ['sturmgewehr'], armor: 'leicht' },
     { id: 'e3', name: 'Brecher', letter: 'B', role: 'Schwerer Schütze', color: '#922b21',
       attrs: { STA: 90, GEW: 45, KOO: 70, KON: 92, INT: 40, EMP: 25, MEN: 60 },
       skills: sk({ schnellfeuer: 8, ausweichen: 1, kampfsinn: 3 }), weapons: ['mg'], armor: 'schwer' },
@@ -79,6 +79,9 @@
     u.reserve = 50; // vor dem ersten eigenen Zug: halbe Aktivität als Ausweichreserve
     u.act = 0;
     u.overwatch = null;
+    u.crouched = false;
+    u.waiting = false;
+    u.medkit = team === 'crew' ? 3 : 0; // Medikit: +20 auf Erste Hilfe, 3 Anwendungen
     u.weapon = u.weapons[0];
     u.xpLog = {};
     u.kills = 0;

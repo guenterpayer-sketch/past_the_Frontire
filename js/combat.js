@@ -13,7 +13,9 @@
     laufen: { name: 'Laufen', pace: 2, attackMod: -20 },
     sprinten: { name: 'Sprinten', pace: 3, noAttack: true },
   };
-  const COST = { aid: 50, psi: 40, reload: 30, stand: 30, swap: 10 };
+  const COST = { aid: 50, psi: 40, reload: 30, stand: 30, swap: 10, crouch: 10, wait: 10 };
+  const CROUCH = { db: 15, ob: 10, meleeOb: 10 }; // geduckt: +15 VW gegen Fernkampf, +10 AW im Fernkampf, Nahkämpfer +10 AW
+  const MEDKIT_BONUS = 20;
   const MIN_ATTACK = 20, NORMAL_ATTACK = 60, MIN_OVERWATCH = 30, REACTION_MOD = -10;
   const FACING_MOD = { flanke: 15, ruecken: 30 };
 
@@ -56,6 +58,7 @@
 
     startRound() {
       this.round++;
+      this.jumpQueue = [];
       this.log(`— Runde ${this.round} (${(this.round - 1) * 10}–${this.round * 10} s) —`, 'round');
       for (const u of this.units) {
         if (u.state === 'dead') continue;
@@ -83,12 +86,32 @@
 
     nextTurn() {
       if (this.checkEnd()) return;
+      // wartende Figur, die einspringen will, kommt direkt als Nächste
+      while (this.jumpQueue.length) {
+        const j = this.jumpQueue.shift();
+        const idx = this.order.indexOf(j);
+        if (j.waiting && j.state === 'ok' && idx > this.turnIdx) {
+          this.order.splice(idx, 1);
+          this.order.splice(this.turnIdx + 1, 0, j);
+          this.emit({ type: 'order' });
+          break;
+        }
+      }
       do { this.turnIdx++; } while (this.turnIdx < this.order.length && this.order[this.turnIdx].state !== 'ok');
       if (this.turnIdx >= this.order.length) { this.startRound(); return; }
       this.beginTurn(this.current);
     }
 
     beginTurn(u) {
+      if (u.waiting) {
+        // Einsprung nach dem Abwarten: Zustand vom Zugbeginn bleibt, Abwarten kostet 10 %
+        u.waiting = false;
+        u.act = u.waitAct - COST.wait;
+        this.log(`${u.name} springt ein (−${COST.wait} % fürs Abwarten).`);
+        this.emit({ type: 'turn', unit: u });
+        return;
+      }
+      u.acted = false;
       u.act = 100;
       u.hasAttacked = false;
       u.ran = false;
@@ -100,6 +123,32 @@
       if (u.prone) { u.act -= COST.stand; u.prone = false; this.log(`${u.name} rappelt sich auf (−${COST.stand} %).`); }
       if (u.stunnedNow) { u.act = Math.min(u.act, 50); this.log(`${u.name} ist betäubt: höchstens 50 % Aktivität, kein Angriff.`); }
       this.emit({ type: 'turn', unit: u });
+    }
+
+    // Abwarten: Zug nach hinten schieben, nur solange die Figur in dieser Runde noch nichts getan hat
+    canWait(u) { return this.active(u) && !u.acted && !u.waiting && u.waitRound !== this.round && u.act >= COST.wait; }
+
+    doWait(u) {
+      if (!this.canWait(u)) return false;
+      u.waiting = true;
+      u.waitRound = this.round;
+      u.waitAct = u.act;
+      u.reserve = u.act - COST.wait; // wachsam: die noch freie Aktivität zählt als Ausweichreserve
+      this.order.splice(this.turnIdx, 1);
+      this.order.push(u);
+      this.turnIdx--;
+      this.log(`${u.name} wartet ab.`);
+      this.emit({ type: 'wait', unit: u });
+      this.nextTurn();
+      return true;
+    }
+
+    // wartende Figur springt nach dem laufenden Zug ein
+    requestJump(u) {
+      if (!u.waiting || u.state !== 'ok' || this.result || this.jumpQueue.includes(u)) return false;
+      this.jumpQueue.push(u);
+      this.log(`${u.name} springt nach diesem Zug ein.`);
+      return true;
     }
 
     endTurn() {
@@ -137,13 +186,16 @@
 
     // ---------- Bewegung ----------
     // verfügbare Hexfelder bei dieser Gangart; actLimit begrenzt die dafür verwendbare Aktivität (KI-Planung)
+    // Hexfelder je 10 %; geduckt nur Gehen mit halber Geschwindigkeit (1 Hex je 20 %)
+    pace(u, gait) { return u.crouched ? (gait === 'gehen' ? 0.5 : 0) : GAITS[gait].pace; }
+    freeOf(u) { return u.crouched ? 0 : u.freeHex; }
     moveBudget(u, gait, actLimit = u.act) {
-      return u.freeHex + u.moveSpare + Math.floor(Math.max(0, actLimit) / 10) * GAITS[gait].pace;
+      return this.freeOf(u) + u.moveSpare + Math.floor(Math.floor(Math.max(0, actLimit) / 10) * this.pace(u, gait));
     }
     // Aktivität in %, die eine Strecke mit diesen Wegkosten kostet
     movePct(u, gait, cost) {
-      const rest = Math.max(0, cost - u.freeHex - u.moveSpare);
-      return Math.ceil(rest / GAITS[gait].pace) * 10;
+      const rest = Math.max(0, cost - this.freeOf(u) - u.moveSpare);
+      return Math.ceil(rest / this.pace(u, gait)) * 10;
     }
     // darf die Figur gerade handeln? (am Zug und kampffähig)
     active(u) { return this.current === u && !this.result && u.state === 'ok'; }
@@ -151,6 +203,7 @@
     canMove(u, gait) {
       if (!this.active(u)) return false;
       if (gait === 'sprinten' && u.hasAttacked) return false;
+      if (!this.pace(u, gait)) return false;
       return this.moveBudget(u, gait) > 0;
     }
     moveRange(u, gait = 'gehen', actLimit) {
@@ -169,10 +222,11 @@
       const pct = this.movePct(u, gait, cost);
       // bezahlen: zuerst Gratis-Felder (GEW), dann Restfelder, dann Aktivität
       let need = cost;
-      const free = Math.min(u.freeHex, need); u.freeHex -= free; need -= free;
+      const free = Math.min(this.freeOf(u), need); u.freeHex -= free; need -= free;
       const spare = Math.min(u.moveSpare, need); u.moveSpare -= spare; need -= spare;
       u.act -= pct;
-      u.moveSpare += (pct / 10) * GAITS[gait].pace - need;
+      u.moveSpare += (pct / 10) * this.pace(u, gait) - need;
+      u.acted = true;
       if (gait === 'laufen') u.ran = true;
       if (gait === 'sprinten') u.sprinted = true;
       // Schritt für Schritt gehen: Gegner in Feuerbereitschaft können unterwegs schießen
@@ -229,7 +283,9 @@
       if (def.shield && !surprised) mods.push({ label: 'Schild', val: 10 + Math.max(0, Math.floor(Rules.rankBonus(Rules.skillRank(def, 'schild')) / 2)) });
       if (!w.melee) {
         const cov = this.map.cover(to, from);
-        if (cov) mods.push({ label: `${cov.level === 2 ? 'Volle' : 'Halbe'} Deckung (${cov.label})`, val: cov.bonus });
+        if (cov && cov.level === 1 && def.crouched) mods.push({ label: `Volle Deckung (geduckt hinter ${cov.label})`, val: PTF.MAP_CONST.COVER_BONUS[2] });
+        else if (cov) mods.push({ label: `${cov.level === 2 ? 'Volle' : 'Halbe'} Deckung (${cov.label})`, val: cov.bonus });
+        if (def.crouched) mods.push({ label: 'geduckt', val: CROUCH.db });
       }
       if (def.psiShield > 0) mods.push({ label: 'Psi-Schild', val: 20 });
       return mods;
@@ -271,6 +327,8 @@
       if (att.ran && !opts.reaction) ob.push({ label: 'gelaufen', val: GAITS.laufen.attackMod });
       const sector = Hex.sector(to, def.facing, from);
       if (FACING_MOD[sector]) ob.push({ label: sector === 'flanke' ? 'Flanke' : 'Rücken', val: FACING_MOD[sector] });
+      if (att.crouched && !w.melee) ob.push({ label: 'geduckt (ruhiger Anschlag)', val: CROUCH.ob });
+      if (def.crouched && w.melee) ob.push({ label: 'Ziel geduckt', val: CROUCH.meleeOb });
       if (w.ob) ob.push({ label: 'Feuerstoß', val: w.ob });
       if (att.nextAttackMalus) ob.push({ label: 'Waffe klemmt', val: att.nextAttackMalus });
       if (att.malus) ob.push({ label: 'Wunden', val: att.malus });
@@ -303,6 +361,7 @@
       if (wid !== u.weapon) { u.weapon = wid; this.log(`${u.name} wechselt zu ${WEAPONS[wid].name} (−${COST.swap} %).`); }
       u.act -= cost;
       u.hasAttacked = true;
+      u.acted = true;
       u.facing = Hex.dirToward(u.pos, target.pos);
       const info = this.attackInfo(u, target, wid, { pct, sense: this.senseCheck(u, target) });
       if (!info.valid) return true; // Ziel ist durch die Reaktion kampfunfähig geworden o. Ä.
@@ -360,6 +419,7 @@
       if (!this.canOverwatch(u, wid)) return false;
       if (wid !== u.weapon) { u.act -= COST.swap; u.weapon = wid; }
       u.overwatch = { wid, pct: Math.min(100, Math.floor(u.act / 10) * 10) };
+      u.acted = true;
       this.log(`${u.name} hält ${u.overwatch.pct} % in Feuerbereitschaft (${WEAPONS[wid].name}).`);
       u.act = 0;
       return true;
@@ -375,6 +435,7 @@
         if (!info.valid) continue;
         w.overwatch = null;
         w.reserve = 0;
+        this.emit({ type: 'overwatchFire', unit: w });
         w.facing = Hex.dirToward(w.pos, mover.pos);
         info = this.attackInfo(w, mover, wid, { pct, reaction: true, sense: this.senseCheck(w, mover) });
         if (info.valid) this.resolveAttack(w, mover, info, 'Feuerbereitschaft! ');
@@ -443,6 +504,19 @@
       this.checkEnd();
     }
 
+    // ---------- Ducken ----------
+    canCrouch(u) { return this.canDo(u, COST.crouch); }
+
+    doCrouch(u) {
+      if (!this.canCrouch(u)) return false;
+      u.act -= COST.crouch;
+      u.crouched = !u.crouched;
+      u.acted = true;
+      this.log(`${u.name} ${u.crouched ? 'duckt sich' : 'steht auf'} (−${COST.crouch} %).`);
+      this.emit({ type: 'crouch', unit: u });
+      return true;
+    }
+
     // ---------- Sonstige Handlungen ----------
     canDo(u, cost) { return this.active(u) && u.act >= cost; }
 
@@ -451,8 +525,10 @@
     doReload(u, wid) {
       if (!this.canDo(u, COST.reload) || !this.reloadable(u).includes(wid)) return false;
       u.act -= COST.reload;
+      u.acted = true;
       const n = Math.min(WEAPONS[wid].mag - u.loaded[wid], u.ammo[wid]);
       u.loaded[wid] += n; u.ammo[wid] -= n;
+      this.emit({ type: 'reload', unit: u });
       this.log(`${u.name} lädt ${WEAPONS[wid].name} nach (−${COST.reload} %, Reserve ${u.ammo[wid]}).`);
       return true;
     }
@@ -465,8 +541,10 @@
     doFirstAid(u, target) {
       if (!this.canDo(u, COST.aid) || !this.firstAidTargets(u).includes(target)) return false;
       u.act -= COST.aid;
+      u.acted = true;
       const mods = u.malus ? [{ label: 'Wunden', val: u.malus }] : [];
-      const m = Rules.maneuver(u, 'ersteHilfe', 'mittel', mods);
+      if (u.medkit > 0) { mods.push({ label: 'Medikit', val: MEDKIT_BONUS }); u.medkit--; }
+      const m = Rules.maneuver(u, 'ersteHilfe', 'leicht', mods);
       let fx;
       switch (m.result.id) {
         case 'herausragend': { const h = Dice.d(10) + Dice.d(10); target.bleed = 0; target.stun = 0; this.heal(target, h); fx = `Blutung gestoppt, +${h} TP, Betäubung aufgehoben`; break; }
@@ -493,6 +571,7 @@
     doPsiShield(u, target) {
       if (!this.canDo(u, COST.psi) || !this.psiShieldTargets(u).includes(target)) return false;
       u.act -= COST.psi; u.pp -= 2;
+      u.acted = true;
       const m = Rules.maneuver(u, 'psiWirken', 'mittel', u.malus ? [{ label: 'Wunden', val: u.malus }] : []);
       const rounds = { herausragend: 3, erfolg: 2, teilerfolg: 1 }[m.result.id] || 0;
       if (rounds) target.psiShield = Math.max(target.psiShield, rounds);
@@ -504,5 +583,5 @@
   }
 
   PTF.Combat = Combat;
-  PTF.COMBAT = { GAITS, COST, MIN_ATTACK, NORMAL_ATTACK, MIN_OVERWATCH, REACTION_MOD, FACING_MOD, activityMod };
+  PTF.COMBAT = { GAITS, COST, CROUCH, MEDKIT_BONUS, MIN_ATTACK, NORMAL_ATTACK, MIN_OVERWATCH, REACTION_MOD, FACING_MOD, activityMod };
 })(window.PTF = window.PTF || {});

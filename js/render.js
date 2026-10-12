@@ -262,7 +262,7 @@
       ctx.beginPath();
       ctx.moveTo(...pt(23, 0)); ctx.lineTo(...pt(13, -6)); ctx.lineTo(...pt(13, 6));
       ctx.closePath(); ctx.fill();
-      const bodyH = 28, w = 18, by = y - bodyH;
+      const bodyH = u.crouched ? 19 : 28, w = 18, by = y - bodyH;
       ctx.fillStyle = enemy ? '#4a1414' : '#122a44';
       roundRect(ctx, x - w / 2, by, w, bodyH, 7); ctx.fill();
       ctx.fillStyle = u.color;
@@ -270,7 +270,7 @@
       ctx.strokeStyle = enemy ? '#ff5d5d' : '#5db7ff'; ctx.lineWidth = 2;
       roundRect(ctx, x - w / 2, by, w, bodyH, 7); ctx.stroke();
       if (u.shield) { ctx.fillStyle = '#9fb3c8'; ctx.beginPath(); ctx.ellipse(x - w / 2 - 1, by + 16, 4, 8, 0, 0, 7); ctx.fill(); }
-      text(ctx, u.letter, x, by + 15, '#111', 12, 'bold');
+      text(ctx, u.letter, x, by + bodyH / 2 + 1, '#111', 12, 'bold');
       if (u.psiShield > 0) { ctx.strokeStyle = 'rgba(190,140,255,0.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(x, by + 13, 15, 19, 0, 0, 7); ctx.stroke(); }
       this.drawBars(ctx, u, x, by);
     }
@@ -291,7 +291,7 @@
     // Bei sichtbaren Figuren liegt sie deckungsgleich auf der echten Figur und fällt nicht auf.
     drawGhost(ctx, u, p, view) {
       const enemy = u.team === 'enemy';
-      const w = 18, bodyH = 28, x = p.x, by = p.y - bodyH;
+      const w = 18, bodyH = u.crouched ? 19 : 28, x = p.x, by = p.y - bodyH;
       const edge = view.targets && view.targets.has(u) ? '#ff3030' : view.current === u ? '#ffd34d' : enemy ? '#ff5d5d' : '#5db7ff';
       ctx.save();
       ctx.globalAlpha = 0.5;
@@ -301,7 +301,7 @@
       ctx.strokeStyle = edge; ctx.lineWidth = 2.5;
       roundRect(ctx, x - w / 2, by, w, bodyH, 7); ctx.stroke();
       ctx.restore();
-      text(ctx, u.letter, x, by + 15, '#111', 12, 'bold');
+      text(ctx, u.letter, x, by + bodyH / 2 + 1, '#111', 12, 'bold');
       this.drawBars(ctx, u, x, by);
     }
 

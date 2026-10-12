@@ -81,10 +81,31 @@
     return { type: 'face', dir: Hex.dirToward(u.pos, best.e.pos) };
   }
 
+  // Erste Hilfe: benachbart sofort, sonst hinlaufen, wenn danach noch 50 % übrig sind
+  function firstAidStep(c, u, avail) {
+    const cost = PTF.COMBAT.COST.aid;
+    if (avail < cost || (PTF.Rules.skillRank(u, 'ersteHilfe') < 1 && !(u.medkit > 0))) return null;
+    const needs = c.units.filter(o => o !== u && o.team === u.team && o.state !== 'dead' && (o.state === 'ko' || o.bleed >= 2));
+    if (!needs.length) return null;
+    const near = c.firstAidTargets(u).filter(o => needs.includes(o));
+    if (near.length) return { type: 'aid', target: near.sort((a, b) => (a.state === 'ko' ? -1 : 0) - (b.state === 'ko' ? -1 : 0))[0] };
+    if (u._moved || !c.canMove(u, 'gehen')) return null;
+    let best = null;
+    for (const { tile, cost: mc } of c.moveRange(u, 'gehen', avail - cost).values()) {
+      if (avail - c.movePct(u, 'gehen', mc) < cost) continue;
+      for (const o of needs) {
+        if (Hex.distance(tile, o.pos) !== 1) continue;
+        const score = (o.state === 'ko' ? 20 : 0) + safety(c, u, tile) * 10 - mc;
+        if (!best || score > best.score) best = { score, tile };
+      }
+    }
+    return best ? { type: 'move', tile: best.tile, gait: 'gehen' } : null;
+  }
+
   function planStep(c, u) {
     if (c.current !== u || c.result || u.state !== 'ok') return { type: 'end' };
     const stamp = c.round + ':' + c.turnIdx;
-    if (u._stamp !== stamp) { u._stamp = stamp; u._moved = false; u._faced = false; }
+    if (u._stamp !== stamp) { u._stamp = stamp; u._moved = false; u._faced = false; u._standCheck = false; }
     const finish = () => (u._faced ? { type: 'end' } : faceStep(c, u));
     if (u.stunnedNow) return finish();
 
@@ -92,12 +113,24 @@
     const weapons = c.usableWeapons(u);
     const avail = Math.floor(u.act / 10) * 10;
 
+    const melee = WEAPONS[u.weapons[0]].melee;
+
+    // Erste Hilfe für bewusstlose oder stark blutende Kameraden
+    const aid = firstAidStep(c, u, avail);
+    if (aid) return aid;
+
+    // geduckt zu Zugbeginn: aufstehen, außer es gibt von hier einen guten Schuss
+    if (u.crouched && !u._standCheck) {
+      u._standCheck = true;
+      const h = c.canAttack(u) ? bestAttack(c, u, here, weapons, avail) : null;
+      if ((!h || h.info.chance < 40 || melee) && c.canCrouch(u)) return { type: 'crouch' };
+    }
+
     // Nachladen, wenn der Angriff schon erledigt ist oder genug Aktivität für Laden + Angriff bleibt
     const rl = c.reloadable(u);
     if (rl.length && u.act >= 30 && (u.hasAttacked || u.act >= 90)) return { type: 'reload', wid: rl[0] };
 
     if (c.canAttack(u) && weapons.length) {
-      const melee = WEAPONS[u.weapons[0]].melee;
       const options = [];
       const h = bestAttack(c, u, here, weapons, avail);
       if (h) options.push({ ...h, tile: here, score: h.score + safety(c, u, here) * 60 + here.h * 3 });
@@ -116,14 +149,17 @@
       }
       options.sort((a, b) => b.score - a.score);
       const best = options[0];
-      if (best && best.tile === here) return { type: 'attack', target: best.target, wid: best.wid, pct: best.pct };
+      if (best && best.tile === here) {
+        // vor dem Schuss ducken: +10 AW und +15 VW, kostet 10 %
+        if (!melee && !u.crouched && !WEAPONS[best.wid].melee && c.canCrouch(u) && avail - 10 >= MIN_ATTACK + 20) return { type: 'crouch' };
+        return { type: 'attack', target: best.target, wid: best.wid, pct: best.pct };
+      }
       if (best) return { type: 'move', tile: best.tile, gait: best.gait };
     }
 
     // kein Angriff möglich: vorrücken (Nahkämpfer sprinten), danach Feuerbereitschaft
     if (!u._moved) {
       const dist = approachField(c, u);
-      const melee = WEAPONS[u.weapons[0]].melee;
       const gait = melee && !u.hasAttacked ? 'sprinten' : 'laufen';
       const limit = melee ? avail : avail - MIN_OVERWATCH;
       if (c.canMove(u, gait) && limit >= 0) {
@@ -136,7 +172,10 @@
       }
     }
     const ranged = weapons.filter(w => !WEAPONS[w].melee);
+    // vor Feuerbereitschaft oder Zugende ducken (schwerer zu treffen)
+    if (!melee && !u.crouched && c.canCrouch(u) && u.act >= 10 + MIN_OVERWATCH) return { type: 'crouch' };
     if (ranged.length && c.canOverwatch(u, ranged[0])) return { type: 'overwatch', wid: ranged[0] };
+    if (!melee && !u.crouched && c.canCrouch(u)) return { type: 'crouch' };
     return finish();
   }
 
@@ -146,6 +185,8 @@
       case 'attack': return c.doAttack(u, step.target, step.wid, step.pct);
       case 'overwatch': return c.doOverwatch(u, step.wid);
       case 'reload': return c.doReload(u, step.wid);
+      case 'crouch': return c.doCrouch(u);
+      case 'aid': return c.doFirstAid(u, step.target);
       case 'face': u._faced = true; return c.doFace(u, step.dir);
       default: return false;
     }

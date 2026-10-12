@@ -45,6 +45,10 @@
       window.addEventListener('resize', () => this.renderer.resize());
       document.addEventListener('keydown', e => this.onKey(e));
       $('#btn-new').onclick = () => this.newBattle(Math.floor(Math.random() * 1e6));
+      const snd = () => { $('#btn-sound').textContent = `Ton: ${PTF.Sound.on ? 'an' : 'aus'}`; $('#btn-sound').classList.toggle('on', PTF.Sound.on); };
+      $('#btn-sound').onclick = () => { PTF.Sound.toggle(); snd(); };
+      snd();
+      document.addEventListener('pointerdown', () => PTF.Sound.ensure(), { once: true });
       $('#btn-sheet').onclick = () => this.showSheet();
       $('#btn-tables').onclick = () => this.showTables();
       $('#btn-auto').onclick = () => { this.auto = !this.auto; $('#btn-auto').classList.toggle('on', this.auto); this.dirty = true; };
@@ -86,11 +90,25 @@
     onEvent(ev) {
       const r = this.renderer;
       switch (ev.type) {
-        case 'log': this.addLog(ev.text, ev.cls); break;
-        case 'float': r.addFloat(ev.unit, ev.text, ev.color); break;
-        case 'move': r.animateMove(ev.unit, ev.path); break;
+        case 'log': this.addLog(ev.text, ev.cls); if (ev.cls === 'round') PTF.Sound.play('runde'); break;
+        case 'float': {
+          r.addFloat(ev.unit, ev.text, ev.color);
+          const t = ev.text;
+          if (t === 'daneben') PTF.Sound.play('daneben', 0.12);
+          else if (t === 'Patzer') PTF.Sound.play('patzer');
+          else if (t.startsWith('Krit')) PTF.Sound.play('krit', 0.18);
+          else if (t.startsWith('+')) PTF.Sound.play('heilen');
+          else if (t.startsWith('−') && ev.color !== '#ff6b6b') PTF.Sound.play('treffer', 0.12);
+          break;
+        }
+        case 'move': r.animateMove(ev.unit, ev.path); for (let i = 1; i < ev.path.length; i++) PTF.Sound.play('schritt', (i - 1) * 0.11); break;
+        case 'death': PTF.Sound.play('tod', 0.2); break;
+        case 'crouch': PTF.Sound.play('ducken'); break;
+        case 'reload': PTF.Sound.play('nachladen'); break;
+        case 'overwatchFire': PTF.Sound.play('alarm'); break;
         case 'attack': {
           const w = ev.weapon;
+          PTF.Sound.play(PTF.Sound.weapon(w));
           r.addShot(ev.unit, ev.target, w.psi ? '#c58bff' : w.melee ? '#ffffff' : w.table === 'strahl' ? '#ff5050' : w.splash ? '#ff9a3c' : '#ffe08a');
           break;
         }
@@ -255,6 +273,7 @@
       if (!b || b.disabled) return;
       const c = this.combat, u = c.current, act = b.dataset.act;
       if (act === 'sheet') return this.showSheet(b.dataset.id);
+      if (act === 'jump') { const j = c.units.find(o => o.id === b.dataset.id); if (j && !this.isAi(j)) c.requestJump(j); this.dirty = true; return; }
       if (!this.playerTurn()) return;
       switch (act) {
         case 'weapon': this.weaponSel[u.id] = b.dataset.w; break;
@@ -266,6 +285,8 @@
         case 'psi': this.mode = this.mode === 'psi' ? 'move' : 'psi'; break;
         case 'face': this.mode = this.mode === 'face' ? 'move' : 'face'; break;
         case 'end': c.endTurn(); break;
+        case 'crouch': c.doCrouch(u); break;
+        case 'wait': c.doWait(u); break;
       }
       this.dirty = true;
     },
@@ -276,7 +297,7 @@
       $('#round').textContent = c.round;
       $('#order').innerHTML = c.order.map((o, i) =>
         `<li class="${o.team} ${o.state !== 'ok' ? 'out' : ''} ${i === c.turnIdx ? 'now' : ''} ${i < c.turnIdx ? 'done' : ''}" title="Initiative ${o.initRoll}">
-          <span class="badge" style="background:${o.color}">${o.letter}</span><span>${esc(o.name)}${o.overwatch ? ' ◎' : ''}</span><span class="ini">${o.init}</span></li>`).join('');
+          <span class="badge" style="background:${o.color}">${o.letter}</span><span>${esc(o.name)}${o.overwatch ? ' ◎' : ''}${o.crouched ? ' ▾' : ''}</span>${o.waiting ? (c.jumpQueue.includes(o) ? '<span class="wait">springt ein</span>' : !this.isAi(o) ? `<button class="mini jump" data-act="jump" data-id="${o.id}" title="Nach dem laufenden Zug einspringen">einspringen</button>` : '<span class="wait">wartet</span>') : ''}<span class="ini">${o.init}</span></li>`).join('');
       if (!u) { $('#unit').innerHTML = ''; return; }
       const ai = this.isAi(u);
       const w = this.weaponOf(u);
@@ -314,10 +335,12 @@
           return `<button data-act="weapon" data-w="${id}" class="${id === w ? 'sel' : ''}" ${!usable || !player ? 'disabled' : ''}>${esc(W.name)}${extra}${id === u.weapon ? ' ✓' : ''}<small>${W.melee ? 'Nahkampf' : `${W.inc} m/Stufe, max ${W.inc * W.stages} m`}</small></button>`;
         }).join('')}</div>
         <div class="sub">Gangart</div>
-        <div class="seg">${Object.entries(CB.GAITS).map(([id, g]) => `<button data-act="gait" data-g="${id}" class="${this.gait === id ? 'sel' : ''}" ${dis(c.canMove(u, id))} title="${g.pace} Hex je 10 %${g.attackMod ? `, danach Angriff ${g.attackMod}` : ''}${g.noAttack ? ', kein Angriff in dieser Runde' : ''}">${g.name}<small>${g.pace} Hex/10 %</small></button>`).join('')}</div>
+        <div class="seg">${Object.entries(CB.GAITS).map(([id, g]) => `<button data-act="gait" data-g="${id}" class="${this.gait === id ? 'sel' : ''}" ${dis(c.canMove(u, id))} title="${g.pace} Hex je 10 %${g.attackMod ? `, danach Angriff ${g.attackMod}` : ''}${g.noAttack ? ', kein Angriff in dieser Runde' : ''}${u.crouched ? ' – geduckt nur Gehen mit 1 Hex je 20 %' : ''}">${g.name}<small>${u.crouched ? (id === 'gehen' ? '1 Hex/20 %' : 'geduckt –') : `${g.pace} Hex/10 %`}</small></button>`).join('')}</div>
         <div class="sub">Angriff mit <b>${pct} %</b> Aktivität (${fmt(CB.activityMod(pct))})</div>
         <div class="seg pct">${[20, 30, 40, 50, 60, 70, 80, 90, 100].map(p => `<button data-act="pct" data-p="${p}" class="${pct === p && canAtk ? 'sel' : ''}" ${dis(canAtk && p <= this.maxAttackPct(u, w))}>${p}<small>${fmt(CB.activityMod(p))}</small></button>`).join('')}</div>
         <div class="buttons">
+          <button data-act="crouch" class="${u.crouched ? 'sel' : ''}" ${dis(c.canCrouch(u))} title="Geduckt: +${CB.CROUCH.db} VW gegen Fernkampf, +${CB.CROUCH.ob} AW im Fernkampf, halbe Deckung zählt als volle. Nur Gehen mit halber Geschwindigkeit. Nahkämpfer bekommen +${CB.CROUCH.meleeOb} gegen Geduckte.">${u.crouched ? 'Aufstehen' : 'Ducken'} (${CB.COST.crouch} %)</button>
+          <button data-act="wait" ${dis(c.canWait(u))} title="Zug nach hinten schieben. Über die Initiative-Liste („einspringen“) nach jedem anderen Zug einsetzen; sonst am Rundenende. Kostet ${CB.COST.wait} %, nur bevor die Figur etwas getan hat.">Abwarten (${CB.COST.wait} %)</button>
           <button data-act="overwatch" ${dis(c.canOverwatch(u, w))} title="Restliche Aktivität (mind. ${CB.MIN_OVERWATCH} %) zurückhalten: Schuss auf den ersten Gegner, der im Sichtfeld handelt. ${CB.REACTION_MOD} Reaktion. Beendet den Zug.">Feuerbereitschaft</button>
           ${reload.map(id => `<button data-act="reload" data-w="${id}" ${dis(c.canDo(u, CB.COST.reload))}>Nachladen (${CB.COST.reload} %)</button>`).join('')}
           <button data-act="aid" class="${this.mode === 'aid' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.aid) && c.firstAidTargets(u).length)} title="Benachbarte Figur behandeln (Erste Hilfe, Mittel)">Erste Hilfe (${CB.COST.aid} %)</button>
@@ -448,6 +471,9 @@
     if (u.malus) s.push(`Wunden ${u.malus}`);
     if (u.prone) s.push('Niedergeworfen');
     if (u.overwatch) s.push(`Feuerbereitschaft ${u.overwatch.pct} %`);
+    if (u.crouched) s.push('geduckt');
+    if (u.waiting) s.push('wartet ab');
+    if (u.medkit) s.push(`Medikit ${u.medkit}×`);
     if (u.ran) s.push('gelaufen (Angriff −20)');
     if (u.sprinted) s.push('gesprintet (kein Angriff)');
     if (u.psiShield) s.push(`Psi-Schild ${u.psiShield}`);
