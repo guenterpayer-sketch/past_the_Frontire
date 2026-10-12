@@ -277,18 +277,22 @@
       if (u.defStance) icon('#7fc8ff', '◆');
     }
 
-    // gestrichelter Umriss über allem: zeigt Figuren hinter Containern und Regalen
+    // halbtransparente Figur über allem: zeigt Figuren hinter Containern und Regalen.
+    // Bei sichtbaren Figuren liegt sie deckungsgleich auf der echten Figur und fällt nicht auf.
     drawGhost(ctx, u, p, view) {
       const enemy = u.team === 'enemy';
-      const w = 18, bodyH = 28, by = p.y - bodyH;
+      const w = 18, bodyH = 28, x = p.x, by = p.y - bodyH;
+      const edge = view.targets && view.targets.has(u) ? '#ff3030' : view.current === u ? '#ffd34d' : enemy ? '#ff5d5d' : '#5db7ff';
       ctx.save();
-      ctx.globalAlpha = 0.55;
-      ctx.setLineDash([3, 3]);
-      ctx.strokeStyle = view.targets && view.targets.has(u) ? '#ff4040' : enemy ? '#ff8080' : '#8fd0ff';
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, p.x - w / 2, by, w, bodyH, 7); ctx.stroke();
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = u.color;
+      roundRect(ctx, x - w / 2, by, w, bodyH, 7); ctx.fill();
+      ctx.globalAlpha = 0.95;
+      ctx.strokeStyle = edge; ctx.lineWidth = 2.5;
+      roundRect(ctx, x - w / 2, by, w, bodyH, 7); ctx.stroke();
       ctx.restore();
-      text(ctx, u.letter, p.x, by + 15, enemy ? 'rgba(255,140,140,0.6)' : 'rgba(150,210,255,0.6)', 11, 'bold');
+      text(ctx, u.letter, x, by + 15, '#111', 12, 'bold');
+      this.drawBars(ctx, u, x, by);
     }
 
     drawPath(ctx, path) {
