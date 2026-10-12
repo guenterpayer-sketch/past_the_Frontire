@@ -38,6 +38,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | Abbrechen | Esc |
 | Zug beenden | Button oder Enter (übrige Aktivität wird Ausweichreserve) |
 | Kamera | Mausrad = Zoom, Ziehen oder Pfeiltasten/WASD = verschieben, +/− = Zoom |
+| Handy / Tablet | ein Finger ziehen = verschieben, zwei Finger = zoomen, Feld/Gegner antippen = Vorschau, nochmal antippen = ausführen, lange drücken = Figur drehen |
 | Zuschauen / Testen | „KI für Crew“ |
 
 ## Dokumente

@@ -48,6 +48,11 @@
         this.drag.x = e.clientX; this.drag.y = e.clientY;
       });
       this.canvas.addEventListener('contextmenu', e => this.onRightClick(e));
+      // Touch (Handy/Tablet): ziehen = verschieben, zwei Finger = zoomen, Tippen = Vorschau, 2. Tippen = ausführen, lange drücken = drehen
+      this.canvas.addEventListener('touchstart', e => this.onTouchStart(e), { passive: false });
+      this.canvas.addEventListener('touchmove', e => this.onTouchMove(e), { passive: false });
+      this.canvas.addEventListener('touchend', e => this.onTouchEnd(e), { passive: false });
+      this.canvas.addEventListener('touchcancel', e => this.onTouchEnd(e), { passive: false });
       window.addEventListener('resize', () => this.renderer.resize());
       document.addEventListener('keydown', e => this.onKey(e));
       $('#btn-new').onclick = () => this.newBattle(Math.floor(Math.random() * 1e6));
@@ -317,6 +322,86 @@
       this.dirty = true;
     },
 
+    // ---------- Touch ----------
+    onTouchStart(e) {
+      e.preventDefault();
+      this.touchUsed = true;
+      PTF.Sound.ensure();
+      const ts = e.touches;
+      clearTimeout(this.longTimer);
+      if (ts.length === 1) {
+        const t = ts[0];
+        this.touch = { x: t.clientX, y: t.clientY, moved: false, long: false };
+        const pt = { clientX: t.clientX, clientY: t.clientY, preventDefault() {} };
+        this.longTimer = setTimeout(() => {
+          if (!this.touch || this.touch.moved) return;
+          this.touch.long = true;
+          this.onRightClick(pt);
+          if (navigator.vibrate) navigator.vibrate(20);
+        }, 550);
+      } else if (ts.length === 2) {
+        if (this.touch) this.touch.moved = true;
+        this.pinch = this.pinchState(ts);
+      }
+    },
+
+    pinchState(ts) {
+      const r = this.canvas.getBoundingClientRect();
+      const [a, b] = [ts[0], ts[1]];
+      return { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), x: (a.clientX + b.clientX) / 2 - r.left, y: (a.clientY + b.clientY) / 2 - r.top };
+    },
+
+    onTouchMove(e) {
+      e.preventDefault();
+      const ts = e.touches;
+      if (ts.length === 2 && this.pinch) {
+        const p = this.pinchState(ts);
+        if (this.pinch.d > 0) this.renderer.zoomAt(p.x, p.y, p.d / this.pinch.d);
+        this.renderer.panBy(p.x - this.pinch.x, p.y - this.pinch.y);
+        this.pinch = p;
+        return;
+      }
+      if (ts.length === 1 && this.touch) {
+        const t = ts[0], dx = t.clientX - this.touch.x, dy = t.clientY - this.touch.y;
+        if (!this.touch.moved && Math.hypot(dx, dy) < 10) return;
+        this.touch.moved = true;
+        clearTimeout(this.longTimer);
+        this.renderer.panBy(dx, dy);
+        this.touch.x = t.clientX; this.touch.y = t.clientY;
+      }
+    },
+
+    onTouchEnd(e) {
+      e.preventDefault();
+      clearTimeout(this.longTimer);
+      if (e.touches.length === 1) {
+        // von zwei auf einen Finger: weiter verschieben, aber kein Tippen mehr
+        this.pinch = null;
+        const t = e.touches[0];
+        this.touch = { x: t.clientX, y: t.clientY, moved: true, long: false };
+        return;
+      }
+      if (e.touches.length > 0) return;
+      const t = this.touch;
+      this.touch = null; this.pinch = null;
+      const ct = e.changedTouches[0];
+      if (t && !t.moved && !t.long && ct) this.onTap({ clientX: ct.clientX, clientY: ct.clientY, preventDefault() {} });
+    },
+
+    // erstes Tippen: Vorschau/Tooltip wie beim Überfahren mit der Maus; zweites Tippen auf dasselbe Ziel: ausführen
+    onTap(ev) {
+      this.onHover(ev);
+      const key = this.hoverUnit ? 'u:' + this.hoverUnit.id : this.hover ? Hex.key(this.hover.q, this.hover.r) : null;
+      if (key && key === this.tapKey) {
+        this.tapKey = null;
+        $('#tip').hidden = true;
+        this.onClick(ev);
+      } else {
+        this.tapKey = key;
+      }
+      this.dirty = true;
+    },
+
     // Rechtsklick: Figur in Richtung des Feldes drehen (kostenlos)
     onRightClick(e) {
       e.preventDefault();
@@ -428,6 +513,7 @@
       if (this.mode === 'aid') return 'Grün markierte Figur anklicken. Esc bricht ab.';
       if (this.mode === 'psi') return 'Grün markierte Figur für den Psi-Schild anklicken.';
       if (this.mode === 'face') return 'Feld anklicken, in dessen Richtung die Figur schauen soll.';
+      if (this.touchUsed) return 'Handy: ziehen = Karte verschieben, zwei Finger = zoomen. Feld/Gegner antippen = Vorschau, nochmal antippen = ausführen. Lange drücken = Figur in diese Richtung drehen.';
       return 'Maus über ein blaues Feld: grüne Linien = von dort treffbar, rote Linien = wer dich dort treffen kann (mit Chance). Blaue Felder: Bewegung (Kosten im Tooltip). Rot umrandet: angreifbar. Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.';
     },
 

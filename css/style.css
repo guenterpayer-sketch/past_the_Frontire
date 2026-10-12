@@ -32,7 +32,7 @@ header nav { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
 
 main { display: flex; height: calc(100% - 50px); min-height: 520px; }
 #stage { position: relative; flex: 1; min-width: 0; }
-#map { width: 100%; height: calc(100% - 30px); display: block; cursor: crosshair; }
+#map { width: 100%; height: calc(100% - 30px); display: block; cursor: crosshair; touch-action: none; -webkit-user-select: none; user-select: none; }
 .legend { height: 30px; display: flex; gap: 14px; align-items: center; padding: 0 12px; font-size: 12px; color: var(--muted); overflow-x: auto; white-space: nowrap; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 
@@ -134,7 +134,18 @@ main { display: flex; height: calc(100% - 50px); min-height: 520px; }
 
 @media (max-width: 900px) {
   main { flex-direction: column; height: auto; }
-  #stage { height: 62vh; }
+  /* flex: none, sonst hebt flex-basis 0 die Höhe auf und die Karte schrumpft */
+  #stage { flex: none; height: 66vh; height: 66dvh; }
+  #map { height: 100%; }
+  .legend { display: none; }
+  header { padding: 6px 10px; gap: 6px 10px; }
+  header h1 { font-size: 15px; }
+  header h1 small { display: none; }
+  header .round { font-size: 12px; }
+  header nav { margin-left: 0; width: 100%; flex-wrap: nowrap; overflow-x: auto; }
+  header nav button { padding: 4px 8px; font-size: 12px; white-space: nowrap; }
+  /* Tooltip als Leiste am unteren Kartenrand statt neben dem Finger */
+  #tip { left: 6px !important; right: 6px; top: auto !important; bottom: 6px; max-width: none; font-size: 12px; max-height: 45%; overflow-y: auto; }
   #panel { width: 100%; border-left: 0; border-top: 1px solid var(--line); }
   .log-card { height: 260px; }
   .sheet { grid-template-columns: 1fr; }
