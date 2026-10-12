@@ -344,6 +344,11 @@
       if (att.nextAttackMalus) ob.push({ label: 'Waffe klemmt', val: att.nextAttackMalus });
       if (att.malus) ob.push({ label: 'Wunden', val: att.malus });
       const db = this.defenseMods(att, def, w, from, to, opts.sense, defFacing);
+      // Ziel in voller Deckung: nur gezielte Schüsse (mind. 60 % Aktivität), keine Reaktionsschüsse
+      if (!w.melee && !w.psi && db.some(m => m.val === PTF.MAP_CONST.COVER_BONUS[2] && m.label.startsWith('Volle Deckung'))) {
+        if (opts.reaction) return bad('Ziel in voller Deckung – kein Reaktionsschuss');
+        if (pct < NORMAL_ATTACK) return bad(`Ziel in voller Deckung – nur gezielter Schuss (mind. ${NORMAL_ATTACK} % Aktivität)`);
+      }
       const net = sum(ob) - sum(db);
       const cls = ARMOR[def.armor].cls;
       const thr = ATTACK_TABLES[w.table].hit[cls];

@@ -15,12 +15,12 @@
   const SEVERITY_MOD = { A: -20, B: -10, C: 0, D: 10, E: 20 };
 
   const ATTACK_TABLES = {
-    wucht: { name: 'Wucht', hit: [65, 70, 80, 90], crit: 'wucht' },
-    klinge: { name: 'Klinge', hit: [65, 70, 75, 85], crit: 'schnitt' },
-    strahl: { name: 'Strahl', hit: [70, 75, 80, 85], crit: 'hitze' },
-    projektil: { name: 'Projektil', hit: [70, 75, 80, 90], crit: 'durchschlag' },
-    explosion: { name: 'Explosion', hit: [60, 60, 65, 70], crit: 'explosion' },
-    psi: { name: 'Psi', hit: [70, 70, 70, 70], crit: 'psi', ignoresArmor: true },
+    wucht: { name: 'Wucht', hit: [75, 80, 90, 100], crit: 'wucht' },
+    klinge: { name: 'Klinge', hit: [75, 80, 85, 95], crit: 'schnitt' },
+    strahl: { name: 'Strahl', hit: [80, 85, 90, 95], crit: 'hitze' },
+    projektil: { name: 'Projektil', hit: [80, 85, 90, 100], crit: 'durchschlag' },
+    explosion: { name: 'Explosion', hit: [70, 70, 75, 80], crit: 'explosion' },
+    psi: { name: 'Psi', hit: [80, 80, 80, 80], crit: 'psi', ignoresArmor: true },
   };
   const CRIT_GAP = 40; // ab Schwelle + 40 beginnt der kritische Bereich
   const CRIT_STEP = 15; // alle 15 Punkte ein Grad mehr (E ab Schwelle + 100)

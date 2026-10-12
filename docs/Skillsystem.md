@@ -178,17 +178,17 @@ Jede Tabelle hat einen Treffer-Schwellwert pro Rüstungsklasse. Ab dem Schwellwe
 
 | Tabelle | Keine | Leicht | Mittel | Schwer | Kritische Art |
 |---|---|---|---|---|---|
-| Wucht (Fäuste, Hammer) | 65 | 70 | 80 | 90 | Wucht |
-| Klinge | 65 | 70 | 75 | 85 | Schnitt |
-| Strahl (Laser) | 70 | 75 | 80 | 85 | Hitze |
-| Projektil (Gewehr, MG) | 70 | 75 | 80 | 90 | Durchschlag |
-| Explosion (Rakete) | 60 | 60 | 65 | 70 | Explosion |
-| Psi | 70 | 70 | 70 | 70 | Psi |
+| Wucht (Fäuste, Hammer) | 75 | 80 | 90 | 100 | Wucht |
+| Klinge | 75 | 80 | 85 | 95 | Schnitt |
+| Strahl (Laser) | 80 | 85 | 90 | 95 | Hitze |
+| Projektil (Gewehr, MG) | 80 | 85 | 90 | 100 | Durchschlag |
+| Explosion (Rakete) | 70 | 70 | 75 | 80 | Explosion |
+| Psi | 80 | 80 | 80 | 80 | Psi |
 
 **Schaden bei Treffer** = (2 + (Ergebnis − Schwelle) / 8) × Waffenfaktor × Rüstungsfaktor
 Rüstungsfaktor: Keine 1,0 · Leicht 0,9 · Mittel 0,8 · Schwer 0,65 (gilt nicht für Psi).
 
-Beispiel Projektil gegen **Mittel** (Schwelle 80): 80–119 Treffer ohne Kritischen, 120–134 A, 135–149 B, 150–164 C, 165–179 D, ab 180 E. Weil Waffen höchstens 130–150 erreichen, sind D und E derzeit praktisch nicht erreichbar (offene Frage).
+Beispiel Projektil gegen **Mittel** (Schwelle 90): 90–129 Treffer ohne Kritischen, 130–144 A, 145–159 B, 160–174 C, 175–189 D, ab 190 E. Weil Waffen höchstens 130–150 erreichen, sind D und E derzeit praktisch nicht erreichbar (offene Frage).
 
 ### 5.3 Kritische Treffer
 
@@ -213,9 +213,9 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Angreifer höher als Ziel | +5 AW je Höhenstufe (max. +15) |
 | Angreifer tiefer als Ziel | −5 AW je Höhenstufe (max. −15) |
 | Nahkampf | nur gegen Nachbarfelder mit max. 1 Stufe Höhenunterschied; höher stehend +10 / tiefer −10 |
-| **Halbe Deckung**: Hindernis in einem der 2 Felder vor dem Ziel (Richtung Angreifer; das 2. Feld nur ab 4 Feldern Abstand), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren | **+30 VW**, man schießt darüber hinweg |
-| **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+50 VW** |
-| Angreifer steht mind. 1 Stufe über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
+| **Halbe Deckung**: Hindernis in einem der 2 Felder vor dem Ziel (Richtung Angreifer; das 2. Feld nur ab 4 Feldern Abstand), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren | **+40 VW**, man schießt darüber hinweg |
+| **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+70 VW**; auf ein Ziel in voller Deckung sind nur gezielte Schüsse möglich (mind. 60 % Aktivität), keine Reaktionsschüsse |
+| Angreifer steht mind. 2 Stufen (3 m) über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
 | Hohe Hindernisse zwischen Schütze und Ziel | blockieren die Sichtlinie |
 
 **Um die Ecke schießen:** Wer direkt neben voller Deckung steht, darf die Sichtlinie auch von einem benachbarten Feld derselben Höhe aus ziehen (seitlich herauslehnen). Das gilt für Angreifer und Ziel gleichermaßen. Wird ein Ziel so gesehen, steht es in voller Deckung.

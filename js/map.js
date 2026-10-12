@@ -21,7 +21,7 @@
   };
   const EYE = 1.1, AIM = 0.8; // Augen- und Zielhöhe einer Figur (in Höhenstufen)
   const FULL = 1.8, HALF = 0.8; // ab dieser Höhe über dem Ziel: volle / halbe Deckung
-  const COVER_BONUS = [0, 30, 50]; // VW-Bonus: keine / halbe / volle Deckung
+  const COVER_BONUS = [0, 40, 70]; // VW-Bonus: keine / halbe / volle Deckung
 
   const SIZES = [
     // Breite = Spalten × 1,5 m, Tiefe = Reihen × 1,3 m (Reihenabstand im Hexraster)
@@ -146,7 +146,7 @@
 
     // Deckung des Ziels gegen einen Angreifer: Hindernis in einem der beiden Felder vor dem Ziel
     // in Schussrichtung (das zweite nur, wenn der Angreifer mindestens 4 Felder entfernt ist).
-    // Wer mindestens 1 Stufe über der Deckung steht, senkt sie um eine Stufe.
+    // Wer mindestens 2 Stufen (3 m) über der Oberkante der Deckung steht, senkt sie um eine Stufe.
     cover(target, attacker) {
       const dist = Hex.distance(target, attacker);
       if (dist <= 1) return null;
@@ -160,7 +160,7 @@
           const diff = top - target.h;
           if (diff < HALF) continue;
           let level = diff >= FULL ? 2 : 1;
-          if (attacker.h >= top + 1) level--;
+          if (attacker.h >= top + 2) level--;
           if (level > 0 && (!best || level > best.level)) best = { level, label: TERRAIN[n.terrain].name, bonus: COVER_BONUS[level] };
         }
       }

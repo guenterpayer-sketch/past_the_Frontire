@@ -19,13 +19,13 @@ assert.strictEqual(PTF.Rules.rankBonus(20), 70);
 assert.strictEqual(PTF.Rules.rankBonus(30), 80);
 assert.strictEqual(PTF.Rules.attrBonus(50), 0);
 assert.strictEqual(PTF.Rules.attrBonus(100), 30);
-assert.deepStrictEqual(PTF.Tables.lookupAttack('projektil', 79, 2, 1), { hit: false, threshold: 80 });
-// Projektil gegen Mittel: Schwelle 80, Kritische ab 120, je 15 Punkte ein Grad
-assert.strictEqual(PTF.Tables.lookupAttack('projektil', 119, 2, 1).severity, null);
-assert.strictEqual(PTF.Tables.lookupAttack('projektil', 120, 2, 1).severity, 'A');
-assert.strictEqual(PTF.Tables.lookupAttack('projektil', 135, 2, 1).severity, 'B');
-assert.strictEqual(PTF.Tables.lookupAttack('projektil', 180, 2, 1).severity, 'E');
-assert.strictEqual(PTF.Tables.lookupAttack('projektil', 80, 2, 1).dmg, 2);
+assert.deepStrictEqual(PTF.Tables.lookupAttack('projektil', 89, 2, 1), { hit: false, threshold: 90 });
+// Projektil gegen Mittel: Schwelle 90, Kritische ab 130, je 15 Punkte ein Grad
+assert.strictEqual(PTF.Tables.lookupAttack('projektil', 129, 2, 1).severity, null);
+assert.strictEqual(PTF.Tables.lookupAttack('projektil', 130, 2, 1).severity, 'A');
+assert.strictEqual(PTF.Tables.lookupAttack('projektil', 145, 2, 1).severity, 'B');
+assert.strictEqual(PTF.Tables.lookupAttack('projektil', 190, 2, 1).severity, 'E');
+assert.strictEqual(PTF.Tables.lookupAttack('projektil', 90, 2, 1).dmg, 2);
 
 // Offener Wurf: Verteilung grob prüfen
 PTF.Dice.setSeed(1);
@@ -41,7 +41,7 @@ console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / 
   const T = q => m.get(q, 0);
   T(3).terrain = 'barriere';
   assert.strictEqual(m.cover(T(2), T(8)).level, 1, 'Barriere = halbe Deckung');
-  assert.strictEqual(m.cover(T(2), T(8)).bonus, 30);
+  assert.strictEqual(m.cover(T(2), T(8)).bonus, 40);
   T(3).terrain = 'boden'; T(4).terrain = 'barriere';
   assert.strictEqual(m.cover(T(2), T(8)).level, 1, 'Barriere 2 Felder vor dem Ziel zählt auch');
   assert.strictEqual(m.cover(T(2), T(5)), null, 'bei nur 3 Feldern Abstand zählt nur das Nachbarfeld');
@@ -52,7 +52,9 @@ console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / 
   m.losCache.clear();
   assert.ok(!m.lineOfSight(T(8), T(2)).visible, 'in einer Reihe kein Herausschauen möglich');
   T(8).h = 3; m.losCache.clear();
-  assert.strictEqual(m.cover(T(2), T(8)).level, 1, 'von oben: volle wird zu halber Deckung');
+  assert.strictEqual(m.cover(T(2), T(8)).level, 2, '1 Stufe über dem Container: Deckung bleibt voll');
+  T(8).h = 4; m.losCache.clear();
+  assert.strictEqual(m.cover(T(2), T(8)).level, 1, '2 Stufen über dem Container: volle wird zu halber Deckung');
 }
 
 // Blickrichtung: Ziel schaut nach Osten (Richtung 0)
