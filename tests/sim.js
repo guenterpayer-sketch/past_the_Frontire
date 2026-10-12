@@ -92,6 +92,27 @@ console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / 
   assert.ok(budget > c.moveBudget(first, 'gehen'));
 }
 
+// Gestoppte Bewegung kostet nur den gelaufenen Teil
+{
+  const m = new PTF.BattleMap(12, 1);
+  for (let q = 0; q < 12; q++) m.add({ q, r: 0, col: q, row: 0, h: 0, terrain: 'boden' });
+  m.crewStart = [m.get(0, 0), m.get(1, 0), m.get(2, 0), m.get(3, 0), m.get(4, 0), m.get(5, 0)];
+  m.enemyStart = [m.get(11, 0), m.get(10, 0), m.get(9, 0), m.get(8, 0), m.get(7, 0), m.get(6, 0)];
+  const c = new PTF.Combat(m, PTF.CREW_TEMPLATE.slice(0, 1), PTF.ENEMY_TEMPLATE.slice(0, 1), () => {});
+  c.start();
+  const [a, e] = [c.crew()[0], c.enemies()[0]];
+  e.pos = { q: 11, r: 0 }; a.pos = { q: 0, r: 0 }; a.freeHex = 0;
+  if (c.current !== a) { c.order = [a, e]; c.turnIdx = 0; c.beginTurn(a); a.freeHex = 0; }
+  // Gegner in Feuerbereitschaft; der Schuss legt die Figur garantiert um
+  e.overwatch = { wid: 'sturmgewehr', pct: 100 }; e.facing = 3;
+  const orig = c.resolveAttack;
+  c.resolveAttack = function (att, tgt, info, tag) { tgt.hp = -1; this.checkState(tgt); };
+  c.doMove(a, m.get(6, 0), 'gehen');
+  c.resolveAttack = orig;
+  assert.strictEqual(a.pos.q, 1, 'nach dem ersten Feld gestoppt');
+  assert.strictEqual(a.act, 90, 'nur 1 Feld (10 %) bezahlt statt 6 Felder');
+}
+
 const fights = Number(process.argv[2] || 200);
 const stats = { sieg: 0, niederlage: 0, rounds: [], stuck: 0, crewDead: 0, crewKo: 0 };
 const t0 = Date.now();

@@ -219,13 +219,17 @@
       if (!reach.has(k) || (tile.q === u.pos.q && tile.r === u.pos.r)) return false;
       const path = this.map.pathTo(reach, tile);
       const cost = reach.get(k).cost;
-      const pct = this.movePct(u, gait, cost);
       // bezahlen: zuerst Gratis-Felder (GEW), dann Restfelder, dann Aktivität
-      let need = cost;
-      const free = Math.min(this.freeOf(u), need); u.freeHex -= free; need -= free;
-      const spare = Math.min(u.moveSpare, need); u.moveSpare -= spare; need -= spare;
-      u.act -= pct;
-      u.moveSpare += (pct / 10) * this.pace(u, gait) - need;
+      const before = { freeHex: u.freeHex, moveSpare: u.moveSpare, act: u.act };
+      const pay = c => {
+        const pct = this.movePct(u, gait, c);
+        let need = c;
+        const free = Math.min(this.freeOf(u), need); u.freeHex -= free; need -= free;
+        const spare = Math.min(u.moveSpare, need); u.moveSpare -= spare; need -= spare;
+        u.act -= pct;
+        u.moveSpare += (pct / 10) * this.pace(u, gait) - need;
+      };
+      pay(cost);
       u.acted = true;
       if (gait === 'laufen') u.ran = true;
       if (gait === 'sprinten') u.sprinted = true;
@@ -239,7 +243,13 @@
         if (u.state !== 'ok' || this.result) break;
       }
       this.emit({ type: 'move', unit: u, path: walked });
-      if (walked.length < path.length) this.log(`${u.name} wird mitten in der Bewegung gestoppt.`);
+      if (walked.length < path.length) {
+        // gestoppt: nur den gelaufenen Teil bezahlen
+        const last = walked[walked.length - 1];
+        Object.assign(u, before);
+        pay(reach.get(Hex.key(last.q, last.r)).cost);
+        this.log(`${u.name} wird mitten in der Bewegung gestoppt (bezahlt wird nur der gelaufene Weg).`);
+      }
       return true;
     }
 
