@@ -12,7 +12,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 - Schauplatz: eine **Lagerhalle**, im Testmodus pro Mission zufällig klein (ca. 30×21 m), mittel (45×30 m) oder groß (60×40 m).
 - Maßstab: **1 Hexfeld = 1,5 m**, 1 Höhenstufe = 1,5 m. Reichweiten in Metern mit Reichweitenstufen (−20 je Stufe).
 - Höhen: Galerie mit Treppen und Leitern, Containerstapel, Hochregale, Kistenstapel.
-- **Deckung**: halb (+20 VW, Kisten/Fässer/Barrieren) und voll (+40 VW, Container/Regale/Säulen); neben voller Deckung kann man um die Ecke schießen. Von oben herab sinkt die Deckung um eine Stufe.
+- **Deckung**: halb (+30 VW, Kisten/Fässer/Barrieren) und voll (+50 VW, Container/Regale/Säulen), zählt in den 2 Feldern vor dem Ziel; neben voller Deckung kann man um die Ecke schießen. Von oben herab sinkt die Deckung um eine Stufe.
 - **Aktivitätssystem im RMSS-Stil**: Runde = 10 s, jede Figur hat 100 % Aktivität und teilt sie frei auf (Gehen/Laufen/Sprinten, Angriff mit 20–100 % = −40 bis +20, Erste Hilfe, Nachladen …). Übrige Aktivität ist Ausweichreserve. Initiative jede Runde neu, Crew und Gegner handeln gemischt.
 - **Feuerbereitschaft**: Aktivität zurückhalten und auf den ersten Gegner schießen, der im Sichtfeld handelt.
 - **Blickrichtung**: Sichtfeld 180°; Angriffe von der Flanke (+15) oder von hinten (+30) überraschen das Ziel (kein Ausweichen, kein Schild; Kampfsinn-Probe halbiert).

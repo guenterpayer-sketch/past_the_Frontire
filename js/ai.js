@@ -100,7 +100,7 @@
       const melee = WEAPONS[u.weapons[0]].melee;
       const options = [];
       const h = bestAttack(c, u, here, weapons, avail);
-      if (h) options.push({ ...h, tile: here, score: h.score + safety(c, u, here) * 20 + here.h * 3 });
+      if (h) options.push({ ...h, tile: here, score: h.score + safety(c, u, here) * 60 + here.h * 3 });
       if (!u._moved) {
         for (const gait of melee ? ['gehen', 'laufen'] : ['gehen']) {
           if (!c.canMove(u, gait)) continue;
@@ -110,7 +110,7 @@
             const left = avail - c.movePct(u, gait, cost);
             if (left < MIN_ATTACK) continue;
             const a = bestAttack(c, u, tile, melee ? [u.weapons[0]].filter(w => weapons.includes(w)) : weapons, left, runMod);
-            if (a) options.push({ ...a, tile, gait, score: a.score + safety(c, u, tile) * 20 + tile.h * 3 - cost * 0.2 });
+            if (a) options.push({ ...a, tile, gait, score: a.score + safety(c, u, tile) * 60 + tile.h * 3 - cost * 0.2 });
           }
         }
       }

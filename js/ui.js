@@ -101,6 +101,9 @@
     },
 
     frame(now) {
+      // Ende einer Animation (Bewegung, Schuss) ändert, was der Spieler tun darf: Panel neu zeichnen
+      const busy = this.renderer.busy();
+      if (busy !== this.wasBusy) { this.wasBusy = busy; this.dirty = true; }
       this.tick(now);
       if (this.dirty) { this.updatePanel(); this.dirty = false; }
       this.renderer.draw(this.view());

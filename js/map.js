@@ -21,6 +21,7 @@
   };
   const EYE = 1.1, AIM = 0.8; // Augen- und Zielhöhe einer Figur (in Höhenstufen)
   const FULL = 1.8, HALF = 0.8; // ab dieser Höhe über dem Ziel: volle / halbe Deckung
+  const COVER_BONUS = [0, 30, 50]; // VW-Bonus: keine / halbe / volle Deckung
 
   const SIZES = [
     // Breite = Spalten × 1,5 m, Tiefe = Reihen × 1,3 m (Reihenabstand im Hexraster)
@@ -138,21 +139,25 @@
       return true;
     }
 
-    // Deckung des Ziels gegen einen Angreifer: Hindernis im Nachbarfeld Richtung Angreifer.
+    // Deckung des Ziels gegen einen Angreifer: Hindernis in einem der beiden Felder vor dem Ziel
+    // in Schussrichtung (das zweite nur, wenn der Angreifer mindestens 4 Felder entfernt ist).
     // Wer mindestens 1 Stufe über der Deckung steht, senkt sie um eine Stufe.
     cover(target, attacker) {
-      if (Hex.distance(target, attacker) <= 1) return null;
+      const dist = Hex.distance(target, attacker);
+      if (dist <= 1) return null;
       let best = null;
       for (const nudge of [1, -1]) {
-        const step = Hex.line(target, attacker, nudge)[1];
-        const n = this.get(step.q, step.r);
-        if (!n) continue;
-        const top = this.blockTop(n);
-        const diff = top - target.h;
-        if (diff < HALF) continue;
-        let level = diff >= FULL ? 2 : 1;
-        if (attacker.h >= top + 1) level--;
-        if (level > 0 && (!best || level > best.level)) best = { level, label: TERRAIN[n.terrain].name, bonus: level === 2 ? 40 : 20 };
+        const line = Hex.line(target, attacker, nudge);
+        for (let i = 1; i <= (dist >= 4 ? 2 : 1); i++) {
+          const n = this.get(line[i].q, line[i].r);
+          if (!n) continue;
+          const top = this.blockTop(n);
+          const diff = top - target.h;
+          if (diff < HALF) continue;
+          let level = diff >= FULL ? 2 : 1;
+          if (attacker.h >= top + 1) level--;
+          if (level > 0 && (!best || level > best.level)) best = { level, label: TERRAIN[n.terrain].name, bonus: COVER_BONUS[level] };
+        }
       }
       return best;
     }

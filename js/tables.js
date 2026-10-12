@@ -22,8 +22,8 @@
     explosion: { name: 'Explosion', hit: [60, 60, 65, 70], crit: 'explosion' },
     psi: { name: 'Psi', hit: [70, 70, 70, 70], crit: 'psi', ignoresArmor: true },
   };
-  const CRIT_GAP = 30; // ab Schwelle + 30 beginnt der kritische Bereich
-  const CRIT_STEP = 10; // alle 10 Punkte ein Grad mehr
+  const CRIT_GAP = 40; // ab Schwelle + 40 beginnt der kritische Bereich
+  const CRIT_STEP = 15; // alle 15 Punkte ein Grad mehr (E ab Schwelle + 100)
 
   // Ergebnis auf einer Angriffstabelle nachschlagen
   function lookupAttack(tableId, total, armorCls, dmgMult) {
@@ -31,7 +31,7 @@
     const thr = t.hit[armorCls];
     if (total < thr) return { hit: false, threshold: thr };
     const armorF = t.ignoresArmor ? 1 : ARMOR_DMG[armorCls];
-    const dmg = Math.max(1, Math.round((3 + (total - thr) / 5) * dmgMult * armorF));
+    const dmg = Math.max(1, Math.round((2 + (total - thr) / 8) * dmgMult * armorF));
     let severity = null;
     const critStart = thr + CRIT_GAP;
     if (total >= critStart) severity = SEVERITIES[Math.min(4, Math.floor((total - critStart) / CRIT_STEP))];

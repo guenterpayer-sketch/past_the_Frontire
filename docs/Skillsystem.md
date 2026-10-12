@@ -174,7 +174,7 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 
 ### 5.2 Angriffstabellen (generisch)
 
-Jede Tabelle hat einen Treffer-Schwellwert pro Rüstungsklasse. Ab dem Schwellwert trifft man; 30 Punkte darüber beginnt der kritische Bereich, alle 10 Punkte steigt der Grad (A, B, C, D, E).
+Jede Tabelle hat einen Treffer-Schwellwert pro Rüstungsklasse. Ab dem Schwellwert trifft man; 40 Punkte darüber beginnt der kritische Bereich, alle 15 Punkte steigt der Grad (A, B, C, D, E; E ab Schwelle +100).
 
 | Tabelle | Keine | Leicht | Mittel | Schwer | Kritische Art |
 |---|---|---|---|---|---|
@@ -185,10 +185,10 @@ Jede Tabelle hat einen Treffer-Schwellwert pro Rüstungsklasse. Ab dem Schwellwe
 | Explosion (Rakete) | 60 | 60 | 65 | 70 | Explosion |
 | Psi | 70 | 70 | 70 | 70 | Psi |
 
-**Schaden bei Treffer** = (3 + (Ergebnis − Schwelle) / 5) × Waffenfaktor × Rüstungsfaktor
+**Schaden bei Treffer** = (2 + (Ergebnis − Schwelle) / 8) × Waffenfaktor × Rüstungsfaktor
 Rüstungsfaktor: Keine 1,0 · Leicht 0,9 · Mittel 0,8 · Schwer 0,65 (gilt nicht für Psi).
 
-Beispiel Projektil gegen **Mittel** (Schwelle 80): 80–109 Treffer ohne Kritischen, 110–119 A, 120–129 B, 130–139 C, 140–149 D, ab 150 E.
+Beispiel Projektil gegen **Mittel** (Schwelle 80): 80–119 Treffer ohne Kritischen, 120–134 A, 135–149 B, 150–164 C, 165–179 D, ab 180 E. Weil Waffen höchstens 130–150 erreichen, sind D und E derzeit praktisch nicht erreichbar (offene Frage).
 
 ### 5.3 Kritische Treffer
 
@@ -213,8 +213,8 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Angreifer höher als Ziel | +5 AW je Höhenstufe (max. +15) |
 | Angreifer tiefer als Ziel | −5 AW je Höhenstufe (max. −15) |
 | Nahkampf | nur gegen Nachbarfelder mit max. 1 Stufe Höhenunterschied; höher stehend +10 / tiefer −10 |
-| **Halbe Deckung**: Hindernis im Nachbarfeld des Ziels (Richtung Angreifer), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren | **+20 VW**, man schießt darüber hinweg |
-| **Volle Deckung**: Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+40 VW** |
+| **Halbe Deckung**: Hindernis in einem der 2 Felder vor dem Ziel (Richtung Angreifer; das 2. Feld nur ab 4 Feldern Abstand), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren | **+30 VW**, man schießt darüber hinweg |
+| **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+50 VW** |
 | Angreifer steht mind. 1 Stufe über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
 | Hohe Hindernisse zwischen Schütze und Ziel | blockieren die Sichtlinie |
 
