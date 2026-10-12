@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Past the Frontire – Bodenkampf</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Past the Frontire <small>Bodenkampf-Prototyp</small></h1>
+    <div class="round">Runde <b id="round">0</b></div>
+    <nav>
+      <button id="btn-sheet">Charakterbogen</button>
+      <button id="btn-tables">Tabellen</button>
+      <button id="btn-auto" title="Die KI steuert auch die Crew (zum Zuschauen und Testen)">KI für Crew</button>
+      <button id="btn-new">Neue Karte</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="stage">
+      <canvas id="map"></canvas>
+      <div id="tip" hidden></div>
+      <div class="legend">
+        <span><i style="background:#c8b48a"></i>Ebene</span>
+        <span><i style="background:#a8a093"></i>Geröll (2)</span>
+        <span><i style="background:#5a9a7a"></i>Kristallflora (2, Sichtschutz)</span>
+        <span><i style="background:#5a8fbf"></i>Wasser (3)</span>
+        <span><i style="background:#9a96a6"></i>Ruine (Deckung)</span>
+        <span><i style="background:#7d6f63"></i>Felsnadel (blockiert)</span>
+        <span>Höhe: +1 BP pro Stufe bergauf, 2 Stufen = Klettern (+3), ab 3 unpassierbar</span>
+      </div>
+    </section>
+
+    <aside id="panel">
+      <div id="unit" class="card"></div>
+      <div class="card">
+        <h3>Initiative</h3>
+        <ol id="order"></ol>
+      </div>
+      <div class="card log-card">
+        <h3>Kampflog</h3>
+        <div id="log"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="modal" hidden>
+    <div id="modal-box"><div id="modal-body"></div></div>
+  </div>
+
+  <script src="js/dice.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/tables.js"></script>
+  <script src="js/hex.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/units.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
