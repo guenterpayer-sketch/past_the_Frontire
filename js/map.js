@@ -81,15 +81,20 @@
           }
         }
       }
-      if (passOnly) for (const [k, v] of best) if (v.cost > 0 && passOnly(v.tile)) best.delete(k);
-      return best;
+      if (!passOnly) return best;
+      // Felder, die nur durchquert werden dürfen, sind kein Ziel – für die Wege (pathTo) bleiben sie erhalten
+      const dest = new Map(best);
+      for (const [k, v] of best) if (v.cost > 0 && passOnly(v.tile)) dest.delete(k);
+      dest.all = best;
+      return dest;
     }
 
     pathTo(reach, tile) {
+      const all = reach.all || reach;
       const path = [];
       let k = Hex.key(tile.q, tile.r);
-      while (reach.has(k)) {
-        const e = reach.get(k);
+      while (all.has(k)) {
+        const e = all.get(k);
         path.unshift(e.tile);
         if (!e.prev) break;
         k = Hex.key(e.prev.q, e.prev.r);

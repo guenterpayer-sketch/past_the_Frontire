@@ -113,6 +113,27 @@ console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / 
   assert.strictEqual(a.act, 90, 'nur 1 Feld (10 %) bezahlt statt 6 Felder');
 }
 
+// Weg durch eine eigene Figur: Ziel direkt dahinter muss erreicht werden (früher: Kosten weg, Figur blieb stehen)
+{
+  const m = new PTF.BattleMap(8, 1);
+  for (let q = 0; q < 8; q++) m.add({ q, r: 0, col: q, row: 0, h: 0, terrain: 'boden' });
+  m.crewStart = [0, 1, 2, 3, 4, 5].map(q => m.get(q, 0));
+  m.enemyStart = [7, 6, 5, 4, 3, 2].map(q => m.get(q, 0));
+  const c = new PTF.Combat(m, PTF.CREW_TEMPLATE.slice(0, 2), PTF.ENEMY_TEMPLATE.slice(0, 1), () => {});
+  c.start();
+  const [a, b] = c.crew();
+  a.pos = { q: 0, r: 0 }; b.pos = { q: 1, r: 0 }; c.enemies()[0].pos = { q: 7, r: 0 };
+  c.order = [a, b, c.enemies()[0]]; c.turnIdx = 0; c.beginTurn(a);
+  const reach = c.moveRange(a, 'gehen');
+  assert.ok(!reach.has('1,0'), 'Feld der eigenen Figur ist kein Ziel');
+  assert.ok(reach.has('2,0'), 'Feld dahinter ist erreichbar');
+  assert.deepStrictEqual(m.pathTo(reach, m.get(2, 0)).map(t => t.q), [0, 1, 2], 'Weg führt durch die eigene Figur');
+  const act = a.act;
+  assert.ok(c.doMove(a, m.get(2, 0), 'gehen'));
+  assert.strictEqual(a.pos.q, 2, 'Figur ist angekommen');
+  assert.ok(a.act <= act);
+}
+
 const fights = Number(process.argv[2] || 200);
 const stats = { sieg: 0, niederlage: 0, rounds: [], stuck: 0, crewDead: 0, crewKo: 0 };
 const t0 = Date.now();

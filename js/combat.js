@@ -247,7 +247,7 @@
         // gestoppt: nur den gelaufenen Teil bezahlen
         const last = walked[walked.length - 1];
         Object.assign(u, before);
-        pay(reach.get(Hex.key(last.q, last.r)).cost);
+        pay((reach.all || reach).get(Hex.key(last.q, last.r)).cost);
         this.log(`${u.name} wird mitten in der Bewegung gestoppt (bezahlt wird nur der gelaufene Weg).`);
       }
       return true;
