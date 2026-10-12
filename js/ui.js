@@ -26,6 +26,18 @@
       this.canvas.addEventListener('mousemove', e => this.onHover(e));
       this.canvas.addEventListener('mouseleave', () => { this.hover = null; this.hoverUnit = null; $('#tip').hidden = true; });
       this.canvas.addEventListener('click', e => this.onClick(e));
+      this.canvas.addEventListener('wheel', e => { e.preventDefault(); const m = this.mouse(e); this.renderer.zoomAt(m.x, m.y, e.deltaY < 0 ? 1.15 : 1 / 1.15); }, { passive: false });
+      // Ziehen mit gedrückter Maustaste verschiebt die Kamera
+      this.canvas.addEventListener('mousedown', e => { this.drag = { x: e.clientX, y: e.clientY, moved: false }; });
+      window.addEventListener('mouseup', () => { setTimeout(() => { this.drag = null; }, 0); });
+      window.addEventListener('mousemove', e => {
+        if (!this.drag || !(e.buttons & 1)) return;
+        const dx = e.clientX - this.drag.x, dy = e.clientY - this.drag.y;
+        if (!this.drag.moved && Math.hypot(dx, dy) < 6) return;
+        this.drag.moved = true;
+        this.renderer.panBy(dx, dy);
+        this.drag.x = e.clientX; this.drag.y = e.clientY;
+      });
       this.canvas.addEventListener('contextmenu', e => { e.preventDefault(); this.mode = 'move'; this.dirty = true; });
       window.addEventListener('resize', () => this.renderer.resize());
       document.addEventListener('keydown', e => this.onKey(e));
@@ -40,7 +52,11 @@
     },
 
     newBattle(seed) {
-      this.map = PTF.generateMap(seed);
+      // Testmodus: Hallengröße pro Mission zufällig
+      const size = PTF.MAP_SIZES[Math.floor(Math.random() * PTF.MAP_SIZES.length)];
+      this.map = PTF.generateMap(seed, size.id);
+      const m = PTF.MAP_CONST.HEX_M;
+      $('#hall').textContent = `Lagerhalle ${size.name}, ca. ${Math.round(size.cols * m)}×${Math.round(size.rows * m * 0.866)} m`;
       this.freeLeft = {};
       this.reachCache = null;
       $('#log').innerHTML = '';
@@ -48,7 +64,7 @@
       this.renderer.combat = this.combat;
       this.renderer.setMap(this.map);
       this.closeModal();
-      this.addLog(`Karte ${this.map.seed}: 6 Crewmitglieder gegen 6 Söldner der Roten Sonne.`, 'round');
+      this.addLog(`Karte ${this.map.seed} (${size.name}): 6 Crewmitglieder gegen 6 Söldner der Roten Sonne in einer Lagerhalle.`, 'round');
       this.combat.start();
     },
 
@@ -72,7 +88,7 @@
           r.addShot(ev.unit, ev.target, w.psi ? '#c58bff' : w.melee ? '#ffffff' : w.table === 'strahl' ? '#ff5050' : w.splash ? '#ff9a3c' : '#ffe08a');
           break;
         }
-        case 'turn': this.mode = 'move'; break;
+        case 'turn': this.mode = 'move'; r.ensureVisible(ev.unit); break;
         case 'end': { const cc = this.combat; setTimeout(() => { if (this.combat === cc) this.showEnd(); }, 1000); break; }
       }
       this.dirty = true;
@@ -124,12 +140,16 @@
       return v;
     },
 
+    preferTiles() {
+      return this.playerTurn() && this.mode === 'move' && this.reachCache && this.reachCache.u === this.combat.current ? this.reachCache.reach : null;
+    },
+
     mouse(e) { const r = this.canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; },
 
     onHover(e) {
       const m = this.mouse(e);
       this.hoverUnit = this.renderer.pickUnit(m.x, m.y);
-      this.hover = this.hoverUnit ? this.map.at(this.hoverUnit.pos) : this.renderer.pickTile(m.x, m.y);
+      this.hover = this.hoverUnit ? this.map.at(this.hoverUnit.pos) : this.renderer.pickTile(m.x, m.y, this.preferTiles());
       const tip = $('#tip');
       const html = this.tipHtml();
       if (!html) { tip.hidden = true; return; }
@@ -159,15 +179,27 @@
           else h += attackBreakdown(info);
         }
       }
-      h += `<div class="tip-tile">${esc(T.name)} · Höhe ${t.h}${isFinite(T.cost) ? ` · Kosten ${T.cost}` : ' · nicht begehbar'}</div>`;
+      const hm = (t.h * PTF.MAP_CONST.HEX_M).toLocaleString('de-DE');
+      let info = `${esc(T.name)} · Höhe ${t.h} (${hm} m) · ${T.walk ? `Kosten ${T.cost}` : 'nicht begehbar'}`;
+      if (u && !o && !this.isAi(u)) {
+        const d = Hex.distance(u.pos, t) * PTF.MAP_CONST.HEX_M;
+        info += ` · ${d.toLocaleString('de-DE')} m entfernt`;
+      }
+      h += `<div class="tip-tile">${info}</div>`;
       return h;
     },
 
     onClick(e) {
+      if (this.drag && this.drag.moved) return;
       if (!this.playerTurn()) return;
       const c = this.combat, u = c.current, m = this.mouse(e);
-      const target = this.renderer.pickUnit(m.x, m.y);
-      const tile = target ? this.map.at(target.pos) : this.renderer.pickTile(m.x, m.y);
+      let target = this.renderer.pickUnit(m.x, m.y);
+      // im Bewegungsmodus fangen eigene Figuren keinen Klick ab
+      if (target && this.mode === 'move' && target.team === u.team) target = null;
+      // Gegner, der gerade nicht angreifbar ist: Klick gilt dem Feld darunter
+      if (target && this.mode === 'move' && target.team !== u.team &&
+          (u.hasAttacked || u.stunnedNow || target.state !== 'ok' || !c.attackInfo(u, target, this.weaponOf(u)).valid)) target = null;
+      const tile = target ? this.map.at(target.pos) : this.renderer.pickTile(m.x, m.y, this.preferTiles());
       if (this.mode === 'aid') { if (target && c.doFirstAid(u, target)) this.mode = 'move'; }
       else if (this.mode === 'psi') { if (target && c.doPsiShield(u, target)) this.mode = 'move'; }
       else if (target && target.team !== u.team && target.state === 'ok') c.doAttack(u, target, this.weaponOf(u));
@@ -180,6 +212,10 @@
       if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
       if (e.key === 'Escape') { if (!$('#modal').hidden) this.closeModal(); else this.mode = 'move'; }
       if (e.key === 'Enter' && this.playerTurn()) this.combat.endTurn();
+      const pan = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60], a: [60, 0], d: [-60, 0], w: [0, 60], s: [0, -60] }[e.key];
+      if (pan) { e.preventDefault(); this.renderer.panBy(pan[0], pan[1]); }
+      if (e.key === '+') this.renderer.zoomAt(this.renderer.w / 2, this.renderer.h / 2, 1.2);
+      if (e.key === '-') this.renderer.zoomAt(this.renderer.w / 2, this.renderer.h / 2, 1 / 1.2);
       this.dirty = true;
     },
 
@@ -239,7 +275,7 @@
           const W = WEAPONS[id];
           const extra = W.ammo ? ` (${u.ammo[id]}/${W.ammo})` : W.pp ? ` (${W.pp} PP)` : '';
           const usable = c.usableWeapons(u).includes(id);
-          return `<button data-act="weapon" data-w="${id}" class="${id === w ? 'sel' : ''}" ${!usable || !player ? 'disabled' : ''}>${esc(W.name)}${extra}<small>${W.melee ? 'Nahkampf' : 'Reichw. ' + W.range} · max ${W.max}</small></button>`;
+          return `<button data-act="weapon" data-w="${id}" class="${id === w ? 'sel' : ''}" ${!usable || !player ? 'disabled' : ''}>${esc(W.name)}${extra}<small>${W.melee ? 'Nahkampf' : `${W.inc} m/Stufe, max ${W.inc * W.stages} m`} · max ${W.max}</small></button>`;
         }).join('')}</div>
         <div class="buttons">
           <button data-act="move" class="${this.mode === 'move' ? 'sel' : ''}" ${dis(true)} title="Feld anklicken. Gegner anklicken = Angriff">Bewegen / Angreifen</button>
@@ -433,7 +469,8 @@
         return `<td>${r.hit ? r.dmg + (r.severity ? ' ' + r.severity : '') : '–'}</td>`;
       }).join('') + '</tr>';
     }
-    return `<p class="muted">Tabelle ${esc(ATTACK_TABLES[w.table].name)}, Fertigkeit ${esc(SKILLS[w.skill].name)}, Schadensfaktor ${w.dmg}, Maximalergebnis ${w.max} (*: wird auf ${w.max} begrenzt), Patzer 01–${String(w.fumble).padStart(2, '0')}. Eintrag: TP und Kritischer Grad.</p>
+    const range = w.melee ? 'Nahkampf (benachbart)' : `Reichweite ${w.inc} m je Stufe, ${w.stages} Stufen (max. ${w.inc * w.stages} m), je Stufe ab der 2. ${PTF.Tables.RANGE_STEP}, bis ${PTF.Tables.POINT_BLANK_M} m +10${w.minRange ? `, Mindestabstand ${w.minRange} m` : ''}`;
+    return `<p class="muted">${range}.<br>Tabelle ${esc(ATTACK_TABLES[w.table].name)}, Fertigkeit ${esc(SKILLS[w.skill].name)}, Schadensfaktor ${w.dmg}, Maximalergebnis ${w.max} (*: wird auf ${w.max} begrenzt), Patzer 01–${String(w.fumble).padStart(2, '0')}. Eintrag: TP und Kritischer Grad.</p>
       <table class="tbl small center"><tr><th>Ergebnis</th>${PTF.ARMOR_CLASSES.map(a => `<th>${a}</th>`).join('')}</tr>${rows}</table>`;
   }
 

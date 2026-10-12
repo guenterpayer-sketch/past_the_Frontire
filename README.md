@@ -9,11 +9,12 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 
 ## Prototyp: Bodenkampf 6 gegen 6
 
-- Isometrische Hexkarte mit **Höhenstufen 0–4** und Gelände: Ebene, Geröll, Kristallflora (Sichtschutz), seichtes Wasser, Ruinenmauern (Deckung) und Felsnadeln (blockieren die Sicht). Jede Karte wird zufällig erzeugt.
-- **Höhe** wirkt auf Bewegung (bergauf teurer, ab 3 Stufen unpassierbar), Sichtlinie, Deckung und Angriff (+5 je Stufe höher).
-- Initiative wird jede Runde neu gewürfelt, Crew und Gegner handeln gemischt.
-- Jede Figur hat 2 Aktionen: Bewegen, Angreifen (max. 1×), Zielen, Abwehrhaltung, Erste Hilfe, Psi-Schild.
-- Wer gegen wen kämpft: die Crew (Sturmgewehr, 2× Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
+- Schauplatz: eine **Lagerhalle**, im Testmodus pro Mission zufällig klein (ca. 30×21 m), mittel (45×30 m) oder groß (60×40 m).
+- Maßstab: **1 Hexfeld = 1,5 m**, 1 Höhenstufe = 1,5 m. Reichweiten in Metern mit Reichweitenstufen (−20 je Stufe).
+- Höhen: Galerie mit Treppen und Leitern, Containerstapel, Hochregale, Kistenstapel.
+- **Deckung**: halb (+20 VW, Kisten/Fässer/Barrieren) und voll (+40 VW, Container/Regale/Säulen); neben voller Deckung kann man um die Ecke schießen. Von oben herab sinkt die Deckung um eine Stufe.
+- Initiative jede Runde neu, Crew und Gegner handeln gemischt; 2 Aktionen pro Zug (Bewegen, Angreifen max. 1×, Zielen, Abwehrhaltung, Erste Hilfe, Psi-Schild).
+- Crew (Sturmgewehr, 2× Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
 - Nach dem Kampf: Erfahrung pro benutzter Fertigkeit, Ränge steigern, 3 freie EP pro Figur. Der Fortschritt wird im Browser gespeichert (`localStorage`).
 
 **Bedienung**
@@ -26,6 +27,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | Erste Hilfe / Psi-Schild | Button, dann grün markierte Figur anklicken |
 | Abbrechen | Rechtsklick oder Esc |
 | Zug beenden | Button oder Enter |
+| Kamera | Mausrad = Zoom, Ziehen oder Pfeiltasten/WASD = verschieben, +/− = Zoom |
 | Zuschauen / Testen | „KI für Crew“ |
 
 ## Dokumente
@@ -42,7 +44,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | `js/rules.js` | Eigenschaften, Fertigkeiten, Proben, Erfahrung, abgeleitete Werte |
 | `js/tables.js` | Rüstung, Waffen, Angriffstabellen, Kritische Treffer, Patzer |
 | `js/hex.js` | Hex-Koordinaten, Linien |
-| `js/map.js` | Gelände, Kartengenerator, Sichtlinie, Deckung, Wegfindung |
+| `js/map.js` | Hallenobjekte, Lagerhallen-Generator, Sichtlinie, Deckung, Wegfindung |
 | `js/units.js` | Crew und Gegner |
 | `js/combat.js` | Kampfablauf und Aktionen (ohne Grafik) |
 | `js/ai.js` | Gegner-KI |

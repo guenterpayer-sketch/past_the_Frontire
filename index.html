@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Past the Frontire <small>Bodenkampf-Prototyp</small></h1>
-    <div class="round">Runde <b id="round">0</b></div>
+    <div class="round">Runde <b id="round">0</b> · <span id="hall"></span></div>
     <nav>
       <button id="btn-sheet">Charakterbogen</button>
       <button id="btn-tables">Tabellen</button>
@@ -23,13 +23,14 @@
       <canvas id="map"></canvas>
       <div id="tip" hidden></div>
       <div class="legend">
-        <span><i style="background:#c8b48a"></i>Ebene</span>
-        <span><i style="background:#a8a093"></i>Geröll (2)</span>
-        <span><i style="background:#5a9a7a"></i>Kristallflora (2, Sichtschutz)</span>
-        <span><i style="background:#5a8fbf"></i>Wasser (3)</span>
-        <span><i style="background:#9a96a6"></i>Ruine (Deckung)</span>
-        <span><i style="background:#7d6f63"></i>Felsnadel (blockiert)</span>
-        <span>Höhe: +1 BP pro Stufe bergauf, 2 Stufen = Klettern (+3), ab 3 unpassierbar</span>
+        <span>1 Hex = 1,5 m · 1 Höhenstufe = 1,5 m</span>
+        <span><i style="background:#b08650"></i>Kisten (halbe Deckung, 1 Stufe)</span>
+        <span><i style="background:#c9a227"></i>Fässer / <i style="background:#a3a3a8"></i>Barrieren (halbe Deckung)</span>
+        <span><i style="background:#3f6f9a"></i>Container (volle Deckung, 2–4 Stufen)</span>
+        <span><i style="background:#5a6676"></i>Hochregal (3 Stufen)</span>
+        <span><i style="background:#6f7a86"></i>Galerie (3 Stufen)</span>
+        <span><i style="background:#e8c23a"></i>Leiter</span>
+        <span>Kamera: Mausrad zoomt, Ziehen oder Pfeiltasten verschieben</span>
       </div>
     </section>
 

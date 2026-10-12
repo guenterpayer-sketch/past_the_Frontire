@@ -1,7 +1,7 @@
 // Rundenbasierter Bodenkampf. Reine Spiellogik, ohne Grafik.
 (function (PTF) {
   'use strict';
-  const { Hex, Rules, Tables, WEAPONS, ARMOR, ATTACK_TABLES, TERRAIN, SKILLS, Dice } = PTF;
+  const { Hex, Rules, Tables, WEAPONS, ARMOR, ATTACK_TABLES, SKILLS, Dice } = PTF;
 
   const sum = mods => mods.reduce((s, m) => s + m.val, 0);
   const fmt = v => (v >= 0 ? '+' + v : String(v));
@@ -32,14 +32,9 @@
     tileOf(u) { return this.map.at(u.pos); }
 
     deploy() {
-      const m = this.map;
-      const place = (units, cols) => {
-        const mid = (m.rows - 1) / 2;
-        const tiles = m.list.filter(t => cols.includes(t.col)).sort((a, b) => Math.abs(a.row - mid) - Math.abs(b.row - mid) || a.col - b.col);
-        units.forEach((u, i) => { const t = tiles[i]; u.pos = { q: t.q, r: t.r }; });
-      };
-      place(this.crew(), [1, 0]);
-      place(this.enemies(), [m.cols - 2, m.cols - 1]);
+      const place = (units, tiles) => units.forEach((u, i) => { const t = tiles[i]; u.pos = { q: t.q, r: t.r }; });
+      place(this.crew(), this.map.crewStart);
+      place(this.enemies(), this.map.enemyStart);
     }
 
     // ---------- Runden und Züge ----------
@@ -145,10 +140,8 @@
       if (def.shield) mods.push({ label: 'Schild', val: 10 + Math.max(0, Math.floor(Rules.rankBonus(Rules.skillRank(def, 'schild')) / 2)) });
       if (!w.melee) {
         const cov = this.map.cover(to, from);
-        if (cov) mods.push({ label: 'Deckung: ' + cov, val: 20 });
-        if (TERRAIN[to.terrain].forest) mods.push({ label: 'Kristallflora', val: 10 });
+        if (cov) mods.push({ label: `${cov.level === 2 ? 'Volle' : 'Halbe'} Deckung (${cov.label})`, val: cov.bonus });
       }
-      if (TERRAIN[to.terrain].water) mods.push({ label: 'steht im Wasser', val: -10 });
       if (def.psiShield > 0) mods.push({ label: 'Psi-Schild', val: 20 });
       return mods;
     }
@@ -164,22 +157,22 @@
       if (w.ammo && !(att.ammo[wid] > 0)) return bad('keine Munition');
       if (w.pp && att.pp < w.pp) return bad(`zu wenig Psi-Punkte (${w.pp} nötig)`);
       const ob = [{ label: SKILLS[w.skill].name, val: Rules.skillTotal(att, w.skill) }];
-      let los = { visible: true, wood: 0 };
+      const meters = dist * PTF.MAP_CONST.HEX_M;
       if (w.melee) {
         if (dist !== 1) return bad('nicht benachbart');
         const dh = from.h - to.h;
         if (Math.abs(dh) > 1) return bad('Höhenunterschied zu groß');
         if (dh) ob.push({ label: dh > 0 ? 'höher stehend' : 'tiefer stehend', val: dh > 0 ? 10 : -10 });
       } else {
-        if (dist > Math.floor(w.range * 1.5)) return bad('außer Reichweite');
-        if (w.minRange && dist < w.minRange) return bad('zu nah');
-        los = this.map.lineOfSight(from, to);
-        if (!los.visible) return bad('keine Sicht (' + los.reason + ')');
+        const stage = Math.max(1, Math.ceil(meters / w.inc));
+        if (stage > w.stages) return bad(`außer Reichweite (${meters} m, max. ${w.inc * w.stages} m)`);
+        if (w.minRange && meters < w.minRange) return bad(`zu nah (mind. ${w.minRange} m)`);
+        const los = this.map.lineOfSight(from, to);
+        if (!los.visible) return bad('keine Sichtlinie');
         const dh = from.h - to.h;
         if (dh) ob.push({ label: dh > 0 ? `${dh} Stufe(n) höher` : `${-dh} Stufe(n) tiefer`, val: Math.max(-15, Math.min(15, dh * 5)) });
-        if (dist <= w.range / 2) ob.push({ label: 'kurze Distanz', val: 10 });
-        else if (dist > w.range) ob.push({ label: 'weite Distanz', val: -25 });
-        if (los.wood) ob.push({ label: 'Kristallflora in der Schusslinie', val: -10 * los.wood });
+        if (meters <= Tables.POINT_BLANK_M) ob.push({ label: `Kernschussweite (${meters} m)`, val: 10 });
+        else if (stage > 1) ob.push({ label: `Reichweitenstufe ${stage} (${meters} m)`, val: Tables.RANGE_STEP * (stage - 1) });
       }
       if (w.ob) ob.push({ label: 'Feuerstoß', val: w.ob });
       if (att.aim) ob.push({ label: 'Zielen', val: att.aim });
@@ -192,7 +185,7 @@
       // Trefferchance: W100 (ohne Patzerbereich) + net >= thr; der offene Wurf nach oben wird vernachlässigt
       const need = Math.max(thr - net, w.fumble + 1);
       const chance = Math.max(0, Math.min(100, 101 - need));
-      return { valid: true, weapon: w, wid, ob, db, net, thr, chance, dist, from, to };
+      return { valid: true, weapon: w, wid, ob, db, net, thr, chance, dist, meters, from, to };
     }
 
     // ---------- Aktionen ----------
@@ -290,12 +283,14 @@
       if (def.shield && !w.psi) Rules.awardXp(def, 'schild', 1);
     }
 
+    // Druckwelle: Ring 1 (1,5 m) und Ring 2 (3 m) mit eigenem Abzug, gleicher Wurf
     resolveSplash(att, target, roll, info, w) {
       const center = this.tileOf(target);
-      for (const n of Hex.neighbors(center.q, center.r)) {
-        const v = this.unitAt(n.q, n.r);
-        if (!v || v.state !== 'ok') continue;
-        const total = Math.min(roll.total + sum(info.ob) + w.splash, w.max);
+      for (const v of this.units) {
+        if (v === target || v.state !== 'ok') continue;
+        const d = Hex.distance(v.pos, center);
+        if (d < 1 || d > w.splash.length) continue;
+        const total = Math.min(roll.total + sum(info.ob) + w.splash[d - 1], w.max);
         const res = Tables.lookupAttack(w.table, total, ARMOR[v.armor].cls, w.dmg);
         if (!res.hit) { this.log(`  Druckwelle verfehlt ${v.name} (${total}).`, 'miss'); continue; }
         this.log(`  Druckwelle trifft ${v.name} (${total}): ${res.dmg} TP${res.severity ? `, Kritischer ${res.severity}` : ''}.`, 'hit');

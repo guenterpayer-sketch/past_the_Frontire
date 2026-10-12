@@ -38,16 +38,19 @@
     return { hit: true, threshold: thr, dmg, severity, critType: t.crit };
   }
 
+  // inc: Grundreichweite in Metern (eine Reichweitenstufe), stages: Anzahl Stufen bis zur Maximalreichweite
   const WEAPONS = {
-    faeuste: { name: 'Fäuste', skill: 'waffenlos', table: 'wucht', melee: true, range: 1, max: 110, fumble: 2, dmg: 0.5 },
-    vibroklinge: { name: 'Vibroklinge', skill: 'einhand', table: 'klinge', melee: true, range: 1, max: 150, fumble: 3, dmg: 1.1 },
-    energiehammer: { name: 'Energiehammer', skill: 'zweihand', table: 'wucht', melee: true, range: 1, max: 150, fumble: 5, dmg: 1.4 },
-    laserpistole: { name: 'Laserpistole', skill: 'pistolen', table: 'strahl', range: 6, max: 130, fumble: 2, dmg: 0.8 },
-    sturmgewehr: { name: 'Sturmgewehr', skill: 'gewehre', table: 'projektil', range: 10, max: 150, fumble: 3, dmg: 1.0 },
-    mg: { name: 'Schweres MG (Feuerstoß)', skill: 'schnellfeuer', table: 'projektil', range: 8, max: 150, fumble: 5, dmg: 1.1, ob: 15 },
-    raketenwerfer: { name: 'Raketenwerfer', skill: 'raketenwerfer', table: 'explosion', range: 9, minRange: 2, max: 150, fumble: 5, dmg: 1.4, ammo: 2, splash: -30 },
-    psiStoss: { name: 'Psi-Stoß', skill: 'psiAngriff', table: 'psi', range: 7, max: 140, fumble: 4, dmg: 1.0, pp: 2, psi: true },
+    faeuste: { name: 'Fäuste', skill: 'waffenlos', table: 'wucht', melee: true, max: 110, fumble: 2, dmg: 0.5 },
+    vibroklinge: { name: 'Vibroklinge', skill: 'einhand', table: 'klinge', melee: true, max: 150, fumble: 3, dmg: 1.1 },
+    energiehammer: { name: 'Energiehammer', skill: 'zweihand', table: 'wucht', melee: true, max: 150, fumble: 5, dmg: 1.4 },
+    laserpistole: { name: 'Laserpistole', skill: 'pistolen', table: 'strahl', inc: 10, stages: 4, max: 130, fumble: 2, dmg: 0.8 },
+    sturmgewehr: { name: 'Sturmgewehr', skill: 'gewehre', table: 'projektil', inc: 25, stages: 4, max: 150, fumble: 3, dmg: 1.0 },
+    mg: { name: 'Schweres MG (Feuerstoß)', skill: 'schnellfeuer', table: 'projektil', inc: 20, stages: 4, max: 150, fumble: 5, dmg: 1.1, ob: 15 },
+    raketenwerfer: { name: 'Raketenwerfer', skill: 'raketenwerfer', table: 'explosion', inc: 30, stages: 3, minRange: 6, max: 150, fumble: 5, dmg: 1.4, ammo: 2, splash: [-20, -40] },
+    psiStoss: { name: 'Psi-Stoß', skill: 'psiAngriff', table: 'psi', inc: 10, stages: 3, max: 140, fumble: 4, dmg: 1.0, pp: 2, psi: true },
   };
+  const RANGE_STEP = -20;     // je Reichweitenstufe über der ersten
+  const POINT_BLANK_M = 3;    // bis 3 m: +10
 
   // Kritische Treffer: 7 Stufen (≤20, 21–40, 41–60, 61–80, 81–95, 96–110, 111+)
   // Felder: dmg, bleed, stun (Runden), malus, prone, ko (bewusstlos), kill
@@ -135,5 +138,5 @@
   PTF.CRIT_TABLES = CRIT_TABLES;
   PTF.CRIT_BANDS = CRIT_BANDS;
   PTF.FUMBLE_TABLE = FUMBLE_TABLE;
-  PTF.Tables = { lookupAttack, rollCrit, rollFumble, CRIT_GAP, CRIT_STEP, SEVERITIES, SEVERITY_MOD };
+  PTF.Tables = { RANGE_STEP, POINT_BLANK_M, lookupAttack, rollCrit, rollFumble, CRIT_GAP, CRIT_STEP, SEVERITIES, SEVERITY_MOD };
 })(window.PTF = window.PTF || {});

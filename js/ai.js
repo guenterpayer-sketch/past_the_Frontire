@@ -2,7 +2,7 @@
 // Liefert pro Aufruf genau eine nächste Aktion.
 (function (PTF) {
   'use strict';
-  const { Hex, WEAPONS, TERRAIN } = PTF;
+  const { Hex, WEAPONS } = PTF;
 
   function bestAttack(c, u, from, weapons) {
     let best = null;
@@ -15,9 +15,9 @@
         if (WEAPONS[wid].splash) {
           // Rakete nur, wenn mehrere Gegner nah beieinander stehen und keine eigenen Leute
           let others = 0, friends = 0;
-          for (const n of Hex.neighbors(t.pos.q, t.pos.r)) {
-            const v = c.unitAt(n.q, n.r);
-            if (v && v.state === 'ok') v.team === u.team ? friends++ : others++;
+          for (const v of c.units) {
+            if (v === t || v.state !== 'ok' || Hex.distance(v.pos, t.pos) > WEAPONS[wid].splash.length) continue;
+            v.team === u.team ? friends++ : others++;
           }
           if (friends) continue;
           score += others * 30 - 10;
@@ -37,7 +37,8 @@
       if (Hex.distance(et, tile) > 14) continue;
       if (!c.map.lineOfSight(et, tile).visible) { covered++; seen++; continue; }
       seen++;
-      if (c.map.cover(tile, et) || TERRAIN[tile.terrain].forest) covered++;
+      const cov = c.map.cover(tile, et);
+      if (cov) covered += cov.level / 2;
     }
     return seen ? covered / seen : 1;
   }

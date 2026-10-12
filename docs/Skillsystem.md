@@ -203,21 +203,40 @@ Sechs Tabellen (Durchschlag, Hitze, Wucht, Schnitt, Explosion, Psi) mit je 7 Stu
 
 Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen“.
 
-### 5.4 Gelände, Höhe, Deckung
+### 5.4 Maßstab, Höhe, Deckung, Reichweite
+
+**Maßstab:** 1 Hexfeld = 1,5 m (von Mitte zu Mitte), 1 Höhenstufe = 1,5 m. Eine Figur ist etwa 1,8 m groß.
 
 | Situation | Wirkung |
 |---|---|
 | Angreifer höher als Ziel | +5 AW je Höhenstufe (max. +15) |
 | Angreifer tiefer als Ziel | −5 AW je Höhenstufe (max. −15) |
-| Nahkampf | nur bei max. 1 Stufe Höhenunterschied; höher stehend +10 / tiefer −10 |
-| Ziel hinter Ruinenmauer oder Geländekante (vom Angreifer aus gesehen) | +20 VW (**Deckung**) |
-| Angreifer ≥ 2 Stufen höher als die Mauer | Deckung durch Mauer entfällt |
-| Ziel in Kristallflora (Wald) | +10 VW |
-| 1 Waldfeld in der Schusslinie | −10 AW, ab 2 Feldern keine Sicht |
-| Ziel steht im Wasser | −10 VW |
-| Felsnadeln / höheres Gelände | blockieren die Sichtlinie |
+| Nahkampf | nur gegen Nachbarfelder mit max. 1 Stufe Höhenunterschied; höher stehend +10 / tiefer −10 |
+| **Halbe Deckung**: Hindernis im Nachbarfeld des Ziels (Richtung Angreifer), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren | **+20 VW**, man schießt darüber hinweg |
+| **Volle Deckung**: Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+40 VW** |
+| Angreifer steht mind. 1 Stufe über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
+| Hohe Hindernisse zwischen Schütze und Ziel | blockieren die Sichtlinie |
 
-**Reichweite:** bis ½ Reichweite +10, bis Reichweite ±0, bis 1,5 × Reichweite −25, darüber kein Schuss.
+**Um die Ecke schießen:** Wer direkt neben voller Deckung steht, darf die Sichtlinie auch von einem benachbarten Feld derselben Höhe aus ziehen (seitlich herauslehnen). Das gilt für Angreifer und Ziel gleichermaßen. Wird ein Ziel so gesehen, steht es in voller Deckung.
+
+**Reichweitenstufen:** Jede Fernkampfwaffe hat eine Grundreichweite in Metern (eine Stufe) und eine Anzahl Stufen.
+
+| Entfernung | Modifikator |
+|---|---|
+| bis 3 m (Kernschussweite) | +10 |
+| Stufe 1 (bis 1 × Grundreichweite) | ±0 |
+| jede weitere Stufe | −20 (Stufe 2: −20, Stufe 3: −40, Stufe 4: −60) |
+| über der letzten Stufe | kein Schuss |
+
+| Waffe | Grundreichweite | Stufen | max. |
+|---|---|---|---|
+| Laserpistole | 10 m | 4 | 40 m |
+| Sturmgewehr | 25 m | 4 | 100 m |
+| Schweres MG | 20 m | 4 | 80 m |
+| Raketenwerfer | 30 m | 3 | 90 m (mind. 6 m Abstand) |
+| Psi-Stoß | 10 m | 3 | 30 m |
+
+**Raketen:** Die Druckwelle trifft Figuren in 1,5 m Abstand mit −20 und in 3 m Abstand mit −40 (gleicher Wurf, eigener Tabelleneintrag), Freund wie Feind.
 
 ### 5.5 Patzer (W100)
 
@@ -254,7 +273,23 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
    - **Abwehrhaltung**: voller Ausweichen-Bonus bis zum nächsten eigenen Zug
    - **Erste Hilfe** an einer benachbarten Figur
    - **Psi-Schild** (Psi wirken, 2 PP): +20 VW und +20 Psi-VW für 2 Runden
-4. Bewegungskosten: Ebene 1, Geröll 2, Kristallflora 2, Wasser 3; bergauf +1 je Stufe, 2 Stufen hoch = Klettern (+3); ab 3 Stufen nicht passierbar. Abwärts bis 2 Stufen ohne Aufschlag. Felsnadeln und Ruinenmauern sind nicht begehbar.
+4. Bewegungskosten (je Hexfeld = 1,5 m): Boden, Galerie, Treppe, Container- und Kistenoberseite 1, Regaloberseite 2.
+   - 1 Stufe hoch (z. B. auf eine Kiste): +1; 1 Stufe runter: ±0
+   - 2 Stufen herunterspringen (3 m): +1; höher springen geht nicht
+   - mehr als 1 Stufe hoch nur über **Treppe** (Stufe für Stufe) oder **Leiter**: +1 je Stufe
+   - Fässer, Barrieren, Säulen und Wände sind nicht begehbar
+5. Eine Bewegungsaktion = 4 + (GEW-Bonus / 5) Bewegungspunkte, also etwa 6–10 m.
+
+### 7.1 Schauplatz Lagerhalle (Prototyp)
+
+Die Größe wird im Testmodus pro Mission zufällig gewählt: **klein ca. 30×21 m**, **mittel ca. 45×30 m**, **groß ca. 60×40 m**. Die Halle enthält:
+- **Galerie / Laufstege** in 4,5 m Höhe an der Rückwand (ab „mittel“ auch an der rechten Wand), erreichbar über Treppen und Leitern
+- **Container** (3 m hoch, teils doppelt gestapelt: 6 m), Aufstieg über eine Leiter oder eine Kiste
+- **Hochregale** (4,5 m) in Reihen mit Gängen, je eine Leiter am Ende
+- **Kistenstapel** (1,5 m, begehbar), **Fässer**, **Betonbarrieren**, **Stahlsäulen**
+- Die Crew startet am Rolltor links, die Gegner in der rechten Hallenhälfte, einige davon erhöht.
+
+Vereinfachung: Unter der Galerie kann man nicht hindurchgehen; sie wirkt wie ein massiver Block.
 
 ---
 
@@ -289,3 +324,5 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 5. **Zahlenwerte** (TP-Formel, Tabellen-Schwellen, Schadensfaktoren, EP-Kosten) sind ein erster Entwurf und noch nicht ausbalanciert.
 6. **Munition / Nachladen** gibt es im Prototyp nur beim Raketenwerfer (2 Schuss).
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
+8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
+9. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m.
