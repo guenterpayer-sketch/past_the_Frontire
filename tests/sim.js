@@ -47,6 +47,21 @@ console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / 
   assert.strictEqual(m.cover(T(2), T(8)).level, 1, 'von oben: volle wird zu halber Deckung');
 }
 
+// Blickrichtung: Ziel schaut nach Osten (Richtung 0)
+{
+  const H = PTF.Hex, o = { q: 0, r: 0 };
+  assert.strictEqual(H.sector(o, 0, { q: 3, r: 0 }), 'vorne');
+  assert.strictEqual(H.sector(o, 0, { q: 0, r: 3 }), 'vorne', 'Südost liegt 60° neben Osten');
+  assert.strictEqual(H.sector(o, 0, { q: -3, r: 3 }), 'flanke', 'Südwest liegt 120° neben Osten');
+  assert.strictEqual(H.sector(o, 0, { q: -3, r: 0 }), 'ruecken');
+  for (let d = 0; d < 6; d++) {
+    const [dq, dr] = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]][d];
+    assert.strictEqual(H.dirToward(o, { q: dq, r: dr }), d, 'dirToward ' + d);
+  }
+  const m = PTF.COMBAT.activityMod;
+  assert.deepStrictEqual([20, 50, 60, 70, 100].map(m), [-40, -10, 0, 5, 20]);
+}
+
 const fights = Number(process.argv[2] || 200);
 const stats = { sieg: 0, niederlage: 0, rounds: [], stuck: 0, crewDead: 0, crewKo: 0 };
 const t0 = Date.now();
@@ -60,7 +75,6 @@ for (let i = 0; i < fights; i++) {
     const u = c.current;
     const step = PTF.AI.planStep(c, u);
     if (step.type === 'end' || !PTF.AI.execute(c, u, step)) c.endTurn();
-    else if (!c.result && c.current === u && u.actions <= 0) c.endTurn();
     steps++;
     if (c.round > 60) break;
   }

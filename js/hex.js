@@ -20,6 +20,21 @@
       else if (dr > ds) r = -q - s;
       return { q, r };
     },
+    // Winkel von a nach b in Grad (Bildschirmrichtung, 0° = Osten, positiv = im Uhrzeigersinn)
+    angle(a, b) {
+      const dq = b.q - a.q, dr = b.r - a.r;
+      return (Math.atan2(1.5 * dr, Math.sqrt(3) * (dq + dr / 2)) * 180) / Math.PI;
+    },
+    // Winkel einer Blickrichtung 0–5 (Index in DIRS)
+    dirAngle(d) { return -60 * d; },
+    // Hexseite, die am ehesten von a nach b zeigt
+    dirToward(a, b) { return ((Math.round(-Hex.angle(a, b) / 60) % 6) + 6) % 6; },
+    // Lage von p relativ zu einer Figur auf pos mit Blickrichtung dir: vorne (≤ 90°), Flanke (≤ 150°), Rücken
+    sector(pos, dir, p) {
+      let d = Math.abs(Hex.angle(pos, p) - Hex.dirAngle(dir)) % 360;
+      if (d > 180) d = 360 - d;
+      return d <= 90 ? 'vorne' : d <= 150 ? 'flanke' : 'ruecken';
+    },
     // Hexfelder auf der Linie a→b inkl. Endpunkte. nudge verschiebt die Linie minimal,
     // damit Linien entlang von Hexkanten eindeutig werden (+1 / −1).
     line(a, b, nudge = 1) {

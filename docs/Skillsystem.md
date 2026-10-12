@@ -165,8 +165,9 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 **Angriffswert (AW)** = Gesamtbonus der Waffenfertigkeit + Waffenmodifikator + Modifikatoren
 
 **Verteidigungswert (VW)** =
-- ½ × Ausweichen-Gesamtbonus (mindestens 0); in **Abwehrhaltung** der volle Wert
-- \+ Schild: 10 + ½ Rangbonus Schild (nur mit Schild)
+- Ausweichen: ½ × Ausweichen-Gesamtbonus (mindestens 0) **plus** ½ × Ausweichen × (zurückgehaltene Aktivität / 100) – siehe Abschnitt 7
+- **Überraschung** (Angreifer außerhalb des Sichtfelds des Ziels, Abschnitt 7.2): kein Ausweichen und kein Schild; eine gelungene Kampfsinn-Probe (Mittel) des Ziels lässt das Ausweichen halb zählen
+- \+ Schild: 10 + ½ Rangbonus Schild (nur mit Schild, nicht bei Überraschung)
 - \+ Rüstung (schwere Rüstung macht unbeweglich: −5 / −10)
 - \+ Deckung / Gelände (siehe 5.4)
 - gegen **Psi**: stattdessen Psi-Verteidigung (voll) + Psi-Schild; Deckung und Ausweichen zählen nicht
@@ -258,29 +259,70 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Tot | bei −(KON / 5) TP oder durch Kritischen |
 | Psi-Punkte (PP) | MEN / 10 + Ränge Psi wirken / 2 (nur mit mindestens 1 Rang in einer Psi-Fertigkeit) |
 | Initiative (jede Runde neu) | 2W10 + Bonus GEW + Kampfsinn-Gesamtbonus / 5 |
-| Bewegung pro Bewegungsaktion | 4 + Bonus GEW / 5 (+ Rüstung: schwer −1) |
+| Bewegung | Gehen 1 Hex je 10 % Aktivität; dazu Gratis-Felder pro Runde = Bonus GEW / 5 (schwere Rüstung −1) |
 
 ---
 
-## 7. Rundenablauf Bodenkampf
+## 7. Rundenablauf Bodenkampf (Aktivitätssystem im RMSS-Stil)
 
-1. Rundenbeginn: alle würfeln Initiative, gehandelt wird in absteigender Reihenfolge (Crew und Gegner gemischt).
-2. Ebenfalls zu Rundenbeginn wird Blutung abgezogen. Zugbeginn: niedergeworfene Figuren stehen auf (−1 Aktion), Betäubte haben nur 1 Aktion.
-3. Jede Figur hat **2 Aktionen**, davon höchstens **ein Angriff**:
-   - **Bewegen** (Hexfelder nach Kosten)
-   - **Angriff** (Waffe oder Psi-Stoß)
-   - **Zielen**: +15 auf den nächsten Angriff in diesem Zug
-   - **Abwehrhaltung**: voller Ausweichen-Bonus bis zum nächsten eigenen Zug
-   - **Erste Hilfe** an einer benachbarten Figur
-   - **Psi-Schild** (Psi wirken, 2 PP): +20 VW und +20 Psi-VW für 2 Runden
-4. Bewegungskosten (je Hexfeld = 1,5 m): Boden, Galerie, Treppe, Container- und Kistenoberseite 1, Regaloberseite 2.
-   - 1 Stufe hoch (z. B. auf eine Kiste): +1; 1 Stufe runter: ±0
-   - 2 Stufen herunterspringen (3 m): +1; höher springen geht nicht
-   - mehr als 1 Stufe hoch nur über **Treppe** (Stufe für Stufe) oder **Leiter**: +1 je Stufe
-   - Fässer, Barrieren, Säulen und Wände sind nicht begehbar
-5. Eine Bewegungsaktion = 4 + (GEW-Bonus / 5) Bewegungspunkte, also etwa 6–10 m.
+Vorbild ist das Aktivitätssystem von RMSS/RMFRP. **Alle Zahlen sind eigene Werte**, nicht aus dem Regelbuch übernommen.
 
-### 7.1 Schauplatz Lagerhalle (Prototyp)
+1. **Eine Runde = 10 Sekunden.** Zu Rundenbeginn wirkt Blutung, dann würfeln alle Initiative (2W10 + GEW-Bonus + Kampfsinn/5). Gehandelt wird nacheinander in absteigender Initiative, Crew und Gegner gemischt.
+2. Jede Figur hat pro Runde **100 % Aktivität** und verteilt sie in 10-%-Schritten. **Höchstens 1 Angriff pro Runde**; ein Angriffswurf steht für mehrere Schüsse oder Schläge.
+3. **Niedergeworfen:** Aufstehen kostet 30 %. **Betäubt:** höchstens 50 % Aktivität und kein Angriff.
+4. Nicht verbrauchte Aktivität ist bis zum nächsten eigenen Zug **Ausweichreserve** (siehe 5.1). Vor dem ersten eigenen Zug gilt eine Reserve von 50 %.
+
+**Bewegung** (Wegkosten in Hexfeldern wie unten):
+
+| Gangart | Hexfelder je 10 % | bei 100 % | Folge |
+|---|---|---|---|
+| Gehen | 1 | 15 m | – |
+| Laufen | 2 | 30 m | danach Angriff −20 |
+| Sprinten | 3 | 45 m | kein Angriff in dieser Runde (auch nicht nach einem Angriff möglich) |
+
+Dazu kommen **Gratis-Felder** pro Runde: GEW-Bonus / 5 (z. B. GEW 92 → +15 → 3 Felder), schwere Rüstung −1.
+
+**Angriff** – Modifikator nach eingesetzter Aktivität:
+
+| Aktivität | 20 % | 30 % | 40 % | 50 % | **60 %** | 70 % | 80 % | 90 % | 100 % |
+|---|---|---|---|---|---|---|---|---|---|
+| Modifikator | −40 | −30 | −20 | −10 | **±0** | +5 | +10 | +15 | +20 |
+
+Ein Waffenwechsel kostet zusätzlich 10 %.
+
+**Sonstige Handlungen:**
+
+| Handlung | Aktivität |
+|---|---|
+| Erste Hilfe (Mittel) | 50 % |
+| Psi-Schild (Psi wirken, Mittel, 2 PP): +20 VW und +20 Psi-VW für 1–3 Runden | 40 % |
+| Nachladen (Raketenwerfer: 1 Schuss pro Ladung, 2 insgesamt) | 30 % |
+| Aufstehen | 30 % |
+| Waffe wechseln | 10 % |
+| Drehen (Blickrichtung ändern) | kostenlos, jederzeit im eigenen Zug |
+
+### 7.2 Feuerbereitschaft und Blickrichtung
+
+**Feuerbereitschaft:** Wer noch nicht angegriffen hat und mindestens 30 % übrig hat, kann die gesamte restliche Aktivität zurückhalten; der Zug endet damit. Handelt danach ein Gegner im Sichtfeld und in Reichweite (bewegt sich Feld für Feld oder setzt zum Angriff an), wird sofort geschossen: Modifikator nach den zurückgehaltenen Prozent (Tabelle oben) und −10 für die Reaktion. Ein Treffer kann den Gegner mitten in der Bewegung stoppen. Einmal pro Runde; die Bereitschaft endet mit dem nächsten eigenen Zug. Danach ist keine Ausweichreserve mehr übrig.
+
+**Blickrichtung:** Jede Figur schaut zu einer Hexseite. Nach einer Bewegung schaut sie in Laufrichtung, beim Angriff zum Ziel; im eigenen Zug kann sie sich jederzeit kostenlos drehen.
+
+| Lage des Angreifers (vom Ziel aus) | Wirkung |
+|---|---|
+| vorne (Sichtfeld 180°, vordere 3 Hexseiten) | normal |
+| Flanke (90°–150°) | +15 AW, **Überraschung** |
+| Rücken (über 150°) | +30 AW, **Überraschung** |
+
+**Überraschung:** Das Ziel bekommt keinen Ausweich- und keinen Schildbonus. Es darf eine Kampfsinn-Probe (Mittel) würfeln; gelingt sie, zählt das Ausweichen halb.
+
+**Bewegungskosten** (je Hexfeld = 1,5 m):
+- Boden, Galerie, Treppe, Container- und Kistenoberseite 1, Regaloberseite 2
+- 1 Stufe hoch (z. B. auf eine Kiste): +1; 1 Stufe runter: ±0
+- 2 Stufen herunterspringen (3 m): +1; höher springen geht nicht
+- mehr als 1 Stufe hoch nur über **Treppe** (Stufe für Stufe) oder **Leiter**: +1 je Stufe
+- Fässer, Barrieren, Säulen und Wände sind nicht begehbar
+
+### 7.3 Schauplatz Lagerhalle (Prototyp)
 
 Die Größe wird im Testmodus pro Mission zufällig gewählt: **klein ca. 30×21 m**, **mittel ca. 45×30 m**, **groß ca. 60×40 m**. Die Halle enthält:
 - **Galerie / Laufstege** in 4,5 m Höhe an der Rückwand (ab „mittel“ auch an der rechten Wand), erreichbar über Treppen und Leitern
@@ -326,3 +368,4 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
 8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
 9. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m.
+10. **Aktivitätssystem:** Prinzip nach RMSS/RMFRP, alle Werte (Gangarten, Angriffsmodifikatoren, Kosten, Reserve 50 % vor dem ersten Zug, Feuerbereitschaft) sind eigene Vorschläge, nicht aus dem Regelwerk.

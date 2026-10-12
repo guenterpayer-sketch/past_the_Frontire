@@ -252,6 +252,16 @@
         ctx.strokeStyle = '#ff4040'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.ellipse(x, y + 1, 16, 8.5, 0, 0, 7); ctx.stroke();
       }
+      // Blickrichtung: Pfeil am Boden, Sichtfeld 180° als heller Halbkreis
+      const ang = (Hex.dirAngle(u.facing) * Math.PI) / 180;
+      const cx = Math.cos(ang), cy = Math.sin(ang);
+      const pt = (along, side) => [x + cx * along - cy * side, y + 1 + (cy * along + cx * side) * SQ];
+      ctx.fillStyle = enemy ? 'rgba(255,93,93,0.18)' : 'rgba(93,183,255,0.18)';
+      ctx.beginPath(); ctx.ellipse(x, y + 1, 20, 20 * SQ, 0, ang - Math.PI / 2, ang + Math.PI / 2); ctx.lineTo(x, y + 1); ctx.fill();
+      ctx.fillStyle = enemy ? '#ff7070' : '#7cc4ff';
+      ctx.beginPath();
+      ctx.moveTo(...pt(23, 0)); ctx.lineTo(...pt(13, -6)); ctx.lineTo(...pt(13, 6));
+      ctx.closePath(); ctx.fill();
       const bodyH = 28, w = 18, by = y - bodyH;
       ctx.fillStyle = enemy ? '#4a1414' : '#122a44';
       roundRect(ctx, x - w / 2, by, w, bodyH, 7); ctx.fill();
@@ -274,7 +284,7 @@
       if (u.bleed) icon('#ff4d4d', '♦');
       if (u.stun) icon('#ffd54f', '★');
       if (u.prone) icon('#bbb', '↓');
-      if (u.defStance) icon('#7fc8ff', '◆');
+      if (u.overwatch) icon('#ffd34d', '◎');
     }
 
     // halbtransparente Figur über allem: zeigt Figuren hinter Containern und Regalen.

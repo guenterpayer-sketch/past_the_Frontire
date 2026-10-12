@@ -6,6 +6,7 @@
   const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
   const fmt = v => (v >= 0 ? '+' + v : String(v));
   const STORE = 'ptf.crew.v1';
+  const DIR_NAMES = ['O', 'NO', 'NW', 'W', 'SW', 'SO'];
   const FREE_XP = 3;
 
   function loadRoster() {
@@ -22,7 +23,9 @@
       this.mode = 'move';
       this.auto = false;
       this.weaponSel = {};
-      this.endAt = 0; this.lastAi = 0;
+      this.gait = 'gehen';
+      this.pct = PTF.COMBAT.NORMAL_ATTACK;
+      this.lastAi = 0;
       this.canvas.addEventListener('mousemove', e => this.onHover(e));
       this.canvas.addEventListener('mouseleave', () => { this.hover = null; this.hoverUnit = null; $('#tip').hidden = true; });
       this.canvas.addEventListener('click', e => this.onClick(e));
@@ -38,7 +41,7 @@
         this.renderer.panBy(dx, dy);
         this.drag.x = e.clientX; this.drag.y = e.clientY;
       });
-      this.canvas.addEventListener('contextmenu', e => { e.preventDefault(); this.mode = 'move'; this.dirty = true; });
+      this.canvas.addEventListener('contextmenu', e => this.onRightClick(e));
       window.addEventListener('resize', () => this.renderer.resize());
       document.addEventListener('keydown', e => this.onKey(e));
       $('#btn-new').onclick = () => this.newBattle(Math.floor(Math.random() * 1e6));
@@ -69,13 +72,16 @@
     },
 
     isAi(u) { return !!u && (u.team === 'enemy' || this.auto); },
-    playerTurn() { const c = this.combat, u = c.current; return u && !this.isAi(u) && !c.result && !this.renderer.busy() && u.actions > 0; },
+    playerTurn() { const c = this.combat, u = c.current; return u && !this.isAi(u) && !c.result && !this.renderer.busy() && u.state === 'ok'; },
     weaponOf(u) {
       const usable = this.combat.usableWeapons(u);
-      let w = this.weaponSel[u.id];
-      if (!w || !usable.includes(w)) w = usable[0] || u.weapons[0];
+      let w = this.weaponSel[u.id] || u.weapon;
+      if (!usable.includes(w)) w = usable[0] || u.weapons[0];
       return w;
     },
+    // Aktivität für den Angriff: gewählter Wert, begrenzt durch das, was noch übrig ist (inkl. Waffenwechsel)
+    maxAttackPct(u, wid) { return Math.min(100, Math.floor((u.act - (wid !== u.weapon ? PTF.COMBAT.COST.swap : 0)) / 10) * 10); },
+    attackPct(u, wid) { return Math.max(PTF.COMBAT.MIN_ATTACK, Math.min(this.pct, this.maxAttackPct(u, wid))); },
 
     onEvent(ev) {
       const r = this.renderer;
@@ -88,7 +94,7 @@
           r.addShot(ev.unit, ev.target, w.psi ? '#c58bff' : w.melee ? '#ffffff' : w.table === 'strahl' ? '#ff5050' : w.splash ? '#ff9a3c' : '#ffe08a');
           break;
         }
-        case 'turn': this.mode = 'move'; r.ensureVisible(ev.unit); break;
+        case 'turn': this.mode = 'move'; this.gait = 'gehen'; this.pct = PTF.COMBAT.NORMAL_ATTACK; r.ensureVisible(ev.unit); break;
         case 'end': { const cc = this.combat; setTimeout(() => { if (this.combat === cc) this.showEnd(); }, 1000); break; }
       }
       this.dirty = true;
@@ -101,18 +107,14 @@
       requestAnimationFrame(t => this.frame(t));
     },
 
+    // KI-Züge ausführen; Spielerzüge enden nur per „Zug beenden“ (damit man sich am Ende noch drehen kann)
     tick(now) {
       const c = this.combat;
       if (!c || c.result || this.renderer.busy()) return;
       const u = c.current;
       if (!u) return;
-      if (u.actions <= 0) {
-        if (!this.endAt) this.endAt = now + (this.isAi(u) ? 250 : 400);
-        if (now >= this.endAt) { this.endAt = 0; c.endTurn(); }
-        return;
-      }
-      this.endAt = 0;
-      if (this.isAi(u) && now - this.lastAi > 420) {
+      if (u.state !== 'ok') { c.endTurn(); this.dirty = true; return; }
+      if (this.isAi(u) && now - this.lastAi > 380) {
         this.lastAi = now;
         const step = PTF.AI.planStep(c, u);
         if (step.type === 'end' || !PTF.AI.execute(c, u, step)) c.endTurn();
@@ -124,18 +126,22 @@
       const c = this.combat, u = c.current;
       const v = { current: u, hover: this.hover };
       if (!this.playerTurn()) return v;
-      if (this.mode === 'move') {
-        if (!this.reachCache || this.reachCache.u !== u || this.reachCache.key !== Hex.key(u.pos.q, u.pos.r) + u.actions) {
-          this.reachCache = { u, key: Hex.key(u.pos.q, u.pos.r) + u.actions, reach: c.moveRange(u) };
+      if (this.mode === 'move' && c.canMove(u, this.gait)) {
+        const key = [u.pos.q, u.pos.r, u.act, u.freeHex, u.moveSpare, this.gait].join('|');
+        if (!this.reachCache || this.reachCache.u !== u || this.reachCache.key !== key) {
+          this.reachCache = { u, key, reach: c.moveRange(u, this.gait) };
         }
         v.reach = this.reachCache.reach;
         if (this.hover && !this.hoverUnit && v.reach.has(Hex.key(this.hover.q, this.hover.r))) v.path = this.map.pathTo(v.reach, this.hover);
-      }
+      } else if (this.mode === 'move') this.reachCache = null;
       if (this.mode === 'aid') v.aidTiles = new Set(c.firstAidTargets(u).map(o => Hex.key(o.pos.q, o.pos.r)));
       if (this.mode === 'psi') v.aidTiles = new Set(c.psiShieldTargets(u).map(o => Hex.key(o.pos.q, o.pos.r)));
-      if (!u.hasAttacked && !u.stunnedNow) {
+      if (c.canAttack(u)) {
         const w = this.weaponOf(u);
-        v.targets = new Set(c.opponents(u).filter(t => c.attackInfo(u, t, w).valid));
+        if (this.maxAttackPct(u, w) >= PTF.COMBAT.MIN_ATTACK) {
+          const pct = this.attackPct(u, w);
+          v.targets = new Set(c.opponents(u).filter(t => c.attackInfo(u, t, w, { pct }).valid));
+        }
       }
       return v;
     },
@@ -170,12 +176,15 @@
       if (o) {
         const st = o.state === 'ok' ? '' : o.state === 'ko' ? ' – bewusstlos' : ' – tot';
         h += `<b>${esc(o.name)}</b> <small>${esc(o.role)}${st}</small><br>TP ${o.hp}/${o.maxHp}${o.maxPp ? ` · PP ${o.pp}/${o.maxPp}` : ''} · ${esc(ARMOR[o.armor].name)}`;
+        if (o !== u && o.state === 'ok') h += `<br><small>Ausweichreserve ${o.reserve || 0} %</small>`;
         const s = statusList(o);
         if (s.length) h += `<br><small>${s.join(' · ')}</small>`;
         if (this.playerTurn() && o.team !== u.team) {
-          const info = c.attackInfo(u, o, this.weaponOf(u));
+          const w = this.weaponOf(u);
+          const info = c.attackInfo(u, o, w, { pct: this.attackPct(u, w) });
           if (!info.valid) h += `<div class="tip-bad">Kein Angriff: ${esc(info.reason)}</div>`;
-          else if (u.hasAttacked || u.stunnedNow) h += `<div class="tip-bad">Kein Angriff mehr in diesem Zug</div>`;
+          else if (!c.canAttack(u)) h += `<div class="tip-bad">Kein Angriff mehr in dieser Runde${u.sprinted ? ' (gesprintet)' : ''}</div>`;
+          else if (this.maxAttackPct(u, w) < PTF.COMBAT.MIN_ATTACK) h += `<div class="tip-bad">Zu wenig Aktivität für einen Angriff (mind. ${PTF.COMBAT.MIN_ATTACK} %)</div>`;
           else h += attackBreakdown(info);
         }
       }
@@ -184,6 +193,12 @@
       if (u && !o && !this.isAi(u)) {
         const d = Hex.distance(u.pos, t) * PTF.MAP_CONST.HEX_M;
         info += ` · ${d.toLocaleString('de-DE')} m entfernt`;
+        const reach = this.preferTiles();
+        const e = reach && reach.get(Hex.key(t.q, t.r));
+        if (e && e.cost > 0) {
+          const pct = c.movePct(u, this.gait, e.cost);
+          info += `<br><b>${PTF.COMBAT.GAITS[this.gait].name}:</b> ${e.cost} Hex-Kosten = <b>${pct} %</b> Aktivität (bleiben ${u.act - pct} %)`;
+        }
       }
       h += `<div class="tip-tile">${info}</div>`;
       return h;
@@ -194,17 +209,30 @@
       if (!this.playerTurn()) return;
       const c = this.combat, u = c.current, m = this.mouse(e);
       let target = this.renderer.pickUnit(m.x, m.y);
+      const w = this.weaponOf(u);
       // im Bewegungsmodus fangen eigene Figuren keinen Klick ab
       if (target && this.mode === 'move' && target.team === u.team) target = null;
       // Gegner, der gerade nicht angreifbar ist: Klick gilt dem Feld darunter
       if (target && this.mode === 'move' && target.team !== u.team &&
-          (u.hasAttacked || u.stunnedNow || target.state !== 'ok' || !c.attackInfo(u, target, this.weaponOf(u)).valid)) target = null;
+          (!c.canAttack(u) || target.state !== 'ok' || this.maxAttackPct(u, w) < PTF.COMBAT.MIN_ATTACK ||
+           !c.attackInfo(u, target, w, { pct: this.attackPct(u, w) }).valid)) target = null;
       const tile = target ? this.map.at(target.pos) : this.renderer.pickTile(m.x, m.y, this.preferTiles());
-      if (this.mode === 'aid') { if (target && c.doFirstAid(u, target)) this.mode = 'move'; }
+      if (this.mode === 'face') { if (tile) c.doFace(u, Hex.dirToward(u.pos, tile)); this.mode = 'move'; }
+      else if (this.mode === 'aid') { if (target && c.doFirstAid(u, target)) this.mode = 'move'; }
       else if (this.mode === 'psi') { if (target && c.doPsiShield(u, target)) this.mode = 'move'; }
-      else if (target && target.team !== u.team && target.state === 'ok') c.doAttack(u, target, this.weaponOf(u));
-      else if (tile) c.doMove(u, tile);
+      else if (target && target.team !== u.team) c.doAttack(u, target, w, this.attackPct(u, w));
+      else if (tile) c.doMove(u, tile, this.gait);
       $('#tip').hidden = true;
+      this.dirty = true;
+    },
+
+    // Rechtsklick: Figur in Richtung des Feldes drehen (kostenlos)
+    onRightClick(e) {
+      e.preventDefault();
+      if (!this.playerTurn()) return;
+      const m = this.mouse(e), u = this.combat.current;
+      const tile = this.renderer.pickTile(m.x, m.y);
+      if (tile && (tile.q !== u.pos.q || tile.r !== u.pos.r)) this.combat.doFace(u, Hex.dirToward(u.pos, tile));
       this.dirty = true;
     },
 
@@ -227,11 +255,13 @@
       if (!this.playerTurn()) return;
       switch (act) {
         case 'weapon': this.weaponSel[u.id] = b.dataset.w; break;
-        case 'move': this.mode = 'move'; break;
-        case 'aim': c.doAim(u); break;
-        case 'defend': c.doDefend(u); break;
+        case 'gait': this.gait = b.dataset.g; this.mode = 'move'; break;
+        case 'pct': this.pct = Number(b.dataset.p); break;
+        case 'overwatch': c.doOverwatch(u, this.weaponOf(u)); break;
+        case 'reload': c.doReload(u, b.dataset.w); break;
         case 'aid': this.mode = this.mode === 'aid' ? 'move' : 'aid'; break;
         case 'psi': this.mode = this.mode === 'psi' ? 'move' : 'psi'; break;
+        case 'face': this.mode = this.mode === 'face' ? 'move' : 'face'; break;
         case 'end': c.endTurn(); break;
       }
       this.dirty = true;
@@ -239,21 +269,23 @@
 
     // ---------- Panel ----------
     updatePanel() {
-      const c = this.combat, u = c.current;
+      const c = this.combat, u = c.current, CB = PTF.COMBAT;
       $('#round').textContent = c.round;
       $('#order').innerHTML = c.order.map((o, i) =>
         `<li class="${o.team} ${o.state !== 'ok' ? 'out' : ''} ${i === c.turnIdx ? 'now' : ''} ${i < c.turnIdx ? 'done' : ''}" title="Initiative ${o.initRoll}">
-          <span class="badge" style="background:${o.color}">${o.letter}</span><span>${esc(o.name)}</span><span class="ini">${o.init}</span></li>`).join('');
+          <span class="badge" style="background:${o.color}">${o.letter}</span><span>${esc(o.name)}${o.overwatch ? ' ◎' : ''}</span><span class="ini">${o.init}</span></li>`).join('');
       if (!u) { $('#unit').innerHTML = ''; return; }
       const ai = this.isAi(u);
       const w = this.weaponOf(u);
-      const dodge = Math.max(0, Rules.skillTotal(u, 'ausweichen'));
       const player = this.playerTurn();
       const dis = cond => (!player || !cond ? 'disabled' : '');
-      const canAim = !u.aim && !u.hasAttacked && !u.stunnedNow;
-      const aidT = c.firstAidTargets(u).length > 0;
-      const psiT = c.psiShieldTargets(u).length > 0;
+      const dodge = Math.max(0, Rules.skillTotal(u, 'ausweichen'));
+      const vw = Math.floor(dodge / 2) + Math.floor((dodge / 2) * Math.max(0, u.act) / 100) + (ARMOR[u.armor].db || 0);
+      const canAtk = c.canAttack(u) && this.maxAttackPct(u, w) >= CB.MIN_ATTACK;
+      const pct = this.attackPct(u, w);
       const status = statusList(u);
+      const reload = c.reloadable(u);
+      const freeMove = u.freeHex + u.moveSpare;
       $('#unit').innerHTML = `
         <div class="unit-head ${u.team}">
           <span class="badge big" style="background:${u.color}">${u.letter}</span>
@@ -262,36 +294,42 @@
         </div>
         ${bar('TP', u.hp, u.maxHp, 'hp')}
         ${u.maxPp ? bar('PP', u.pp, u.maxPp, 'pp') : ''}
+        ${bar(`Aktivität ${Math.max(0, u.act)} %${freeMove ? ` + ${freeMove} Hex frei` : ''}`, Math.max(0, u.act), 100, 'act', true)}
         <div class="stats">
           <span title="Gesamtbonus der Waffenfertigkeit">AW <b>${Rules.skillTotal(u, WEAPONS[w].skill)}</b></span>
-          <span title="½ Ausweichen (+ Rüstung/Schild, ohne Deckung)">VW <b>${(u.defStance ? dodge : Math.floor(dodge / 2)) + (ARMOR[u.armor].db || 0)}</b></span>
-          <span title="Bewegungspunkte pro Bewegungsaktion">BP <b>${Rules.movePoints(u)}</b></span>
+          <span title="Ausweichen ½ + ½ × übrige Aktivität, + Rüstung (ohne Deckung/Schild)">VW <b>${vw}</b></span>
           <span title="Initiative diese Runde">INI <b>${u.init}</b></span>
+          <span title="Blickrichtung (Rechtsklick dreht)">Blick <b>${DIR_NAMES[u.facing]}</b></span>
         </div>
         <div class="status">${status.map(s => `<span class="chip">${s}</span>`).join('') || '<span class="muted">keine Effekte</span>'}</div>
-        <div class="actions-left">Aktionen: ${'●'.repeat(Math.max(0, u.actions))}${'○'.repeat(Math.max(0, 2 - u.actions))}${u.hasAttacked ? ' · Angriff verbraucht' : ''}</div>
         ${ai ? `<div class="ai-note">${u.team === 'enemy' ? 'Gegner' : 'KI'} ist am Zug …</div>` : `
+        <div class="sub">Waffe <small>(Wechsel beim Angriff −${CB.COST.swap} %)</small></div>
         <div class="weapons">${u.weapons.map(id => {
           const W = WEAPONS[id];
-          const extra = W.ammo ? ` (${u.ammo[id]}/${W.ammo})` : W.pp ? ` (${W.pp} PP)` : '';
+          const extra = W.mag ? ` (${u.loaded[id]}/${W.mag}, Reserve ${u.ammo[id]})` : W.pp ? ` (${W.pp} PP)` : '';
           const usable = c.usableWeapons(u).includes(id);
-          return `<button data-act="weapon" data-w="${id}" class="${id === w ? 'sel' : ''}" ${!usable || !player ? 'disabled' : ''}>${esc(W.name)}${extra}<small>${W.melee ? 'Nahkampf' : `${W.inc} m/Stufe, max ${W.inc * W.stages} m`} · max ${W.max}</small></button>`;
+          return `<button data-act="weapon" data-w="${id}" class="${id === w ? 'sel' : ''}" ${!usable || !player ? 'disabled' : ''}>${esc(W.name)}${extra}${id === u.weapon ? ' ✓' : ''}<small>${W.melee ? 'Nahkampf' : `${W.inc} m/Stufe, max ${W.inc * W.stages} m`}</small></button>`;
         }).join('')}</div>
+        <div class="sub">Gangart</div>
+        <div class="seg">${Object.entries(CB.GAITS).map(([id, g]) => `<button data-act="gait" data-g="${id}" class="${this.gait === id ? 'sel' : ''}" ${dis(c.canMove(u, id))} title="${g.pace} Hex je 10 %${g.attackMod ? `, danach Angriff ${g.attackMod}` : ''}${g.noAttack ? ', kein Angriff in dieser Runde' : ''}">${g.name}<small>${g.pace} Hex/10 %</small></button>`).join('')}</div>
+        <div class="sub">Angriff mit <b>${pct} %</b> Aktivität (${fmt(CB.activityMod(pct))})</div>
+        <div class="seg pct">${[20, 30, 40, 50, 60, 70, 80, 90, 100].map(p => `<button data-act="pct" data-p="${p}" class="${pct === p && canAtk ? 'sel' : ''}" ${dis(canAtk && p <= this.maxAttackPct(u, w))}>${p}<small>${fmt(CB.activityMod(p))}</small></button>`).join('')}</div>
         <div class="buttons">
-          <button data-act="move" class="${this.mode === 'move' ? 'sel' : ''}" ${dis(true)} title="Feld anklicken. Gegner anklicken = Angriff">Bewegen / Angreifen</button>
-          <button data-act="aim" ${dis(canAim)} title="+15 auf den nächsten Angriff">Zielen</button>
-          <button data-act="defend" ${dis(!u.defStance)} title="Voller Ausweichen-Bonus bis zum nächsten Zug">Abwehrhaltung</button>
-          <button data-act="aid" class="${this.mode === 'aid' ? 'sel' : ''}" ${dis(aidT)} title="Benachbarte Figur behandeln (Erste Hilfe, Mittel)">Erste Hilfe</button>
-          ${Rules.skillRank(u, 'psiWirken') > 0 ? `<button data-act="psi" class="${this.mode === 'psi' ? 'sel' : ''}" ${dis(psiT)} title="Psi wirken, 2 PP: +20 VW für bis zu 3 Runden, Reichweite 4">Psi-Schild</button>` : ''}
-          <button data-act="end" class="end" ${dis(true)} title="Enter">Zug beenden</button>
+          <button data-act="overwatch" ${dis(c.canOverwatch(u, w))} title="Restliche Aktivität (mind. ${CB.MIN_OVERWATCH} %) zurückhalten: Schuss auf den ersten Gegner, der im Sichtfeld handelt. ${CB.REACTION_MOD} Reaktion. Beendet den Zug.">Feuerbereitschaft</button>
+          ${reload.map(id => `<button data-act="reload" data-w="${id}" ${dis(c.canDo(u, CB.COST.reload))}>Nachladen (${CB.COST.reload} %)</button>`).join('')}
+          <button data-act="aid" class="${this.mode === 'aid' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.aid) && c.firstAidTargets(u).length)} title="Benachbarte Figur behandeln (Erste Hilfe, Mittel)">Erste Hilfe (${CB.COST.aid} %)</button>
+          ${Rules.skillRank(u, 'psiWirken') > 0 ? `<button data-act="psi" class="${this.mode === 'psi' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.psi) && c.psiShieldTargets(u).length)} title="Psi wirken, 2 PP: +20 VW für bis zu 3 Runden, Reichweite 4">Psi-Schild (${CB.COST.psi} %)</button>` : ''}
+          <button data-act="face" class="${this.mode === 'face' ? 'sel' : ''}" ${dis(true)} title="Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ: Rechtsklick auf ein Feld.">Ausrichten</button>
+          <button data-act="end" class="end ${u.act < 10 && !freeMove ? 'pulse' : ''}" ${dis(true)} title="Enter. Übrige Aktivität zählt bis zum nächsten Zug als Ausweichen.">Zug beenden${u.act > 0 ? ` (${u.act} % → Ausweichen)` : ''}</button>
         </div>
         <div class="hint">${this.hintText(u)}</div>`}`;
     },
 
     hintText(u) {
-      if (this.mode === 'aid') return 'Grün markierte Figur anklicken. Rechtsklick/Esc bricht ab.';
+      if (this.mode === 'aid') return 'Grün markierte Figur anklicken. Esc bricht ab.';
       if (this.mode === 'psi') return 'Grün markierte Figur für den Psi-Schild anklicken.';
-      return 'Blaue Felder: Bewegung. Rot umrandete Gegner: angreifbar (Maus drüber zeigt Chance und Modifikatoren).';
+      if (this.mode === 'face') return 'Feld anklicken, in dessen Richtung die Figur schauen soll.';
+      return 'Blaue Felder: Bewegung (Kosten im Tooltip). Rot umrandet: angreifbar. Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.';
     },
 
     addLog(text, cls = '') {
@@ -395,9 +433,9 @@
   };
 
   // ---------- HTML-Bausteine ----------
-  function bar(label, v, max, cls) {
+  function bar(label, v, max, cls, plain) {
     const f = Math.max(0, Math.min(1, v / max));
-    return `<div class="bar ${cls}"><span>${label} ${v}/${max}</span><i style="width:${f * 100}%"></i></div>`;
+    return `<div class="bar ${cls}"><span>${label}${plain ? '' : ` ${v}/${max}`}</span><i style="width:${f * 100}%"></i></div>`;
   }
 
   function statusList(u) {
@@ -406,9 +444,10 @@
     if (u.stun) s.push(`Betäubt ${u.stun}`);
     if (u.malus) s.push(`Wunden ${u.malus}`);
     if (u.prone) s.push('Niedergeworfen');
-    if (u.defStance) s.push('Abwehrhaltung');
+    if (u.overwatch) s.push(`Feuerbereitschaft ${u.overwatch.pct} %`);
+    if (u.ran) s.push('gelaufen (Angriff −20)');
+    if (u.sprinted) s.push('gesprintet (kein Angriff)');
     if (u.psiShield) s.push(`Psi-Schild ${u.psiShield}`);
-    if (u.aim) s.push(`Zielt +${u.aim}`);
     if (u.nextAttackMalus) s.push(`Waffe klemmt ${u.nextAttackMalus}`);
     return s;
   }
@@ -417,7 +456,8 @@
     const li = m => `<li><span>${esc(m.label)}</span><b>${fmt(m.val)}</b></li>`;
     const sumOb = info.ob.reduce((s, m) => s + m.val, 0), sumDb = info.db.reduce((s, m) => s + m.val, 0);
     const cls = info.chance >= 60 ? 'good' : info.chance >= 35 ? 'mid' : 'bad';
-    return `<div class="tip-attack"><div class="chance ${cls}">Trefferchance ≈ ${info.chance}%</div>
+    const surprise = info.surprised && !info.weapon.psi ? `<div class="tip-warn">Überraschung (${info.sector === 'flanke' ? 'Flanke' : 'Rücken'}): Ziel weicht nicht aus, kein Schild. Eine gelungene Kampfsinn-Probe des Ziels halbiert das Ausweichen.</div>` : '';
+    return `<div class="tip-attack"><div class="chance ${cls}">Trefferchance ≈ ${info.chance}% <small>(${info.pct} % Aktivität)</small></div>${surprise}
       <small>W100 offen ${fmt(info.net)} ≥ ${info.thr} (${esc(ATTACK_TABLES[info.weapon.table].name)}) · Patzer 01–${String(info.weapon.fumble).padStart(2, '0')}</small>
       <div class="cols"><ul><li class="h"><span>Angriff</span><b>${sumOb}</b></li>${info.ob.map(li).join('')}</ul>
       <ul><li class="h"><span>Verteidigung</span><b>${sumDb}</b></li>${info.db.map(li).join('')}</ul></div></div>`;
@@ -450,7 +490,7 @@
         <table class="tbl small">
           <tr><td>Trefferpunkte</td><td>${u.maxHp} (tot bei ${Rules.deathAt(u)})</td></tr>
           <tr><td>Psi-Punkte</td><td>${u.maxPp}</td></tr>
-          <tr><td>Bewegung</td><td>${Rules.movePoints(u)} BP</td></tr>
+          <tr><td>Bewegung</td><td>Gehen 1 Hex je 10 % Aktivität (15 m/Runde) + ${Math.max(0, Math.floor(Rules.attrBonus(u.attrs.GEW) / 5) + (ARMOR[u.armor].move || 0))} Hex frei</td></tr>
           <tr><td>Initiative</td><td>2W10 ${fmt(Rules.initiativeBonus(u))}</td></tr>
           <tr><td>Rüstung</td><td>${esc(ARMOR[u.armor].name)}</td></tr>
           <tr><td>Waffen</td><td>${esc(weapons)}${u.shield ? ', Schild' : ''}</td></tr>

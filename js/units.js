@@ -68,9 +68,17 @@
     u.maxPp = PTF.Rules.maxPp(u);
     u.pp = u.maxPp;
     u.bleed = 0; u.stun = 0; u.malus = 0; u.prone = false; u.state = 'ok';
-    u.nextAttackMalus = 0; u.defStance = false; u.psiShield = 0;
-    u.ammo = {};
-    for (const w of u.weapons) if (PTF.WEAPONS[w].ammo) u.ammo[w] = PTF.WEAPONS[w].ammo;
+    u.nextAttackMalus = 0; u.psiShield = 0;
+    u.ammo = {}; // Reserve
+    u.loaded = {}; // geladen
+    for (const w of u.weapons) {
+      const W = PTF.WEAPONS[w];
+      if (W.mag) { u.loaded[w] = W.mag; u.ammo[w] = W.ammo - W.mag; }
+    }
+    u.facing = team === 'crew' ? 0 : 3; // Blickrichtung: Crew nach Osten, Gegner nach Westen
+    u.reserve = 50; // vor dem ersten eigenen Zug: halbe Aktivität als Ausweichreserve
+    u.act = 0;
+    u.overwatch = null;
     u.weapon = u.weapons[0];
     u.xpLog = {};
     u.kills = 0;

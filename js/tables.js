@@ -39,6 +39,7 @@
   }
 
   // inc: Grundreichweite in Metern (eine Reichweitenstufe), stages: Anzahl Stufen bis zur Maximalreichweite
+  // mag: Schuss pro Ladung (danach Nachladen), ammo: Schuss insgesamt
   const WEAPONS = {
     faeuste: { name: 'Fäuste', skill: 'waffenlos', table: 'wucht', melee: true, max: 110, fumble: 2, dmg: 0.5 },
     vibroklinge: { name: 'Vibroklinge', skill: 'einhand', table: 'klinge', melee: true, max: 150, fumble: 3, dmg: 1.1 },
@@ -46,7 +47,7 @@
     laserpistole: { name: 'Laserpistole', skill: 'pistolen', table: 'strahl', inc: 10, stages: 4, max: 130, fumble: 2, dmg: 0.8 },
     sturmgewehr: { name: 'Sturmgewehr', skill: 'gewehre', table: 'projektil', inc: 25, stages: 4, max: 150, fumble: 3, dmg: 1.0 },
     mg: { name: 'Schweres MG (Feuerstoß)', skill: 'schnellfeuer', table: 'projektil', inc: 20, stages: 4, max: 150, fumble: 5, dmg: 1.1, ob: 15 },
-    raketenwerfer: { name: 'Raketenwerfer', skill: 'raketenwerfer', table: 'explosion', inc: 30, stages: 3, minRange: 6, max: 150, fumble: 5, dmg: 1.4, ammo: 2, splash: [-20, -40] },
+    raketenwerfer: { name: 'Raketenwerfer', skill: 'raketenwerfer', table: 'explosion', inc: 30, stages: 3, minRange: 6, max: 150, fumble: 5, dmg: 1.4, mag: 1, ammo: 2, splash: [-20, -40] },
     psiStoss: { name: 'Psi-Stoß', skill: 'psiAngriff', table: 'psi', inc: 10, stages: 3, max: 140, fumble: 4, dmg: 1.0, pp: 2, psi: true },
   };
   const RANGE_STEP = -20;     // je Reichweitenstufe über der ersten

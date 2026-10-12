@@ -13,7 +13,9 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 - Maßstab: **1 Hexfeld = 1,5 m**, 1 Höhenstufe = 1,5 m. Reichweiten in Metern mit Reichweitenstufen (−20 je Stufe).
 - Höhen: Galerie mit Treppen und Leitern, Containerstapel, Hochregale, Kistenstapel.
 - **Deckung**: halb (+20 VW, Kisten/Fässer/Barrieren) und voll (+40 VW, Container/Regale/Säulen); neben voller Deckung kann man um die Ecke schießen. Von oben herab sinkt die Deckung um eine Stufe.
-- Initiative jede Runde neu, Crew und Gegner handeln gemischt; 2 Aktionen pro Zug (Bewegen, Angreifen max. 1×, Zielen, Abwehrhaltung, Erste Hilfe, Psi-Schild).
+- **Aktivitätssystem im RMSS-Stil**: Runde = 10 s, jede Figur hat 100 % Aktivität und teilt sie frei auf (Gehen/Laufen/Sprinten, Angriff mit 20–100 % = −40 bis +20, Erste Hilfe, Nachladen …). Übrige Aktivität ist Ausweichreserve. Initiative jede Runde neu, Crew und Gegner handeln gemischt.
+- **Feuerbereitschaft**: Aktivität zurückhalten und auf den ersten Gegner schießen, der im Sichtfeld handelt.
+- **Blickrichtung**: Sichtfeld 180°; Angriffe von der Flanke (+15) oder von hinten (+30) überraschen das Ziel (kein Ausweichen, kein Schild; Kampfsinn-Probe halbiert).
 - Crew (Sturmgewehr, 2× Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
 - Nach dem Kampf: Erfahrung pro benutzter Fertigkeit, Ränge steigern, 3 freie EP pro Figur. Der Fortschritt wird im Browser gespeichert (`localStorage`).
 
@@ -21,12 +23,14 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 
 | Aktion | Eingabe |
 |---|---|
-| Bewegen | blaues Feld anklicken (der Weg wird angezeigt) |
-| Angreifen | rot umrandeten Gegner anklicken; Maus darüber zeigt Trefferchance und alle Modifikatoren |
+| Bewegen | Gangart wählen, blaues Feld anklicken (Weg und Kosten in % werden angezeigt) |
+| Angreifen | Aktivität für den Angriff wählen (20–100 %), rot umrandeten Gegner anklicken; Maus darüber zeigt Trefferchance und alle Modifikatoren |
+| Feuerbereitschaft / Nachladen | Buttons im rechten Panel |
+| Drehen | Rechtsklick auf ein Feld oder „Ausrichten“ |
 | Waffe wählen | Waffen-Buttons im rechten Panel |
 | Erste Hilfe / Psi-Schild | Button, dann grün markierte Figur anklicken |
-| Abbrechen | Rechtsklick oder Esc |
-| Zug beenden | Button oder Enter |
+| Abbrechen | Esc |
+| Zug beenden | Button oder Enter (übrige Aktivität wird Ausweichreserve) |
 | Kamera | Mausrad = Zoom, Ziehen oder Pfeiltasten/WASD = verschieben, +/− = Zoom |
 | Zuschauen / Testen | „KI für Crew“ |
 

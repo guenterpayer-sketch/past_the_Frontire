@@ -31,7 +31,7 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 ## 3. Jäger
 
 - Eine Person pro Jäger: **Pilot** für Bewegung und VW, Waffenfertigkeit (meist Strahl-Geschütze oder Raketen) für den Angriff.
-- 2 Aktionen pro Zug wie am Boden (Bewegen, Angriff, Ausweichmanöver = Abwehrhaltung).
+- Aktivitätssystem wie am Boden (100 % pro Runde für Bewegen, Angriff, Ausweichmanöver; übrige Aktivität = Ausweichreserve).
 - Jäger haben wenig Struktur und keinen Schild, aber einen hohen VW.
 
 ## 4. Treffer und Schaden

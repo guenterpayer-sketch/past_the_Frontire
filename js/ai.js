@@ -1,16 +1,22 @@
-// Einfache Gegner-KI: sucht Positionen mit guter Trefferchance, Deckung und Höhe.
-// Liefert pro Aufruf genau eine nächste Aktion.
+// Einfache Gegner-KI für das Aktivitätssystem: sucht Positionen mit guter Trefferchance, Deckung und Höhe.
+// Liefert pro Aufruf genau eine nächste Handlung.
 (function (PTF) {
   'use strict';
   const { Hex, WEAPONS } = PTF;
+  const { MIN_ATTACK, MIN_OVERWATCH, GAITS } = PTF.COMBAT;
 
-  function bestAttack(c, u, from, weapons) {
+  // bester Angriff von einem Feld aus; avail = für den Angriff verfügbare Aktivität
+  function bestAttack(c, u, from, weapons, avail, extraMod = 0) {
     let best = null;
-    for (const t of c.opponents(u)) {
-      for (const wid of weapons) {
-        const info = c.attackInfo(u, t, wid, from);
-        if (!info.valid || info.chance <= 0) continue;
-        let score = info.chance;
+    for (const wid of weapons) {
+      const pct = Math.min(100, avail - (wid !== u.weapon ? 10 : 0));
+      if (pct < MIN_ATTACK) continue;
+      for (const t of c.opponents(u)) {
+        const info = c.attackInfo(u, t, wid, { from, pct });
+        if (!info.valid) continue;
+        const chance = Math.max(0, Math.min(100, info.chance + extraMod));
+        if (chance <= 0) continue;
+        let score = chance;
         if (t.hp <= 10) score += 15;
         if (WEAPONS[wid].splash) {
           // Rakete nur, wenn mehrere Gegner nah beieinander stehen und keine eigenen Leute
@@ -23,7 +29,7 @@
           score += others * 30 - 10;
         }
         if (WEAPONS[wid].psi) score += 5;
-        if (!best || score > best.score) best = { score, target: t, wid, info };
+        if (!best || score > best.score) best = { score, target: t, wid, pct, info };
       }
     }
     return best;
@@ -34,9 +40,9 @@
     let seen = 0, covered = 0;
     for (const e of c.opponents(u)) {
       const et = c.tileOf(e);
-      if (Hex.distance(et, tile) > 14) continue;
-      if (!c.map.lineOfSight(et, tile).visible) { covered++; seen++; continue; }
+      if (Hex.distance(et, tile) > 30) continue;
       seen++;
+      if (!c.map.lineOfSight(et, tile).visible) { covered++; continue; }
       const cov = c.map.cover(tile, et);
       if (cov) covered += cov.level / 2;
     }
@@ -48,8 +54,9 @@
     const m = c.map, best = new Map(), open = [];
     for (const e of c.opponents(u)) { const t = c.tileOf(e); best.set(Hex.key(t.q, t.r), 0); open.push({ t, cost: 0 }); }
     while (open.length) {
-      open.sort((a, b) => a.cost - b.cost);
-      const cur = open.shift();
+      let bi = 0;
+      for (let i = 1; i < open.length; i++) if (open[i].cost < open[bi].cost) bi = i;
+      const cur = open.splice(bi, 1)[0];
       if (cur.cost > best.get(Hex.key(cur.t.q, cur.t.r))) continue;
       for (const n of Hex.neighbors(cur.t.q, cur.t.r)) {
         const nt = m.get(n.q, n.r);
@@ -62,68 +69,84 @@
     return t => { const v = best.get(Hex.key(t.q, t.r)); return v === undefined ? 99 : v; };
   }
 
+  // Am Zugende zum nächsten (möglichst sichtbaren) Gegner drehen
+  function faceStep(c, u) {
+    const here = c.tileOf(u);
+    let best = null;
+    for (const e of c.opponents(u)) {
+      const d = Hex.distance(e.pos, u.pos) - (c.map.lineOfSight(here, c.tileOf(e)).visible ? 100 : 0);
+      if (!best || d < best.d) best = { d, e };
+    }
+    if (!best) return { type: 'end' };
+    return { type: 'face', dir: Hex.dirToward(u.pos, best.e.pos) };
+  }
+
   function planStep(c, u) {
-    if (u.actions <= 0) return { type: 'end' };
+    if (c.current !== u || c.result || u.state !== 'ok') return { type: 'end' };
+    const stamp = c.round + ':' + c.turnIdx;
+    if (u._stamp !== stamp) { u._stamp = stamp; u._moved = false; u._faced = false; }
+    const finish = () => (u._faced ? { type: 'end' } : faceStep(c, u));
+    if (u.stunnedNow) return finish();
+
     const here = c.tileOf(u);
     const weapons = c.usableWeapons(u);
-    const melee = WEAPONS[weapons[0]] && WEAPONS[weapons[0]].melee;
+    const avail = Math.floor(u.act / 10) * 10;
 
-    if (u.hasAttacked || u.stunnedNow) return { type: 'defend' };
+    // Nachladen, wenn der Angriff schon erledigt ist oder genug Aktivität für Laden + Angriff bleibt
+    const rl = c.reloadable(u);
+    if (rl.length && u.act >= 30 && (u.hasAttacked || u.act >= 90)) return { type: 'reload', wid: rl[0] };
 
-    const dist = approachField(c, u);
-    if (melee) {
-      const now = bestAttack(c, u, here, [weapons[0]]);
-      if (now) return { type: 'attack', target: now.target, wid: now.wid };
-      const reach = c.moveRange(u);
-      let best = null;
-      for (const { tile, cost } of reach.values()) {
-        const hit = u.actions >= 2 ? bestAttack(c, u, tile, [weapons[0]]) : null;
-        const score = hit ? 1000 + hit.score + tile.h * 5 - cost : -dist(tile) * 10 + safety(c, u, tile) * 8 - cost * 0.1;
-        if (!best || score > best.score) best = { score, tile };
+    if (c.canAttack(u) && weapons.length) {
+      const melee = WEAPONS[u.weapons[0]].melee;
+      const options = [];
+      const h = bestAttack(c, u, here, weapons, avail);
+      if (h) options.push({ ...h, tile: here, score: h.score + safety(c, u, here) * 20 + here.h * 3 });
+      if (!u._moved) {
+        for (const gait of melee ? ['gehen', 'laufen'] : ['gehen']) {
+          if (!c.canMove(u, gait)) continue;
+          const runMod = GAITS[gait].attackMod || 0;
+          for (const { tile, cost } of c.moveRange(u, gait, avail - MIN_ATTACK).values()) {
+            if (tile === here) continue;
+            const left = avail - c.movePct(u, gait, cost);
+            if (left < MIN_ATTACK) continue;
+            const a = bestAttack(c, u, tile, melee ? [u.weapons[0]].filter(w => weapons.includes(w)) : weapons, left, runMod);
+            if (a) options.push({ ...a, tile, gait, score: a.score + safety(c, u, tile) * 20 + tile.h * 3 - cost * 0.2 });
+          }
+        }
       }
-      if (best && best.score >= 1000) return { type: 'move', tile: best.tile };
-      // Nahkampf nicht erreichbar: mit Zweitwaffe schießen, sonst annähern
-      const ranged = weapons.filter(w => !WEAPONS[w].melee);
-      const shot = ranged.length ? bestAttack(c, u, here, ranged) : null;
-      if (shot && shot.info.chance >= 25) return { type: 'attack', target: shot.target, wid: shot.wid };
-      if (best && best.tile !== here) return { type: 'move', tile: best.tile };
-      return shot ? { type: 'attack', target: shot.target, wid: shot.wid } : { type: 'defend' };
+      options.sort((a, b) => b.score - a.score);
+      const best = options[0];
+      if (best && best.tile === here) return { type: 'attack', target: best.target, wid: best.wid, pct: best.pct };
+      if (best) return { type: 'move', tile: best.tile, gait: best.gait };
     }
 
-    const now = bestAttack(c, u, here, weapons);
-    if (u.actions === 1) {
-      if (now) return { type: 'attack', target: now.target, wid: now.wid };
-      // kein Ziel: weiter annähern, solange es Gegner gibt, die außer Sicht sind
-      let best = null;
-      for (const { tile, cost } of c.moveRange(u).values()) {
-        const score = -dist(tile) * 4 + safety(c, u, tile) * 10 + tile.h - cost * 0.2;
-        if (!best || score > best.score) best = { score, tile };
+    // kein Angriff möglich: vorrücken (Nahkämpfer sprinten), danach Feuerbereitschaft
+    if (!u._moved) {
+      const dist = approachField(c, u);
+      const melee = WEAPONS[u.weapons[0]].melee;
+      const gait = melee && !u.hasAttacked ? 'sprinten' : 'laufen';
+      const limit = melee ? avail : avail - MIN_OVERWATCH;
+      if (c.canMove(u, gait) && limit >= 0) {
+        let best = null;
+        for (const { tile, cost } of c.moveRange(u, gait, limit).values()) {
+          const score = -dist(tile) * 4 + safety(c, u, tile) * 10 + tile.h - cost * 0.1;
+          if (!best || score > best.score) best = { score, tile };
+        }
+        if (best && best.tile !== here && dist(best.tile) < dist(here) + 1) return { type: 'move', tile: best.tile, gait };
       }
-      return best && best.tile !== here ? { type: 'move', tile: best.tile } : { type: 'defend' };
     }
-
-    // 2 Aktionen: entweder bewegen + schießen oder zielen + schießen
-    const reach = c.moveRange(u);
-    let bestTile = null;
-    for (const { tile, cost } of reach.values()) {
-      const a = bestAttack(c, u, tile, weapons);
-      const score = (a ? a.score : -50 - dist(tile) * 5) + safety(c, u, tile) * 25 + tile.h * 3 - cost * 0.2;
-      if (!bestTile || score > bestTile.score) bestTile = { score, tile, a };
-    }
-    const hereScore = now ? now.score + 15 + safety(c, u, here) * 25 + here.h * 3 : -Infinity; // +15: Zielen
-    if (now && hereScore >= bestTile.score) {
-      return u.aim || now.info.chance >= 95 ? { type: 'attack', target: now.target, wid: now.wid } : { type: 'aim' };
-    }
-    if (bestTile && bestTile.tile !== here) return { type: 'move', tile: bestTile.tile };
-    return now ? { type: 'attack', target: now.target, wid: now.wid } : { type: 'defend' };
+    const ranged = weapons.filter(w => !WEAPONS[w].melee);
+    if (ranged.length && c.canOverwatch(u, ranged[0])) return { type: 'overwatch', wid: ranged[0] };
+    return finish();
   }
 
   function execute(c, u, step) {
     switch (step.type) {
-      case 'move': return c.doMove(u, step.tile);
-      case 'attack': return c.doAttack(u, step.target, step.wid);
-      case 'aim': return c.doAim(u);
-      case 'defend': return c.doDefend(u);
+      case 'move': { const ok = c.doMove(u, step.tile, step.gait || 'gehen'); if (ok) u._moved = true; return ok; }
+      case 'attack': return c.doAttack(u, step.target, step.wid, step.pct);
+      case 'overwatch': return c.doOverwatch(u, step.wid);
+      case 'reload': return c.doReload(u, step.wid);
+      case 'face': u._faced = true; return c.doFace(u, step.dir);
       default: return false;
     }
   }
