@@ -217,6 +217,8 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+70 VW**; auf ein Ziel in voller Deckung sind nur gezielte Schüsse möglich (mind. 60 % Aktivität), keine Reaktionsschüsse |
 | Angreifer steht mind. 2 Stufen (3 m) über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
 | Hohe Hindernisse zwischen Schütze und Ziel | blockieren die Sichtlinie |
+| Figur an der Kante der **Galerie** gegen tiefer stehende Schützen | **Geländer**: halbe Deckung (+40 VW) |
+| Niedrige Deckung direkt neben Schütze oder Ziel | wird überschossen – aber nur, wenn das Auge des Schützen über ihrer Oberkante liegt (von unten blockiert sie) |
 
 **Um die Ecke schießen:** Wer direkt neben voller Deckung steht, darf die Sichtlinie auch von einem benachbarten Feld derselben Höhe aus ziehen (seitlich herauslehnen). Das gilt für Angreifer und Ziel gleichermaßen. Wird ein Ziel so gesehen, steht es in voller Deckung.
 
@@ -337,7 +339,7 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 Hindernisse (Regalreihen, Container, Barrieren, Kistenwände) stehen waagerecht oder senkrecht, damit es Deckung in beide Richtungen gibt.
 
 Die Größe wird im Testmodus pro Mission zufällig gewählt: **klein ca. 30×21 m**, **mittel ca. 45×30 m**, **groß ca. 60×40 m**. Die Halle enthält:
-- **Galerie / Laufstege** in 4,5 m Höhe an der Rückwand (ab „mittel“ auch an der rechten Wand), erreichbar über Treppen und Leitern
+- **Galerie / Laufstege** in 4,5 m Höhe an der Rückwand (ab „mittel“ auch an der rechten Wand) mit Geländer (halbe Deckung), erreichbar über 2 Felder breite Treppen (2–3 an der Rückwand, 2 an der Seitengalerie) und Leitern; zwei Gegner starten erhöht
 - **Container** (3 m hoch, teils doppelt gestapelt: 6 m), Aufstieg über eine Leiter oder eine Kiste
 - **Hochregale** (4,5 m) in Reihen mit Gängen, je eine Leiter am Ende
 - **Kistenstapel** (1,5 m, begehbar), **Fässer**, **Betonbarrieren**, **Stahlsäulen**

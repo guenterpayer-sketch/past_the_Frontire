@@ -109,7 +109,7 @@
           else if (t === 'Patzer') PTF.Sound.play('patzer');
           else if (t.startsWith('Krit')) PTF.Sound.play('krit', 0.18);
           else if (t.startsWith('+')) PTF.Sound.play('heilen');
-          else if (t.startsWith('−') && ev.color !== '#ff6b6b') PTF.Sound.play('treffer', 0.12);
+          else if (t.startsWith('−') && ev.color !== '#ff6b6b') { PTF.Sound.play('treffer', 0.12); setTimeout(() => { r.addSparks(ev.unit, true); r.shake(2, 150); }, 120); }
           break;
         }
         case 'move': r.animateMove(ev.unit, ev.path); for (let i = 1; i < ev.path.length; i++) PTF.Sound.play('schritt', (i - 1) * 0.11); break;
@@ -120,6 +120,8 @@
         case 'attack': {
           const w = ev.weapon;
           PTF.Sound.play(PTF.Sound.weapon(w));
+          if (w.splash) setTimeout(() => r.addExplosion(ev.target), 280);
+          else if (!w.melee && !w.psi) setTimeout(() => r.addSparks(ev.target, false), 150);
           r.addShot(ev.unit, ev.target, w.psi ? '#c58bff' : w.melee ? '#ffffff' : w.table === 'strahl' ? '#ff5050' : w.splash ? '#ff9a3c' : '#ffe08a');
           break;
         }
@@ -417,6 +419,7 @@
       if (e.key === 'Escape') { if (!$('#modal').hidden) this.closeModal(); else this.mode = 'move'; }
       if (e.key === 'Enter' && this.playerTurn()) this.combat.endTurn();
       if (e.key === 'r' || e.key === 'R') this.showRange = !this.showRange;
+      if (e.key === 'g' || e.key === 'G') this.renderer.showGrid = !this.renderer.showGrid;
       const pan = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60], a: [60, 0], d: [-60, 0], w: [0, 60], s: [0, -60] }[e.key];
       if (pan) { e.preventDefault(); this.renderer.panBy(pan[0], pan[1]); }
       if (e.key === '+') this.renderer.zoomAt(this.renderer.w / 2, this.renderer.h / 2, 1.2);
@@ -429,6 +432,7 @@
       if (!b || b.disabled) return;
       const c = this.combat, u = c.current, act = b.dataset.act;
       if (act === 'sheet') return this.showSheet(b.dataset.id);
+      if (act === 'grid') { this.renderer.showGrid = !this.renderer.showGrid; this.dirty = true; return; }
       if (act === 'jump') { const j = c.units.find(o => o.id === b.dataset.id); if (j && !this.isAi(j)) c.requestJump(j); this.dirty = true; return; }
       if (!this.playerTurn()) return;
       switch (act) {
@@ -443,6 +447,7 @@
         case 'end': c.endTurn(); break;
         case 'crouch': c.doCrouch(u); break;
         case 'range': this.showRange = !this.showRange; break;
+        case 'grid': this.renderer.showGrid = !this.renderer.showGrid; break;
         case 'wait': c.doWait(u); break;
       }
       this.dirty = true;
@@ -503,6 +508,7 @@
           <button data-act="aid" class="${this.mode === 'aid' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.aid) && c.firstAidTargets(u).length)} title="Benachbarte Figur behandeln (Erste Hilfe, Mittel)">Erste Hilfe (${CB.COST.aid} %)</button>
           ${Rules.skillRank(u, 'psiWirken') > 0 ? `<button data-act="psi" class="${this.mode === 'psi' ? 'sel' : ''}" ${dis(c.canDo(u, CB.COST.psi) && c.psiShieldTargets(u).length)} title="Psi wirken, 2 PP: +20 VW für bis zu 3 Runden, Reichweite 4">Psi-Schild (${CB.COST.psi} %)</button>` : ''}
           <button data-act="range" class="${this.showRange ? 'sel' : ''}" ${dis(true)} title="Taste R. Zeigt, welche Felder die gewählte Waffe von hier sieht – Punktfarbe = Reichweitenstufe: grün ±0, gelb −20, orange −40, rot −60.">Reichweite (R)</button>
+          <button data-act="grid" class="${this.renderer.showGrid ? 'sel' : ''}" title="Taste G: Hexraster ein-/ausblenden">Raster (G)</button>
           <button data-act="face" class="${this.mode === 'face' ? 'sel' : ''}" ${dis(true)} title="Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ: Rechtsklick auf ein Feld.">Ausrichten</button>
           <button data-act="end" class="end ${u.act < 10 && !freeMove ? 'pulse' : ''}" ${dis(true)} title="Enter. Übrige Aktivität zählt bis zum nächsten Zug als Ausweichen.">Zug beenden${u.act > 0 ? ` (${u.act} % → Ausweichen)` : ''}</button>
         </div>

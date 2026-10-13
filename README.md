@@ -11,7 +11,8 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 
 - Schauplatz: eine **Lagerhalle**, im Testmodus pro Mission zufällig klein (ca. 30×21 m), mittel (45×30 m) oder groß (60×40 m).
 - Maßstab: **1 Hexfeld = 1,5 m**, 1 Höhenstufe = 1,5 m. Reichweiten in Metern mit Reichweitenstufen (−20 je Stufe).
-- Höhen: Galerie mit Treppen und Leitern, Containerstapel, Hochregale, Kistenstapel.
+- Höhen: Galerie mit Geländer (halbe Deckung), breite Treppen und Leitern, Containerstapel, Hochregale, Kistenstapel.
+- Grafik: Hexraster nur als Spielmechanik (einblendbar mit G); Container, Regale, Galerie und Wände als ganze Körper, Betonboden mit Markierungen und Hallenlicht, Figuren mit Waffe in Blickrichtung, Mündungsfeuer, Funken, Explosionen.
 - **Deckung**: halb (+40 VW, Kisten/Fässer/Barrieren) und voll (+70 VW, Container/Regale/Säulen; nur gezielte Schüsse ab 60 %, keine Reaktionsschüsse), zählt in den 2 Feldern vor dem Ziel; neben voller Deckung kann man um die Ecke schießen. Ab 2 Stufen über der Deckung sinkt sie um eine Stufe.
 - **Aktivitätssystem im RMSS-Stil**: Runde = 10 s, jede Figur hat 100 % Aktivität und teilt sie frei auf (Gehen/Laufen/Sprinten, Angriff mit 20–100 % = −40 bis +20, Erste Hilfe, Nachladen …). Übrige Aktivität ist Ausweichreserve. Initiative jede Runde neu, Crew und Gegner handeln gemischt.
 - **Feuerbereitschaft**: Aktivität zurückhalten und auf den ersten Gegner schießen, der im Sichtfeld handelt.
@@ -31,6 +32,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 | Feuerbereitschaft / Nachladen | Buttons im rechten Panel |
 | Drehen | Rechtsklick auf ein Feld oder „Ausrichten“ |
 | Vorschau | Maus über ein blaues Feld: grüne Linien/◎ = von dort treffbar, rote Linien/⚠ = wer dich dort treffen kann |
+| Raster | Taste G oder Button: Hexraster ein-/ausblenden (die Grafik zeigt sonst durchgehenden Boden und ganze Objekte) |
 | Reichweite | Taste R oder Button: Punkte auf allen Feldern, die die gewählte Waffe sieht (grün/gelb/orange/rot = Reichweitenstufe 1–4) |
 | Ducken / Abwarten | Buttons im Panel; Einspringen über „einspringen“ in der Initiative-Liste |
 | Waffe wählen | Waffen-Buttons im rechten Panel |

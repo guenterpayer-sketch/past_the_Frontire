@@ -137,8 +137,10 @@
         const top = this.blockTop(t);
         if (top <= h0 + (h1 - h0) * (i / n)) continue;
         // niedrige Deckung direkt neben Schütze oder Ziel: darüber schießt man hinweg
-        if (i === 1 && top - x.h < FULL) continue;
-        if (i === n - 1 && top - y.h < FULL) continue;
+        // niedrige Deckung direkt neben Schütze oder Ziel: darüber schießt man hinweg –
+        // aber nur, wenn das Auge des Schützen über der Oberkante liegt (von unten blockiert sie)
+        if (i === 1 && top - x.h < FULL && x.h + EYE >= top) continue;
+        if (i === n - 1 && top - y.h < FULL && x.h + EYE >= top) continue;
         return false;
       }
       return true;
@@ -153,6 +155,11 @@
       let best = null;
       for (const nudge of [1, -1]) {
         const line = Hex.line(target, attacker, nudge);
+        // Geländer der Galerie: halbe Deckung für Figuren an der Kante gegen Schützen, die tiefer stehen
+        const edge = this.get(line[1].q, line[1].r);
+        if (TERRAIN[target.terrain].kind === 'gallery' && edge && edge.h < target.h && attacker.h < target.h + 2 && (!best || best.level < 1)) {
+          best = { level: 1, label: 'Geländer', bonus: COVER_BONUS[1] };
+        }
         for (let i = 1; i <= (dist >= 4 ? 2 : 1); i++) {
           const n = this.get(line[i].q, line[i].r);
           if (!n) continue;
@@ -202,23 +209,34 @@
     const enemyZone = t => t.col >= cols - 5;
     const free = t => t && t.terrain === 'boden' && !t.res && t.col > 0 && t.col < cols - 1;
     const set = (t, terrain, h, extra) => { t.terrain = terrain; t.h = h; t.res = true; Object.assign(t, extra || {}); };
+    // Objekt-Kennung: Felder eines Containers, Regals usw. gehören zusammen (für die Grafik)
+    let objN = 0;
+    const nextObj = () => ++objN;
     const ringFree = tiles => tiles.every(t => Hex.neighbors(t.q, t.r).every(n => {
       const x = m.get(n.q, n.r);
       return !x || tiles.includes(x) || x.terrain === 'boden' || x.terrain === 'wand';
     }));
 
     // 1. Galerie an der Rückwand (Reihen 1–2), bei mittel/groß auch an der rechten Wand
-    for (let col = 1; col < cols - 1; col++) for (const row of [1, 2]) set(m.off(col, row), 'galerie', 3);
-    const stairsAt = [Math.floor(cols * 0.3), Math.floor(cols * 0.7)];
-    for (const c of stairsAt) { set(m.off(c, 3), 'treppe', 2); set(m.off(c + 1, 3), 'treppe', 1); }
+    const galBack = nextObj();
+    for (let col = 1; col < cols - 1; col++) for (const row of [1, 2]) set(m.off(col, row), 'galerie', 3, { obj: galBack });
+    // Treppen: 2 Felder breit, führen von der Galerie nach vorne in die Halle
+    const stairsAt = size.id === 'gross' ? [Math.floor(cols * 0.2), Math.floor(cols * 0.5), Math.floor(cols * 0.75)] : [Math.floor(cols * 0.3), Math.floor(cols * 0.65)];
+    for (const c of stairsAt) {
+      set(m.off(c, 3), 'treppe', 2); set(m.off(c + 1, 3), 'treppe', 2);
+      set(m.off(c, 4), 'treppe', 1); set(m.off(c + 1, 4), 'treppe', 1);
+    }
     for (const c of [ri(5, Math.floor(cols / 2) - 2), ri(Math.floor(cols / 2) + 2, cols - 4)]) {
       const t = m.off(c, 3);
       if (free(t)) set(t, 'leiter', 0);
     }
     if (size.id !== 'klein') {
-      for (let row = 3; row < rows - 1; row++) for (const col of [cols - 3, cols - 2]) set(m.off(col, row), 'galerie', 3);
-      const sr = ri(Math.floor(rows / 2), rows - 4);
-      if (free(m.off(cols - 4, sr)) && free(m.off(cols - 4, sr + 1))) { set(m.off(cols - 4, sr), 'treppe', 2); set(m.off(cols - 4, sr + 1), 'treppe', 1); }
+      const galRight = nextObj();
+      for (let row = 3; row < rows - 1; row++) for (const col of [cols - 3, cols - 2]) set(m.off(col, row), 'galerie', 3, { obj: galRight });
+      for (const sr of [ri(5, Math.floor(rows / 2) - 1), ri(Math.floor(rows / 2) + 1, rows - 4)]) {
+        const st = [m.off(cols - 4, sr), m.off(cols - 4, sr + 1), m.off(cols - 5, sr), m.off(cols - 5, sr + 1)];
+        if (st.every(free)) { set(st[0], 'treppe', 2); set(st[1], 'treppe', 2); set(st[2], 'treppe', 1); set(st[3], 'treppe', 1); }
+      }
       const lr = ri(5, Math.floor(rows / 2) - 1);
       if (free(m.off(cols - 4, lr))) set(m.off(cols - 4, lr), 'leiter', 0);
       // rechtes Rolltor schließen, dort steht jetzt die Galerie
@@ -252,7 +270,8 @@
         tiles = lineTiles(ri(sx0, sx1 - l), r, l, false);
       }
       if (!tiles.every(free)) continue;
-      tiles.forEach(t => set(t, 'regal', 3));
+      const so = nextObj();
+      tiles.forEach(t => set(t, 'regal', 3, { obj: so }));
       const first = tiles[0], last = tiles[tiles.length - 1];
       const lad = shelfVertical ? m.off(first.col, rng() < 0.5 ? first.row - 1 : last.row + 1)
                                 : m.off(rng() < 0.5 ? first.col - 1 : last.col + 1, first.row);
@@ -268,7 +287,8 @@
       if (!tiles.every(t => free(t) && !crewZone(t)) || !ringFree(tiles)) continue;
       const h = rng() < 0.25 ? 4 : 2;
       const color = CONTAINER_COLORS[ri(0, CONTAINER_COLORS.length - 1)];
-      tiles.forEach(t => set(t, 'container', h, { color }));
+      const co = nextObj();
+      tiles.forEach(t => set(t, 'container', h, { color, obj: co }));
       // Aufstieg: Leiter oder Kiste an einem Ende
       const endT = vertical ? m.off(c0, rng() < 0.5 ? r0 - 1 : r0 + 3) : m.off(rng() < 0.5 ? c0 - 1 : c0 + 3, r0);
       if (free(endT)) { if (h === 4 || rng() < 0.5) set(endT, 'leiter', 0); else set(endT, 'kiste', 1); }
@@ -282,7 +302,8 @@
         const len = ri(minLen, maxLen);
         const tiles = lineTiles(ri(2, cols - 3), ri(4, rows - 1 - len), len, rng() < 0.65);
         if (!tiles.every(free)) continue;
-        tiles.forEach(t => set(t, terrain, h));
+        const so = terrain === 'fass' ? undefined : nextObj();
+        tiles.forEach(t => set(t, terrain, h, so ? { obj: so } : undefined));
         i++;
       }
     };
@@ -292,6 +313,20 @@
     scatter('barriere', 0, Math.round(area / 90), 3, 5);
     for (let c = 7; c < cols - 5; c += 7) {
       for (let r = 6; r < rows - 2; r += 6) { const t = m.off(c, r); if (free(t)) set(t, 'saeule', 0); }
+    }
+
+    // Wände: zusammenhängende Wandstücke je Seite bilden ein Objekt
+    const sides = [
+      [...Array(cols).keys()].map(c => m.off(c, 0)),
+      [...Array(cols).keys()].map(c => m.off(c, rows - 1)),
+      [...Array(rows - 2).keys()].map(r => m.off(0, r + 1)),
+      [...Array(rows - 2).keys()].map(r => m.off(cols - 1, r + 1)),
+    ];
+    for (const side of sides) {
+      let id = null;
+      for (const t of side) {
+        if (t.terrain === 'wand') { if (!id) id = nextObj(); t.obj = id; } else id = null;
+      }
     }
 
     // Erreichbarkeit: jedes Bodenfeld muss vom Eingang aus erreichbar sein

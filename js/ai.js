@@ -49,6 +49,22 @@
     return seen ? covered / seen : 1;
   }
 
+  // Wie viele Gegner können dieses Feld beschießen? (Feuerbereitschaft im Sichtfeld zählt doppelt)
+  function exposure(c, u, tile) {
+    let n = 0;
+    for (const e of c.opponents(u)) {
+      const w = c.usableWeapons(e).find(id => !WEAPONS[id].melee);
+      if (!w) continue;
+      const W = WEAPONS[w], et = c.tileOf(e);
+      if (Hex.distance(et, tile) * PTF.MAP_CONST.HEX_M > W.inc * W.stages) continue;
+      if (!c.map.lineOfSight(et, tile).visible) continue;
+      const cov = c.map.cover(tile, et);
+      const k = cov ? (cov.level === 2 ? 0.2 : 0.6) : 1;
+      n += k * (e.overwatch && Hex.sector(e.pos, e.facing, tile) === 'vorne' ? 2 : 1);
+    }
+    return n;
+  }
+
   // Wegkosten von jedem Feld zum nächsten Gegner (Dijkstra von allen Gegnern aus, Einheiten ignoriert)
   function approachField(c, u) {
     const m = c.map, best = new Map(), open = [];
@@ -105,7 +121,9 @@
   function planStep(c, u) {
     if (c.current !== u || c.result || u.state !== 'ok') return { type: 'end' };
     const stamp = c.round + ':' + c.turnIdx;
-    if (u._stamp !== stamp) { u._stamp = stamp; u._moved = false; u._faced = false; u._standCheck = false; }
+    if (u._stamp !== stamp) { u._stamp = stamp; u._moved = false; u._faced = false; u._standCheck = false; u._toggleAt = undefined; }
+    // Ducken/Aufstehen höchstens einmal je Bewegungsabschnitt (kein Hin und Her ohne Ortswechsel)
+    const canToggle = () => c.canCrouch(u) && u._toggleAt !== u._moved;
     const finish = () => (u._faced ? { type: 'end' } : faceStep(c, u));
     if (u.stunnedNow) return finish();
 
@@ -123,7 +141,7 @@
     if (u.crouched && !u._standCheck) {
       u._standCheck = true;
       const h = c.canAttack(u) ? bestAttack(c, u, here, weapons, avail) : null;
-      if ((!h || h.info.chance < 40 || melee) && c.canCrouch(u)) return { type: 'crouch' };
+      if ((!h || melee) && canToggle()) return { type: 'crouch' };
     }
 
     // Nachladen, wenn der Angriff schon erledigt ist oder genug Aktivität für Laden + Angriff bleibt
@@ -133,7 +151,7 @@
     if (c.canAttack(u) && weapons.length) {
       const options = [];
       const h = bestAttack(c, u, here, weapons, avail);
-      if (h) options.push({ ...h, tile: here, score: h.score + safety(c, u, here) * 60 + here.h * 3 });
+      if (h) options.push({ ...h, tile: here, score: h.score + safety(c, u, here) * 60 + here.h * 5 });
       if (!u._moved) {
         for (const gait of melee ? ['gehen', 'laufen'] : ['gehen']) {
           if (!c.canMove(u, gait)) continue;
@@ -143,7 +161,7 @@
             const left = avail - c.movePct(u, gait, cost);
             if (left < MIN_ATTACK) continue;
             const a = bestAttack(c, u, tile, melee ? [u.weapons[0]].filter(w => weapons.includes(w)) : weapons, left, runMod);
-            if (a) options.push({ ...a, tile, gait, score: a.score + safety(c, u, tile) * 60 + tile.h * 3 - cost * 0.2 });
+            if (a) options.push({ ...a, tile, gait, score: a.score + safety(c, u, tile) * 60 + tile.h * 5 - cost * 0.2 });
           }
         }
       }
@@ -151,7 +169,7 @@
       const best = options[0];
       if (best && best.tile === here) {
         // vor dem Schuss ducken: +10 AW und +15 VW, kostet 10 %
-        if (!melee && !u.crouched && !WEAPONS[best.wid].melee && c.canCrouch(u) && avail - 10 >= MIN_ATTACK + 20) return { type: 'crouch' };
+        if (!melee && !u.crouched && !WEAPONS[best.wid].melee && canToggle() && avail - 10 >= MIN_ATTACK + 20) return { type: 'crouch' };
         return { type: 'attack', target: best.target, wid: best.wid, pct: best.pct };
       }
       if (best) return { type: 'move', tile: best.tile, gait: best.gait };
@@ -165,7 +183,10 @@
       if (c.canMove(u, gait) && limit >= 0) {
         let best = null;
         for (const { tile, cost } of c.moveRange(u, gait, limit).values()) {
-          const score = -dist(tile) * 4 + safety(c, u, tile) * 10 + tile.h - cost * 0.1;
+          const exp = melee ? exposure(c, u, tile) : 0;
+          const score = melee
+            ? -dist(tile) * 3 + safety(c, u, tile) * 40 - exp * 14 - cost * 0.1
+            : -dist(tile) * 4 + safety(c, u, tile) * 10 + tile.h - cost * 0.1;
           if (!best || score > best.score) best = { score, tile };
         }
         if (best && best.tile !== here && dist(best.tile) < dist(here) + 1) return { type: 'move', tile: best.tile, gait };
@@ -173,9 +194,9 @@
     }
     const ranged = weapons.filter(w => !WEAPONS[w].melee);
     // vor Feuerbereitschaft oder Zugende ducken (schwerer zu treffen)
-    if (!melee && !u.crouched && c.canCrouch(u) && u.act >= 10 + MIN_OVERWATCH) return { type: 'crouch' };
+    if (!melee && !u.crouched && canToggle() && u.act >= 10 + MIN_OVERWATCH) return { type: 'crouch' };
     if (ranged.length && c.canOverwatch(u, ranged[0])) return { type: 'overwatch', wid: ranged[0] };
-    if (!melee && !u.crouched && c.canCrouch(u)) return { type: 'crouch' };
+    if (!melee && !u.crouched && canToggle()) return { type: 'crouch' };
     return finish();
   }
 
@@ -185,7 +206,7 @@
       case 'attack': return c.doAttack(u, step.target, step.wid, step.pct);
       case 'overwatch': return c.doOverwatch(u, step.wid);
       case 'reload': return c.doReload(u, step.wid);
-      case 'crouch': return c.doCrouch(u);
+      case 'crouch': u._toggleAt = u._moved; return c.doCrouch(u);
       case 'aid': return c.doFirstAid(u, step.target);
       case 'face': u._faced = true; return c.doFace(u, step.dir);
       default: return false;
