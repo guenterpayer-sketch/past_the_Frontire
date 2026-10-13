@@ -130,6 +130,45 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool, g
 			add_child(l)
 
 
+## Runde 0: Aufstellung im Eingangsbereich
+func refresh_deploy(c: Combat, sel: Combatant, mission: Mission) -> void:
+	UiTheme.clear(self)
+	add_child(UiTheme.label("Runde 0 – Aufstellung", 16, UiTheme.ACCENT))
+	var l := UiTheme.label("Figur anklicken, dann ein blaues Feld im Eingangsbereich: dorthin stellen (mit einer anderen Figur der Crew wird getauscht). Rechtsklick bzw. lange drücken oder die Pfeile unten: Blickrichtung.", 12, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(l)
+	var g := GridContainer.new()
+	g.columns = 2
+	for u in c.crew():
+		var b := _btn("%s  %s" % [u.letter, u.name], &"deploy_select", u, u == sel, false)
+		b.add_theme_font_size_override("font_size", 12)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		g.add_child(b)
+	add_child(g)
+	if sel:
+		_header(sel)
+		var row := HBoxContainer.new()
+		row.add_child(UiTheme.label("Blick %s" % Hex.DIR_NAMES[sel.facing], 13))
+		for spec in [["⟲ drehen", 1], ["drehen ⟳", -1]]:
+			var b := _btn(spec[0], &"deploy_turn", spec[1], false, false)
+			b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(b)
+		add_child(row)
+	if mission:
+		add_child(UiTheme.label("Einsatz: %s" % mission.title, 13, UiTheme.CREW))
+		var m := UiTheme.label("%s · Schwierigkeit %s · %s" % [mission.faction.name, mission.difficulty_name(), mission.enemy_summary()], 12, UiTheme.MUTED)
+		m.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		add_child(m)
+		var bb := _btn("Briefing anzeigen", &"briefing", null, false, false)
+		bb.toggle_mode = false
+		add_child(bb)
+	var start := _btn("Kampf beginnen", &"begin", null, false, false)
+	start.toggle_mode = false
+	start.add_theme_color_override("font_color", UiTheme.ACCENT)
+	start.custom_minimum_size.y = 40
+	add_child(start)
+
+
 func _hint(pc: PlayerController) -> String:
 	match pc.mode:
 		PlayerController.Mode.AID:

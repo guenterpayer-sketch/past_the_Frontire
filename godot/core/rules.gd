@@ -160,6 +160,51 @@ static func rank_up(ch, id: StringName) -> bool:
 	return true
 
 
+## Rangsteigerung, bei der fehlende EP aus dem freien Pool der Figur kommen: {ok, from_pool}
+static func rank_up_cost(ch, id: StringName) -> Dictionary:
+	var s := ensure_skill(ch, id)
+	var missing := maxi(0, rank_cost(s.rank) - s.xp)
+	return {"ok": missing <= ch.free_xp, "from_pool": missing}
+
+
+static func rank_up_with_pool(ch, id: StringName) -> bool:
+	var c := rank_up_cost(ch, id)
+	if not c.ok:
+		return false
+	ch.free_xp -= c.from_pool
+	ensure_skill(ch, id).xp += c.from_pool
+	return rank_up(ch, id)
+
+
+## Eigenschaft um 1 steigern, bezahlt aus dem freien Pool: 2 + Wert/10 EP (50 → 7 EP, 90 → 11 EP), höchstens 100
+const ATTR_MAX := 100
+
+static func attr_cost(v: int) -> int:
+	return 2 + v / 10
+
+
+static func can_raise_attr(ch, attr: String) -> bool:
+	var v: int = ch.attrs[attr]
+	return v < ATTR_MAX and ch.free_xp >= attr_cost(v)
+
+
+static func raise_attr(ch, attr: String) -> bool:
+	if not can_raise_attr(ch, attr):
+		return false
+	ch.free_xp -= attr_cost(ch.attrs[attr])
+	ch.attrs[attr] += 1
+	return true
+
+
+## nächster Wert, ab dem der Eigenschaftsbonus steigt (oder -1)
+static func next_bonus_step(v: int) -> int:
+	var b := attr_bonus(v)
+	for n in range(v + 1, ATTR_MAX + 1):
+		if attr_bonus(n) > b:
+			return n
+	return -1
+
+
 static func maneuver_result(total: int) -> Dictionary:
 	if total <= -26:
 		return {"id": &"patzer", "name": "Patzer"}

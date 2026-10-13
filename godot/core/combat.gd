@@ -49,6 +49,7 @@ var turn_idx := -1
 var result: StringName = &""   # &"sieg" oder &"niederlage"
 var jump_queue: Array[Combatant] = []
 var fumbles: FumbleTableData
+var deploying := true          # Runde 0: Crew im Eingangsbereich aufstellen, bis start() aufgerufen wird
 
 
 ## Modifikator für die in einen Angriff gesteckte Aktivität: 60 % = ±0, darunter −10 je 10 %, darüber +5 je 10 %
@@ -109,7 +110,40 @@ func tile_of(u: Combatant) -> BattleMap.Tile:
 # ---------------------------------------------------------------- Runden und Züge
 
 func start() -> void:
+	deploying = false
 	_start_round()
+
+
+# ---------------------------------------------------------------- Runde 0: Aufstellung
+
+func deploy_tiles() -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for t in map.crew_start:
+		out.append(t.pos)
+	return out
+
+
+func can_deploy(u: Combatant, p: Vector2i) -> bool:
+	if not deploying or u == null or not u.is_crew or not deploy_tiles().has(p):
+		return false
+	var o := unit_at(p)
+	return o == null or o.is_crew
+
+
+## Figur auf ein Feld im Eingangsbereich stellen; steht dort schon jemand von der Crew, tauschen beide
+func deploy(u: Combatant, p: Vector2i) -> Combatant:
+	if not can_deploy(u, p):
+		return null
+	var o := unit_at(p)
+	if o and o != u:
+		o.pos = u.pos
+	u.pos = p
+	return o if o != u else null
+
+
+func deploy_face(u: Combatant, dir: int) -> void:
+	if deploying and u and u.is_crew:
+		u.facing = dir
 
 
 func _start_round() -> void:

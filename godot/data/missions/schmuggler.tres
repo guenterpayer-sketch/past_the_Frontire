@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="3_pl1"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_pl2"]
+[ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="5_fu"]
+[ext_resource type="Resource" path="res://data/units/enemies/klingentaenzer.tres" id="6_kl"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Kesslers Schmugglerbande"
+description = "Viele leicht bewaffnete Schützen, kaum Rüstung, dafür in der Überzahl."
+units = Array[ExtResource("2_unit")]([ExtResource("3_pl1"), ExtResource("4_pl2"), ExtResource("5_fu"), ExtResource("6_kl")])
+weights = Array[int]([4, 4, 2, 1])
+max_same = 4

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/hexer.tres" id="3_hx"]
+[ext_resource type="Resource" path="res://data/units/enemies/klingentaenzer.tres" id="4_kl"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="5_pl2"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Kult des Leeren Lichts"
+description = "Psi-Begabte mit fanatischen Klingenkämpfern als Schutz."
+units = Array[ExtResource("2_unit")]([ExtResource("3_hx"), ExtResource("4_kl"), ExtResource("5_pl2")])
+weights = Array[int]([3, 4, 1])
+max_same = 3

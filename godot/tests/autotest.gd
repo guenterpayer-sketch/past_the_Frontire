@@ -25,7 +25,20 @@ func _run_ai() -> void:
 	b.new_battle(4711, "mittel")
 	for i in 40:
 		await get_tree().process_frame
-	await _screenshot(out + "/01_start.png")
+	await _screenshot(out + "/00_briefing.png")
+	b.ui.briefing.close()
+	# Runde 0: erste Figur auf ein anderes Feld im Eingangsbereich stellen (per Mausklick)
+	var crew0: Combatant = b.combat.crew()[0]
+	var zone := b.combat.deploy_tiles()
+	var target: Vector2i = zone[zone.size() - 1]
+	for p in zone:
+		if b.combat.unit_at(p) == null and b._pick(b.rig.camera.unproject_position(b.map_view.tile_top(p))).tile == p:
+			target = p
+	_mouse_click(b.rig.camera.unproject_position(b.map_view.tile_top(target)))
+	await get_tree().create_timer(0.3).timeout
+	print("Aufstellung: %s steht auf %s (Ziel %s)" % [crew0.name, crew0.pos, target])
+	await _screenshot(out + "/01_aufstellung.png")
+	b.begin_combat()
 	var shots := 1
 	var t0 := Time.get_ticks_msec()
 	b.auto_crew = true
@@ -54,12 +67,29 @@ func _run_ai() -> void:
 		b.combat.check_end()
 	await get_tree().create_timer(2.0).timeout
 	await _screenshot(out + "/04_ende.png")
+	var ed := b.ui.end_dialog
+	var cu := ed.current()
+	print("Übersicht: %s, freie EP %d" % [cu.name, cu.free_xp])
+	cu.free_xp += 20
+	var kon_before: int = cu.attrs.KON
+	Rules.raise_attr(cu, "KON")
+	ed.page(0)
+	ed.page(1)
+	ed.page(-1)
+	print("KON %d -> %d, freie EP jetzt %d" % [kon_before, cu.attrs.KON, cu.free_xp])
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/04b_uebersicht.png")
+	ed.page(2)
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/04c_uebersicht_seite3.png")
 	var xp_before: int = b.combat.crew()[0].skills.get(&"kampfsinn", {}).get("xp", 0)
 	b.ui.end_dialog.next_battle.emit()
 	b.ui.end_dialog.hide()
 	for i in 20:
 		await get_tree().process_frame
 	var saved := Roster.load_progress()
+	print("Gespeichert: KON ", saved[cu.id].attrs.get("KON"), ", freie EP ", saved[cu.id].free_xp)
+	b.ui.briefing.close()
 	print("Gespeichert: ", saved.size(), " Figuren, Kampfsinn-EP Vela vorher ", xp_before, ", jetzt ", b.combat.crew()[0].skills.get(&"kampfsinn", {}).get("xp", 0))
 	b.ui.sheet.show_sheet(b.combat.crew(), b.combat.crew()[0])
 	await get_tree().create_timer(0.3).timeout
@@ -80,7 +110,8 @@ func _screenshot(path: String) -> void:
 ## Selbsttest der Bedienung: Maus über ein Feld (Vorschau), Klick = bewegen, Maus über Gegner, Klick = angreifen
 func _run_player() -> void:
 	var out := OS.get_environment("PTF_OUT")
-	b.new_battle(4711, "klein")
+	b.new_battle(4711, "klein", "", false)
+	b.begin_combat()
 	for i in 30:
 		await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
@@ -123,6 +154,8 @@ func _run_player() -> void:
 			target = e
 			break
 	if target:
+		b.rig.focus(b.views[target].position.lerp(b.views[u].position, 0.5), false)
+		await get_tree().create_timer(0.5).timeout
 		var tp := b.rig.camera.unproject_position(b.views[target].position + Vector3(0, 1.0, 0))
 		_mouse_move(tp)
 		await get_tree().create_timer(0.4).timeout

@@ -7,6 +7,8 @@ const AI_DELAY := 0.22
 const LONG_PRESS := 0.55
 
 var combat: Combat
+var mission: Mission
+var deploy_sel: Combatant = null   # Runde 0: gewählte Figur
 var ai := CombatAI.new()
 var player: PlayerController
 var views := {}                  # Combatant -> UnitView
@@ -65,17 +67,20 @@ func _ready() -> void:
 		add_child(t)
 
 
-func new_battle(seed_value: int, size_id := "") -> void:
-	if size_id == "":
-		size_id = BattleMap.SIZES[randi() % BattleMap.SIZES.size()].id
+## Neuer Einsatz: Mission würfeln (Gegner, Halle), Karte bauen, Runde 0 (Aufstellung) mit Briefing.
+## size_id/difficulty leer = vom Missionsgenerator bestimmt; briefing = false überspringt die Einsatzbesprechung.
+func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true) -> void:
+	mission = Mission.generate(seed_value, difficulty)
+	if size_id != "":
+		mission.size_id = size_id
 	_wait_ai()
 	events.clear()
 	ui.combat_log.clear()
 	ui.end_dialog.hide()
 	_end_shown = false
-	var map := MapGenerator.generate(seed_value, size_id)
+	var map := MapGenerator.generate(seed_value, mission.size_id)
 	var progress := Roster.load_progress()
-	combat = Combat.new(map, Roster.build_team(GameData.crew(), &"crew", progress), Roster.build_team(GameData.enemies(), &"enemy"))
+	combat = Combat.new(map, Roster.build_team(GameData.crew(), &"crew", progress), Roster.build_units(mission.enemies, &"enemy"))
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
 	map_view.theme = GameData.hall_theme()
@@ -98,8 +103,22 @@ func new_battle(seed_value: int, size_id := "") -> void:
 	rig.focus(map_view.tile_top(map.crew_start[0].pos).lerp(c, 0.35))
 	map_view.update_cutaway(rig.view_dir())
 	var sz: Dictionary = map.size_info
-	ui.hall_label.text = "Lagerhalle %s, ca. %d×%d m · Karte %d" % [sz.name, roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed]
-	ui.combat_log.add("Karte %d (%s): 6 Crewmitglieder gegen 6 Söldner der Roten Sonne in einer Lagerhalle." % [map.map_seed, sz.name], &"round")
+	ui.hall_label.text = "%s · %s · Lagerhalle %s, ca. %d×%d m · Karte %d" % [mission.title, mission.faction.name, sz.name, roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed]
+	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s) in einer Lagerhalle (%s)." % [
+		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), sz.name], &"round")
+	ui.combat_log.add("Runde 0: Crew im Eingangsbereich aufstellen, dann „Kampf beginnen“.", &"")
+	deploy_sel = combat.crew()[0]
+	if briefing:
+		ui.briefing.show_mission(mission)
+	_dirty = true
+
+
+## Runde 0 beenden: Kampf mit Runde 1 starten
+func begin_combat() -> void:
+	if not combat.deploying:
+		return
+	deploy_sel = null
+	ui.briefing.hide()
 	combat.start()
 	_dirty = true
 
@@ -121,7 +140,7 @@ func _process(delta: float) -> void:
 		_refresh()
 	if combat.result != &"" and events.is_idle() and not _end_shown:
 		_end_shown = true
-		get_tree().create_timer(0.8).timeout.connect(func() -> void: ui.end_dialog.show_end(combat))
+		get_tree().create_timer(0.8).timeout.connect(func() -> void: ui.end_dialog.show_end(combat, mission))
 	if _touches.size() == 1 and not _touch_moved and not _long_fired and Time.get_ticks_msec() - _touch_start_ms > LONG_PRESS * 1000:
 		_long_fired = true
 		var p: Vector2 = _touches.values()[0]
@@ -174,13 +193,20 @@ func _exit_tree() -> void:
 func _refresh() -> void:
 	var u := combat.current
 	var pt := player_turn()
-	ui.round_label.text = "Runde %d" % combat.round_no
+	ui.round_label.text = "Runde %d" % combat.round_no if not combat.deploying else "Runde 0 – Aufstellung"
 	ui.initiative.refresh(combat, is_ai)
-	ui.unit_panel.refresh(combat, player, u, pt, show_grid)
+	if combat.deploying:
+		ui.unit_panel.refresh_deploy(combat, deploy_sel, mission)
+	else:
+		ui.unit_panel.refresh(combat, player, u, pt, show_grid)
 	_update_overlay()
 
 
 func _update_overlay() -> void:
+	if combat.deploying:
+		overlay.show_state({"reach_tiles": combat.deploy_tiles(), "helpers": [deploy_sel] if deploy_sel else [], "views": views,
+			"hover": _hover})
+		return
 	var u := combat.current
 	if not player_turn() or u == null:
 		overlay.show_state({"hover": _hover if _hover != null and events.is_idle() else null})
@@ -290,6 +316,9 @@ func _mouse_button(e: InputEventMouseButton) -> void:
 
 
 func _click(p: Vector2) -> void:
+	if combat.deploying:
+		_deploy_click(p)
+		return
 	if not player_turn():
 		return
 	var hit := _pick(p)
@@ -298,7 +327,34 @@ func _click(p: Vector2) -> void:
 	_dirty = true
 
 
+## Runde 0: Figur der Crew anklicken = wählen, Feld im Eingangsbereich = dorthin stellen (oder tauschen)
+func _deploy_click(p: Vector2) -> void:
+	var hit := _pick(p)
+	ui.hide_tip()
+	if hit.unit and hit.unit.is_crew and hit.unit != deploy_sel:
+		deploy_sel = hit.unit
+	elif hit.tile != null and deploy_sel:
+		var other := combat.deploy(deploy_sel, hit.tile)
+		if combat.unit_at(hit.tile) == deploy_sel:
+			Sfx.play(&"schritt")
+			views[deploy_sel].position = map_view.tile_top(deploy_sel.pos)
+			if other:
+				views[other].position = map_view.tile_top(other.pos)
+	_dirty = true
+
+
+func _deploy_turn(u: Combatant, dir: int) -> void:
+	combat.deploy_face(u, dir)
+	views[u].set_facing(u.facing)
+	_dirty = true
+
+
 func _face_at(p: Vector2) -> void:
+	if combat.deploying:
+		var hit := _pick(p)
+		if deploy_sel and hit.tile != null and hit.tile != deploy_sel.pos:
+			_deploy_turn(deploy_sel, Hex.dir_toward(deploy_sel.pos, hit.tile))
+		return
 	if not player_turn():
 		return
 	var hit := _pick(p)

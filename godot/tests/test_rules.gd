@@ -20,6 +20,9 @@ func _init() -> void:
 	_test_stopped_move()
 	_test_pass_through_ally()
 	_test_data()
+	_test_missions()
+	_test_progress()
+	_test_deploy()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -191,3 +194,98 @@ func _test_data() -> void:
 	check(GameData.weapons().size() == 9, "9 Waffen (%d)" % GameData.weapons().size())
 	for t in GameData.crit_tables():
 		check(t.rows.size() == 7, "Kritische Tabelle %s mit 7 Zeilen" % t.name)
+
+
+## Missionsgenerator: Budget, Anzahl, eindeutige Kennungen, Abwechslung
+func _test_missions() -> void:
+	var kinds := {}
+	var counts := {}
+	for i in 60:
+		var m := Mission.generate(1000 + i)
+		var n := m.enemies.size()
+		check(n >= Mission.MIN_ENEMIES and n <= Mission.MAX_ENEMIES, "Gegneranzahl %d" % n)
+		var ids := {}
+		var budget := 0
+		for d in m.enemies:
+			ids[d.id] = true
+			budget += d.threat
+		check(ids.size() == n, "eindeutige Kennungen")
+		check(budget <= Mission.DIFFICULTIES[m.difficulty].budget, "Budget eingehalten (%d)" % budget)
+		kinds[m.enemy_summary()] = true
+		counts[n] = true
+		var map := MapGenerator.generate(m.map_seed, m.size_id)
+		var c := Combat.new(map, Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(m.enemies, &"enemy"))
+		var pos := {}
+		for u in c.units:
+			pos[u.pos] = true
+		check(pos.size() == c.units.size(), "alle Figuren auf eigenen Feldern")
+	check(kinds.size() >= 20, "verschiedene Gegnergruppen (%d)" % kinds.size())
+	check(counts.size() >= 3, "verschiedene Gruppengrößen (%d)" % counts.size())
+	var a := Mission.generate(77)
+	var b := Mission.generate(77)
+	check(a.enemy_summary() == b.enemy_summary() and a.title == b.title, "gleicher Seed = gleiche Mission")
+
+
+## Freie EP, Eigenschaften steigern, Rangkauf mit Pool, Speichern und Laden
+func _test_progress() -> void:
+	var u := Roster.build_team(GameData.crew(), &"crew")[0]
+	u.free_xp = 10
+	var kon: int = u.attrs.KON
+	var cost := Rules.attr_cost(kon)
+	check(Rules.raise_attr(u, "KON") and u.attrs.KON == kon + 1 and u.free_xp == 10 - cost, "Eigenschaft +1 kostet %d" % cost)
+	u.free_xp = 0
+	check(not Rules.raise_attr(u, "KON"), "ohne freie EP keine Steigerung")
+	var s := Rules.ensure_skill(u, &"kochen")
+	s.xp = 6
+	u.free_xp = 3
+	check(not Rules.rank_up_with_pool(u, &"kochen"), "6 + 3 EP reichen nicht für 10")
+	u.free_xp = 5
+	check(Rules.rank_up_with_pool(u, &"kochen") and s.rank == 1 and s.xp == 0 and u.free_xp == 1, "fehlende 4 EP aus dem Pool")
+	check(Rules.next_bonus_step(70) == 71 and Rules.next_bonus_step(50) == 71, "nächste Bonusstufe")
+	var crew: Array[Combatant] = [u]
+	var backup := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Roster.save_progress(crew)
+	var p := Roster.load_progress()
+	var v := Combatant.create(u.data, &"crew", p.get(u.id, {}))
+	check(v.attrs.KON == kon + 1 and v.free_xp == 1 and v.skills[&"kochen"].rank == 1, "Fortschritt gespeichert und geladen")
+	check(v.max_hp == Rules.max_hp(v), "TP aus gesteigerter KON")
+	# altes Format (nur Fertigkeiten) wird weiter gelesen
+	var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({String(u.id): {"gewehre": {"rank": 9, "xp": 4}}}))
+	f.close()
+	p = Roster.load_progress()
+	check(p[u.id].skills[&"gewehre"].rank == 9 and p[u.id].free_xp == 0, "altes Speicherformat")
+	if backup != "":
+		f = FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(backup)
+		f.close()
+	else:
+		Roster.reset()
+
+
+## Runde 0: Aufstellung nur im Eingangsbereich, Tauschen, danach gesperrt
+func _test_deploy() -> void:
+	var c := _combat(MapGenerator.generate(4711, "mittel"))
+	var zone := c.deploy_tiles()
+	check(zone.size() >= 6, "Eingangsbereich groß genug (%d)" % zone.size())
+	var a := c.crew()[0]
+	var b := c.crew()[1]
+	var free_tile: Variant = null
+	for p in zone:
+		if c.unit_at(p) == null:
+			free_tile = p
+			break
+	check(free_tile != null and c.deploy(a, free_tile) == null and a.pos == free_tile, "auf freies Feld stellen")
+	var bp := b.pos
+	check(c.deploy(a, bp) == b and a.pos == bp and b.pos == free_tile, "mit Crewmitglied tauschen")
+	check(not c.can_deploy(a, c.enemies()[0].pos), "nicht auf Gegnerfeld")
+	var outside := Vector2i(999, 999)
+	for t in c.map.list:
+		if c.map.walkable(t) and not zone.has(t.pos) and c.unit_at(t.pos) == null:
+			outside = t.pos
+			break
+	check(not c.can_deploy(a, outside), "nicht außerhalb des Eingangsbereichs")
+	c.deploy_face(a, 4)
+	check(a.facing == 4, "Blickrichtung in Runde 0")
+	c.start()
+	check(not c.can_deploy(a, free_tile), "nach Kampfbeginn keine Aufstellung mehr")

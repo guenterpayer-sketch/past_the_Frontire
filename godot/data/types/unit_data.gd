@@ -13,5 +13,7 @@ extends Resource
 @export var armor: ArmorData
 @export var shield := false
 @export var medkits := 0
+## Bedrohungswert für den Missionsgenerator (nur Gegner; ungefähr: Plünderer 8, Brecher 14)
+@export var threat := 10
 ## 3D-Modell mit Animationen (leer = Figur aus Grundkörpern)
 @export var visual: CharacterVisual

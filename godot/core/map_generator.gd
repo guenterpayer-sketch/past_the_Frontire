@@ -146,7 +146,7 @@ func _build_gallery(cols: int, rows: int, mid: int) -> void:
 
 ## 2. Hochregale: parallele Reihen mit Gängen, je eine Leiter am Ende
 func _build_shelves(cols: int, rows: int) -> void:
-	var count: int = {"klein": 2, "mittel": 3, "gross": 5}[size.id]
+	var count: int = {"klein": 1, "mittel": 2, "gross": 4}[size.id]
 	var left_half := rng.randf() < 0.5
 	var sx0: int = 6 if left_half else cols / 2 + 1
 	var sx1: int = cols / 2 - 1 if left_half else cols - 7
@@ -183,7 +183,7 @@ func _build_shelves(cols: int, rows: int) -> void:
 
 ## 3. Container (3 Felder lang, 1–2 breit), teils doppelt gestapelt; Aufstieg über Leiter oder Kiste
 func _build_containers(cols: int, rows: int) -> void:
-	var count: int = {"klein": 3, "mittel": 6, "gross": 11}[size.id]
+	var count: int = {"klein": 2, "mittel": 4, "gross": 7}[size.id]
 	var placed := 0
 	var tries := 0
 	while placed < count and tries < 200:
@@ -217,15 +217,18 @@ func _build_containers(cols: int, rows: int) -> void:
 		placed += 1
 
 
-## 4. Kleinzeug: Kistenstapel, Fässer, Betonbarrieren (eher quer zur Schussrichtung), Säulen
+## 4. Kleinzeug: Kistenstapel, Fässer, Betonbarrieren (eher quer zur Schussrichtung), Säulen.
+## SCATTER_DENSITY regelt die Menge (1.0 = so voll wie in der ersten Fassung).
+const SCATTER_DENSITY := 0.5
+
 func _build_scatter(cols: int, rows: int) -> void:
-	var area := cols * rows
+	var area := cols * rows * SCATTER_DENSITY
 	_scatter(&"kiste", 1, roundi(area / 40.0), 1, 1, cols, rows)
-	_scatter(&"kiste", 1, roundi(area / 80.0), 2, 4, cols, rows)
+	_scatter(&"kiste", 1, roundi(area / 80.0), 2, 3, cols, rows)
 	_scatter(&"fass", 0, roundi(area / 80.0), 1, 2, cols, rows)
-	_scatter(&"barriere", 0, roundi(area / 90.0), 3, 5, cols, rows)
-	for c in range(7, cols - 5, 7):
-		for r in range(6, rows - 2, 6):
+	_scatter(&"barriere", 0, roundi(area / 90.0), 3, 4, cols, rows)
+	for c in range(9, cols - 5, 10):
+		for r in range(7, rows - 2, 8):
 			var t := m.at_offset(c, r)
 			if _free(t):
 				_put(t, &"saeule", 0)
@@ -278,7 +281,7 @@ func _finish(cols: int, rows: int, mid: int) -> BattleMap:
 	var mid_row := (rows - 1) / 2.0
 	var crew: Array[T] = []
 	for t in m.list:
-		if t.col >= 1 and t.col <= 3 and m.walkable(t) and t.h == 0:
+		if t.col >= 1 and t.col <= BattleMap.DEPLOY_COLS and m.walkable(t) and t.h == 0:
 			crew.append(t)
 	crew.sort_custom(func(a: T, b: T) -> bool:
 		var da := absf(a.row - mid_row)
@@ -295,7 +298,7 @@ func _finish(cols: int, rows: int, mid: int) -> BattleMap:
 	enemy.append_array(high.slice(0, 2))
 	enemy.append_array(low)
 	enemy.append_array(high.slice(2))
-	if crew.size() < 6 or enemy.size() < 6:
+	if crew.size() < 6 or enemy.size() < Mission.MAX_ENEMIES:
 		return null
 	m.crew_start = crew
 	m.enemy_start = enemy

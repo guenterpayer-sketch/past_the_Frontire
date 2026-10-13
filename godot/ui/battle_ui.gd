@@ -15,6 +15,7 @@ var dice_panel: DicePanel
 var sheet: SheetDialog
 var tables: TablesDialog
 var end_dialog: EndDialog
+var briefing: BriefingDialog
 var round_label: Label
 var hall_label: Label
 var _top: PanelContainer
@@ -53,8 +54,10 @@ func _ready() -> void:
 	sheet = SheetDialog.new()
 	tables = TablesDialog.new()
 	end_dialog = EndDialog.new()
-	for d in [sheet, tables, end_dialog]:
+	briefing = BriefingDialog.new()
+	for d in [sheet, tables, end_dialog, briefing]:
 		add_child(d)
+	briefing.reroll.connect(func(diff: String) -> void: action.emit(&"reroll", diff))
 	end_dialog.next_battle.connect(func() -> void: action.emit(&"next_battle", null))
 	end_dialog.reset_crew.connect(func() -> void: action.emit(&"reset_crew", null))
 	resized.connect(_layout)
@@ -66,11 +69,11 @@ func panel_width() -> float:
 
 
 func any_dialog_open() -> bool:
-	return sheet.visible or tables.visible or end_dialog.visible
+	return sheet.visible or tables.visible or end_dialog.visible or briefing.visible
 
 
 func close_dialogs() -> bool:
-	for d in [sheet, tables, end_dialog]:
+	for d in [sheet, tables, end_dialog, briefing]:
 		if d.visible and d != end_dialog:
 			d.close()
 			return true
@@ -101,7 +104,7 @@ func _build_top() -> void:
 	for spec in [[&"sheet", "Charakterbogen", "", false], [&"tables", "Tabellen", "", false],
 			[&"auto", "KI für Crew", "Die KI steuert auch die Crew (zum Zuschauen)", true],
 			[&"sound", "Ton", "Soundeffekte an/aus", true], [&"dice", "Würfel", "Würfelanimation an/aus (2 W10: rot = Zehner, weiß = Einer)", true],
-			[&"new", "Neue Karte", "", false]]:
+			[&"new", "Neue Mission", "Neuen Einsatz würfeln (Fortschritt dieses Kampfes verfällt)", false]]:
 		var b := UiTheme.button(spec[1], spec[2], spec[3])
 		b.pressed.connect(func() -> void: action.emit(spec[0], b.button_pressed))
 		row.add_child(b)

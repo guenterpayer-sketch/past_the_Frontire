@@ -57,9 +57,11 @@ var wait_act := 0
 
 var xp_log := {}
 var kills := 0
+var free_xp := 0              # gesparte freie EP (für Fertigkeiten oder Eigenschaften)
 
 
-static func create(d: UnitData, team_id: StringName, saved_skills := {}) -> Combatant:
+## saved: gespeicherter Fortschritt {skills: {Fertigkeit: {rank, xp}}, attrs: {...}, free_xp}
+static func create(d: UnitData, team_id: StringName, saved := {}) -> Combatant:
 	var u := Combatant.new()
 	u.data = d
 	u.id = d.id
@@ -70,11 +72,16 @@ static func create(d: UnitData, team_id: StringName, saved_skills := {}) -> Comb
 	u.team = team_id
 	u.is_crew = team_id == &"crew"
 	u.attrs = d.attrs.duplicate()
+	var saved_attrs: Dictionary = saved.get("attrs", {})
+	for k in saved_attrs:
+		u.attrs[String(k)] = int(saved_attrs[k])
 	u.skills = {}
 	for k in d.skills:
 		u.skills[StringName(k)] = {"rank": int(d.skills[k]), "xp": 0}
+	var saved_skills: Dictionary = saved.get("skills", {})
 	for k in saved_skills:
 		u.skills[StringName(k)] = saved_skills[k].duplicate()
+	u.free_xp = int(saved.get("free_xp", 0))
 	u.weapons = d.weapons.duplicate()
 	u.weapon = u.weapons[0]
 	u.armor = d.armor

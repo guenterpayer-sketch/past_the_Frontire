@@ -77,6 +77,8 @@ var cols := 0
 var rows := 0
 var tiles := {}            # Vector2i -> Tile
 var list: Array[Tile] = []
+## Eingangsbereich der Crew (Spalten 1 bis DEPLOY_COLS, Boden), zur Mitte hin sortiert; dort wird in Runde 0 aufgestellt
+const DEPLOY_COLS := 4
 var crew_start: Array[Tile] = []
 var enemy_start: Array[Tile] = []
 var map_seed := 0

@@ -33,4 +33,5 @@ skills = {
 }
 weapons = Array[ExtResource("3_3ib2r")]([ExtResource("4_22661"), ExtResource("5_pgiwo")])
 armor = ExtResource("1_18xgb")
+threat = 13
 visual = ExtResource("3_3s0aj")

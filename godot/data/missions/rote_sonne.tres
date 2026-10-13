@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="3_pl1"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_pl2"]
+[ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="5_br"]
+[ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="6_fu"]
+[ext_resource type="Resource" path="res://data/units/enemies/klingentaenzer.tres" id="7_kl"]
+[ext_resource type="Resource" path="res://data/units/enemies/hexer.tres" id="8_hx"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Söldner der Roten Sonne"
+description = "Gut ausgerüstete Söldner, von allem etwas."
+units = Array[ExtResource("2_unit")]([ExtResource("3_pl1"), ExtResource("4_pl2"), ExtResource("5_br"), ExtResource("6_fu"), ExtResource("7_kl"), ExtResource("8_hx")])
+weights = Array[int]([3, 3, 2, 2, 2, 1])
+max_same = 3

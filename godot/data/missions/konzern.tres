@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="3_br"]
+[ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="4_fu"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="5_pl1"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Sicherheitsdienst Vantar-Konzern"
+description = "Wenige, schwer gepanzerte Profis mit schweren Waffen."
+units = Array[ExtResource("2_unit")]([ExtResource("3_br"), ExtResource("4_fu"), ExtResource("5_pl1")])
+weights = Array[int]([3, 3, 2])
+max_same = 3

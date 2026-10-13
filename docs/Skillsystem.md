@@ -367,7 +367,10 @@ Jede Fertigkeit hat ein eigenes Erfahrungskonto. Erfahrung (EP) bekommt eine Fer
 **Rangsteigerung:** Hat das Konto genug EP, kann ein Rang gekauft werden.
 Kosten für den nächsten Rang = **10 + 2 × aktueller Rang** (Rang 0→1: 10 EP, 5→6: 20 EP, 10→11: 30 EP).
 
-**Freier Pool:** Pro Einsatz bekommt jede Figur **3 freie EP**, die auf eine beliebige Fertigkeit gelegt werden dürfen (Training, Lektüre). So lassen sich auch ungenutzte Fertigkeiten langsam aufbauen.
+**Freie EP (sparen):** Pro Einsatz bekommt jede Figur **3 freie EP**, bei einem Sieg zusätzlich die **Missionsbelohnung** (leicht 2, mittel 3, schwer 5). Freie EP werden pro Figur gesammelt und bleiben gespart, bis sie ausgegeben werden:
+
+- **Rangkauf auffüllen:** Fehlen einer Fertigkeit EP für den nächsten Rang, kommen die fehlenden EP aus den freien EP (Training, Lektüre). So lassen sich auch ungenutzte Fertigkeiten aufbauen.
+- **Eigenschaft steigern:** +1 auf eine Eigenschaft kostet **2 + Wert/10 freie EP** (abgerundet; Wert 50 → 7 EP, 70 → 9 EP, 90 → 11 EP), höchstens bis 100. Ein Punkt wirkt nur, wenn er eine Bonusstufe erreicht (z. B. 71, 81, 91), wirkt dann aber auf alle Fertigkeiten mit dieser Eigenschaft und auf abgeleitete Werte (KON → Trefferpunkte, MEN → Psi-Punkte).
 
 ---
 
@@ -383,5 +386,6 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 6. **Munition / Nachladen** gibt es im Prototyp nur beim Raketenwerfer (2 Schuss).
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
 8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
+9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert.
 9. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m.
 10. **Aktivitätssystem:** Prinzip nach RMSS/RMFRP, alle Werte (Gangarten, Angriffsmodifikatoren, Kosten, Reserve 50 % vor dem ersten Zug, Feuerbereitschaft) sind eigene Vorschläge, nicht aus dem Regelwerk.

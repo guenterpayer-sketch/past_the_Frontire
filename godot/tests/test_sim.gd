@@ -1,16 +1,26 @@
 extends SceneTree
-## KI gegen KI: godot --headless --path godot --script res://tests/test_sim.gd -- [Anzahl Kämpfe]
+## KI gegen KI: godot --headless --path godot --script res://tests/test_sim.gd -- [Anzahl Kämpfe] [missionen]
+## Mit "missionen": Gegner aus dem Missionsgenerator (Schwierigkeit reihum leicht/mittel/schwer), Siege je Schwierigkeit.
 
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var fights := int(args[0]) if args.size() > 0 else 30
 	var stats := {&"sieg": 0, &"niederlage": 0, "stuck": 0, "rounds": 0, "dead": 0, "ko": 0}
+	var missions := args.size() > 1 and args[1] == "missionen"
+	var by_diff := {}
 	var t0 := Time.get_ticks_msec()
 	for i in fights:
 		Dice.set_seed(1000 + i)
-		var m := MapGenerator.generate(5000 + i, BattleMap.SIZES[i % 3].id)
-		var c := Combat.new(m, Roster.build_team(GameData.crew(), &"crew"), Roster.build_team(GameData.enemies(), &"enemy"))
+		var c: Combat
+		var diff := ""
+		if missions:
+			diff = ["leicht", "mittel", "schwer"][i % 3]
+			var mi := Mission.generate(5000 + i, diff)
+			c = Combat.new(MapGenerator.generate(mi.map_seed, mi.size_id), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(mi.enemies, &"enemy"))
+		else:
+			var m := MapGenerator.generate(5000 + i, BattleMap.SIZES[i % 3].id)
+			c = Combat.new(m, Roster.build_team(GameData.crew(), &"crew"), Roster.build_team(GameData.enemies(), &"enemy"))
 		var ai := CombatAI.new()
 		c.start()
 		var steps := 0
@@ -26,6 +36,11 @@ func _init() -> void:
 			stats.stuck += 1
 			continue
 		stats[c.result] += 1
+		if missions:
+			var d: Array = by_diff.get(diff, [0, 0])
+			d[0] += 1 if c.result == &"sieg" else 0
+			d[1] += 1
+			by_diff[diff] = d
 		stats.rounds += c.round_no
 		for u in c.crew():
 			if u.is_dead():
@@ -39,5 +54,7 @@ func _init() -> void:
 	print("Laufzeit: %d ms pro Kampf, KI-Schritt Ø %.1f ms, max. %.0f ms" % [(Time.get_ticks_msec() - t0) / fights,
 		stats.time_total / 1000.0 / maxi(1, stats.steps_total), stats.max_step / 1000.0])
 	print("Ø Runden: %.1f | Ø tote Crew: %.2f | Ø bewusstlose Crew: %.2f" % [float(stats.rounds) / maxi(1, fights - stats.stuck), float(stats.dead) / fights, float(stats.ko) / fights])
+	for d in by_diff:
+		print("  %s: %d von %d gewonnen" % [d, by_diff[d][0], by_diff[d][1]])
 	print("OK" if stats.stuck == 0 else "FEHLER: Kämpfe ohne Ende")
 	quit(0 if stats.stuck == 0 else 1)
