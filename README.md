@@ -45,6 +45,10 @@ Regelbasis: W100 im Rolemaster-Stil aus zwei W10 (Zehner + Einer, 00 = 100; offe
 | Handy / Tablet | ein Finger ziehen = verschieben, zwei Finger = zoomen, Feld/Gegner antippen = Vorschau, nochmal antippen = ausführen, lange drücken = Figur drehen |
 | Zuschauen / Testen | „KI für Crew“ |
 
+## Godot-Prototyp
+
+Im Ordner `godot/` liegt ein Vergleichsprototyp für Godot 4.7 (3D-Lagerhalle, 1 gegen 1), siehe `godot/README.md`.
+
 ## Dokumente
 
 - `docs/Charakterbogen_Grundgeruest.md` – das ursprüngliche Grundgerüst
