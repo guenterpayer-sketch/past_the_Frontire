@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="FumbleTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/fumble_row_data.gd" id="1_q2y3x"]
+[ext_resource type="Script" path="res://data/types/fumble_table_data.gd" id="2_r24vw"]
+
+[sub_resource type="Resource" id="Resource_fi13b"]
+script = ExtResource("1_q2y3x")
+up_to = 40
+text = "Zögern – der Rest des Zuges ist verloren."
+lose_turn = true
+
+[sub_resource type="Resource" id="Resource_17f6b"]
+script = ExtResource("1_q2y3x")
+up_to = 70
+text = "Die Waffe klemmt / überhitzt – nächster Angriff −20."
+next_malus = -20
+
+[sub_resource type="Resource" id="Resource_dgw7o"]
+script = ExtResource("1_q2y3x")
+up_to = 90
+text = "Ins Stolpern geraten – niedergeworfen."
+prone = true
+
+[sub_resource type="Resource" id="Resource_af1vl"]
+script = ExtResource("1_q2y3x")
+text = "Querschläger / Rückkopplung – 1W10 Schaden am Angreifer."
+self_damage = true
+
+[resource]
+script = ExtResource("2_r24vw")
+rows = Array[ExtResource("1_q2y3x")]([SubResource("Resource_fi13b"), SubResource("Resource_17f6b"), SubResource("Resource_dgw7o"), SubResource("Resource_af1vl")])

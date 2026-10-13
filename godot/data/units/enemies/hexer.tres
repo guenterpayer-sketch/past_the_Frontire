@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/keine.tres" id="1_18xgb"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_3s0aj"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_3ib2r"]
+[ext_resource type="Resource" path="res://data/weapons/psi_stoss.tres" id="4_22661"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_pgiwo"]
+
+[resource]
+script = ExtResource("2_3s0aj")
+id = &"hexer"
+name = "Hexer"
+letter = "H"
+role = "Psi"
+color = Color(0.49019608, 0.23529412, 0.59607846, 1)
+attrs = {
+"EMP": 80,
+"GEW": 60,
+"INT": 70,
+"KON": 55,
+"KOO": 55,
+"MEN": 90,
+"STA": 40
+}
+skills = {
+"ausweichen": 3,
+"kampfsinn": 3,
+"pistolen": 3,
+"psiAngriff": 8,
+"psiVerteidigung": 7,
+"psiWirken": 4
+}
+weapons = Array[ExtResource("3_3ib2r")]([ExtResource("4_22661"), ExtResource("5_pgiwo")])
+armor = ExtResource("1_18xgb")

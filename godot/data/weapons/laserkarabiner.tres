@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_ajxnu"]
+[ext_resource type="Resource" path="res://data/tables/attack_strahl.tres" id="2_bshaa"]
+
+[resource]
+script = ExtResource("1_ajxnu")
+id = &"laserkarabiner"
+name = "Laserkarabiner"
+skill = &"pistolen"
+table = ExtResource("2_bshaa")
+inc_m = 15
+stages = 4
+max_result = 140
+damage = 0.9
+splash = PackedInt32Array()

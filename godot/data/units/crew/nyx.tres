@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_m42em"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_3dir0"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_rt2uo"]
+[ext_resource type="Resource" path="res://data/weapons/psi_stoss.tres" id="4_bcl1m"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_nrjl6"]
+
+[resource]
+script = ExtResource("2_3dir0")
+id = &"nyx"
+name = "Nyx Haldane"
+letter = "N"
+role = "Psi"
+color = Color(0.6901961, 0.47843137, 0.9098039, 1)
+attrs = {
+"EMP": 92,
+"GEW": 70,
+"INT": 74,
+"KON": 50,
+"KOO": 60,
+"MEN": 96,
+"STA": 35
+}
+skills = {
+"ausweichen": 5,
+"ersteHilfe": 3,
+"kampfsinn": 4,
+"pistolen": 3,
+"psiAngriff": 9,
+"psiVerteidigung": 8,
+"psiWirken": 8,
+"schutzschild": 4,
+"verhandeln": 5
+}
+weapons = Array[ExtResource("3_rt2uo")]([ExtResource("4_bcl1m"), ExtResource("5_nrjl6")])
+armor = ExtResource("1_m42em")
+medkits = 3

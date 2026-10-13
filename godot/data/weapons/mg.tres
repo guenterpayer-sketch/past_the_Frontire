@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_sygx0"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="2_acstc"]
+
+[resource]
+script = ExtResource("1_sygx0")
+id = &"mg"
+name = "Schweres MG (Feuerstoß)"
+skill = &"schnellfeuer"
+table = ExtResource("2_acstc")
+inc_m = 20
+stages = 4
+fumble = 5
+damage = 1.1
+ob_bonus = 15
+splash = PackedInt32Array()

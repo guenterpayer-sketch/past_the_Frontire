@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AttackTableData" format=3]
+
+[ext_resource type="Resource" path="res://data/tables/crit_psi.tres" id="1_7yiof"]
+[ext_resource type="Script" path="res://data/types/attack_table_data.gd" id="2_40l42"]
+
+[resource]
+script = ExtResource("2_40l42")
+id = &"psi"
+name = "Psi"
+thresholds = PackedInt32Array(80, 80, 80, 80)
+crit = ExtResource("1_7yiof")
+ignores_armor = true

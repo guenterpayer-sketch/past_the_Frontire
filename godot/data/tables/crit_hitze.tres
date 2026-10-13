@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="CritTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/crit_row_data.gd" id="1_1ixfe"]
+[ext_resource type="Script" path="res://data/types/crit_table_data.gd" id="2_llimu"]
+
+[sub_resource type="Resource" id="Resource_e1ycm"]
+script = ExtResource("1_1ixfe")
+text = "Verbrennung an der Hand."
+dmg = 2
+
+[sub_resource type="Resource" id="Resource_pf3b8"]
+script = ExtResource("1_1ixfe")
+text = "Der Ärmel fängt Feuer."
+dmg = 3
+malus = -5
+
+[sub_resource type="Resource" id="Resource_4edvq"]
+script = ExtResource("1_1ixfe")
+text = "Der Strahl schmilzt die Brustplatte an."
+dmg = 5
+stun = 1
+
+[sub_resource type="Resource" id="Resource_yw35v"]
+script = ExtResource("1_1ixfe")
+text = "Tiefe Brandwunde am Bein."
+dmg = 7
+malus = -15
+prone = true
+
+[sub_resource type="Resource" id="Resource_2iu4t"]
+script = ExtResource("1_1ixfe")
+text = "Der Strahl brennt durch den Torso."
+dmg = 10
+bleed = 1
+stun = 2
+malus = -20
+
+[sub_resource type="Resource" id="Resource_k2m73"]
+script = ExtResource("1_1ixfe")
+text = "Gesicht verbrannt, das Ziel ist geblendet."
+dmg = 12
+stun = 3
+malus = -30
+
+[sub_resource type="Resource" id="Resource_d276u"]
+script = ExtResource("1_1ixfe")
+text = "Der Strahl durchbohrt das Herz."
+kill = true
+
+[resource]
+script = ExtResource("2_llimu")
+id = &"hitze"
+name = "Hitze"
+rows = Array[ExtResource("1_1ixfe")]([SubResource("Resource_e1ycm"), SubResource("Resource_pf3b8"), SubResource("Resource_4edvq"), SubResource("Resource_yw35v"), SubResource("Resource_2iu4t"), SubResource("Resource_k2m73"), SubResource("Resource_d276u")])

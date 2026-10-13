@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_ib6h1"]
+[ext_resource type="Resource" path="res://data/tables/attack_wucht.tres" id="2_p21va"]
+
+[resource]
+script = ExtResource("1_ib6h1")
+id = &"faeuste"
+name = "Fäuste"
+skill = &"waffenlos"
+table = ExtResource("2_p21va")
+melee = true
+max_result = 110
+damage = 0.5
+splash = PackedInt32Array()

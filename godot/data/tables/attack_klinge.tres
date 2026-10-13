@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AttackTableData" format=3]
+
+[ext_resource type="Resource" path="res://data/tables/crit_schnitt.tres" id="1_2uc6b"]
+[ext_resource type="Script" path="res://data/types/attack_table_data.gd" id="2_g4vfv"]
+
+[resource]
+script = ExtResource("2_g4vfv")
+id = &"klinge"
+name = "Klinge"
+thresholds = PackedInt32Array(75, 80, 85, 95)
+crit = ExtResource("1_2uc6b")

@@ -1,0 +1,55 @@
+[gd_resource type="Resource" script_class="CritTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/crit_row_data.gd" id="1_2253v"]
+[ext_resource type="Script" path="res://data/types/crit_table_data.gd" id="2_xtqtv"]
+
+[sub_resource type="Resource" id="Resource_lu47p"]
+script = ExtResource("1_2253v")
+text = "Splitter."
+dmg = 3
+
+[sub_resource type="Resource" id="Resource_hyvua"]
+script = ExtResource("1_2253v")
+text = "Die Druckwelle wirft das Ziel um."
+dmg = 4
+prone = true
+
+[sub_resource type="Resource" id="Resource_5ni1v"]
+script = ExtResource("1_2253v")
+text = "Splitter im Arm."
+dmg = 6
+bleed = 1
+malus = -5
+
+[sub_resource type="Resource" id="Resource_3adkl"]
+script = ExtResource("1_2253v")
+text = "Volle Druckwelle."
+dmg = 8
+stun = 2
+prone = true
+
+[sub_resource type="Resource" id="Resource_yvn8a"]
+script = ExtResource("1_2253v")
+text = "Schwere Splitterwunden."
+dmg = 10
+bleed = 3
+stun = 2
+
+[sub_resource type="Resource" id="Resource_rgqp7"]
+script = ExtResource("1_2253v")
+text = "Bein zerfetzt."
+dmg = 14
+bleed = 5
+malus = -40
+prone = true
+
+[sub_resource type="Resource" id="Resource_vhx4q"]
+script = ExtResource("1_2253v")
+text = "Mitten in der Explosion."
+kill = true
+
+[resource]
+script = ExtResource("2_xtqtv")
+id = &"explosion"
+name = "Explosion"
+rows = Array[ExtResource("1_2253v")]([SubResource("Resource_lu47p"), SubResource("Resource_hyvua"), SubResource("Resource_5ni1v"), SubResource("Resource_3adkl"), SubResource("Resource_yvn8a"), SubResource("Resource_rgqp7"), SubResource("Resource_vhx4q")])

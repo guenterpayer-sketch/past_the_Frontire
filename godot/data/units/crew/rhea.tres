@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_mjbqg"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_p2obc"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_3yv2n"]
+[ext_resource type="Resource" path="res://data/weapons/laserkarabiner.tres" id="4_srkq5"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_5gtwo"]
+
+[resource]
+script = ExtResource("2_p2obc")
+id = &"rhea"
+name = "Rhea Okafor"
+letter = "R"
+role = "Medizin"
+color = Color(0.9490196, 0.9490196, 0.9490196, 1)
+attrs = {
+"EMP": 85,
+"GEW": 66,
+"INT": 90,
+"KON": 60,
+"KOO": 82,
+"MEN": 60,
+"STA": 40
+}
+skills = {
+"ausweichen": 5,
+"computer": 2,
+"ersteHilfe": 10,
+"handeln": 2,
+"kampfsinn": 3,
+"kochen": 4,
+"medikamente": 6,
+"pistolen": 6,
+"zweiteHilfe": 8
+}
+weapons = Array[ExtResource("3_3yv2n")]([ExtResource("4_srkq5"), ExtResource("5_5gtwo")])
+armor = ExtResource("1_mjbqg")
+medkits = 3

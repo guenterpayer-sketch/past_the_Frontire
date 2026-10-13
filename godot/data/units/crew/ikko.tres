@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_4jg3d"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_wu8n7"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_u6bbi"]
+[ext_resource type="Resource" path="res://data/weapons/laserkarabiner.tres" id="4_vpc1s"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_4gabr"]
+
+[resource]
+script = ExtResource("2_wu8n7")
+id = &"ikko"
+name = "Ikko Brandt"
+letter = "I"
+role = "Pilot & Navigation"
+color = Color(0.37254903, 0.7529412, 0.9098039, 1)
+attrs = {
+"EMP": 60,
+"GEW": 92,
+"INT": 78,
+"KON": 55,
+"KOO": 84,
+"MEN": 66,
+"STA": 45
+}
+skills = {
+"ausweichen": 8,
+"computer": 4,
+"kampfsinn": 5,
+"navigation": 7,
+"pilot": 10,
+"pistolen": 8,
+"strahlGeschuetze": 5,
+"verhandeln": 2,
+"waffenlos": 2
+}
+weapons = Array[ExtResource("3_u6bbi")]([ExtResource("4_vpc1s"), ExtResource("5_4gabr")])
+armor = ExtResource("1_4jg3d")
+medkits = 3

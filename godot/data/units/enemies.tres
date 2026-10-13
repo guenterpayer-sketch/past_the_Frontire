@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="TeamData" format=3]
+
+[ext_resource type="Script" path="res://data/types/team_data.gd" id="1_osqrl"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_tykna"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="3_xc4wh"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_drmk2"]
+[ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="5_x3wi0"]
+[ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="6_ovxo6"]
+[ext_resource type="Resource" path="res://data/units/enemies/klingentaenzer.tres" id="7_awd5b"]
+[ext_resource type="Resource" path="res://data/units/enemies/hexer.tres" id="8_t5rbd"]
+
+[resource]
+script = ExtResource("1_osqrl")
+name = "Söldner der Roten Sonne"
+units = Array[ExtResource("2_tykna")]([ExtResource("3_xc4wh"), ExtResource("4_drmk2"), ExtResource("5_x3wi0"), ExtResource("6_ovxo6"), ExtResource("7_awd5b"), ExtResource("8_t5rbd")])

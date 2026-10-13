@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="TeamData" format=3]
+
+[ext_resource type="Script" path="res://data/types/team_data.gd" id="1_008vq"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_qcqdt"]
+[ext_resource type="Resource" path="res://data/units/crew/vela.tres" id="3_yleke"]
+[ext_resource type="Resource" path="res://data/units/crew/ikko.tres" id="4_w38qk"]
+[ext_resource type="Resource" path="res://data/units/crew/rhea.tres" id="5_heukb"]
+[ext_resource type="Resource" path="res://data/units/crew/sol.tres" id="6_whq7e"]
+[ext_resource type="Resource" path="res://data/units/crew/nyx.tres" id="7_woupw"]
+[ext_resource type="Resource" path="res://data/units/crew/corvin.tres" id="8_7nakd"]
+
+[resource]
+script = ExtResource("1_008vq")
+name = "Crew der Frontire"
+units = Array[ExtResource("2_qcqdt")]([ExtResource("3_yleke"), ExtResource("4_w38qk"), ExtResource("5_heukb"), ExtResource("6_whq7e"), ExtResource("7_woupw"), ExtResource("8_7nakd")])

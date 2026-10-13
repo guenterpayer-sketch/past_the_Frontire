@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_dfa6y"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_pehib"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_el31w"]
+[ext_resource type="Resource" path="res://data/weapons/mg.tres" id="4_h0xhn"]
+[ext_resource type="Resource" path="res://data/weapons/faeuste.tres" id="5_u7dm0"]
+
+[resource]
+script = ExtResource("2_pehib")
+id = &"sol"
+name = "Sol Achterberg"
+letter = "S"
+role = "Technik & schwere Waffen"
+color = Color(0.9098039, 0.5294118, 0.2901961, 1)
+attrs = {
+"EMP": 45,
+"GEW": 50,
+"INT": 82,
+"KON": 86,
+"KOO": 74,
+"MEN": 58,
+"STA": 88
+}
+skills = {
+"ausweichen": 2,
+"geschuetze": 5,
+"hwRuestung": 3,
+"hwWaffen": 4,
+"kampfsinn": 4,
+"notReparatur": 6,
+"panzerung": 4,
+"raketenwerfer": 4,
+"rsReparatur": 8,
+"schnellfeuer": 8,
+"waffenReparatur": 7,
+"waffenlos": 3
+}
+weapons = Array[ExtResource("3_el31w")]([ExtResource("4_h0xhn"), ExtResource("5_u7dm0")])
+armor = ExtResource("1_dfa6y")
+medkits = 3

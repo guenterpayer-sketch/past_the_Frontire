@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_mc21s"]
+[ext_resource type="Resource" path="res://data/tables/attack_wucht.tres" id="2_dh3kb"]
+
+[resource]
+script = ExtResource("1_mc21s")
+id = &"energiehammer"
+name = "Energiehammer"
+skill = &"zweihand"
+table = ExtResource("2_dh3kb")
+melee = true
+fumble = 5
+damage = 1.4
+splash = PackedInt32Array()

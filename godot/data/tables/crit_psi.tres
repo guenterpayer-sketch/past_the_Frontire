@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="CritTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/crit_row_data.gd" id="1_ggjua"]
+[ext_resource type="Script" path="res://data/types/crit_table_data.gd" id="2_88vgt"]
+
+[sub_resource type="Resource" id="Resource_6i01d"]
+script = ExtResource("1_ggjua")
+text = "Stechender Kopfschmerz."
+dmg = 1
+malus = -5
+
+[sub_resource type="Resource" id="Resource_rcbv5"]
+script = ExtResource("1_ggjua")
+text = "Nasenbluten."
+dmg = 2
+bleed = 1
+
+[sub_resource type="Resource" id="Resource_ujdpk"]
+script = ExtResource("1_ggjua")
+text = "Ein Gedankenstoß lässt das Ziel taumeln."
+dmg = 3
+stun = 1
+
+[sub_resource type="Resource" id="Resource_2ooyq"]
+script = ExtResource("1_ggjua")
+text = "Panikwelle."
+dmg = 4
+stun = 2
+malus = -10
+
+[sub_resource type="Resource" id="Resource_22sis"]
+script = ExtResource("1_ggjua")
+text = "Psychischer Schock."
+dmg = 6
+stun = 3
+malus = -15
+
+[sub_resource type="Resource" id="Resource_kx8gv"]
+script = ExtResource("1_ggjua")
+text = "Der Verstand bricht zusammen."
+dmg = 8
+ko = true
+
+[sub_resource type="Resource" id="Resource_25ffc"]
+script = ExtResource("1_ggjua")
+text = "Hirnblutung."
+kill = true
+
+[resource]
+script = ExtResource("2_88vgt")
+id = &"psi"
+name = "Psi"
+rows = Array[ExtResource("1_ggjua")]([SubResource("Resource_6i01d"), SubResource("Resource_rcbv5"), SubResource("Resource_ujdpk"), SubResource("Resource_2ooyq"), SubResource("Resource_22sis"), SubResource("Resource_kx8gv"), SubResource("Resource_25ffc")])

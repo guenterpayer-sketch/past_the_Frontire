@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_327ut"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_afv3j"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_h8tsa"]
+[ext_resource type="Resource" path="res://data/weapons/vibroklinge.tres" id="4_11qty"]
+
+[resource]
+script = ExtResource("2_afv3j")
+id = &"klingentaenzer"
+name = "Klingentänzer"
+letter = "K"
+role = "Nahkampf"
+color = Color(0.6627451, 0.19607843, 0.14901961, 1)
+attrs = {
+"EMP": 40,
+"GEW": 88,
+"INT": 45,
+"KON": 75,
+"KOO": 70,
+"MEN": 60,
+"STA": 82
+}
+skills = {
+"ausweichen": 7,
+"einhand": 9,
+"kampfsinn": 5
+}
+weapons = Array[ExtResource("3_h8tsa")]([ExtResource("4_11qty")])
+armor = ExtResource("1_327ut")

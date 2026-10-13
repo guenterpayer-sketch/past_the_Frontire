@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_fwm8m"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_wmmcd"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_jipnx"]
+[ext_resource type="Resource" path="res://data/weapons/raketenwerfer.tres" id="4_kli1t"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_h32o6"]
+
+[resource]
+script = ExtResource("2_wmmcd")
+id = &"funke"
+name = "Funke"
+letter = "F"
+role = "Raketenschütze"
+color = Color(0.827451, 0.32941177, 0, 1)
+attrs = {
+"EMP": 35,
+"GEW": 62,
+"INT": 65,
+"KON": 60,
+"KOO": 80,
+"MEN": 55,
+"STA": 60
+}
+skills = {
+"ausweichen": 4,
+"kampfsinn": 3,
+"pistolen": 5,
+"raketenwerfer": 7
+}
+weapons = Array[ExtResource("3_jipnx")]([ExtResource("4_kli1t"), ExtResource("5_h32o6")])
+armor = ExtResource("1_fwm8m")

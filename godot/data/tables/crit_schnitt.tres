@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="CritTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/crit_row_data.gd" id="1_oeds1"]
+[ext_resource type="Script" path="res://data/types/crit_table_data.gd" id="2_qaywf"]
+
+[sub_resource type="Resource" id="Resource_1e28b"]
+script = ExtResource("1_oeds1")
+text = "Kratzer."
+dmg = 1
+bleed = 1
+
+[sub_resource type="Resource" id="Resource_022pj"]
+script = ExtResource("1_oeds1")
+text = "Schnitt am Unterarm."
+dmg = 3
+bleed = 1
+
+[sub_resource type="Resource" id="Resource_wadae"]
+script = ExtResource("1_oeds1")
+text = "Tiefer Schnitt in den Oberschenkel."
+dmg = 4
+bleed = 2
+malus = -10
+
+[sub_resource type="Resource" id="Resource_edhxj"]
+script = ExtResource("1_oeds1")
+text = "Die Klinge fährt in die Seite."
+dmg = 6
+bleed = 3
+stun = 1
+
+[sub_resource type="Resource" id="Resource_vnray"]
+script = ExtResource("1_oeds1")
+text = "Sehne durchtrennt."
+dmg = 8
+bleed = 3
+malus = -25
+prone = true
+
+[sub_resource type="Resource" id="Resource_owfa2"]
+script = ExtResource("1_oeds1")
+text = "Arterie durchtrennt."
+dmg = 10
+bleed = 6
+stun = 2
+
+[sub_resource type="Resource" id="Resource_gosu0"]
+script = ExtResource("1_oeds1")
+text = "Kehle durchtrennt."
+kill = true
+
+[resource]
+script = ExtResource("2_qaywf")
+id = &"schnitt"
+name = "Schnitt"
+rows = Array[ExtResource("1_oeds1")]([SubResource("Resource_1e28b"), SubResource("Resource_022pj"), SubResource("Resource_wadae"), SubResource("Resource_edhxj"), SubResource("Resource_vnray"), SubResource("Resource_owfa2"), SubResource("Resource_gosu0")])

@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="CritTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/crit_row_data.gd" id="1_gane4"]
+[ext_resource type="Script" path="res://data/types/crit_table_data.gd" id="2_3dkpp"]
+
+[sub_resource type="Resource" id="Resource_mblr0"]
+script = ExtResource("1_gane4")
+text = "Streifschuss."
+dmg = 2
+
+[sub_resource type="Resource" id="Resource_67vdq"]
+script = ExtResource("1_gane4")
+text = "Treffer in den Oberschenkel."
+dmg = 4
+bleed = 1
+
+[sub_resource type="Resource" id="Resource_ed68u"]
+script = ExtResource("1_gane4")
+text = "Schuss durch die Schulter."
+dmg = 5
+bleed = 1
+malus = -10
+
+[sub_resource type="Resource" id="Resource_6ioe4"]
+script = ExtResource("1_gane4")
+text = "Treffer in den Bauch."
+dmg = 7
+bleed = 2
+stun = 1
+
+[sub_resource type="Resource" id="Resource_6u86y"]
+script = ExtResource("1_gane4")
+text = "Durchschuss der Lunge."
+dmg = 9
+bleed = 3
+stun = 2
+malus = -20
+
+[sub_resource type="Resource" id="Resource_2s0uu"]
+script = ExtResource("1_gane4")
+text = "Treffer am Hals, das Ziel bricht zusammen."
+dmg = 12
+bleed = 4
+stun = 3
+prone = true
+
+[sub_resource type="Resource" id="Resource_gatf0"]
+script = ExtResource("1_gane4")
+text = "Kopfschuss."
+kill = true
+
+[resource]
+script = ExtResource("2_3dkpp")
+id = &"durchschlag"
+name = "Durchschlag"
+rows = Array[ExtResource("1_gane4")]([SubResource("Resource_mblr0"), SubResource("Resource_67vdq"), SubResource("Resource_ed68u"), SubResource("Resource_6ioe4"), SubResource("Resource_6u86y"), SubResource("Resource_2s0uu"), SubResource("Resource_gatf0")])

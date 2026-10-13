@@ -3,8 +3,14 @@
 Party-RPG im Weltraum mit 6 Crewmitgliedern, rundenbasiertem Kampf am Boden und (geplant) im Weltraum.
 Regelbasis: W100 im Rolemaster-Stil aus zwei W10 (Zehner + Einer, 00 = 100; offen nach oben und unten, über den Zielwert kommen), Angriffstabellen mit Kritischen Treffern, Erfahrung nur durch Benutzung.
 
-## Starten
+## Godot-Version (aktuell)
 
+Die Weiterentwicklung läuft in Godot 4.7: Ordner `godot/`, Anleitung in `godot/README.md`.
+Spieldaten (Waffen, Rüstungen, Figuren, Tabellen) liegen dort als im Editor bearbeitbare Ressourcen.
+
+## HTML-Version (eingefroren)
+
+Die HTML/JS-Version bleibt als Referenz im Repo, wird aber nicht mehr weiterentwickelt.
 `index.html` im Browser öffnen (Doppelklick genügt). Es gibt keine Abhängigkeiten und keinen Build-Schritt.
 
 ## Prototyp: Bodenkampf 6 gegen 6
@@ -44,10 +50,6 @@ Regelbasis: W100 im Rolemaster-Stil aus zwei W10 (Zehner + Einer, 00 = 100; offe
 | Kamera | Mausrad = Zoom, Ziehen oder Pfeiltasten/WASD = verschieben, +/− = Zoom |
 | Handy / Tablet | ein Finger ziehen = verschieben, zwei Finger = zoomen, Feld/Gegner antippen = Vorschau, nochmal antippen = ausführen, lange drücken = Figur drehen |
 | Zuschauen / Testen | „KI für Crew“ |
-
-## Godot-Prototyp
-
-Im Ordner `godot/` liegt ein Vergleichsprototyp für Godot 4.7 (3D-Lagerhalle, 1 gegen 1), siehe `godot/README.md`.
 
 ## Dokumente
 

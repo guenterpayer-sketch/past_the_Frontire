@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_shewn"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_57bfh"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_hed3e"]
+[ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="4_rdwlg"]
+[ext_resource type="Resource" path="res://data/weapons/faeuste.tres" id="5_o4dwj"]
+
+[resource]
+script = ExtResource("2_57bfh")
+id = &"vela"
+name = "Vela Marrow"
+letter = "V"
+role = "Sturmangriff"
+color = Color(0.8784314, 0.72156864, 0.2901961, 1)
+attrs = {
+"EMP": 40,
+"GEW": 72,
+"INT": 55,
+"KON": 80,
+"KOO": 88,
+"MEN": 72,
+"STA": 75
+}
+skills = {
+"ausweichen": 5,
+"ballistikGeschuetze": 3,
+"einhand": 2,
+"ersteHilfe": 2,
+"gassenwissen": 2,
+"gewehre": 9,
+"kampfsinn": 6,
+"pistolen": 4,
+"raketenwerfer": 2,
+"schnellfeuer": 3,
+"waffenlos": 4
+}
+weapons = Array[ExtResource("3_hed3e")]([ExtResource("4_rdwlg"), ExtResource("5_o4dwj")])
+armor = ExtResource("1_shewn")
+medkits = 3

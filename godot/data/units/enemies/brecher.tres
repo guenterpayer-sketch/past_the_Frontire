@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/schwer.tres" id="1_vlvsf"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_43dy3"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_mewhd"]
+[ext_resource type="Resource" path="res://data/weapons/mg.tres" id="4_sdmld"]
+
+[resource]
+script = ExtResource("2_43dy3")
+id = &"brecher"
+name = "Brecher"
+letter = "B"
+role = "Schwerer Schütze"
+color = Color(0.57254905, 0.16862746, 0.12941177, 1)
+attrs = {
+"EMP": 25,
+"GEW": 45,
+"INT": 40,
+"KON": 92,
+"KOO": 70,
+"MEN": 60,
+"STA": 90
+}
+skills = {
+"ausweichen": 1,
+"kampfsinn": 3,
+"schnellfeuer": 8
+}
+weapons = Array[ExtResource("3_mewhd")]([ExtResource("4_sdmld")])
+armor = ExtResource("1_vlvsf")

@@ -1,0 +1,220 @@
+class_name Rules
+extends RefCounted
+## Skillsystem: Eigenschaften, Fertigkeiten, Proben, Erfahrung, abgeleitete Werte.
+## Regeln siehe docs/Skillsystem.md. Eine "Figur" ist hier alles mit attrs, skills, is_crew und xp_log.
+
+const ATTRIBUTES := [
+	{"id": "STA", "short": "STÄ", "name": "Stärke"},
+	{"id": "GEW", "short": "GEW", "name": "Gewandtheit"},
+	{"id": "KOO", "short": "KOO", "name": "Koordination"},
+	{"id": "KON", "short": "KON", "name": "Konstitution"},
+	{"id": "INT", "short": "INT", "name": "Intelligenz"},
+	{"id": "EMP", "short": "EMP", "name": "Empathie"},
+	{"id": "MEN", "short": "MEN", "name": "Mentale Stärke"},
+]
+
+## Gruppe → [Fertigkeit, Name, Eigenschaft 1, Eigenschaft 2]
+const SKILL_GROUPS := [
+	{"id": "kampf", "name": "Fähigkeiten Kampf", "skills": [
+		["waffenlos", "Waffenloser Kampf", "STA", "GEW"],
+		["einhand", "Einhand-Waffen", "STA", "GEW"],
+		["zweihand", "Zweihand-Waffen", "STA", "KON"],
+		["pistolen", "Pistolen", "KOO", "GEW"],
+		["gewehre", "Gewehre", "KOO", "MEN"],
+		["schnellfeuer", "Schnellfeuerwaffen", "KOO", "STA"],
+		["raketenwerfer", "Raketenwerfer", "KOO", "INT"],
+		["geschuetze", "Geschütze", "KOO", "INT"],
+		["kampfsinn", "Kampfsinn", "INT", "GEW"],
+		["ausweichen", "Ausweichen", "GEW", "KOO"],
+		["schild", "Schild", "STA", "KOO"],
+		["psiAngriff", "Psi-Angriffe", "MEN", "EMP"],
+		["psiVerteidigung", "Psi-Verteidigung", "MEN", "INT"]]},
+	{"id": "allgemein", "name": "Fähigkeiten", "skills": [
+		["ersteHilfe", "Erste Hilfe", "INT", "KOO"],
+		["zweiteHilfe", "Zweite Hilfe", "INT", "EMP"],
+		["psiWirken", "Psi wirken", "MEN", "EMP"],
+		["waffenReparatur", "Waffen-Reparatur", "INT", "KOO"]]},
+	{"id": "rsTechnik", "name": "Raumschiff-Technik", "skills": [
+		["rsReparatur", "Reparatur", "INT", "KOO"],
+		["navigation", "Navigation", "INT", "MEN"],
+		["pilot", "Pilot", "GEW", "KOO"],
+		["computer", "Computer", "INT", "MEN"]]},
+	{"id": "rsKampf", "name": "Raumschiff-Kampf", "skills": [
+		["strahlGeschuetze", "Strahl-Geschütze", "KOO", "INT"],
+		["ballistikGeschuetze", "Ballistische Geschütze", "KOO", "INT"],
+		["raketen", "Raketen", "INT", "KOO"],
+		["schutzschild", "Schutzschild", "INT", "MEN"],
+		["panzerung", "Panzerung", "INT", "KON"],
+		["notReparatur", "Not-Reparatur", "KOO", "MEN"]]},
+	{"id": "sozial", "name": "Handel & Soziales", "skills": [
+		["handeln", "Handeln", "EMP", "INT"],
+		["gassenwissen", "Gassenwissen", "EMP", "INT"],
+		["verhandeln", "Verhandeln", "EMP", "MEN"]]},
+	{"id": "handwerk", "name": "Handwerk", "skills": [
+		["hwRuestung", "Rüstung", "KOO", "INT"],
+		["hwWaffen", "Waffen", "KOO", "INT"],
+		["kochen", "Kochen", "EMP", "KOO"],
+		["medikamente", "Medikamente herstellen", "INT", "KOO"]]},
+]
+
+const DIFFICULTY := {
+	"routine": {"name": "Routine", "mod": 30, "xp": 0},
+	"leicht": {"name": "Leicht", "mod": 20, "xp": 1},
+	"einfach": {"name": "Einfach", "mod": 10, "xp": 1},
+	"mittel": {"name": "Mittel", "mod": 0, "xp": 2},
+	"schwer": {"name": "Schwer", "mod": -10, "xp": 3},
+	"sehrSchwer": {"name": "Sehr schwer", "mod": -20, "xp": 4},
+	"extrem": {"name": "Extrem schwer", "mod": -30, "xp": 5},
+	"wahnsinnig": {"name": "Wahnsinnig", "mod": -50, "xp": 7},
+	"absurd": {"name": "Absurd", "mod": -70, "xp": 10},
+}
+
+static var _skills := {}
+
+
+## Fertigkeit nach Kennung: {id, name, attrs: [a1, a2], group}
+static func skill(id: StringName) -> Dictionary:
+	if _skills.is_empty():
+		for g in SKILL_GROUPS:
+			for s in g.skills:
+				_skills[StringName(s[0])] = {"id": StringName(s[0]), "name": s[1], "attrs": [s[2], s[3]], "group": g.id}
+	return _skills.get(id, {})
+
+
+static func skill_name(id: StringName) -> String:
+	return skill(id).get("name", String(id))
+
+
+static func attr_bonus(v: int) -> int:
+	if v <= 5:
+		return -15
+	if v <= 15:
+		return -10
+	if v <= 30:
+		return -5
+	if v <= 70:
+		return 0
+	if v <= 80:
+		return 5
+	if v <= 90:
+		return 10
+	if v <= 95:
+		return 15
+	if v <= 98:
+		return 20
+	return 25 if v == 99 else 30
+
+
+static func rank_bonus(r: int) -> int:
+	if r <= 0:
+		return -25
+	if r <= 10:
+		return 5 * r
+	if r <= 20:
+		return 50 + 2 * (r - 10)
+	if r <= 30:
+		return 70 + (r - 20)
+	return 80 + (r - 30) / 2
+
+
+static func skill_rank(ch, id: StringName) -> int:
+	var s: Dictionary = ch.skills.get(id, {})
+	return s.get("rank", 0)
+
+
+static func skill_total(ch, id: StringName) -> int:
+	var a: Array = skill(id).attrs
+	return rank_bonus(skill_rank(ch, id)) + attr_bonus(ch.attrs[a[0]]) + attr_bonus(ch.attrs[a[1]])
+
+
+static func rank_cost(rank: int) -> int:
+	return 10 + 2 * rank
+
+
+static func ensure_skill(ch, id: StringName) -> Dictionary:
+	if not ch.skills.has(id):
+		ch.skills[id] = {"rank": 0, "xp": 0}
+	return ch.skills[id]
+
+
+## Erfahrung nur für benutzte Fertigkeiten; pro Kampf gesammelt in xp_log
+static func award_xp(ch, id: StringName, amount: int) -> void:
+	if amount <= 0 or not ch.is_crew:
+		return
+	ensure_skill(ch, id).xp += amount
+	ch.xp_log[id] = ch.xp_log.get(id, 0) + amount
+
+
+static func can_rank_up(ch, id: StringName) -> bool:
+	var s := ensure_skill(ch, id)
+	return s.xp >= rank_cost(s.rank)
+
+
+static func rank_up(ch, id: StringName) -> bool:
+	var s := ensure_skill(ch, id)
+	var cost := rank_cost(s.rank)
+	if s.xp < cost:
+		return false
+	s.xp -= cost
+	s.rank += 1
+	return true
+
+
+static func maneuver_result(total: int) -> Dictionary:
+	if total <= -26:
+		return {"id": &"patzer", "name": "Patzer"}
+	if total <= 75:
+		return {"id": &"fehlschlag", "name": "Fehlschlag"}
+	if total <= 100:
+		return {"id": &"teilerfolg", "name": "Teilerfolg"}
+	if total <= 175:
+		return {"id": &"erfolg", "name": "Erfolg"}
+	return {"id": &"herausragend", "name": "Herausragender Erfolg"}
+
+
+static func is_success(result: Dictionary) -> bool:
+	return result.id == &"erfolg" or result.id == &"herausragend"
+
+
+## Probe: offener W100 + Gesamtbonus + Schwierigkeit + Modifikatoren ({label, val})
+static func maneuver(ch, skill_id: StringName, diff_id: String, extra_mods: Array = []) -> Dictionary:
+	var diff: Dictionary = DIFFICULTY[diff_id]
+	var roll := Dice.open_d100()
+	var mods: Array = [{"label": skill_name(skill_id), "val": skill_total(ch, skill_id)}, {"label": diff.name, "val": diff.mod}]
+	mods.append_array(extra_mods)
+	var total: int = roll.total
+	for m in mods:
+		total += m.val
+	var result := maneuver_result(total)
+	var xp := 0
+	if is_success(result):
+		xp = diff.xp
+	elif result.id != &"patzer":
+		xp = diff.xp / 2
+	award_xp(ch, skill_id, xp)
+	return {"roll": roll, "mods": mods, "total": total, "result": result, "xp": xp}
+
+
+static func max_hp(ch) -> int:
+	return 15 + ch.attrs.KON / 3
+
+
+static func death_at(ch) -> int:
+	return -(ch.attrs.KON / 5)
+
+
+static func has_psi(ch) -> bool:
+	return skill_rank(ch, &"psiAngriff") > 0 or skill_rank(ch, &"psiWirken") > 0
+
+
+static func max_pp(ch) -> int:
+	return ch.attrs.MEN / 10 + skill_rank(ch, &"psiWirken") / 2 if has_psi(ch) else 0
+
+
+static func initiative_bonus(ch) -> int:
+	return attr_bonus(ch.attrs.GEW) + floori(skill_total(ch, &"kampfsinn") / 5.0)
+
+
+## Gratis-Hexfelder pro Zug aus der Gewandtheit (abzüglich Rüstung)
+static func free_hexes(ch) -> int:
+	return maxi(0, floori(attr_bonus(ch.attrs.GEW) / 5.0) + ch.armor.move)

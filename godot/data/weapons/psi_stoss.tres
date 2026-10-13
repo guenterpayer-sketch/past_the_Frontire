@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_5cup7"]
+[ext_resource type="Resource" path="res://data/tables/attack_psi.tres" id="2_i1lu1"]
+
+[resource]
+script = ExtResource("1_5cup7")
+id = &"psi_stoss"
+name = "Psi-Stoß"
+skill = &"psiAngriff"
+table = ExtResource("2_i1lu1")
+psi = true
+inc_m = 10
+stages = 3
+max_result = 140
+fumble = 4
+splash = PackedInt32Array()
+pp_cost = 2

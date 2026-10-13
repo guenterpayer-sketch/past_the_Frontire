@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="CritTableData" format=3]
+
+[ext_resource type="Script" path="res://data/types/crit_row_data.gd" id="1_7gimw"]
+[ext_resource type="Script" path="res://data/types/crit_table_data.gd" id="2_qotci"]
+
+[sub_resource type="Resource" id="Resource_bdpr7"]
+script = ExtResource("1_7gimw")
+text = "Harter Stoß."
+dmg = 2
+
+[sub_resource type="Resource" id="Resource_t3lej"]
+script = ExtResource("1_7gimw")
+text = "Schlag gegen die Rippen."
+dmg = 3
+stun = 1
+
+[sub_resource type="Resource" id="Resource_7b1lg"]
+script = ExtResource("1_7gimw")
+text = "Schlag gegen das Knie, das Ziel stürzt."
+dmg = 4
+prone = true
+
+[sub_resource type="Resource" id="Resource_ao0xk"]
+script = ExtResource("1_7gimw")
+text = "Rippen brechen."
+dmg = 6
+stun = 1
+malus = -10
+
+[sub_resource type="Resource" id="Resource_eoagp"]
+script = ExtResource("1_7gimw")
+text = "Schlag an den Kopf."
+dmg = 8
+stun = 2
+prone = true
+
+[sub_resource type="Resource" id="Resource_dl8ej"]
+script = ExtResource("1_7gimw")
+text = "Schädelbruch."
+dmg = 10
+stun = 4
+malus = -25
+
+[sub_resource type="Resource" id="Resource_1flyg"]
+script = ExtResource("1_7gimw")
+text = "Genick gebrochen."
+kill = true
+
+[resource]
+script = ExtResource("2_qotci")
+id = &"wucht"
+name = "Wucht"
+rows = Array[ExtResource("1_7gimw")]([SubResource("Resource_bdpr7"), SubResource("Resource_t3lej"), SubResource("Resource_7b1lg"), SubResource("Resource_ao0xk"), SubResource("Resource_eoagp"), SubResource("Resource_dl8ej"), SubResource("Resource_1flyg")])

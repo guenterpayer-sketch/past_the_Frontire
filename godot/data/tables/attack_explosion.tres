@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AttackTableData" format=3]
+
+[ext_resource type="Resource" path="res://data/tables/crit_explosion.tres" id="1_4jiqf"]
+[ext_resource type="Script" path="res://data/types/attack_table_data.gd" id="2_gj7lg"]
+
+[resource]
+script = ExtResource("2_gj7lg")
+id = &"explosion"
+name = "Explosion"
+thresholds = PackedInt32Array(70, 70, 75, 80)
+crit = ExtResource("1_4jiqf")

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_onuma"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_bvhrs"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_jlyln"]
+[ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="4_01wph"]
+
+[resource]
+script = ExtResource("2_bvhrs")
+id = &"pluenderer_1"
+name = "Plünderer"
+letter = "P"
+role = "Söldner"
+color = Color(0.7529412, 0.22352941, 0.16862746, 1)
+attrs = {
+"EMP": 30,
+"GEW": 65,
+"INT": 45,
+"KON": 70,
+"KOO": 78,
+"MEN": 55,
+"STA": 65
+}
+skills = {
+"ausweichen": 4,
+"ersteHilfe": 5,
+"gewehre": 7,
+"kampfsinn": 3
+}
+weapons = Array[ExtResource("3_jlyln")]([ExtResource("4_01wph")])
+armor = ExtResource("1_onuma")

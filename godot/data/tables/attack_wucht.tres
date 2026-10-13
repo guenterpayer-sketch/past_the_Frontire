@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AttackTableData" format=3]
+
+[ext_resource type="Resource" path="res://data/tables/crit_wucht.tres" id="1_a5lq2"]
+[ext_resource type="Script" path="res://data/types/attack_table_data.gd" id="2_uoy6l"]
+
+[resource]
+script = ExtResource("2_uoy6l")
+id = &"wucht"
+name = "Wucht"
+thresholds = PackedInt32Array(75, 80, 90, 100)
+crit = ExtResource("1_a5lq2")

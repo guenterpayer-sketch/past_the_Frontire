@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArmorData" format=3]
+
+[ext_resource type="Script" path="res://data/types/armor_data.gd" id="1_awu4u"]
+
+[resource]
+script = ExtResource("1_awu4u")
+id = &"schwer"
+name = "Servo-Rüstung (schwer)"
+cls = 3
+db = -10
+move = -1
