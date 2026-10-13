@@ -140,7 +140,8 @@ details.hint summary { cursor: pointer; }
 .free select { max-width: 160px; }
 
 /* Würfel: zwei W10 (rot = Zehner, weiß = Einer) */
-#dice { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 6; }
+#dice { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 6; }
+.dice-card { cursor: pointer; }
 .dice-card { background: rgba(12, 17, 30, 0.9); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.55); text-align: center; animation: dice-in 0.18s ease-out; transition: opacity 0.25s, transform 0.25s; }
 .dice-card.out { opacity: 0; transform: translateY(-8px); }
 .dice-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; max-width: 80vw; overflow: hidden; text-overflow: ellipsis; }

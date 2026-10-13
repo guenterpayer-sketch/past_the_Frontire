@@ -48,6 +48,13 @@
     after(fn) { if (this.rolling) this.waiters.push(fn); else fn(); },
     flush() { const w = this.waiters; this.waiters = []; w.forEach(fn => fn()); },
 
+    // Klick auf die Würfel blendet sie aus
+    dismiss(card) {
+      if (this.rolling || !card.isConnected) return;
+      card.classList.add('out');
+      this.timer = setTimeout(() => { if (card.isConnected) { this.root.innerHTML = ''; this.showing = false; } }, FADE);
+    },
+
     clear() {
       clearTimeout(this.timer);
       clearInterval(this.spin);
@@ -65,6 +72,8 @@
       this.showing = true;
       this.root.innerHTML = '';
       const card = el('div', 'dice-card');
+      card.title = 'Klicken zum Ausblenden';
+      card.addEventListener('click', () => this.dismiss(card));
       if (roll.label) card.appendChild(el('div', 'dice-label', roll.label));
       const rows = el('div', 'dice-rows');
       card.appendChild(rows);
@@ -117,17 +126,11 @@
         sum.textContent = `Offener Wurf: ${roll.total}`;
         sum.classList.add(roll.total > roll.first ? 'up' : 'down');
       } else sum.textContent = `Wurf: ${roll.total}`;
-      // Der Kampf darf weiterlaufen, die Würfel bleiben noch kurz liegen
+      // Der Kampf darf weiterlaufen. Die Würfel bleiben liegen, bis man sie anklickt
+      // oder der nächste Wurf sie ersetzt.
       this.rolling = this.queue.length > 0;
       if (!this.rolling) this.flush();
-      const hold = this.queue.length ? HOLD / 2 : HOLD;
-      this.timer = setTimeout(() => {
-        card.classList.add('out');
-        this.timer = setTimeout(() => {
-          if (this.queue.length) this.next();
-          else { this.root.innerHTML = ''; this.showing = false; this.rolling = false; }
-        }, FADE);
-      }, hold);
+      else this.timer = setTimeout(() => this.next(), HOLD / 2);
     },
   };
 
