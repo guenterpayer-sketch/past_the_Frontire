@@ -65,6 +65,8 @@
       $('#btn-auto').onclick = () => { this.auto = !this.auto; $('#btn-auto').classList.toggle('on', this.auto); this.dirty = true; };
       $('#modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.dataset.close !== undefined) this.closeModal(); });
       $('#panel').addEventListener('click', e => this.onPanelClick(e));
+      $('#order').addEventListener('click', e => this.onPanelClick(e));
+      $('#unit').addEventListener('toggle', e => { if (e.target.matches('details.hint')) this.helpOpen = e.target.open; }, true);
       PTF.DiceView.init($('#stage'));
       PTF.Dice.onRoll = roll => PTF.DiceView.push(roll);
       const dic = () => { $('#btn-dice').textContent = `Würfel: ${PTF.DiceView.on ? 'an' : 'aus'}`; $('#btn-dice').classList.toggle('on', PTF.DiceView.on); };
@@ -443,6 +445,7 @@
       const c = this.combat, u = c.current, act = b.dataset.act;
       if (act === 'sheet') return this.showSheet(b.dataset.id);
       if (act === 'grid') { this.renderer.showGrid = !this.renderer.showGrid; this.dirty = true; return; }
+      if (act === 'focus') { const f = c.units.find(o => o.id === b.dataset.id); if (f) this.renderer.centerOn(this.renderer.unitPos(f)); this.dirty = true; return; }
       if (act === 'jump') { const j = c.units.find(o => o.id === b.dataset.id); if (j && !this.isAi(j)) c.requestJump(j); this.dirty = true; return; }
       if (!this.playerTurn()) return;
       switch (act) {
@@ -467,9 +470,13 @@
     updatePanel() {
       const c = this.combat, u = c.current, CB = PTF.COMBAT;
       $('#round').textContent = c.round;
-      $('#order').innerHTML = c.order.map((o, i) =>
-        `<li class="${o.team} ${o.state !== 'ok' ? 'out' : ''} ${i === c.turnIdx ? 'now' : ''} ${i < c.turnIdx ? 'done' : ''}" title="Initiative ${o.initRoll}">
-          <span class="badge" style="background:${o.color}">${o.letter}</span><span>${esc(o.name)}${o.overwatch ? ' ◎' : ''}${o.crouched ? ' ▾' : ''}</span>${o.waiting ? (c.jumpQueue.includes(o) ? '<span class="wait">springt ein</span>' : !this.isAi(o) ? `<button class="mini jump" data-act="jump" data-id="${o.id}" title="Nach dem laufenden Zug einspringen">einspringen</button>` : '<span class="wait">wartet</span>') : ''}<span class="ini">${o.init}</span></li>`).join('');
+      $('#order').innerHTML = c.order.map((o, i) => {
+        const st = `${o.overwatch ? ' ◎' : ''}${o.crouched ? ' ▾' : ''}`;
+        const wait = !o.waiting ? '' : c.jumpQueue.includes(o) ? '<span class="wait" title="springt nach dem laufenden Zug ein">⤴</span>'
+          : !this.isAi(o) ? `<button class="mini jump" data-act="jump" data-id="${o.id}" title="Nach dem laufenden Zug einspringen">einspringen</button>` : '<span class="wait" title="wartet">⏸</span>';
+        return `<li class="${o.team} ${o.state !== 'ok' ? 'out' : ''} ${i === c.turnIdx ? 'now' : ''} ${i < c.turnIdx ? 'done' : ''}" data-act="focus" data-id="${o.id}" title="${esc(o.name)} · Initiative ${o.init}${o.overwatch ? ' · Feuerbereitschaft' : ''}${o.crouched ? ' · geduckt' : ''}${o.waiting ? ' · wartet' : ''}">`
+          + `<span class="badge" style="background:${o.color}">${o.letter}</span><span class="nm"><span class="nmt">${esc(o.name.split(' ')[0])}</span>${st}</span>${wait}<span class="ini">${o.init}</span></li>`;
+      }).join('');
       if (!u) { $('#unit').innerHTML = ''; return; }
       const ai = this.isAi(u);
       const w = this.weaponOf(u);
@@ -522,7 +529,7 @@
           <button data-act="face" class="${this.mode === 'face' ? 'sel' : ''}" ${dis(true)} title="Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ: Rechtsklick auf ein Feld.">Ausrichten</button>
           <button data-act="end" class="end ${u.act < 10 && !freeMove ? 'pulse' : ''}" ${dis(true)} title="Enter. Übrige Aktivität zählt bis zum nächsten Zug als Ausweichen.">Zug beenden${u.act > 0 ? ` (${u.act} % → Ausweichen)` : ''}</button>
         </div>
-        <div class="hint">${this.hintText(u)}</div>`}`;
+        ${this.mode === 'move' ? `<details class="hint" ${this.helpOpen ? 'open' : ''}><summary>Hilfe</summary>${this.hintText(u)}</details>` : `<div class="hint">${this.hintText(u)}</div>`}`}`;
     },
 
     hintText(u) {

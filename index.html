@@ -23,6 +23,7 @@
   <main>
     <section id="stage">
       <canvas id="map"></canvas>
+      <ol id="order" title="Initiative-Reihenfolge dieser Runde (Klick: Kamera zur Figur)"></ol>
       <div id="tip" hidden></div>
       <div class="legend">
         <span>1 Hex = 1,5 m · 1 Höhenstufe = 1,5 m</span>
@@ -38,10 +39,6 @@
 
     <aside id="panel">
       <div id="unit" class="card"></div>
-      <div class="card">
-        <h3>Initiative</h3>
-        <ol id="order"></ol>
-      </div>
       <div class="card log-card">
         <h3>Kampflog</h3>
         <div id="log"></div>

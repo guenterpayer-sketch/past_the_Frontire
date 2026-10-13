@@ -35,7 +35,8 @@ Regelbasis: W100 im Rolemaster-Stil aus zwei W10 (Zehner + Einer, 00 = 100; offe
 | Vorschau | Maus über ein blaues Feld: grüne Linien/◎ = von dort treffbar, rote Linien/⚠ = wer dich dort treffen kann |
 | Raster | Taste G oder Button: Hexraster ein-/ausblenden (die Grafik zeigt sonst durchgehenden Boden und ganze Objekte) |
 | Reichweite | Taste R oder Button: Punkte auf allen Feldern, die die gewählte Waffe sieht (grün/gelb/orange/rot = Reichweitenstufe 1–4) |
-| Ducken / Abwarten | Buttons im Panel; Einspringen über „einspringen“ in der Initiative-Liste |
+| Ducken / Abwarten | Buttons im Panel; Einspringen über „einspringen“ in der Initiative-Leiste |
+| Initiative | Leiste oben auf der Karte (aktive Figur mit Namen, Maus darüber = Details); Klick zentriert die Kamera auf die Figur |
 | Waffe wählen | Waffen-Buttons im rechten Panel |
 | Erste Hilfe / Psi-Schild | Button, dann grün markierte Figur anklicken |
 | Abbrechen | Esc |

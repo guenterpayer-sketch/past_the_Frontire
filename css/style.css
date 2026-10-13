@@ -48,11 +48,12 @@ main { display: flex; height: calc(100% - 50px); min-height: 520px; }
 .tip-attack li { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
 .tip-attack li.h { border-bottom: 1px solid var(--line); font-weight: bold; margin-bottom: 2px; }
 
-#panel { width: 370px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 8px; background: var(--panel); border-left: 1px solid var(--line); overflow: hidden; }
+#panel { width: 370px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 8px; background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; }
+#panel > .card { flex-shrink: 0; }
 .card { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
 .card h3 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-.log-card { flex: 1; display: flex; flex-direction: column; min-height: 120px; }
-#log { flex: 1; overflow-y: auto; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.log-card { flex: 1 0 220px; display: flex; flex-direction: column; min-height: 220px; }
+#log { flex: 1 1 0; min-height: 0; overflow-y: auto; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; }
 #log .l { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
 #log .round { color: var(--accent); font-weight: bold; margin-top: 4px; }
 #log .hit { color: #ffb38a; } #log .miss { color: var(--muted); } #log .crit { color: #ffd54f; }
@@ -89,22 +90,28 @@ main { display: flex; height: calc(100% - 50px); min-height: 520px; }
 .weapons { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px; }
 .weapons button { text-align: left; font-size: 12px; }
 .weapons small { display: block; color: var(--muted); font-size: 11px; }
-.buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
-.buttons .end { grid-column: span 2; background: #2b2440; }
+.buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 8px; }
+.buttons button { padding: 5px 4px; font-size: 12px; }
+details.hint summary { cursor: pointer; }
+.buttons .end { grid-column: 1 / -1; background: #2b2440; }
 .hint { margin-top: 6px; font-size: 11px; color: var(--muted); }
 .ai-note { color: var(--enemy); margin-top: 8px; animation: blink 1s infinite alternate; }
 @keyframes blink { from { opacity: 0.5; } to { opacity: 1; } }
 
-#order { list-style: none; margin: 0; padding: 0; max-height: 210px; overflow-y: auto; }
-#order li { display: flex; align-items: center; gap: 8px; padding: 2px 4px; border-radius: 4px; font-size: 13px; }
-#order li span:nth-child(2) { flex: 1; }
-#order li.crew span:nth-child(2) { color: var(--crew); }
-#order li.enemy span:nth-child(2) { color: var(--enemy); }
-#order li.now { background: #3a3215; outline: 1px solid var(--accent); }
+/* Initiative als Leiste oben über der Karte */
+#order { position: absolute; top: 8px; left: 8px; right: 8px; z-index: 4; list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; pointer-events: none; }
+#order::-webkit-scrollbar { display: none; }
+#order li { pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 3px 7px 3px 3px; border-radius: 6px; font-size: 12px; white-space: nowrap; flex-shrink: 0; background: rgba(12, 17, 30, 0.85); border: 1px solid var(--line); }
+#order li.crew .nm { color: var(--crew); }
+#order li.enemy .nm { color: var(--enemy); }
+#order li.now { background: #3a3215; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 #order li.done { opacity: 0.5; }
 #order li.out { opacity: 0.3; text-decoration: line-through; }
-#order .ini { color: var(--muted); font-family: ui-monospace, monospace; }
-#order .wait { font-size: 11px; color: var(--accent); }
+#order li:not(.now) .nmt { display: none; }
+@media (min-width: 1600px) { #order li:not(.now) .nmt { display: inline; } }
+#order .nm:empty { display: none; }
+#order .ini { color: var(--muted); font-family: ui-monospace, monospace; font-size: 11px; }
+#order .wait { font-size: 12px; color: var(--accent); }
 #order .jump { padding: 0 6px; font-size: 11px; border-color: var(--accent); color: var(--accent); }
 
 #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10; padding: 16px; }
@@ -133,7 +140,7 @@ main { display: flex; height: calc(100% - 50px); min-height: 520px; }
 .free select { max-width: 160px; }
 
 /* Würfel: zwei W10 (rot = Zehner, weiß = Einer) */
-#dice { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 6; }
+#dice { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); pointer-events: none; z-index: 6; }
 .dice-card { background: rgba(12, 17, 30, 0.9); border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px 10px; box-shadow: 0 8px 28px rgba(0,0,0,0.55); text-align: center; animation: dice-in 0.18s ease-out; transition: opacity 0.25s, transform 0.25s; }
 .dice-card.out { opacity: 0; transform: translateY(-8px); }
 .dice-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; white-space: nowrap; max-width: 80vw; overflow: hidden; text-overflow: ellipsis; }
@@ -178,6 +185,9 @@ main { display: flex; height: calc(100% - 50px); min-height: 520px; }
   header nav button { padding: 4px 8px; font-size: 12px; white-space: nowrap; }
   /* Tooltip als Leiste am unteren Kartenrand statt neben dem Finger */
   #tip { left: 6px !important; right: 6px; top: auto !important; bottom: 6px; max-width: none; font-size: 12px; max-height: 45%; overflow-y: auto; }
+  #order { flex-wrap: wrap; top: 6px; left: 6px; right: 6px; gap: 3px; }
+  #order li { padding: 2px 5px 2px 2px; }
+  #dice { top: 70px; }
   #panel { width: 100%; border-left: 0; border-top: 1px solid var(--line); }
   .log-card { height: 260px; }
   .sheet { grid-template-columns: 1fr; }
