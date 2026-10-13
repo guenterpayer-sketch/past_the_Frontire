@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/models/women_worker.glb" id="1_cxklm"]
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/women_worker.res" id="1_esf4l"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_esf4l"]
+
+[resource]
+script = ExtResource("2_esf4l")
+model = ExtResource("1_cxklm")
+height_m = 1.75
+animations = ExtResource("1_esf4l")

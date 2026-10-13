@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/models/women_punk.glb" id="1_kij6y"]
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/women_punk.res" id="1_mkieb"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_mkieb"]
+
+[resource]
+script = ExtResource("2_mkieb")
+model = ExtResource("1_kij6y")
+height_m = 1.72
+animations = ExtResource("1_mkieb")

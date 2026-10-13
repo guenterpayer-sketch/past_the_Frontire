@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
+[ext_resource type="PackedScene" path="res://assets/weapons/ar_1.glb" id="1_606eg"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_arse7"]
 [ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="2_606eg"]
 
@@ -13,3 +14,7 @@ inc_m = 25
 stages = 4
 fumble = 3
 splash = PackedInt32Array()
+model = ExtResource("1_606eg")
+length_m = 0.95
+grip_offset = Vector3(0, 0.171, 0)
+grip_rotation_deg = Vector3(0, 0, 90)

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/men_spacesuit.res" id="1_47ct1"]
+[ext_resource type="PackedScene" path="res://assets/characters/models/men_spacesuit.glb" id="1_a4xeh"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_47ct1"]
+
+[resource]
+script = ExtResource("2_47ct1")
+model = ExtResource("1_a4xeh")
+animations = ExtResource("1_47ct1")

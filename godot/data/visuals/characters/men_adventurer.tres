@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/models/men_adventurer.glb" id="1_6kxag"]
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/men_adventurer.res" id="1_y1wln"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_y1wln"]
+
+[resource]
+script = ExtResource("2_y1wln")
+model = ExtResource("1_6kxag")
+height_m = 1.9
+animations = ExtResource("1_y1wln")

@@ -2,6 +2,7 @@
 
 [ext_resource type="Resource" path="res://data/armor/schwer.tres" id="1_vlvsf"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_43dy3"]
+[ext_resource type="Resource" path="res://data/visuals/characters/mech_leela.tres" id="3_43dy3"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_mewhd"]
 [ext_resource type="Resource" path="res://data/weapons/mg.tres" id="4_sdmld"]
 
@@ -28,3 +29,4 @@ skills = {
 }
 weapons = Array[ExtResource("3_mewhd")]([ExtResource("4_sdmld")])
 armor = ExtResource("1_vlvsf")
+visual = ExtResource("3_43dy3")

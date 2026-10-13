@@ -2,6 +2,7 @@
 
 [ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_onuma"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_bvhrs"]
+[ext_resource type="Resource" path="res://data/visuals/characters/men_swat.tres" id="3_bvhrs"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_jlyln"]
 [ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="4_01wph"]
 
@@ -29,3 +30,4 @@ skills = {
 }
 weapons = Array[ExtResource("3_jlyln")]([ExtResource("4_01wph")])
 armor = ExtResource("1_onuma")
+visual = ExtResource("3_bvhrs")

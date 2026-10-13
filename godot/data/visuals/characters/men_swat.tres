@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/models/men_swat.glb" id="1_658fc"]
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/men_swat.res" id="1_rcrua"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_rcrua"]
+
+[resource]
+script = ExtResource("2_rcrua")
+model = ExtResource("1_658fc")
+height_m = 1.82
+animations = ExtResource("1_rcrua")

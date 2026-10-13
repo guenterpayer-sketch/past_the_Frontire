@@ -3,6 +3,7 @@
 [ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_mjbqg"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_p2obc"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_3yv2n"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_scifi.tres" id="3_p2obc"]
 [ext_resource type="Resource" path="res://data/weapons/laserkarabiner.tres" id="4_srkq5"]
 [ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_5gtwo"]
 
@@ -36,3 +37,4 @@ skills = {
 weapons = Array[ExtResource("3_3yv2n")]([ExtResource("4_srkq5"), ExtResource("5_5gtwo")])
 armor = ExtResource("1_mjbqg")
 medkits = 3
+visual = ExtResource("3_p2obc")

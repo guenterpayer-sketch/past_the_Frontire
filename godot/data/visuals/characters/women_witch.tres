@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/women_witch.res" id="1_ads2a"]
+[ext_resource type="PackedScene" path="res://assets/characters/models/women_witch.glb" id="1_kt5mh"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_ads2a"]
+
+[resource]
+script = ExtResource("2_ads2a")
+model = ExtResource("1_kt5mh")
+height_m = 1.75
+animations = ExtResource("1_ads2a")

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/men_suit.res" id="1_6r4r5"]
+[ext_resource type="PackedScene" path="res://assets/characters/models/men_suit.glb" id="1_gyut2"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_6r4r5"]
+
+[resource]
+script = ExtResource("2_6r4r5")
+model = ExtResource("1_gyut2")
+height_m = 1.85
+animations = ExtResource("1_6r4r5")

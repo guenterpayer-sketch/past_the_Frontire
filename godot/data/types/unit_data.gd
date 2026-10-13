@@ -13,3 +13,5 @@ extends Resource
 @export var armor: ArmorData
 @export var shield := false
 @export var medkits := 0
+## 3D-Modell mit Animationen (leer = Figur aus Grundkörpern)
+@export var visual: CharacterVisual

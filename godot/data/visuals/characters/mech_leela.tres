@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/characters/models/mech_leela.glb" id="1_r86h4"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_t1q1u"]
+
+[resource]
+script = ExtResource("2_t1q1u")
+model = ExtResource("1_r86h4")
+height_m = 2.4
+anim_names = {
+"aid": "Pickup",
+"aim1": "Idle",
+"aim2": "Idle",
+"cheer": "Dance",
+"crouch": "Idle",
+"death": "Death",
+"hit": "HitRecieve_1",
+"idle": "Idle",
+"ko": "Death",
+"melee": "SwordSlash",
+"punch": "Punch",
+"reload": "Yes",
+"run": "Run",
+"shoot1": "Shoot",
+"shoot2": "Shoot",
+"spell": "Shoot",
+"standup": "Idle",
+"walk": "Walk"
+}
+hand_bone = ""
+bake_from_kaykit = false

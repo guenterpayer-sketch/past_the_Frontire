@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CharacterVisual" format=3]
+
+[ext_resource type="AnimationLibrary" path="res://assets/characters/anims/women_scifi.res" id="1_d3g7x"]
+[ext_resource type="PackedScene" path="res://assets/characters/models/women_scifi.glb" id="1_khfwj"]
+[ext_resource type="Script" path="res://data/types/character_visual.gd" id="2_d3g7x"]
+
+[resource]
+script = ExtResource("2_d3g7x")
+model = ExtResource("1_khfwj")
+height_m = 1.72
+animations = ExtResource("1_d3g7x")

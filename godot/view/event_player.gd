@@ -30,13 +30,16 @@ func bind(c: Combat) -> void:
 	c.logged.connect(func(text: String, kind: StringName) -> void: _push([&"log", text, kind]))
 	c.rolled.connect(func(roll: Dictionary, label: String) -> void: _push([&"roll", roll, label]))
 	c.floated.connect(func(u: Combatant, text: String, kind: StringName) -> void: _push([&"float", u, text, kind]))
-	c.stepped.connect(func(u: Combatant, _from: Vector2i, to: Vector2i) -> void: _push([&"step", u, to]))
+	c.stepped.connect(func(u: Combatant, _from: Vector2i, to: Vector2i, gait: StringName) -> void: _push([&"step", u, to, gait]))
+	c.acted.connect(func(u: Combatant, action: StringName) -> void: _push([&"act", u, action]))
 	c.faced.connect(func(u: Combatant) -> void: _push([&"face", u, u.facing]))
 	c.attacked.connect(func(u: Combatant, t: Combatant, w: WeaponData) -> void: _push([&"attack", u, t, w]))
 	c.unit_changed.connect(func(u: Combatant) -> void: _push([&"sync", u]))
 	c.died.connect(func(u: Combatant) -> void: _push([&"death", u]))
 	c.crouched.connect(func(u: Combatant) -> void: _push([&"sound", &"ducken", u]))
-	c.reloaded.connect(func(u: Combatant) -> void: _push([&"sound", &"nachladen", u]))
+	c.reloaded.connect(func(u: Combatant) -> void:
+		_push([&"sound", &"nachladen", u])
+		_push([&"act", u, &"reload"]))
 	c.overwatch_fired.connect(func(u: Combatant) -> void: _push([&"sound", &"alarm", u]))
 	c.round_started.connect(func(_n: int) -> void: _push([&"sound", &"runde", null]))
 	c.turn_started.connect(func(u: Combatant) -> void: _push([&"turn", u]))
@@ -92,7 +95,7 @@ func _play(ev: Array) -> void:
 		&"step":
 			var v: UnitView = views[ev[1]]
 			Sfx.play(&"schritt")
-			await v.step_to(map_view.tile_top(ev[2]))
+			await v.step_to(map_view.tile_top(ev[2]), ev[3])
 		&"face":
 			views[ev[1]].set_facing(ev[2])
 		&"attack":
@@ -101,7 +104,9 @@ func _play(ev: Array) -> void:
 			views[ev[1]].sync()
 		&"death":
 			Sfx.play(&"tod")
-			await views[ev[1]].play_down()
+			await views[ev[1]].play_down(true)
+		&"act":
+			await views[ev[1]].act(&"spell" if ev[2] == &"psi" else ev[2])
 		&"sound":
 			Sfx.play(ev[1])
 			if ev[2]:
@@ -118,8 +123,9 @@ func _attack(u: Combatant, t: Combatant, w: WeaponData) -> void:
 	var dir := (b.position - a.position)
 	dir.y = 0
 	a.set_facing(Hex.dir_toward(u.pos, t.pos))
+	await a.act(&"attack", w)
 	Sfx.play(w.sound())
-	var from := a.position + Vector3(0, 1.2, 0) + dir.normalized() * 0.7
+	var from := a.muzzle() if not w.melee else a.position + Vector3(0, 1.2, 0) + dir.normalized() * 0.7
 	var to := b.position + Vector3(0, 1.0, 0)
 	var color := Color(0.77, 0.55, 1.0) if w.psi else (Color(1, 0.35, 0.3) if w.table.id == &"strahl" else Color(1, 0.88, 0.55))
 	if not w.splash.is_empty():

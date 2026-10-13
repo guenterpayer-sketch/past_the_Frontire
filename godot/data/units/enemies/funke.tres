@@ -3,6 +3,7 @@
 [ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_fwm8m"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_wmmcd"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_jipnx"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_worker.tres" id="3_wmmcd"]
 [ext_resource type="Resource" path="res://data/weapons/raketenwerfer.tres" id="4_kli1t"]
 [ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_h32o6"]
 
@@ -30,3 +31,4 @@ skills = {
 }
 weapons = Array[ExtResource("3_jipnx")]([ExtResource("4_kli1t"), ExtResource("5_h32o6")])
 armor = ExtResource("1_fwm8m")
+visual = ExtResource("3_wmmcd")

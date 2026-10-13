@@ -2,6 +2,7 @@
 
 [ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_shewn"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_57bfh"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_soldier.tres" id="3_57bfh"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_hed3e"]
 [ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="4_rdwlg"]
 [ext_resource type="Resource" path="res://data/weapons/faeuste.tres" id="5_o4dwj"]
@@ -38,3 +39,4 @@ skills = {
 weapons = Array[ExtResource("3_hed3e")]([ExtResource("4_rdwlg"), ExtResource("5_o4dwj")])
 armor = ExtResource("1_shewn")
 medkits = 3
+visual = ExtResource("3_57bfh")

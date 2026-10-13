@@ -6,6 +6,7 @@ const CREW_PATH := "res://data/units/crew.tres"
 const ENEMIES_PATH := "res://data/units/enemies.tres"
 const FUMBLE_PATH := "res://data/tables/fumble.tres"
 const WEAPON_DIR := "res://data/weapons"
+const HALL_THEME_PATH := "res://data/visuals/warehouse.tres"
 const CRIT_IDS := ["durchschlag", "hitze", "wucht", "schnitt", "explosion", "psi"]
 
 
@@ -35,3 +36,8 @@ static func crit_tables() -> Array[CritTableData]:
 	for id in CRIT_IDS:
 		out.append(load("res://data/tables/crit_%s.tres" % id))
 	return out
+
+
+## Modelle für die Lagerhalle (fehlt die Datei, wird alles aus Grundkörpern gezeichnet)
+static func hall_theme() -> HallTheme:
+	return load(HALL_THEME_PATH) if ResourceLoader.exists(HALL_THEME_PATH) else null

@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="HallTheme" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/hall/tank.glb" id="1_y5vnv"]
+[ext_resource type="Script" path="res://data/types/visual_slot.gd" id="2_j6x2f"]
+[ext_resource type="PackedScene" path="res://assets/hall/crate.glb" id="3_31a8r"]
+[ext_resource type="PackedScene" path="res://assets/hall/floor_tile.glb" id="4_ha7fc"]
+[ext_resource type="PackedScene" path="res://assets/hall/column.glb" id="5_osvhp"]
+[ext_resource type="Script" path="res://data/types/hall_theme.gd" id="6_hihdw"]
+[ext_resource type="PackedScene" path="res://assets/hall/shelf.glb" id="7_2exfy"]
+[ext_resource type="PackedScene" path="res://assets/hall/wall.glb" id="8_s4ey5"]
+
+[sub_resource type="Resource" id="Resource_ijnt1"]
+script = ExtResource("2_j6x2f")
+model = ExtResource("1_y5vnv")
+fit = 1
+
+[sub_resource type="Resource" id="Resource_dr7fj"]
+script = ExtResource("2_j6x2f")
+model = ExtResource("3_31a8r")
+
+[sub_resource type="Resource" id="Resource_gh1p8"]
+script = ExtResource("2_j6x2f")
+model = ExtResource("4_ha7fc")
+fit = 2
+
+[sub_resource type="Resource" id="Resource_bchdw"]
+script = ExtResource("2_j6x2f")
+model = ExtResource("5_osvhp")
+
+[sub_resource type="Resource" id="Resource_dupdv"]
+script = ExtResource("2_j6x2f")
+model = ExtResource("7_2exfy")
+fit = 2
+
+[sub_resource type="Resource" id="Resource_la36a"]
+script = ExtResource("2_j6x2f")
+model = ExtResource("8_s4ey5")
+fit = 2
+repeat_m = 4.0
+
+[resource]
+script = ExtResource("6_hihdw")
+floor_tile = SubResource("Resource_gh1p8")
+wall = SubResource("Resource_la36a")
+crate = SubResource("Resource_dr7fj")
+barrel = SubResource("Resource_ijnt1")
+pillar = SubResource("Resource_bchdw")
+shelf = SubResource("Resource_dupdv")

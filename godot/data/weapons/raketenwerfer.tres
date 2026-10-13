@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_2joey"]
+[ext_resource type="PackedScene" path="res://assets/weapons/grenade_launcher.glb" id="1_w4vdm"]
 [ext_resource type="Resource" path="res://data/tables/attack_explosion.tres" id="2_w4vdm"]
 
 [resource]
@@ -17,3 +18,7 @@ damage = 1.4
 magazine = 1
 ammo_total = 2
 splash = PackedInt32Array(-20, -40)
+model = ExtResource("1_w4vdm")
+length_m = 1.1
+grip_offset = Vector3(0, 0.198, 0)
+grip_rotation_deg = Vector3(0, 0, 90)

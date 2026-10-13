@@ -30,6 +30,17 @@ extends Resource
 ## Psi-Punkte pro Einsatz
 @export var pp_cost := 0
 
+@export_group("Darstellung")
+## 3D-Modell in der Hand der Figur (leer = Grundkörper)
+@export var model: PackedScene
+## Länge der Waffe im Spiel in Metern (das Modell wird darauf skaliert)
+@export var length_m := 0.8
+## Lage in der Hand: Verschiebung (m) und Drehung (Grad) gegenüber dem Handknochen
+@export var grip_offset := Vector3.ZERO
+@export var grip_rotation_deg := Vector3.ZERO
+## mit beiden Händen gehalten (Gewehre) oder einer (Pistolen)
+@export var two_handed := true
+
 
 func max_range_m() -> int:
 	return inc_m * stages

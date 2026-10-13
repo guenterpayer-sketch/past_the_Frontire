@@ -2,6 +2,7 @@
 
 [ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_327ut"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_afv3j"]
+[ext_resource type="Resource" path="res://data/visuals/characters/men_suit.tres" id="3_afv3j"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_h8tsa"]
 [ext_resource type="Resource" path="res://data/weapons/vibroklinge.tres" id="4_11qty"]
 
@@ -28,3 +29,4 @@ skills = {
 }
 weapons = Array[ExtResource("3_h8tsa")]([ExtResource("4_11qty")])
 armor = ExtResource("1_327ut")
+visual = ExtResource("3_afv3j")

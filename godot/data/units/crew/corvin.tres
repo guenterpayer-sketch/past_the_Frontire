@@ -3,6 +3,7 @@
 [ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_1q367"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_q8bwk"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_0vdly"]
+[ext_resource type="Resource" path="res://data/visuals/characters/men_adventurer.tres" id="3_q8bwk"]
 [ext_resource type="Resource" path="res://data/weapons/vibroklinge.tres" id="4_uf7nx"]
 [ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_h51op"]
 
@@ -38,3 +39,4 @@ weapons = Array[ExtResource("3_0vdly")]([ExtResource("4_uf7nx"), ExtResource("5_
 armor = ExtResource("1_1q367")
 shield = true
 medkits = 3
+visual = ExtResource("3_q8bwk")

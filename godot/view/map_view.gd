@@ -8,6 +8,9 @@ const WALL_H := 7.5
 const WALL_LOW := 0.9
 
 var map: BattleMap
+## Modelle für die Halle (leere Einträge: Grundkörper)
+var theme: HallTheme
+var _models := ModelBatch.new()
 var _grid: MeshInstance3D
 var _walls: Array = []   # [{full: Node3D, low: Node3D, normal: Vector3}]
 var _mats := {}
@@ -28,6 +31,7 @@ func build(m: BattleMap) -> void:
 	_build_floor()
 	_build_objects()
 	_commit()
+	_models.build(_group)
 	_build_grid()
 	_build_lights()
 
@@ -84,6 +88,8 @@ func _build_floor() -> void:
 	fm.uv1_scale = Vector3(pm.size.x / 10.0, pm.size.y / 10.0, 1)
 	floor_mi.material_override = fm
 	add_child(floor_mi)
+	if theme and theme.floor_tile:
+		_floor_tiles(sx, sz)
 	# Fahrspuren und Markierungen
 	var lane := Color(0.85, 0.68, 0.15)
 	var mid_z := (map.rows / 2) * Hex.ROW_M
@@ -91,6 +97,20 @@ func _build_floor() -> void:
 	_box(Vector3(sx / 2.0, 0.004, mid_z + 2.4), Vector3(sx - 4.0, 0.01, 0.12), lane)
 	for i in range(3, int(sx) - 3, 6):
 		_box(Vector3(i, 0.004, mid_z), Vector3(2.0, 0.01, 0.1), Color(0.75, 0.75, 0.78))
+
+
+## Bodenplatten über die ganze Halle (die Fläche darunter bleibt als Rand sichtbar)
+func _floor_tiles(sx: float, sz: float) -> void:
+	var slot := theme.floor_tile
+	var a := _models.aabb(slot)
+	var tx := a.size.x
+	var tz := a.size.z
+	var nx := ceili(sx / tx)
+	var nz := ceili(sz / tz)
+	for ix in nx:
+		for iz in nz:
+			var c := Vector3(-0.75 + (ix + 0.5) * tx, -a.size.y, -0.65 + (iz + 0.5) * tz)
+			_models.add(slot, _models.fit_box(slot, c, a.size))
 
 
 func _build_grid() -> void:
@@ -217,6 +237,11 @@ func _container(ts: Array) -> void:
 func _shelf(ts: Array) -> void:
 	var b := _bounds(ts)
 	var top: float = ts[0].h * L
+	if theme and theme.shelf:
+		_models.fill_repeat(theme.shelf, b.c, Vector3(b.sx - 0.1, top, b.sz - 0.1))
+		# Deckplatte oben (begehbar)
+		_box(b.c + Vector3(0, top - 0.04, 0), Vector3(b.sx - 0.1, 0.08, b.sz - 0.1), Color(0.4, 0.42, 0.46))
+		return
 	var sx: float = b.sx - 0.2
 	var sz: float = b.sz - 0.2
 	var steel := Color(0.3, 0.42, 0.62)
@@ -279,6 +304,11 @@ func _gallery(ts: Array) -> void:
 
 
 func _crates(ts: Array) -> void:
+	if theme and theme.crate:
+		for t in ts:
+			var top := tile_top(t.pos)
+			_models.add(theme.crate, _models.fit_box(theme.crate, Vector3(top.x, 0, top.z), Vector3(1.3, top.y, 1.15), deg_to_rad(_rng.randi_range(0, 3) * 90.0)))
+		return
 	var wood := Color(0.66, 0.48, 0.27)
 	for t in ts:
 		var top := tile_top(t.pos)
@@ -305,6 +335,10 @@ func _barrier(ts: Array) -> void:
 func _barrels(t: BattleMap.Tile) -> void:
 	var top := tile_top(t.pos)
 	var hgt := t.obj_h * L
+	if theme and theme.barrel:
+		for off in [Vector2(-0.3, -0.15), Vector2(0.3, 0.2)]:
+			_models.add(theme.barrel, _models.fit_box(theme.barrel, top + Vector3(off.x, 0, off.y), Vector3(0.6, hgt * 0.95, 0.6), _rng.randf() * TAU))
+		return
 	var colors := [Color(0.2, 0.38, 0.62), Color(0.78, 0.6, 0.15), Color(0.55, 0.2, 0.18)]
 	var c: Color = colors[_rng.randi() % colors.size()]
 	for off in [Vector2(-0.3, -0.2), Vector2(0.32, -0.15), Vector2(0.0, 0.32)]:
@@ -318,6 +352,9 @@ func _barrels(t: BattleMap.Tile) -> void:
 
 func _pillar(t: BattleMap.Tile) -> void:
 	var top := tile_top(t.pos)
+	if theme and theme.pillar:
+		_models.add(theme.pillar, _models.fit_box(theme.pillar, top, Vector3(0.7, WALL_H, 0.7)))
+		return
 	_box(top + Vector3(0, WALL_H / 2.0, 0), Vector3(0.5, WALL_H, 0.5), Color(0.36, 0.4, 0.46))
 	_box(top + Vector3(0, 0.5, 0), Vector3(0.56, 1.0, 0.56), Color(0.85, 0.7, 0.15))
 
@@ -338,11 +375,14 @@ func _wall(ts: Array) -> void:
 	var c := Color(0.24, 0.27, 0.32)
 	var gid := "wall_%d" % _walls.size()
 	var full := _group(gid + "_full")
-	_box(b.c + Vector3(0, WALL_H / 2.0, 0), size, c, gid + "_full", 0.0, _mat(c, 0.85, 0.1))
+	if theme and theme.wall:
+		_models.fill_repeat(theme.wall, b.c, Vector3(size.x, WALL_H, size.z), gid + "_full")
+	else:
+		_box(b.c + Vector3(0, WALL_H / 2.0, 0), size, c, gid + "_full", 0.0, _mat(c, 0.85, 0.1))
 	# senkrechte Paneele
 	var long_x := size.x > size.z
 	var length := size.x if long_x else size.z
-	for i in int(length / 3.0):
+	for i in (0 if theme and theme.wall else int(length / 3.0)):
 		var off := -length / 2.0 + 1.5 + i * 3.0
 		var p: Vector3 = b.c + (Vector3(off, WALL_H / 2.0, -normal.z * (size.z / 2.0 + 0.03)) if long_x else Vector3(-normal.x * (size.x / 2.0 + 0.03), WALL_H / 2.0, off))
 		_box(p, Vector3(0.12, WALL_H, 0.12), c.lightened(0.08), gid + "_full")

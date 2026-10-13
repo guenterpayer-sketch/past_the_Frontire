@@ -7,13 +7,15 @@ extends RefCounted
 signal logged(text: String, kind: StringName)
 signal rolled(roll: Dictionary, label: String)
 signal floated(unit: Combatant, text: String, kind: StringName)
-signal stepped(unit: Combatant, from: Vector2i, to: Vector2i)
+signal stepped(unit: Combatant, from: Vector2i, to: Vector2i, gait: StringName)
 signal faced(unit: Combatant)
 signal attacked(unit: Combatant, target: Combatant, weapon: WeaponData)
 signal unit_changed(unit: Combatant)
 signal died(unit: Combatant)
 signal crouched(unit: Combatant)
 signal reloaded(unit: Combatant)
+## sichtbare Handlung ohne Angriff: &"aid" (Erste Hilfe), &"psi" (Psi wirken)
+signal acted(unit: Combatant, action: StringName)
 signal overwatch_fired(unit: Combatant)
 signal round_started(number: int)
 signal turn_started(unit: Combatant)
@@ -352,7 +354,7 @@ func do_move(u: Combatant, target: Vector2i, gait: StringName = &"gehen") -> boo
 		u.facing = Hex.dir_toward(path[i - 1], path[i])
 		u.pos = path[i]
 		walked += 1
-		stepped.emit(u, from, u.pos)
+		stepped.emit(u, from, u.pos, gait)
 		_check_overwatch(u)
 		if not u.is_ok() or result != &"":
 			break
@@ -783,6 +785,9 @@ func do_first_aid(u: Combatant, target: Combatant) -> bool:
 	if u.medkit > 0:
 		mods.append({"label": "Medikit", "val": MEDKIT_BONUS})
 		u.medkit -= 1
+	u.facing = Hex.dir_toward(u.pos, target.pos) if target != u else u.facing
+	faced.emit(u)
+	acted.emit(u, &"aid")
 	var m := _maneuver(u, &"ersteHilfe", "leicht", mods, "%s: Erste Hilfe bei %s" % [u.name, target.name])
 	var fx: String
 	match m.result.id:
@@ -837,6 +842,7 @@ func do_psi_shield(u: Combatant, target: Combatant) -> bool:
 	u.act -= COST.psi
 	u.pp -= PSI_SHIELD_PP
 	u.acted = true
+	acted.emit(u, &"psi")
 	var m := _maneuver(u, &"psiWirken", "mittel", _wound_mods(u), "%s: Psi-Schild auf %s" % [u.name, target.name])
 	var rounds: int = {&"herausragend": 3, &"erfolg": 2, &"teilerfolg": 1}.get(m.result.id, 0)
 	if rounds:

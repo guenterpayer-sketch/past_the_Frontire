@@ -78,6 +78,7 @@ func new_battle(seed_value: int, size_id := "") -> void:
 	combat = Combat.new(map, Roster.build_team(GameData.crew(), &"crew", progress), Roster.build_team(GameData.enemies(), &"enemy"))
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
+	map_view.theme = GameData.hall_theme()
 	map_view.build(map)
 	map_view.set_grid_visible(show_grid)
 	for c in units_root.get_children():
