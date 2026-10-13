@@ -398,6 +398,7 @@
       const w = info.weapon;
       if (w.pp) u.pp -= w.pp;
       if (w.mag) u.loaded[info.wid]--;
+      Dice.context = `${tag ? 'Feuerbereitschaft: ' : ''}${u.name} → ${target.name} (${w.name})`;
       const roll = Dice.openD100(w.fumble);
       Rules.awardXp(u, w.skill, 1);
       u.nextAttackMalus = 0;

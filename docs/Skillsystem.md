@@ -9,6 +9,8 @@ Alle Zahlen sind ein erster Vorschlag und werden im Prototyp (`index.html`) gena
 
 ## 1. Der offene W100-Wurf
 
+**Gewürfelt wird wie in Rolemaster mit zwei W10** (Seiten 0–9): ein Würfel gibt die Zehner, der andere die Einer (im Spiel: rot = Zehner, weiß = Einer). 0 und 0 ergibt **100** („00“), 0 und 7 ergibt 07. Jeder Wert von 1 bis 100 ist damit gleich wahrscheinlich (je 1 %). Auch Nachwürfe, Kritische Treffer und Patzer werden so gewürfelt.
+
 | Wurf (unmodifiziert) | Folge |
 |---|---|
 | 01–05 | **offen nach unten**: nochmal W100 würfeln und **abziehen**. Ist dieser zweite Wurf 96–00, wird weiter gewürfelt und weiter abgezogen. |

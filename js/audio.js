@@ -114,6 +114,10 @@
         case 'ducken':
           this.noise(t, 0.1, { type: 'bandpass', freq: 600, freqEnd: 300, q: 1, gain: 0.3 });
           break;
+        case 'wuerfel':
+          // klackernde Würfel: kurze, hohe Klicks in unregelmäßigem Abstand
+          for (let i = 0, dt = 0; i < 6; i++, dt += 0.045 + Math.random() * 0.05) this.noise(t + dt, 0.025, { type: 'bandpass', freq: 3000 + Math.random() * 2000, q: 4, gain: 0.35 - i * 0.04 });
+          break;
         case 'alarm':
           this.tone(t, 0.08, 950, 950, { type: 'square', gain: 0.1 });
           this.tone(t + 0.1, 0.08, 700, 700, { type: 'square', gain: 0.1 });

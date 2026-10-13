@@ -31,6 +31,18 @@ assert.strictEqual(PTF.Tables.lookupAttack('projektil', 90, 2, 1).dmg, 2);
 PTF.Dice.setSeed(1);
 let hi = 0, lo = 0, n = 200000;
 for (let i = 0; i < n; i++) { const r = PTF.Dice.openD100(); if (r.total > 100) hi++; if (r.total < 1) lo++; }
+// W100 aus zwei W10: jeder Wert 1–100 gleich oft, 00 = 100; die Würfelpaare passen zu den Würfen
+{
+  const cnt = new Array(101).fill(0);
+  for (let i = 0; i < 100000; i++) cnt[PTF.Dice.d100()]++;
+  assert.strictEqual(cnt[0], 0);
+  for (let v = 1; v <= 100; v++) assert.ok(cnt[v] > 800 && cnt[v] < 1200, `W100-Wert ${v}: ${cnt[v]}`);
+  for (let i = 0; i < 20000; i++) {
+    const r = PTF.Dice.openD100(5);
+    assert.strictEqual(r.dice.length, r.rolls.length);
+    r.dice.forEach((p, k) => { assert.strictEqual(p.t * 10 + p.o || 100, p.v); assert.strictEqual(Math.abs(r.rolls[k]), p.v); });
+  }
+}
 console.log(`Offener W100: >100 in ${(hi / n * 100).toFixed(2)}%, <1 in ${(lo / n * 100).toFixed(2)}% (erwartet je ~5%)`);
 
 // --- Kämpfe ---

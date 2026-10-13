@@ -146,6 +146,7 @@
 
   // Probe: offener W100 + Gesamtbonus + Schwierigkeit + Modifikatoren
   function maneuver(ch, skillId, diffId, extraMods = []) {
+    PTF.Dice.context = `${ch.name}: ${SKILLS[skillId].name}`;
     const diff = DIFFICULTY[diffId];
     const roll = PTF.Dice.openD100();
     const bonus = skillTotal(ch, skillId);

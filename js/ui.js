@@ -65,6 +65,11 @@
       $('#btn-auto').onclick = () => { this.auto = !this.auto; $('#btn-auto').classList.toggle('on', this.auto); this.dirty = true; };
       $('#modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.dataset.close !== undefined) this.closeModal(); });
       $('#panel').addEventListener('click', e => this.onPanelClick(e));
+      PTF.DiceView.init($('#stage'));
+      PTF.Dice.onRoll = roll => PTF.DiceView.push(roll);
+      const dic = () => { $('#btn-dice').textContent = `Würfel: ${PTF.DiceView.on ? 'an' : 'aus'}`; $('#btn-dice').classList.toggle('on', PTF.DiceView.on); };
+      $('#btn-dice').onclick = () => { PTF.DiceView.toggle(); dic(); };
+      dic();
       this.newBattle(Math.floor(Math.random() * 1e6));
       requestAnimationFrame(t => this.frame(t));
     },
@@ -72,6 +77,8 @@
     newBattle(seed) {
       // Testmodus: Hallengröße pro Mission zufällig
       const size = PTF.MAP_SIZES[Math.floor(Math.random() * PTF.MAP_SIZES.length)];
+      PTF.DiceView.queue = [];
+      PTF.DiceView.clear();
       this.map = PTF.generateMap(seed, size.id);
       const m = PTF.MAP_CONST.HEX_M;
       $('#hall').textContent = `Lagerhalle ${size.name}, ca. ${Math.round(size.cols * m)}×${Math.round(size.rows * m * 0.866)} m`;
@@ -87,7 +94,8 @@
     },
 
     isAi(u) { return !!u && (u.team === 'enemy' || this.auto); },
-    playerTurn() { const c = this.combat, u = c.current; return u && !this.isAi(u) && !c.result && !this.renderer.busy() && u.state === 'ok'; },
+    busy() { return this.renderer.busy() || PTF.DiceView.busy(); },
+    playerTurn() { const c = this.combat, u = c.current; return u && !this.isAi(u) && !c.result && !this.busy() && u.state === 'ok'; },
     weaponOf(u) {
       const usable = this.combat.usableWeapons(u);
       let w = this.weaponSel[u.id] || u.weapon;
@@ -99,6 +107,8 @@
     attackPct(u, wid) { return Math.max(PTF.COMBAT.MIN_ATTACK, Math.min(this.pct, this.maxAttackPct(u, wid))); },
 
     onEvent(ev) {
+      // Treffer, Schaden und Log erst, wenn die Würfel liegen
+      if ((ev.type === 'log' || ev.type === 'float' || ev.type === 'death') && PTF.DiceView.rolling) { PTF.DiceView.after(() => this.onEvent(ev)); return; }
       const r = this.renderer;
       switch (ev.type) {
         case 'log': this.addLog(ev.text, ev.cls); if (ev.cls === 'round') PTF.Sound.play('runde'); break;
@@ -133,7 +143,7 @@
 
     frame(now) {
       // Ende einer Animation (Bewegung, Schuss) ändert, was der Spieler tun darf: Panel neu zeichnen
-      const busy = this.renderer.busy();
+      const busy = this.busy();
       if (busy !== this.wasBusy) { this.wasBusy = busy; this.dirty = true; }
       this.tick(now);
       if (this.dirty) { this.updatePanel(); this.dirty = false; }
@@ -144,7 +154,7 @@
     // KI-Züge ausführen; Spielerzüge enden nur per „Zug beenden“ (damit man sich am Ende noch drehen kann)
     tick(now) {
       const c = this.combat;
-      if (!c || c.result || this.renderer.busy()) return;
+      if (!c || c.result || this.busy()) return;
       const u = c.current;
       if (!u) return;
       if (u.state !== 'ok') { c.endTurn(); this.dirty = true; return; }

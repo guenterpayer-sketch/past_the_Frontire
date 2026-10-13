@@ -1,7 +1,7 @@
 # Past the Frontire
 
 Party-RPG im Weltraum mit 6 Crewmitgliedern, rundenbasiertem Kampf am Boden und (geplant) im Weltraum.
-Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwert kommen), Angriffstabellen mit Kritischen Treffern, Erfahrung nur durch Benutzung.
+Regelbasis: W100 im Rolemaster-Stil aus zwei W10 (Zehner + Einer, 00 = 100; offen nach oben und unten, über den Zielwert kommen), Angriffstabellen mit Kritischen Treffern, Erfahrung nur durch Benutzung.
 
 ## Starten
 
@@ -18,6 +18,7 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 - **Feuerbereitschaft**: Aktivität zurückhalten und auf den ersten Gegner schießen, der im Sichtfeld handelt.
 - **Ducken** (+15 VW, +10 AW im Fernkampf, halbe Deckung wird voll; langsamer), **Abwarten** mit Einspringen nach jedem anderen Zug (10 %).
 - **Erste Hilfe** auf Leicht, Medikit +20 (3×); die KI versorgt Verwundete.
+- **Würfelanimation**: jeder offene W100 (Angriff, Probe) rollt sichtbar mit zwei W10 (rot = Zehner, weiß = Einer), Nachwürfe mit +/−; Treffer und Log erscheinen, wenn die Würfel liegen. Abschaltbar über „Würfel“.
 - **Soundeffekte** (synthetisch, Web Audio), abschaltbar über „Ton“.
 - **Blickrichtung**: Sichtfeld 180°; Angriffe von der Flanke (+15) oder von hinten (+30) überraschen das Ziel (kein Ausweichen, kein Schild; Kampfsinn-Probe halbiert).
 - Crew (Sturmgewehr, 2× Laserkarabiner + Laserpistole, MG, Psi, Vibroklinge + Schild) gegen 6 Söldner (2× Gewehr, MG in Servo-Rüstung, Raketenwerfer, Klingenkämpfer, Psi-Hexer).
@@ -53,7 +54,8 @@ Regelbasis: W100 im Rolemaster-Stil (offen nach oben und unten, über den Zielwe
 
 | Datei | Inhalt |
 |---|---|
-| `js/dice.js` | seedbarer Zufall, offener W100 |
+| `js/dice.js` | seedbarer Zufall, W100 aus zwei W10, offener Wurf |
+| `js/diceview.js` | Würfelanimation (zwei W10) |
 | `js/rules.js` | Eigenschaften, Fertigkeiten, Proben, Erfahrung, abgeleitete Werte |
 | `js/tables.js` | Rüstung, Waffen, Angriffstabellen, Kritische Treffer, Patzer |
 | `js/hex.js` | Hex-Koordinaten, Linien |

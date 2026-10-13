@@ -17,11 +17,28 @@
     rng: Math.random,
     setSeed(seed) { this.rng = makeRng(seed); },
     d(n) { return 1 + Math.floor(this.rng() * n); },
-    d100() { return this.d(100); },
+    // W10 mit den Seiten 0–9
+    d10() { return Math.floor(this.rng() * 10); },
+    // W100 wie in Rolemaster: ein W10 für die Zehner, einer für die Einer; 00 = 100
+    d100() {
+      const t = this.d10(), o = this.d10(), v = t * 10 + o || 100;
+      if (this.pairs) this.pairs.push({ t, o, v });
+      return v;
+    },
+    context: '',     // wer würfelt wofür (für die Würfelanzeige)
+    onRoll: null,    // Rückruf für die Würfelanimation
 
     // Offener W100: 96–00 weiter würfeln und addieren, 01–05 erneut würfeln und abziehen
     // (auch der Abzug ist bei 96–00 offen). fumble > 0: unmodifizierter Wurf <= fumble ist ein Patzer.
     openD100(fumble = 0) {
+      this.pairs = [];
+      const res = this._open(fumble);
+      res.dice = this.pairs;
+      this.pairs = null;
+      if (this.onRoll) this.onRoll({ ...res, label: this.context });
+      return res;
+    },
+    _open(fumble) {
       const first = this.d100();
       const rolls = [first];
       let total = first;
