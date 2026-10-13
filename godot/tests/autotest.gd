@@ -38,7 +38,21 @@ func _run_ai() -> void:
 	await get_tree().create_timer(0.3).timeout
 	print("Aufstellung: %s steht auf %s (Ziel %s)" % [crew0.name, crew0.pos, target])
 	await _screenshot(out + "/01_aufstellung.png")
-	b.begin_combat()
+	# Buttons im Panel rechts mit echten Mausklicks bedienen
+	var crew1: Combatant = b.combat.crew()[1]
+	await _click_button(crew1.name)
+	print("Panel: gewählt %s (erwartet %s)" % [b.deploy_sel.name if b.deploy_sel else "-", crew1.name])
+	var f0 := crew1.facing
+	await _click_button("drehen ⟳")
+	print("Panel: Blick %d -> %d" % [f0, crew1.facing])
+	await _click_button("Briefing anzeigen")
+	print("Panel: Briefing offen ", b.ui.briefing.visible)
+	await _click_button("Zur Aufstellung")
+	print("Panel: Briefing zu ", not b.ui.briefing.visible)
+	await _click_button("Kampf beginnen")
+	print("Panel: Kampf begonnen ", not b.combat.deploying)
+	if b.combat.deploying:
+		b.begin_combat()
 	var shots := 1
 	var t0 := Time.get_ticks_msec()
 	b.auto_crew = true
@@ -197,3 +211,20 @@ func _mouse_click(p: Vector2) -> void:
 		e.button_index = MOUSE_BUTTON_LEFT
 		e.pressed = pressed
 		Input.parse_input_event(e)
+
+
+## Sichtbaren Button mit passendem Text suchen und mit der Maus anklicken
+func _click_button(text: String) -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var found: Button = null
+	for n in b.ui.find_children("*", "Button", true, false):
+		var btn := n as Button
+		if btn.is_visible_in_tree() and btn.text.contains(text):
+			found = btn
+			break
+	if found == null:
+		print("Button nicht gefunden: ", text)
+		return
+	_mouse_click(found.get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout

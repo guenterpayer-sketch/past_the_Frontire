@@ -369,7 +369,9 @@ func _key(e: InputEventKey) -> void:
 			if not ui.close_dialogs():
 				player.mode = PlayerController.Mode.MOVE
 		KEY_ENTER, KEY_KP_ENTER:
-			if player_turn():
+			if combat.deploying and not ui.any_dialog_open():
+				begin_combat()
+			elif player_turn():
 				combat.end_turn()
 		KEY_R:
 			player.show_range = not player.show_range
@@ -478,6 +480,18 @@ func _on_action(name: StringName, arg: Variant) -> void:
 				ui.dice_panel.hide()
 		&"new":
 			new_battle(randi() % 1000000)
+		&"reroll":
+			new_battle(randi() % 1000000, "", arg)
+		&"briefing":
+			ui.briefing.show_mission(mission)
+		&"begin":
+			begin_combat()
+		&"deploy_select":
+			deploy_sel = arg
+			rig.focus(views[arg].position, false)
+		&"deploy_turn":
+			if deploy_sel:
+				_deploy_turn(deploy_sel, posmod(deploy_sel.facing + arg, 6))
 		&"next_battle":
 			Roster.save_progress(combat.crew())
 			new_battle(randi() % 1000000)
