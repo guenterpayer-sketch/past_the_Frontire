@@ -31,6 +31,12 @@ var next_id := 1
 var missions_done := 0
 ## Plätze an Bord (Einsatztrupp 6 + Reserve), später über das Schiff ausbaubar
 var berths := BERTHS_START
+## Personal der Krankenstation (Character-IDs, höchstens Medbay.MAX_STAFF)
+var medics: Array = []
+## letzte Einträge der Krankenstation (Proben, Geheilte), neueste zuerst
+var medlog: Array = []
+## beim letzten Tageswechsel wieder einsatzbereit geworden (für die Anzeige im Schiff)
+var last_healed: Array[Character] = []
 ## laufender Einsatz (Auftrag) oder leer
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
@@ -66,22 +72,44 @@ func mission_of(offer: Dictionary) -> Mission:
 	return Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
 
 
-## Reisen: Tage vergehen, abgelaufene Aufträge verschwinden, neue kommen dazu. Liefert die Reisetage.
-## Im Schiff warten: Tage vergehen, Aufträge laufen ab, neue kommen dazu
-func wait_days(n := 1) -> void:
+## Tage vergehen (Reisen, Einsatz, Warten): Krankenstation und Heilung (Medbay), abgelaufene Aufträge, neue Aufträge
+func advance_days(n: int) -> void:
+	if n <= 0:
+		return
 	day += n
+	last_healed = Medbay.pass_days(self, n)
 	refill_offers()
 
 
+## Im Schiff warten
+func wait_days(n := 1) -> void:
+	advance_days(n)
+
+
+## Ist das System ein Hafen (neutral)? Dort kann man anheuern.
+func is_harbor(system: int) -> bool:
+	return sector.systems[system].faction == ""
+
+
+## Freie Plätze an Bord
+func free_berths() -> int:
+	return berths - Campaign.crew().size()
+
+
+## IDs, die in der Truppwahl gesperrt sind (der Arzt der Krankenstation bleibt an Bord); für Campaign.candidates()
+static func blocked_ids() -> Array:
+	return Medbay.blocked_ids(game) if game and not quick_battle else []
+
+
+## Reisen: Tage vergehen (siehe advance_days). Liefert die Reisetage.
 func travel_to(target: int) -> int:
 	if target == position:
 		return 0
 	var r := sector.route(position, target)
 	if r.days < 0:
 		return -1
-	day += r.days
 	position = target
-	refill_offers()
+	advance_days(r.days)
 	return r.days
 
 
@@ -117,10 +145,9 @@ func finish_mission(rep: Dictionary) -> void:
 	offers = offers.filter(func(o: Dictionary) -> bool: return o.id != active.get("id", -1))
 	active = {}
 	missions_done += 1
-	day += MISSION_DAYS
+	advance_days(MISSION_DAYS)
 	rep.day = day
 	report = rep
-	refill_offers()
 
 
 ## Abgelaufene Aufträge streichen und auf OFFERS auffüllen (nur in Systemen mit Fraktion)
@@ -154,7 +181,8 @@ func offers_at(system: int) -> Array[Dictionary]:
 
 func to_dict() -> Dictionary:
 	return {"day": day, "sector": sector.to_dict(), "position": position, "offers": offers.duplicate(true),
-		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths}
+		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
+		"medics": medics.duplicate(), "medlog": medlog.duplicate()}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -168,6 +196,8 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.next_id = int(d.get("next_id", 1))
 	g.missions_done = int(d.get("missions_done", 0))
 	g.berths = int(d.get("berths", BERTHS_START))
+	g.medics = d.get("medics", []).map(func(x) -> String: return String(x))
+	g.medlog = d.get("medlog", []).duplicate()
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g

@@ -16,6 +16,7 @@ var crew: CrewOverview
 var sheet: SheetDialog
 var slots: SlotsDialog
 var report: Modal
+var medbay: MedbayDialog
 var notice: Modal
 var help: Modal
 var room_tags := {}           # Raum-ID -> Button über dem Raum
@@ -111,9 +112,10 @@ func _ready() -> void:
 	sheet = SheetDialog.new()
 	slots = SlotsDialog.new()
 	report = Modal.new()
+	medbay = MedbayDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay]:
 		add_child(d)
 	notice.max_size = Vector2(620, 320)
 	report.max_size = Vector2(900, 540)
@@ -166,7 +168,7 @@ func show_room_info(r: Dictionary, g: HubState) -> void:
 
 ## Crewquartiere: Charakterübersicht des Charakter-Moduls; nach einem Einsatz mit dessen Ergebnis.
 ## Der Knopf „Speichern & nächste Mission“ heißt im Schiff „Speichern & zurück“; „Crew zurücksetzen“
-## gibt es im Schiff nicht (dafür ein neues Spiel beginnen), „Anheuern“ nur im Hafen auf der Brücke.
+## gibt es im Schiff nicht (dafür ein neues Spiel beginnen). Anheuern geht nur im Hafen auf der Brücke.
 func show_crew() -> void:
 	crew.seats = HubState.game.berths if HubState.game else Campaign.START_SEATS
 	crew.show_crew(Campaign.crew(), Campaign.last_result)
@@ -178,8 +180,23 @@ func relabel_crew() -> void:
 	for b in crew.footer.get_children():
 		if b is Button and (b as Button).text.begins_with("Speichern"):
 			(b as Button).text = "Speichern & zurück"
-		elif b is Button and ((b as Button).text.begins_with("Crew zurücksetzen") or (b as Button).text == "Anheuern"):
-			(b as Button).hide()   # Anheuern nur im Hafen auf der Brücke (Klärung D)
+		elif b is Button and (b as Button).text.begins_with("Crew zurücksetzen"):
+			(b as Button).hide()
+
+
+## Kurze Meldung oben in der Mitte (verschwindet nach einigen Sekunden), auch über offenen Fenstern
+func show_toast(text: String) -> void:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL2, 0.97), UiTheme.GOOD, 8, 12))
+	p.add_child(UiTheme.label(text, 16, UiTheme.GOOD))
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(p)
+	p.reset_size()
+	p.position = Vector2((size.x - p.size.x) / 2.0, 70)
+	var tw := create_tween()
+	tw.tween_interval(3.5)
+	tw.tween_property(p, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(p.queue_free)
 
 
 func show_notice(title: String, text: String) -> void:
@@ -238,11 +255,11 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible
 
 
 func close_dialogs() -> bool:
-	for d in [sheet, help, notice, slots, report]:
+	for d in [sheet, help, notice, slots, report, medbay]:
 		if d.visible:
 			d.close()
 			return true
