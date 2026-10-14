@@ -79,8 +79,13 @@ func _run_ai() -> void:
 		for e in b.combat.enemies():
 			e.state = Combatant.State.DEAD
 		b.combat.check_end()
-	await get_tree().create_timer(0.5).timeout
+	var t0_banner := Time.get_ticks_msec()
+	while not b.ui.result_banner.visible and Time.get_ticks_msec() - t0_banner < 10000:
+		await get_tree().process_frame
+	await get_tree().create_timer(0.3).timeout
+	print("Ergebnis-Banner: ", b.ui.result_banner.visible)
 	await _screenshot(out + "/04_ende.png")
+	await _click_button("Zur Crew")
 	# Kampfmodul gibt das Ergebnis ab und wechselt ins Charakter-Modul
 	var t0_scene := Time.get_ticks_msec()
 	while not (get_tree().current_scene is CrewScreen) and Time.get_ticks_msec() - t0_scene < 10000:

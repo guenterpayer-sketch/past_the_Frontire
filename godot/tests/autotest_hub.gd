@@ -104,7 +104,13 @@ func _run() -> void:
 			e.state = Combatant.State.DEAD
 		b.combat.check_end()
 	var done0 := g.missions_done
-	await get_tree().create_timer(4.0).timeout
+	var t0_banner := Time.get_ticks_msec()
+	while not b.ui.result_banner.visible and Time.get_ticks_msec() - t0_banner < 10000:
+		await get_tree().process_frame
+	print("Ergebnis-Banner: ", b.ui.result_banner.visible)
+	await _shot("h8b_ergebnis")
+	b.ui.result_banner.confirm()
+	await get_tree().create_timer(2.0).timeout
 	hub = get_tree().current_scene as Hub
 	print("zurück im Schiff: %s, Einsätze %d -> %d, Tag %d, Bericht offen %s" % [hub != null, done0, g.missions_done, g.day,
 		hub.ui.report.visible if hub else false])

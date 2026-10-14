@@ -21,6 +21,8 @@ var sheet: SheetDialog
 var tables: TablesDialog
 var briefing: BriefingDialog
 var help: Modal
+var result_banner: ResultBanner
+var _confirm: ConfirmationDialog
 var _left: VBoxContainer
 var _right: VBoxContainer
 var _top_right: VBoxContainer
@@ -70,6 +72,11 @@ func _ready() -> void:
 	help = Modal.new()
 	for d in [sheet, tables, briefing, help]:
 		add_child(d)
+	result_banner = ResultBanner.new()
+	add_child(result_banner)
+	_confirm = ConfirmationDialog.new()
+	_confirm.cancel_button_text = "Abbrechen"
+	add_child(_confirm)
 	briefing.reroll.connect(func(diff: String) -> void: action.emit(&"reroll", diff))
 	combat_log.set_expanded(Prefs.get_bool("log_open", false))
 	combat_log.toggled.connect(func(on: bool) -> void: Prefs.set_bool("log_open", on))
@@ -92,6 +99,9 @@ func _process(_d: float) -> void:
 	_place(_left, Vector2(MARGIN, size.y - MARGIN - _left.size.y))
 	_place(_right, Vector2(size.x - MARGIN - _right.size.x, size.y - MARGIN - _right.size.y))
 	_place(_top_right, Vector2(size.x - MARGIN - _top_right.size.x, MARGIN))
+	if result_banner.visible:
+		result_banner.reset_size()
+		_place(result_banner, (size - result_banner.size) / 2.0)
 	initiative.position = Vector2(MARGIN, MARGIN)
 	initiative.size = Vector2(maxf(200.0, size.x - top_menu.size.x - MARGIN * 3), 44)
 
@@ -106,7 +116,7 @@ func set_toggle(name: StringName, on: bool, tip := "") -> void:
 
 
 func any_dialog_open() -> bool:
-	return sheet.visible or tables.visible or briefing.visible or help.visible
+	return sheet.visible or tables.visible or briefing.visible or help.visible or _confirm.visible
 
 
 func close_dialogs() -> bool:
@@ -142,10 +152,20 @@ func hide_tip() -> void:
 func covers(p: Vector2) -> bool:
 	if any_dialog_open():
 		return true
-	for c in [top_menu, info, dice_panel, combat_log, card, ai_card, actions]:
+	for c in [top_menu, info, dice_panel, combat_log, card, ai_card, actions, result_banner]:
 		if c.visible and c.get_global_rect().has_point(p):
 			return true
 	for c in initiative.get_children():
 		if c.get_global_rect().has_point(p):
 			return true
 	return false
+
+
+## Sicherheitsabfrage; on_ok wird nur bei Bestätigung aufgerufen
+func ask(text: String, ok_text: String, on_ok: Callable) -> void:
+	for c in _confirm.confirmed.get_connections():
+		_confirm.confirmed.disconnect(c.callable)
+	_confirm.dialog_text = text
+	_confirm.ok_button_text = ok_text
+	_confirm.confirmed.connect(on_ok, CONNECT_ONE_SHOT)
+	_confirm.popup_centered()
