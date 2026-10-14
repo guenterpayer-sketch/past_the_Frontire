@@ -161,6 +161,12 @@ func _start_round() -> void:
 			Rules.award_xp(u, &"kampfsinn", 1)
 		if u.psi_shield > 0:
 			u.psi_shield -= 1
+		for b in u.buffs.keys():
+			var r: int = u.buffs[b].get("rounds", -1)
+			if r > 0:
+				u.buffs[b].rounds = r - 1
+				if r - 1 == 0:
+					u.buffs.erase(b)
 		if u.bleed > 0:
 			u.hp -= u.bleed
 			log_text("%s blutet (−%d TP)." % [u.name, u.bleed], &"dmg")
@@ -228,6 +234,11 @@ func _begin_turn(u: Combatant) -> void:
 	if u.stunned_now:
 		u.act = mini(u.act, 50)
 		log_text("%s ist betäubt: höchstens 50 %% Aktivität, kein Angriff." % u.name)
+	u.buffs.erase("gefahrensinn")   # wirkt bis zum nächsten eigenen Zug
+	if u.disarmed:
+		u.disarmed = false
+		u.has_attacked = true
+		log_text("%s ist entwaffnet: kein Angriff in diesem Zug." % u.name)
 	turn_started.emit(u)
 
 
@@ -471,6 +482,8 @@ func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: Batt
 		mods.append({"label": "Psi-Verteidigung", "val": maxi(0, Rules.skill_total(def, &"psiVerteidigung"))})
 		if def.psi_shield > 0:
 			mods.append({"label": "Psi-Schild", "val": PSI_SHIELD_BONUS})
+		if def.buffs.has("abschirmen"):
+			mods.append({"label": "Abschirmen", "val": def.buffs.abschirmen.val})
 		return mods
 	var dodge := maxi(0, Rules.skill_total(def, &"ausweichen"))
 	var reserve := reserve_of(def)
@@ -488,7 +501,8 @@ func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: Batt
 		mods.append({"label": def.armor.name, "val": def.armor.db})
 	if def.shield and not surprised:
 		mods.append({"label": "Schild", "val": 10 + maxi(0, Rules.rank_bonus(Rules.skill_rank(def, &"schild")) / 2)})
-	if not w.melee:
+	var located: bool = def.buffs.has("geortet") and def.team != def.buffs.geortet.team
+	if not w.melee and not located:
 		var cov := map.cover(to, from)
 		if not cov.is_empty() and cov.level == 1 and def.crouched:
 			mods.append({"label": "Volle Deckung (geduckt hinter %s)" % cov.label, "val": BattleMap.COVER_BONUS[2], "full_cover": true})
@@ -498,6 +512,11 @@ func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: Batt
 			mods.append({"label": "geduckt", "val": CROUCH_DB})
 	if def.psi_shield > 0:
 		mods.append({"label": "Psi-Schild", "val": PSI_SHIELD_BONUS})
+	for b in [["kuppel", "Schildkuppel"], ["gefahrensinn", "Gefahrensinn"], ["vorahnung", "Vorahnung"]]:
+		if def.buffs.has(b[0]):
+			mods.append({"label": b[1], "val": def.buffs[b[0]].val})
+	if located and not w.melee:
+		mods.append({"label": "geortet: keine Deckung", "val": 0})
 	return mods
 
 
@@ -556,10 +575,14 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 	if def.crouched and w.melee:
 		ob.append({"label": "Ziel geduckt", "val": CROUCH_MELEE_OB})
 	if w.ob_bonus:
-		ob.append({"label": "Feuerstoß", "val": w.ob_bonus})
+		ob.append({"label": w.name if w.power != "" else "Feuerstoß", "val": w.ob_bonus})
+	if def.buffs.has("ablenkfeld") and not w.melee:
+		ob.append({"label": "Ablenkfeld", "val": -def.buffs.ablenkfeld.val})
+	if def.buffs.has("schwachstelle") and def.team != att.team:
+		ob.append({"label": "Schwachstelle", "val": def.buffs.schwachstelle.val})
 	if att.next_attack_malus:
 		ob.append({"label": "Waffe klemmt", "val": att.next_attack_malus})
-	if att.malus:
+	if att.malus and not att.buffs.has("schmerz"):
 		ob.append({"label": "Wunden", "val": att.malus})
 	var db := _defense_mods(def, w, from, to, opts.get("sense", false), def_facing)
 	# Ziel in voller Deckung: nur gezielte Schüsse (mind. 60 % Aktivität), keine Reaktionsschüsse
@@ -618,6 +641,13 @@ func do_attack(u: Combatant, target: Combatant, w: WeaponData, pct := NORMAL_ATT
 	var info := attack_info(u, target, w, {"pct": pct, "sense": _sense_check(u, target)})
 	if info.valid:
 		_resolve_attack(u, target, info)
+	if w.power_effect == &"wave":
+		# Druckwelle: alle übrigen Gegner in 2 Hex um den Psioniker, eigene Probe je Ziel, PP nur einmal
+		for o in opponents(u):
+			if o != target and Hex.distance(o.pos, u.pos) <= 2 and result == &"":
+				var oi := attack_info(u, o, w, {"pct": pct})
+				if oi.valid:
+					_resolve_attack(u, o, oi, "", false)
 	unit_changed.emit(u)
 	return true
 
@@ -634,7 +664,7 @@ func _sense_check(att: Combatant, def: Combatant) -> bool:
 
 
 func _wound_mods(u: Combatant) -> Array:
-	return [{"label": "Wunden", "val": u.malus}] if u.malus else []
+	return [{"label": "Wunden", "val": u.malus}] if u.malus and not u.buffs.has("schmerz") else []
 
 
 func _maneuver(u: Combatant, skill_id: StringName, diff: String, mods: Array, label: String) -> Dictionary:
@@ -643,9 +673,9 @@ func _maneuver(u: Combatant, skill_id: StringName, diff: String, mods: Array, la
 	return m
 
 
-func _resolve_attack(u: Combatant, target: Combatant, info: Dictionary, tag := "") -> void:
+func _resolve_attack(u: Combatant, target: Combatant, info: Dictionary, tag := "", pay := true) -> void:
 	var w: WeaponData = info.weapon
-	if w.pp_cost:
+	if w.pp_cost and pay:
 		u.pp -= w.pp_cost
 	if w.magazine:
 		u.loaded[w.id] -= 1
@@ -671,9 +701,14 @@ func _resolve_attack(u: Combatant, target: Combatant, info: Dictionary, tag := "
 		Rules.award_xp(u, w.skill, 1)
 		if _sum(info.ob.slice(1)) - _sum(info.db) <= -20:
 			Rules.award_xp(u, w.skill, 2)
-		_apply_hit(u, target, res)
+		_apply_power_hit(u, target, w, res)
 		if res.severity:
 			Rules.award_xp(u, w.skill, 1)
+	# einmalige Wirkungen auf dem Ziel sind mit diesem Angriff verbraucht
+	if target.buffs.has("vorahnung"):
+		target.buffs.erase("vorahnung")
+	if target.buffs.has("schwachstelle") and target.team != u.team:
+		target.buffs.erase("schwachstelle")
 	if not w.splash.is_empty():
 		_resolve_splash(u, target, roll, info, w)
 	check_end()
@@ -721,6 +756,63 @@ func _check_overwatch(mover: Combatant) -> void:
 
 
 # ---------------------------------------------------------------- Treffer, Kritische, Patzer
+
+## Treffer mit Sonderwirkung der Psi-Kraft (Lähmen, Stoßen, Entwaffnen ohne Schaden; Lanze: Kritischer +1 Stufe);
+## Letzte Barriere schwächt den Kritischen um eine Stufe
+func _apply_power_hit(att: Combatant, target: Combatant, w: WeaponData, res: Dictionary) -> void:
+	var sev: String = res.severity
+	match w.power_effect:
+		&"stun":
+			var n := 2 if Tables.SEVERITIES.find(sev) >= 2 else 1
+			target.stun += n
+			target.overwatch = {}
+			log_text("  %s ist gelähmt (betäubt %d)." % [target.name, n], &"crit")
+			floated.emit(target, "gelähmt", &"crit")
+			unit_changed.emit(target)
+			return
+		&"disarm":
+			target.disarmed = true
+			target.overwatch = {}
+			log_text("  %s ist entwaffnet: kein Angriff im nächsten Zug." % target.name, &"crit")
+			floated.emit(target, "entwaffnet", &"crit")
+			unit_changed.emit(target)
+			return
+		&"push":
+			_push(att, target, sev != "")
+			return
+		&"lance":
+			if sev != "":
+				sev = Tables.SEVERITIES[mini(4, Tables.SEVERITIES.find(sev) + 1)]
+	if sev != "" and target.buffs.has("barriere"):
+		target.buffs.erase("barriere")
+		var i := Tables.SEVERITIES.find(sev) - 1
+		log_text("  Letzte Barriere: Kritischer %s wird %s." % [sev, Tables.SEVERITIES[i] if i >= 0 else "abgewehrt"], &"heal")
+		sev = Tables.SEVERITIES[i] if i >= 0 else ""
+	if sev != res.severity:
+		res = res.duplicate()
+		res.severity = sev
+	_apply_hit(att, target, res)
+
+
+## Stoßen: Ziel 1 Hex vom Psioniker weg (wenn dort frei und begehbar), bei starkem Treffer niedergeworfen
+func _push(att: Combatant, target: Combatant, strong: bool) -> void:
+	var dir := Hex.dir_toward(att.pos, target.pos)
+	var to: Vector2i = target.pos + Hex.DIRS[dir]
+	var t := map.tile(to)
+	var from := target.pos
+	if t and map.walkable(t) and unit_at(to) == null:
+		target.pos = to
+		stepped.emit(target, from, to, &"gehen")
+		log_text("  %s wird zurückgestoßen." % target.name, &"crit")
+	else:
+		log_text("  %s kann nicht zurückweichen." % target.name)
+	if strong:
+		target.prone = true
+		target.overwatch = {}
+		log_text("  %s wird niedergeworfen." % target.name, &"crit")
+	floated.emit(target, "gestoßen", &"crit")
+	unit_changed.emit(target)
+
 
 func _apply_hit(att: Combatant, target: Combatant, res: Dictionary) -> void:
 	target.hp -= res.dmg
@@ -908,27 +1000,143 @@ func _heal(u: Combatant, amount: int) -> void:
 		log_text("%s kommt wieder zu sich." % u.name, &"heal")
 
 
-func psi_shield_targets(u: Combatant) -> Array[Combatant]:
-	if Rules.skill_rank(u, &"psiWirken") < 1 or u.pp < PSI_SHIELD_PP:
-		return []
-	return units.filter(func(o: Combatant) -> bool: return o.team == u.team and o.is_ok() and Hex.distance(o.pos, u.pos) <= 4)
+# ---------------------------------------------------------------- Psi-Kräfte (unterstützend)
+
+## Ziele einer unterstützenden Kraft (PsiCombat.SUPPORT); Kräfte ohne Zielwahl (selbst, Fläche) liefern [u]
+func power_targets(u: Combatant, k: String) -> Array[Combatant]:
+	var out: Array[Combatant] = []
+	if not u.powers.has(k):
+		return out
+	var spec: Dictionary = PsiCombat.SUPPORT[k]
+	match spec.target:
+		"self", "area", "foes":
+			out.append(u)
+		"touch":
+			for o in units:
+				if o.team == u.team and not o.is_dead() and Hex.distance(o.pos, u.pos) <= 1 and _needs(o, k):
+					out.append(o)
+		"ally":
+			for o in units:
+				if o.team == u.team and o.is_ok() and (o == u or map.line_of_sight(tile_of(u), tile_of(o))):
+					out.append(o)
+		"enemy":
+			for o in opponents(u):
+				if map.line_of_sight(tile_of(u), tile_of(o)):
+					out.append(o)
+	return out
 
 
-func do_psi_shield(u: Combatant, target: Combatant) -> bool:
-	if not can_do(u, COST.psi) or not psi_shield_targets(u).has(target):
+## braucht die Figur diese Heilkraft?
+func _needs(o: Combatant, k: String) -> bool:
+	match k:
+		"lHeilung/1":
+			return o.bleed > 0
+		"lHeilung/3":
+			return o.hp < o.max_hp and o.state != Combatant.State.DYING
+		"lHeilung/5":
+			return o.malus != 0 and not o.buffs.has("schmerz")
+		"lHeilung/7":
+			return o.state == Combatant.State.KO
+		"lHeilung/10":
+			return o.state == Combatant.State.DYING and not o.stabilized
+	return true
+
+
+func can_power(u: Combatant, k: String) -> bool:
+	return u.powers.has(k) and can_do(u, COST.psi) and u.pp >= PsiCombat.level_of(k) and not power_targets(u, k).is_empty()
+
+
+## Kraft wirken: 40 % Aktivität, Stufe PP, Probe Psi wirken (Mittel).
+## Herausragend: verstärkt, Erfolg: voll, Teilerfolg: schwach, Fehlschlag: nichts, Patzer: Rückkopplung (betäubt 1)
+func do_power(u: Combatant, k: String, target: Combatant) -> bool:
+	if not can_power(u, k) or not power_targets(u, k).has(target):
 		return false
+	var spec: Dictionary = PsiCombat.SUPPORT[k]
 	u.act -= COST.psi
-	u.pp -= PSI_SHIELD_PP
+	u.pp -= PsiCombat.level_of(k)
 	u.acted = true
+	if target != u:
+		u.facing = Hex.dir_toward(u.pos, target.pos)
+		faced.emit(u)
 	acted.emit(u, &"psi")
-	var m := _maneuver(u, &"psiWirken", "mittel", _wound_mods(u), "%s: Psi-Schild auf %s" % [u.name, target.name])
-	var rounds: int = {&"herausragend": 3, &"erfolg": 2, &"teilerfolg": 1}.get(m.result.id, 0)
-	if rounds:
-		target.psi_shield = maxi(target.psi_shield, rounds)
+	var label: String = "%s: %s%s" % [u.name, spec.name, (" auf " + target.name) if target != u else ""]
+	var m := _maneuver(u, &"psiWirken", "mittel", _wound_mods(u), label)
+	var tier: int = {&"herausragend": 3, &"erfolg": 2, &"teilerfolg": 1}.get(m.result.id, 0)
+	var fx := "keine Wirkung"
 	if m.result.id == &"patzer":
 		u.stun += 1
-	var fx := ("Psi-Schild auf %s für %d Runde(n)" % [target.name, rounds]) if rounds else ("Rückkopplung, betäubt 1" if m.result.id == &"patzer" else "keine Wirkung")
-	log_text("%s wirkt Psi-Schild (−%d %%): Wurf %s → %d = %s: %s." % [u.name, COST.psi, Dice.format_roll(m.roll), m.total, m.result.name, fx], &"heal")
+		fx = "Rückkopplung, betäubt 1"
+	elif tier > 0:
+		fx = _power_effect(u, k, target, tier)
+	log_text("%s wirkt %s (−%d %%, %d PP): Wurf %s → %d = %s: %s." % [u.name, spec.name, COST.psi, PsiCombat.level_of(k),
+		Dice.format_roll(m.roll), m.total, m.result.name, fx], &"heal")
 	unit_changed.emit(target)
 	unit_changed.emit(u)
 	return true
+
+
+## Wirkung nach Stufe des Ergebnisses (tier 1 = Teilerfolg, 2 = Erfolg, 3 = herausragend); Rückgabe: Text fürs Log
+func _power_effect(u: Combatant, k: String, t: Combatant, tier: int) -> String:
+	var rounds := func(base: int) -> int: return [0, maxi(1, base - 1), base, base + 1][tier]
+	match k:
+		"lSchutz/1":
+			t.buffs["abschirmen"] = {"rounds": rounds.call(3), "val": 10}
+			return "+10 Psi-VW für %d Runden" % t.buffs.abschirmen.rounds
+		"lSchutz/2":
+			var r: int = [0, 1, 2, 3][tier]
+			t.psi_shield = maxi(t.psi_shield, r)
+			return "Psi-Schild auf %s für %d Runde(n)" % [t.name, r]
+		"lSchutz/4":
+			t.buffs["ablenkfeld"] = {"rounds": rounds.call(2), "val": 20}
+			return "Fernangriffe gegen %s −20 für %d Runden" % [t.name, t.buffs.ablenkfeld.rounds]
+		"lSchutz/6":
+			var n := 0
+			for o in units:
+				if o.team == u.team and o.is_ok() and Hex.distance(o.pos, u.pos) <= 2:
+					o.buffs["kuppel"] = {"rounds": rounds.call(2), "val": 15}
+					unit_changed.emit(o)
+					n += 1
+			return "+15 VW für %d Verbündete, %d Runden" % [n, rounds.call(2)]
+		"lSchutz/9":
+			t.buffs["barriere"] = {"rounds": -1}
+			return "nächster Kritischer gegen %s eine Stufe schwächer" % t.name
+		"lHeilung/1":
+			var n: int = [0, 2, 3, 6][tier]
+			t.bleed = maxi(0, t.bleed - n)
+			return "Blutung −%d" % n
+		"lHeilung/3":
+			var h: int = [0, Dice.d(10), Dice.d(10) + Dice.d(10), Dice.d(10) + Dice.d(10) + 5][tier]
+			_heal(t, h)
+			return "+%d TP" % h
+		"lHeilung/5":
+			t.buffs["schmerz"] = {"rounds": [0, 2, 5, 7][tier]}
+			return "Wundmalus zählt %d Runden nicht" % t.buffs.schmerz.rounds
+		"lHeilung/7":
+			if tier < 2:
+				return "fast – %s regt sich, bleibt aber bewusstlos" % t.name
+			t.hp = maxi(t.hp, 1)
+			t.state = Combatant.State.OK
+			t.reserve = 0
+			return "%s steht mit %d TP wieder auf" % [t.name, t.hp]
+		"lHeilung/10":
+			if tier < 2:
+				return "keine Wirkung"
+			return _stabilize(t).trim_prefix(", ")
+		"lWahrnehmung/1":
+			t.buffs["gefahrensinn"] = {"rounds": -1, "val": [0, 5, 10, 15][tier]}
+			return "+%d Ausweichen bis zum nächsten Zug" % t.buffs.gefahrensinn.val
+		"lWahrnehmung/3":
+			var n := 0
+			for o in opponents(u):
+				if Hex.distance(o.pos, u.pos) <= 10:
+					o.buffs["geortet"] = {"rounds": rounds.call(3), "team": u.team}
+					unit_changed.emit(o)
+					n += 1
+			return "%d Gegner geortet, ohne Deckung für %d Runden" % [n, rounds.call(3)]
+		"lWahrnehmung/5":
+			t.buffs["vorahnung"] = {"rounds": -1, "val": [0, 10, 20, 30][tier]}
+			return "%s: +%d Ausweichen gegen den nächsten Angriff" % [t.name, t.buffs.vorahnung.val]
+		"lWahrnehmung/7":
+			t.buffs["schwachstelle"] = {"rounds": -1, "val": [0, 10, 20, 30][tier]}
+			return "%s markiert: nächster Angriff +%d" % [t.name, t.buffs.schwachstelle.val]
+	return "keine Wirkung"

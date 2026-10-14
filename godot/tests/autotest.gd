@@ -2,6 +2,7 @@ extends Node
 ## Selbsttests mit Screenshots (Zielordner in der Umgebungsvariable PTF_OUT):
 ##   godot --path godot -- --autotest          KI gegen KI, Kampfende, Charakterbogen, Tabellen
 ##   godot --path godot -- --autotest-player   Bedienung mit simulierten Mausklicks
+##   godot --path godot -- --autotest-psi      Psi-Zeile und Kontextmenü (Nyx)
 ## Optional: PTF_SECONDS = maximale Kampfdauer im KI-Test.
 
 var battle: Battle
@@ -13,6 +14,8 @@ var b: Battle:
 func _ready() -> void:
 	if "--autotest-player" in OS.get_cmdline_user_args():
 		_run_player.call_deferred()
+	elif "--autotest-psi" in OS.get_cmdline_user_args():
+		_run_psi.call_deferred()
 	else:
 		_run_ai.call_deferred()
 
@@ -222,6 +225,59 @@ func _run_player() -> void:
 		print("nach Angriff: ", target.name, " TP ", target.hp, ", Aktivität ", u.act)
 	else:
 		print("kein Gegner angreifbar")
+	print("AUTOTEST FERTIG")
+	get_tree().quit()
+
+
+## Psi-Bedienung: Nyx an den Zug setzen, Psi-Zeile, Reiter Schutz, Rechtsklick auf Verbündete (Kontextmenü), Psi-Schild wirken
+func _run_psi() -> void:
+	var out := OS.get_environment("PTF_OUT")
+	b.new_battle(4711, "klein", "", false)
+	b.begin_combat()
+	var t0 := Time.get_ticks_msec()
+	while not b.player_turn() and Time.get_ticks_msec() - t0 < 60000:
+		await get_tree().create_timer(0.3).timeout
+	var c := b.combat
+	var nyx: Combatant = c.crew().filter(func(u: Combatant) -> bool: return u.id == &"nyx")[0]
+	c.turn_idx = c.order.find(nyx)
+	c._begin_turn(nyx)
+	b.events.views = b.views
+	for u in b.views:
+		b.views[u].set_current(u == nyx, true)
+	b.rig.focus(b.views[nyx].position, true)
+	b._dirty = true
+	for i in 20:
+		await get_tree().process_frame
+	print("Psi: am Zug %s, Kräfte %s, Angriffskräfte %s" % [c.current.name, nyx.powers, nyx.weapons.filter(func(w: WeaponData) -> bool: return w.power != "").map(func(w: WeaponData) -> String: return w.name)])
+	await _screenshot(out + "/s1_psi_zeile.png")
+	await _click_button("Schutz 4")
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/s2_reiter_schutz.png")
+	var ally: Combatant = null
+	for o in c.crew():
+		if o != nyx and c.power_targets(nyx, "lSchutz/2").has(o):
+			ally = o
+			break
+	print("Psi: Ziel für Psi-Schild: ", ally.name if ally else "-")
+	if ally:
+		var p := b.rig.camera.unproject_position(b.views[ally].position + Vector3(0, 1.0, 0))
+		p = _to_window(p)
+		for pressed in [true, false]:
+			var e := InputEventMouseButton.new()
+			e.position = p
+			e.global_position = p
+			e.button_index = MOUSE_BUTTON_RIGHT
+			e.pressed = pressed
+			Input.parse_input_event(e)
+		await get_tree().create_timer(0.4).timeout
+		print("Psi: Kontextmenü offen ", b.ui.context_menu.visible)
+		await _screenshot(out + "/s3_kontextmenue.png")
+		await _click_button("Psi-Schild")
+		while not b.events.is_idle():
+			await get_tree().process_frame
+		await get_tree().create_timer(0.5).timeout
+		print("Psi: nach Psi-Schild: %s Psi-Schild %d, Nyx PP %d, Aktivität %d" % [ally.name, ally.psi_shield, nyx.pp, nyx.act])
+		await _screenshot(out + "/s4_nach_psi_schild.png")
 	print("AUTOTEST FERTIG")
 	get_tree().quit()
 

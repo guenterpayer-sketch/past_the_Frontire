@@ -284,6 +284,8 @@ Psi funktioniert wie Magie in Rolemaster: Kräfte sind in **Listen** geordnet.
 - **Kosten**: eine Kraft kostet **Stufe PP** und 40 % Aktivität.
 - **Probe**: unterstützende Kräfte mit **Psi wirken** (Mittel), Angriffe mit **Psi-Angriffe** gegen die Psi-Verteidigung des Ziels. Kräfte, die einem Gegner etwas aufzwingen (Lähmen, Stoßen, Entwaffnen), sind Angriffe; einen eigenen Widerstandswurf gibt es nicht.
 
+**Im Bodenkampf** (Stand 16.10.2026): Alle Kräfte außer Telekinese „Heranziehen“ und „Schweben“ sind nutzbar. Angriffskräfte (Psi-Nadel, Psi-Stoß, Lähmen, Psi-Lanze, Druckwelle, Stoßen, Entwaffnen) werden wie Waffen eingesetzt (Aktivität frei wählbar, Psi-Angriffe gegen Psi-VW). Unterstützende Kräfte kosten 40 % Aktivität; Probe Psi wirken (Mittel): herausragend = verstärkt, Erfolg = voll, Teilerfolg = schwach, Fehlschlag = nichts, Patzer = Rückkopplung (betäubt 1). „Wieder auf die Beine“ und „Am Leben halten“ wirken erst ab Erfolg. **„Am Leben halten“ stabilisiert eine sterbende Figur** (statt „Gestorbene ist bewusstlos“, weil im Kampf niemand mehr stirbt). **„Gedanken orten“ hebt 3 Runden lang die Deckung der Gegner in 10 Hex auf** (es gibt keine Sichtbeschränkung im Kampf). Psi-Listen bekommen keine EP durch Benutzung; EP gibt es für die Probe (Psi-Angriffe bzw. Psi wirken).
+
 **Schutz** (Psi wirken)
 
 | Stufe | Kraft | Wirkung |

@@ -61,6 +61,12 @@ var wait_act := 0
 
 var xp_log := {}
 var kills := 0
+var powers: Array[String] = []   # unterstützende Psi-Kräfte (PsiCombat.SUPPORT)
+const BUFF_NAMES := {"abschirmen": "Abgeschirmt", "ablenkfeld": "Ablenkfeld", "kuppel": "Schildkuppel", "barriere": "Letzte Barriere",
+	"schmerz": "Schmerz gedämpft", "gefahrensinn": "Gefahrensinn", "geortet": "geortet", "vorahnung": "Vorahnung", "schwachstelle": "Schwachstelle"}
+## laufende Wirkungen: Name → {rounds, …}; rounds −1 = bis verbraucht (Barriere, Vorahnung, Schwachstelle)
+var buffs := {}
+var disarmed := false            # Entwaffnen: im nächsten eigenen Zug kein Angriff
 var stabilized := false        # sterbend, aber per Erster Hilfe stabilisiert
 var worst_crit := ""           # schwerster erlittener Kritischer (A–E), "" = keiner
 var free_xp := 0              # gesparte freie EP (für Fertigkeiten oder Eigenschaften)
@@ -85,7 +91,12 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 	u.attrs = ch.attrs.duplicate()
 	u.skills = ch.skills.duplicate(true)
 	u.free_xp = ch.free_xp
-	u.weapons = ch.weapons.duplicate()
+	# Psi gibt es im Kampf nur noch über die Listen: alte Psi-Waffen fallen weg, Angriffskräfte kommen als Waffen dazu
+	u.weapons.assign(ch.weapons.filter(func(w: WeaponData) -> bool: return not w.psi))
+	u.weapons.append_array(PsiCombat.attack_weapons(ch))
+	if u.weapons.is_empty():
+		u.weapons = ch.weapons.duplicate()   # Notfall: Figur hätte sonst gar nichts
+	u.powers = PsiCombat.support_powers(ch)
 	u.weapon = u.weapons[0]
 	u.armor = ch.armor
 	u.shield = ch.shield
@@ -152,6 +163,11 @@ func status_list() -> PackedStringArray:
 		s.append("gesprintet (kein Angriff)")
 	if psi_shield:
 		s.append("Psi-Schild %d" % psi_shield)
+	for b in buffs:
+		var r: int = buffs[b].get("rounds", -1)
+		s.append(BUFF_NAMES.get(b, b) + ((" %d" % r) if r > 0 else ""))
+	if disarmed:
+		s.append("entwaffnet")
 	if next_attack_malus:
 		s.append("Waffe klemmt %d" % next_attack_malus)
 	return s

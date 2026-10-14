@@ -29,6 +29,10 @@ extends Resource
 @export var splash: PackedInt32Array = PackedInt32Array()
 ## Psi-Punkte pro Einsatz
 @export var pp_cost := 0
+## Psi-Kraft, aus der die Waffe im Kampf erzeugt wurde (PsiCombat, z. B. "lAngriff/2"); leer = echte Waffe
+var power := ""
+## Sonderwirkung der Kraft: "" Schaden, stun, push, disarm, lance, wave (siehe PsiCombat.ATTACKS)
+var power_effect: StringName = &""
 
 @export_group("Darstellung")
 ## 3D-Modell in der Hand der Figur (leer = Grundkörper)

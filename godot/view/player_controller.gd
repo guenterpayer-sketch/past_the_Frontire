@@ -10,6 +10,8 @@ var mode := Mode.MOVE
 var gait: StringName = &"gehen"
 var pct := Combat.NORMAL_ATTACK
 var show_range := false
+var power := ""              # gewählte unterstützende Psi-Kraft (Mode.PSI), PsiCombat-Schlüssel
+var psi_tab: StringName = &""  # geöffneter Listen-Reiter im Aktionsblock
 var _weapon_sel := {}       # Combatant -> WeaponData
 var _reach_key := ""
 var _reach: BattleMap.Reach
@@ -84,7 +86,7 @@ func view_state(u: Combatant, hover: Variant, hover_unit: Combatant) -> Dictiona
 	if mode == Mode.AID:
 		st.helpers = combat.first_aid_targets(u)
 	elif mode == Mode.PSI:
-		st.helpers = combat.psi_shield_targets(u)
+		st.helpers = combat.power_targets(u, power)
 	elif can_attack_now(u):
 		var w := weapon_of(u)
 		var p := attack_pct(u, w)
@@ -160,7 +162,7 @@ func click(u: Combatant, tile_pos: Variant, target: Combatant) -> void:
 			if target and combat.do_first_aid(u, target):
 				mode = Mode.MOVE
 		Mode.PSI:
-			if target and combat.do_psi_shield(u, target):
+			if target and combat.do_power(u, power, target):
 				mode = Mode.MOVE
 		_:
 			if target:
@@ -176,6 +178,52 @@ func face_toward(u: Combatant, tile_pos: Vector2i) -> void:
 
 func toggle_mode(m: Mode) -> void:
 	mode = Mode.MOVE if mode == m else m
+
+
+## unterstützende Kraft gewählt: ohne Zielwahl (selbst, Fläche) sofort wirken, sonst Ziel anklicken lassen
+func choose_power(u: Combatant, k: String) -> void:
+	if mode == Mode.PSI and power == k:
+		mode = Mode.MOVE
+		return
+	var t: String = PsiCombat.SUPPORT[k].target
+	if t in ["self", "area", "foes"]:
+		combat.do_power(u, k, u)
+		mode = Mode.MOVE
+		return
+	power = k
+	mode = Mode.PSI
+
+
+## Kontextmenü (Rechtsklick auf eine Figur): Psi-Kräfte, die auf diese Figur passen.
+## Einträge {k, text, enabled}; leer = keine Kraft passt (dann dreht der Rechtsklick wie bisher)
+func context_powers(u: Combatant, target: Combatant) -> Array:
+	var out: Array = []
+	if target == null:
+		return out
+	for w in u.weapons:
+		if w.power == "" or target.team == u.team:
+			continue
+		var p := attack_pct(u, w)
+		var info := combat.attack_info(u, target, w, {"pct": p})
+		var ok: bool = info.valid and can_attack_now(u) and combat.attack_cost(u, w, p) <= u.act
+		out.append({"k": w.power, "attack": w, "enabled": ok,
+			"text": "%s · %d PP · %s" % [w.name, w.pp_cost, ("%d %% Treffer" % info.chance) if info.valid else info.reason]})
+	for k in u.powers:
+		var spec: Dictionary = PsiCombat.SUPPORT[k]
+		var self_kind: bool = spec.target in ["self", "area", "foes"]
+		if self_kind and target != u:
+			continue
+		if not self_kind and not _could_target(u, k, target):
+			continue
+		var ok := combat.can_power(u, k) and combat.power_targets(u, k).has(target)
+		out.append({"k": k, "enabled": ok, "text": "%s · %d PP · %s" % [spec.name, PsiCombat.level_of(k), spec.hint]})
+	return out
+
+
+## passt die Zielart der Kraft grundsätzlich zur Figur (Freund/Feind), auch wenn sie gerade nicht erreichbar ist?
+func _could_target(u: Combatant, k: String, target: Combatant) -> bool:
+	var t: String = PsiCombat.SUPPORT[k].target
+	return (t == "enemy") == (target.team != u.team)
 
 
 # ---------------------------------------------------------------- Tooltip (BBCode)

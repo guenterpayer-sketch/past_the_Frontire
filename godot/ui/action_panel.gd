@@ -32,6 +32,8 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 	var wrow := HBoxContainer.new()
 	var usable := c.usable_weapons(u)
 	for wd in u.weapons:
+		if wd.power != "":
+			continue   # Psi-Angriffskräfte stehen in der Psi-Zeile
 		var extra := ""
 		if wd.magazine:
 			extra = " %d/%d" % [u.loaded.get(wd.id, 0), wd.magazine]
@@ -55,6 +57,8 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 	gcol.add_child(grow)
 	top.add_child(gcol)
 	_box.add_child(top)
+	if not PsiCombat.known(u).is_empty():
+		_box.add_child(_psi_box(c, pc, u, w, player_turn))
 
 	var can_atk := pc.can_attack_now(u)
 	var pct := pc.attack_pct(u, w)
@@ -88,9 +92,6 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 		add_action.call("Nachladen %d %%" % Combat.COST.reload, &"reload", rw, c.can_do(u, Combat.COST.reload), false, "%s nachladen" % rw.name)
 	add_action.call("Erste Hilfe %d %%" % Combat.COST.aid, &"aid", null, c.can_do(u, Combat.COST.aid) and not c.first_aid_targets(u).is_empty(),
 		pc.mode == PlayerController.Mode.AID, "Benachbarte Figur behandeln (Erste Hilfe, Leicht; Medikit +%d)" % Combat.MEDKIT_BONUS)
-	if Rules.skill_rank(u, &"psiWirken") > 0:
-		add_action.call("Psi-Schild %d %%" % Combat.COST.psi, &"psi", null, c.can_do(u, Combat.COST.psi) and not c.psi_shield_targets(u).is_empty(),
-			pc.mode == PlayerController.Mode.PSI, "Psi wirken, %d PP: +%d VW für 1–3 Runden auf eine Figur bis 6 m" % [Combat.PSI_SHIELD_PP, Combat.PSI_SHIELD_BONUS])
 	add_action.call("Ausrichten", &"face", null, true, pc.mode == PlayerController.Mode.FACE, "Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ Rechtsklick.")
 	var free := u.free_hex + int(u.move_spare)
 	var end := _btn("Zug beenden ⏎", &"end", null, false, not player_turn)
@@ -154,12 +155,65 @@ func refresh_deploy(c: Combat, sel: Combatant, mission: Mission) -> void:
 	reset_size()
 
 
+## Psi-Zeile: Reiter je Liste (mit Rang), darunter die Kräfte der gewählten Liste.
+## Angriffskräfte wählen wie eine Waffe, unterstützende Kräfte wirken sofort oder warten auf ein Ziel.
+func _psi_box(c: Combat, pc: PlayerController, u: Combatant, w: WeaponData, player_turn: bool) -> Control:
+	var box := PanelContainer.new()
+	box.add_theme_stylebox_override("panel", UiTheme.box(Color(0.24, 0.16, 0.36, 0.35), Color("6a4a9a"), 8, 8))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	box.add_child(v)
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 6)
+	tabs.add_child(UiTheme.label("PSI · %d PP" % u.pp, 12, Color("c9a8f0")))
+	var learned: Array[StringName] = PsiLists.learned(u)
+	if not learned.has(pc.psi_tab):
+		pc.psi_tab = learned[0] if not learned.is_empty() else &""
+	for list in PsiLists.LISTS:
+		var r := Rules.skill_rank(u, list)
+		var tb := _btn("%s %s" % [PsiLists.LISTS[list].name, str(r) if r > 0 else "–"], &"psi_tab", list, list == pc.psi_tab, r <= 0)
+		tb.toggle_mode = false
+		tb.add_theme_font_size_override("font_size", 12)
+		tb.custom_minimum_size.y = 32
+		tabs.add_child(tb)
+	v.add_child(tabs)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	var rank := Rules.skill_rank(u, pc.psi_tab)
+	for p in PsiLists.LISTS.get(pc.psi_tab, {}).get("powers", []):
+		var k := PsiCombat.key(pc.psi_tab, p[0])
+		var lvl: int = p[0]
+		var b: Button
+		if lvl > rank:
+			b = _btn("%s\nSt. %d · fehlt Rang" % [p[1], lvl], &"", null, false, true)
+		elif PsiCombat.is_attack(k):
+			var pw := PsiCombat.weapon(k)
+			var ok := c.usable_weapons(u).has(pw)
+			b = _btn("%s\nSt. %d · %d PP · Angriff" % [p[1], lvl, lvl], &"weapon", pw, pw == w, not player_turn or not ok)
+			b.tooltip_text = "%s: %s. Wählen, dann Gegner anklicken (Aktivität wie beim Angriff)." % [p[1], p[2]]
+		elif PsiCombat.SUPPORT.has(k):
+			var spec: Dictionary = PsiCombat.SUPPORT[k]
+			b = _btn("%s\nSt. %d · %d PP · %d %%" % [p[1], lvl, lvl, Combat.COST.psi], &"power", k,
+				pc.mode == PlayerController.Mode.PSI and pc.power == k, not player_turn or not c.can_power(u, k))
+			b.tooltip_text = "%s: %s (Probe Psi wirken, Mittel)." % [p[1], spec.hint]
+		else:
+			b = _btn("%s\nSt. %d · nicht im Kampf" % [p[1], lvl], &"", null, false, true)
+		b.add_theme_font_size_override("font_size", 12)
+		b.custom_minimum_size = Vector2(0, 46)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(b)
+	v.add_child(grid)
+	return box
+
+
 func _hint(pc: PlayerController) -> String:
 	match pc.mode:
 		PlayerController.Mode.AID:
 			return "Grün markierte Figur anklicken. Esc bricht ab."
 		PlayerController.Mode.PSI:
-			return "Grün markierte Figur für den Psi-Schild anklicken."
+			return "Grün markierte Figur für %s anklicken. Esc bricht ab." % PsiCombat.name_of(pc.power)
 		PlayerController.Mode.FACE:
 			return "Feld anklicken, in dessen Richtung die Figur schauen soll."
 	return ""

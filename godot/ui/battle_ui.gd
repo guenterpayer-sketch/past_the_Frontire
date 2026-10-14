@@ -23,6 +23,7 @@ var briefing: BriefingDialog
 var help: Modal
 var result_banner: ResultBanner
 var active_tag: ActiveTag
+var context_menu: ContextMenu
 var _confirm: ConfirmationDialog
 var _left: VBoxContainer
 var _right: VBoxContainer
@@ -76,6 +77,8 @@ func _ready() -> void:
 	active_tag = ActiveTag.new()
 	add_child(active_tag)
 	move_child(active_tag, 0)   # unter allen Kästen und Dialogen
+	context_menu = ContextMenu.new()
+	add_child(context_menu)
 	result_banner = ResultBanner.new()
 	add_child(result_banner)
 	_confirm = ConfirmationDialog.new()
@@ -124,6 +127,9 @@ func any_dialog_open() -> bool:
 
 
 func close_dialogs() -> bool:
+	if context_menu.visible:
+		context_menu.hide()
+		return true
 	for d in [sheet, tables, briefing, help]:
 		if d.visible:
 			d.close()
@@ -156,7 +162,7 @@ func hide_tip() -> void:
 func covers(p: Vector2) -> bool:
 	if any_dialog_open():
 		return true
-	for c in [top_menu, info, dice_panel, combat_log, card, ai_card, actions, result_banner]:
+	for c in [top_menu, info, dice_panel, combat_log, card, ai_card, actions, result_banner, context_menu]:
 		if c.visible and c.get_global_rect().has_point(p):
 			return true
 	for c in initiative.get_children():

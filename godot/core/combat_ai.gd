@@ -11,7 +11,7 @@ func _memo_of(c: Combat, u: Combatant) -> Dictionary:
 	var stamp := "%d:%d" % [c.round_no, c.turn_idx]
 	var m: Dictionary = _memo.get(u, {})
 	if m.get("stamp", "") != stamp:
-		m = {"stamp": stamp, "moved": false, "faced": false, "stand_check": false, "toggle_at": null}
+		m = {"stamp": stamp, "moved": false, "faced": false, "stand_check": false, "toggle_at": null, "psi_done": false}
 		_memo[u] = m
 	return m
 
@@ -48,7 +48,20 @@ func _best_attack(c: Combat, u: Combatant, from: BattleMap.Tile, weapons: Array[
 					continue
 				score += others * 30 - 10
 			if w.psi:
-				score += 5
+				score += 5 - w.pp_cost * 2
+			match w.power_effect:
+				&"stun":
+					score *= 0.6 if t.stun == 0 else 0.1
+				&"disarm":
+					score *= 0.5 if not t.disarmed else 0.1
+				&"push":
+					score *= 0.3
+				&"lance":
+					score += 10
+				&"wave":
+					# Druckwelle trifft alle Gegner in 2 Hex um den Psioniker
+					var more := c.opponents(u).filter(func(o: Combatant) -> bool: return o != t and Hex.distance(o.pos, from.pos) <= 2).size()
+					score += more * 30 - 10
 			if best.is_empty() or score > best.score:
 				best = {"score": score, "target": t, "weapon": w, "pct": pct, "info": info}
 	return best
@@ -165,6 +178,53 @@ func _first_aid_step(c: Combat, u: Combatant, avail: int, memo: Dictionary) -> D
 	return {"type": &"move", "tile": best.tile, "gait": &"gehen"} if not best.is_empty() else {}
 
 
+## Unterstützende Psi-Kräfte: erst Notfälle (Sterbende, Bewusstlose, schwer Verletzte, Blutende in Reichweite),
+## dann Schutz für Angeschlagene, wenn kein guter Angriff möglich ist; sonst Ortung/Markierung
+func _psi_step(c: Combat, u: Combatant, here: BattleMap.Tile, weapons: Array[WeaponData], avail: int, memo: Dictionary) -> Dictionary:
+	if memo.psi_done or u.powers.is_empty() or avail < Combat.COST.psi:
+		return {}
+	var use := func(k: String, pick: Callable) -> Dictionary:
+		if not c.can_power(u, k):
+			return {}
+		var ts := c.power_targets(u, k).filter(pick)
+		if ts.is_empty():
+			return {}
+		return {"type": &"power", "k": k, "target": ts[0]}
+	# Notfälle (Berührung)
+	for spec in [["lHeilung/10", func(o: Combatant) -> bool: return true],
+			["lHeilung/7", func(o: Combatant) -> bool: return true],
+			["lHeilung/3", func(o: Combatant) -> bool: return o.hp < o.max_hp / 2],
+			["lHeilung/1", func(o: Combatant) -> bool: return o.bleed >= 2]]:
+		var st: Dictionary = use.call(spec[0], spec[1])
+		if not st.is_empty():
+			return st
+	# Schutz nur, wenn von hier kein guter Angriff geht
+	var h := _best_attack(c, u, here, weapons, avail) if c.can_attack(u) else {}
+	if not h.is_empty() and h.score >= 45:
+		return {}
+	var hurt := func(o: Combatant) -> bool: return o.hp < o.max_hp * 0.6 and o.psi_shield == 0 and not o.buffs.has("kuppel")
+	var near := c.units.filter(func(o: Combatant) -> bool: return o.team == u.team and o.is_ok() and Hex.distance(o.pos, u.pos) <= 2).size()
+	if near >= 2:
+		var k6: Dictionary = use.call("lSchutz/6", func(o: Combatant) -> bool: return true)
+		if not k6.is_empty() and not u.buffs.has("kuppel"):
+			return k6
+	for k in ["lSchutz/2", "lSchutz/4", "lWahrnehmung/5", "lSchutz/9"]:
+		var st: Dictionary = use.call(k, hurt)
+		if not st.is_empty():
+			return st
+	var foes := c.opponents(u).filter(func(o: Combatant) -> bool: return Hex.distance(o.pos, u.pos) <= 10 and not o.buffs.has("geortet"))
+	if foes.size() >= 3:
+		var st: Dictionary = use.call("lWahrnehmung/3", func(o: Combatant) -> bool: return true)
+		if not st.is_empty():
+			return st
+	var st7: Dictionary = use.call("lWahrnehmung/7", func(o: Combatant) -> bool: return not o.buffs.has("schwachstelle"))
+	if not st7.is_empty():
+		return st7
+	if not u.buffs.has("abschirmen") and c.opponents(u).any(func(o: Combatant) -> bool: return o.weapons.any(func(w: WeaponData) -> bool: return w.psi)):
+		return use.call("lSchutz/1", func(o: Combatant) -> bool: return true)
+	return {}
+
+
 func plan_step(c: Combat, u: Combatant) -> Dictionary:
 	if c.current != u or c.result != &"" or not u.is_ok():
 		return {"type": &"end"}
@@ -183,6 +243,11 @@ func plan_step(c: Combat, u: Combatant) -> Dictionary:
 	var aid := _first_aid_step(c, u, avail, memo)
 	if not aid.is_empty():
 		return aid
+
+	# Psi: heilen und schützen (höchstens einmal je Zug)
+	var ps := _psi_step(c, u, here, weapons, avail, memo)
+	if not ps.is_empty():
+		return ps
 
 	# geduckt zu Zugbeginn: aufstehen, außer es gibt von hier einen guten Schuss
 	if u.crouched and not memo.stand_check:
@@ -258,7 +323,7 @@ func plan_step(c: Combat, u: Combatant) -> Dictionary:
 					best_tile = t
 			if best_tile and best_tile != here and dist.get(best_tile.pos, 99.0) < dist.get(here.pos, 99.0) + 1:
 				return {"type": &"move", "tile": best_tile.pos, "gait": gait}
-	var ranged := weapons.filter(func(w: WeaponData) -> bool: return not w.melee)
+	var ranged := weapons.filter(func(w: WeaponData) -> bool: return not w.melee and (w.power_effect == &"" or w.power_effect == &"lance"))
 	# vor Feuerbereitschaft oder Zugende ducken (schwerer zu treffen)
 	if not melee and not u.crouched and can_toggle.call() and u.act >= 10 + Combat.MIN_OVERWATCH:
 		return {"type": &"crouch"}
@@ -292,6 +357,9 @@ func execute(c: Combat, u: Combatant, step: Dictionary) -> bool:
 			return c.do_crouch(u)
 		&"aid":
 			return c.do_first_aid(u, step.target)
+		&"power":
+			memo.psi_done = true
+			return c.do_power(u, step.k, step.target)
 		&"face":
 			memo.faced = true
 			return c.do_face(u, step.dir)
