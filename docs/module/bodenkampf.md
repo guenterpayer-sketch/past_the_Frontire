@@ -18,6 +18,5 @@
 
 ## Aufträge vom Koordinator
 
-- Vor der nächsten Arbeit `main` holen (`git merge origin/main`, Charakter-Modul ist drin) und Gegner-Werte/Balancing mit den neuen TP/PP-Formeln prüfen.
-
-- Nach dem Zusammenführen von Charakter-Modul und Hub: **ein einziges Kampfende** (`MissionResult` → `Campaign.finish_mission()` → aus dem Schiff zurück ins Schiff mit Bericht, Schnellkampf in `crew.tscn`). Keine eigene EP-Gutschrift mehr im Kampf. Details: `docs/Zusammenfuehrung.md`.
+- ~~`main` holen und Balancing mit den neuen TP/PP-Formeln prüfen~~ → erledigt (Entscheidung: so lassen).
+- **Hub ist seit 15.10.2026 in `main` (`012efdf`).** Das gemeinsame Kampfende hat der Hub-Chat bereits in `view/battle.gd` gebaut (`Battle.finish_mission()`: `MissionResult` → `Campaign.finish_mission()` → aus dem Schiff mit Bericht zurück ins Schiff, Schnellkampf nach `crew.tscn`; keine eigene EP-Gutschrift). `main` holen und die Änderungen des Hubs an Bodenkampf-Dateien durchsehen: `view/battle.gd` (`finish_mission()`, `hub_report()`, `return_to_ship()`, `new_battle(…, m)`), `ui/briefing_dialog.gd` (`hub_mode`), `ui/top_menu.gd` (`set_menu_text()`), `core/mission.gd` (`faction_path`), `data/types/faction_data.gd` und `data/missions/*.tres` (`color`). Was davon noch fehlt oder anders sein soll, mit dem Nutzer klären, bevor gebaut wird.
