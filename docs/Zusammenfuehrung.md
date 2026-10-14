@@ -38,6 +38,5 @@ Die Brüche zwischen Charakter-Modul und Hub (doppelte Charakterübersicht, alte
 ## Offene Entscheidungen (für den Nutzer)
 
 - **Rückzug im Schiffsbericht:** `MissionResult` liefert beim Rückzug `outcome = niederlage`; der Bericht zeigt „Niederlage (Rückzug)“. Ob der Hub eine eigene Anzeige dafür bekommt, ist offen.
-- **Zustand nach dem Kampf** ist als späteres eigenes Thema vermerkt (Entscheidung Nutzer).
 
-- **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). Soll die Krankenstation im Schiff das übernehmen, und was passiert bei Tod?
+- **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). Soll die Krankenstation im Schiff das übernehmen, und was passiert bei Tod? Vom Nutzer als späteres eigenes Thema zurückgestellt.
