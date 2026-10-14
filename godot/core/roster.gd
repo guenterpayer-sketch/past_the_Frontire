@@ -30,10 +30,28 @@ static func start_crew(progress := {}) -> Array[Character]:
 	return out
 
 
-static func save_crew(crew: Array[Character]) -> void:
+## Crew speichern; dazu die Entlassenen „im Hafen“ (mit Fortschritt) und der zuletzt gewählte Trupp (IDs)
+static func save_crew(crew: Array[Character], harbor: Array[Character] = [], squad_ids: Array = []) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"version": VERSION, "crew": crew.map(func(c: Character) -> Dictionary: return c.to_dict())}, "\t"))
+		f.store_string(JSON.stringify({"version": VERSION, "crew": crew.map(func(c: Character) -> Dictionary: return c.to_dict()),
+			"harbor": harbor.map(func(c: Character) -> Dictionary: return c.to_dict()),
+			"squad": squad_ids.map(func(id) -> String: return String(id))}, "\t"))
+
+
+## Entlassene „im Hafen“ und gespeicherter Trupp: {harbor: Array[Character], squad: Array[StringName]}
+static func load_extra() -> Dictionary:
+	var harbor: Array[Character] = []
+	var squad: Array[StringName] = []
+	var data = JSON.parse_string(FileAccess.get_file_as_string(PATH)) if FileAccess.file_exists(PATH) else null
+	if typeof(data) == TYPE_DICTIONARY:
+		for d in data.get("harbor", []):
+			var c := Character.from_dict(d)
+			if c.is_valid():
+				harbor.append(c)
+		for id in data.get("squad", []):
+			squad.append(StringName(id))
+	return {"harbor": harbor, "squad": squad}
 
 
 static func reset() -> void:
