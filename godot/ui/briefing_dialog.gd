@@ -31,7 +31,7 @@ func _init() -> void:
 	max_size = Vector2(1520, 860)
 
 
-## cands = Kandidaten (SquadPick.candidates), selected = vorbelegter Trupp
+## cands = Kandidaten (Campaign.candidates: {ch, locked, reason, marked, note}), selected = vorbelegter Trupp
 func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Character]) -> void:
 	open("Einsatz: %s" % m.title)
 	_cands = cands
@@ -88,7 +88,7 @@ func selection() -> Array[Character]:
 ## Kachel an- oder abwählen (Gesperrte und ein volles Team ignorieren den Klick)
 func toggle(ch: Character) -> void:
 	var c := _cand(ch)
-	if c.is_empty() or c.blocked != "":
+	if c.is_empty() or c.locked:
 		return
 	if ch in _sel:
 		_sel.erase(ch)
@@ -156,9 +156,9 @@ func _squad_column() -> VBoxContainer:
 	grid.add_theme_constant_override("h_separation", 10)
 	grid.add_theme_constant_override("v_separation", 10)
 	# Gesperrte ans Ende
-	for blocked in [false, true]:
+	for locked in [false, true]:
 		for c in _cands:
-			if (c.blocked != "") == blocked:
+			if c.locked == locked:
 				var b := _tile(c)
 				grid.add_child(b)
 				_tiles[c.ch] = b
@@ -181,7 +181,7 @@ func _tile(c: Dictionary) -> Button:
 	b.focus_mode = Control.FOCUS_NONE
 	b.custom_minimum_size = Vector2(0, 150)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	b.disabled = c.blocked != ""
+	b.disabled = c.locked
 	b.pressed.connect(toggle.bind(ch))
 	var v := VBoxContainer.new()
 	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -224,11 +224,11 @@ func _tile(c: Dictionary) -> Button:
 	v.add_child(spacer)
 	var state := "einsatzbereit"
 	var col := UiTheme.MUTED
-	if c.blocked != "":
-		state = "gesperrt: " + c.blocked
+	if c.locked:
+		state = "gesperrt: " + c.reason
 		col = UiTheme.BAD
-	elif c.hurt != "":
-		state = "angeschlagen · " + c.hurt
+	elif c.marked:
+		state = "%s · %d im Einsatz" % [c.note, Injury.LIGHT_MALUS]
 		col = HURT
 	v.add_child(_line(state, 12, col))
 	b.tooltip_text = "%s (%s)\n%s\n%s\n%s" % [ch.name, ch.role, weapons, armor, state]

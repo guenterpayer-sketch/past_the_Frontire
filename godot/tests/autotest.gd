@@ -29,6 +29,30 @@ func _run_ai() -> void:
 	for i in 40:
 		await get_tree().process_frame
 	await _screenshot(out + "/00_briefing.png")
+	# Anzeige Verwundeter (nur für den Screenshot, danach zurückgesetzt): angeschlagen markiert, schwer verwundet gesperrt
+	var hurt: Character = Campaign.crew()[1]
+	var down: Character = Campaign.crew()[3]
+	hurt.injury = Injury.LIGHT
+	hurt.injury_days = 2
+	down.injury = Injury.SEVERE
+	down.injury_days = 9
+	var cands := Campaign.candidates(false)
+	b.ui.briefing.show_mission(b.mission, cands, Campaign.suggested_squad(cands))
+	for i in 5:
+		await get_tree().process_frame
+	print("Truppwahl verwundet: gesperrt %d, markiert %d, vorbelegt %d, %s gewählt %s" % [
+		cands.filter(func(k: Dictionary) -> bool: return k.locked).size(), cands.filter(func(k: Dictionary) -> bool: return k.marked).size(),
+		b.ui.briefing.selection().size(), down.name, down in b.ui.briefing.selection()])
+	_mouse_click(b.ui.briefing._tiles[down].get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout
+	print("Truppwahl: Klick auf Gesperrte ändert nichts %s" % (not down in b.ui.briefing.selection()))
+	await _screenshot(out + "/00a_trupp_verwundet.png")
+	for c in [hurt, down]:
+		c.injury = Injury.NONE
+		c.injury_days = 0
+	b.ui.briefing.show_mission(b.mission, b.candidates, b.squad)
+	for i in 5:
+		await get_tree().process_frame
 	# Truppwahl: letzte Figur per Klick abwählen, mit 5 in die Aufstellung
 	var last_ch: Character = b.squad[b.squad.size() - 1]
 	_mouse_click(b.ui.briefing._tiles[last_ch].get_global_rect().get_center())

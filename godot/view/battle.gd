@@ -2,7 +2,7 @@ class_name Battle
 extends Node3D
 ## Hauptszene: verbindet Kampflogik (Combat, CombatAI), Darstellung (MapView, UnitView, Overlay, Fx),
 ## Ablauf der Ereignisse (EventPlayer), Bedienung (PlayerController) und Oberfläche (BattleUI).
-## Kampfmodul: bekommt Kopien der Charaktere (im Briefing gewählter Trupp, SquadPick), gibt am Ende ein MissionResult zurück
+## Kampfmodul: bekommt Kopien der Charaktere (im Briefing gewählter Trupp, Campaign.candidates), gibt am Ende ein MissionResult zurück
 ## und wechselt ins Charakter-Modul (crew.tscn).
 ## Aus dem Schiff gestartet (HubState.in_mission) kommt die Mission von der Sternenkarte; danach geht es
 ## mit einem Einsatzbericht zurück ins Schiff statt ins Charakter-Modul.
@@ -18,7 +18,7 @@ var player: PlayerController
 var views := {}                  # Combatant -> UnitView
 var auto_crew := false
 var show_grid := true
-## Truppwahl: Kandidaten (SquadPick) und gewählter Trupp dieses Einsatzes
+## Truppwahl: Kandidaten (Campaign.candidates) und gewählter Trupp dieses Einsatzes
 var candidates: Array[Dictionary] = []
 var squad: Array[Character] = []
 var _seed := 0
@@ -138,27 +138,32 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_dirty = true
 
 
-## Kandidaten und Vorbelegung: im Spiel neu aus der Crew (letzter Trupp aus Campaign.chosen_squad);
+## Kandidaten und Vorbelegung (Charakter-Modul): im Spiel neu aus der Crew (letzter Trupp, Gesperrte heraus, aufgefüllt);
 ## Schnellkampf: Roster-Kopien einmal holen, Auswahl bleibt bei „Andere Mission“ erhalten.
+## Gesperrte Ärzte (blocked_ids) liefert später der Hub (Krankenstation noch nicht gebaut).
 func _pick_squad() -> void:
 	if _keep_squad:
 		_keep_squad = false
 		return
 	if HubState.quick_battle:
 		if candidates.is_empty():
-			candidates = SquadPick.candidates(true)
-			squad = SquadPick.preselect(candidates, [])
+			candidates = Campaign.candidates(true)
+			squad = Campaign.suggested_squad(candidates)
+			Campaign.quick_squad = squad.duplicate()
 		return
-	candidates = SquadPick.candidates(false)
-	squad = SquadPick.preselect(candidates, Campaign.chosen_squad)
+	candidates = Campaign.candidates(false)
+	squad = Campaign.suggested_squad(candidates)
 
 
-## Briefing geschlossen: anderer Trupp → Campaign.chosen_squad merken und Runde 0 mit derselben Karte neu aufbauen
+## Briefing geschlossen: Trupp ans Charakter-Modul (Campaign.set_squad, Schnellkampf quick_squad);
+## anderer Trupp → Runde 0 mit derselben Karte neu aufbauen
 func _on_squad(sel: Array[Character]) -> void:
 	if sel.is_empty() or not combat.deploying:
 		return
-	if not HubState.quick_battle:
-		Campaign.chosen_squad = sel.duplicate()
+	if HubState.quick_battle:
+		Campaign.quick_squad = sel.duplicate()
+	else:
+		Campaign.set_squad(sel)
 	if sel == squad:
 		return
 	squad = sel.duplicate()
@@ -198,7 +203,7 @@ func hub_report(result: Dictionary) -> Dictionary:
 	var g := HubState.game
 	var units := []
 	var states := {"ok": "kampffähig", "ko": "bewusstlos", "sterbend": "sterbend", "tot": "tot"}
-	for ch in Campaign.crew():
+	for ch in Campaign.crew() + Campaign.last_fallen:
 		var r: Dictionary = result.units.get(ch.id, {})
 		if r.is_empty():
 			continue
