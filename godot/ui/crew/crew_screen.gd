@@ -5,6 +5,7 @@ extends Control
 
 var overview: CrewOverview
 var sheet: SheetDialog
+var editor: CharacterEditor
 
 
 func _ready() -> void:
@@ -18,6 +19,14 @@ func _ready() -> void:
 	sheet = SheetDialog.new()
 	add_child(overview)
 	add_child(sheet)
+	editor = CharacterEditor.new()
+	add_child(editor)
+	overview.create_member.connect(func() -> void:
+		editor.open_new(Campaign.crew(), Campaign.crew().find(overview.current()))
+		editor.move_to_front())
+	editor.saved.connect(func(ch: Character, replace: Character) -> void:
+		Campaign.add_member(ch, replace)
+		show_crew())
 	overview.next_battle.connect(start_mission)
 	overview.reset_crew.connect(func() -> void:
 		Campaign.reset()
@@ -42,3 +51,4 @@ func start_mission() -> void:
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE:
 		sheet.close()
+		editor.close()

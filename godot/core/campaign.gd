@@ -28,6 +28,16 @@ static func finish_mission(result: Dictionary) -> void:
 	save()
 
 
+## Neues Crewmitglied aufnehmen (replace = ersetztes Mitglied oder null) und speichern
+static func add_member(ch: Character, replace: Character = null) -> void:
+	var i := crew().find(replace) if replace else -1
+	if i >= 0:
+		_crew[i] = ch
+	else:
+		_crew.append(ch)
+	save()
+
+
 static func save() -> void:
 	Roster.save_crew(crew())
 

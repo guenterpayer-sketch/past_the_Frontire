@@ -37,7 +37,19 @@ Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bil
 1. **Briefing**: Auftrag, Gegnergruppe (Fraktion, Typen, Ausrüstung), Schwierigkeit, Hallengröße, Belohnung. „Andere Mission“ würfelt neu (Schwierigkeit wählbar oder zufällig).
 2. **Runde 0 – Aufstellung**: Figur anklicken (oder im Panel wählen), dann ein blaues Feld im Eingangsbereich (Spalten 1–4 links): dorthin stellen, mit einer anderen Figur der Crew wird getauscht. Blickrichtung per Rechtsklick / lange drücken / „drehen“. „Kampf beginnen“ (oder Enter) startet Runde 1.
 3. **Kampf** bis alle Gegner oder alle Crewmitglieder ausgeschaltet sind.
-4. **Charakterübersicht** (eigene Szene `crew.tscn`, das Charakter-Modul): Das Ergebnis des Kampfes ist dort schon verbucht und gespeichert. Mit ◀ ▶ (oder Pfeiltasten) durch die Crew blättern. Ränge kaufen (fehlende EP kommen aus den freien EP), Eigenschaften mit freien EP um +1 steigern, „zurücknehmen“ macht die Steigerungen der Figur rückgängig. Nicht ausgegebene freie EP bleiben gespart. „Speichern & nächste Mission“.
+4. **Charakterübersicht** (eigene Szene `crew.tscn`, das Charakter-Modul): Das Ergebnis des Kampfes ist dort schon verbucht und gespeichert. Mit ◀ ▶ (oder Pfeiltasten) durch die Crew blättern. Ränge kaufen (fehlende EP kommen aus den freien EP), Eigenschaften mit freien EP um +1 steigern, „zurücknehmen“ macht die Steigerungen der Figur rückgängig. Nicht ausgegebene freie EP bleiben gespart. „Neues Crewmitglied“ öffnet den Charakter-Editor (siehe unten). „Speichern & nächste Mission“.
+
+## Charakter-Editor (neues Crewmitglied)
+
+Im Charakter-Modul über „Neues Crewmitglied“. Regeln: `docs/Skillsystem.md`, Abschnitt 7a (Code: `core/creation.gd`).
+
+- 7 Würfe 20–100, der niedrigste wird 90; „neu würfeln“ beliebig oft (verteilte Ränge verfallen dann).
+- Würfe per Auswahlfeld auf die Eigenschaften legen (die Eigenschaft, die den Wurf hatte, bekommt den bisherigen).
+- Fertigkeitspunkte = Eigenschaftssumme × 1,2; Rang kostet 10 + 2 × Rang; höchstens Rang 5, zwei Fertigkeiten bis 8; höchstens zwei Psi-Listen. Gesperrte „+“ zeigen den Grund als Tooltip.
+- Neu: **Körperentwicklung** (+5 TP je Rang), **Psi-Punkte-Entwicklung** (+2 PP je Rang), **Psi-Listen** (`core/psi_lists.gd`, Kräfte werden angezeigt; im Kampf gibt es bisher nur Psi-Schild und Psi-Stoß).
+- Station (jede einmal, Jäger mehrfach), Aussehen, zwei Waffen, Rüstung, Schild frei wählbar.
+- „Übernehmen“ als neues Mitglied (bis 6) oder als Ersatz für ein vorhandenes; wird sofort gespeichert.
+- Noch nicht gebaut: die Variante zum Aufleveln.
 
 ## Module und Schnittstelle
 
@@ -86,11 +98,11 @@ Das Werkzeug überträgt die 75 KayKit-Animationen (Auswahl von 18) auf jedes Mo
 | Ordner | Inhalt |
 |---|---|
 | `data/` | **Spieldaten als Ressourcen, im Godot-Editor bearbeitbar**: Waffen, Rüstungen, Angriffstabellen, Kritische Treffer, Patzer, Figuren (`units/crew/*.tres`, `units/enemies/*.tres` mit Bedrohungswert), Mannschaften (`units/crew.tres`, `units/enemies.tres` = feste Gruppe für Tests), Fraktionen für den Missionsgenerator (`missions/*.tres`: Gegnertypen mit Gewichten). `data/types/` enthält die Ressourcen-Klassen. |
-| `core/` | Spiellogik ohne Grafik: `dice.gd` (W100 aus 2W10), `rules.gd` (Eigenschaften, Fertigkeiten, Proben, EP), `tables.gd`, `hex.gd`, `battle_map.gd` (Gelände, Sichtlinie, Deckung, Wege), `map_generator.gd` (Menge des Kleinzeugs: `SCATTER_DENSITY`), `mission.gd` (Missionsgenerator), `combatant.gd` (Figur im Kampf), `combat.gd` (Kampfablauf, meldet alles über Signale), `combat_ai.gd`, `character.gd` (Crewmitglied mit allen dauerhaften Werten), `roster.gd` (Crew speichern und laden), `campaign.gd` (Spielstand zwischen den Szenen), `mission_result.gd` (Einsatzergebnis), `prefs.gd`, `game_data.gd` |
+| `core/` | Spiellogik ohne Grafik: `dice.gd` (W100 aus 2W10), `rules.gd` (Eigenschaften, Fertigkeiten, Proben, EP), `tables.gd`, `hex.gd`, `battle_map.gd` (Gelände, Sichtlinie, Deckung, Wege), `map_generator.gd` (Menge des Kleinzeugs: `SCATTER_DENSITY`), `mission.gd` (Missionsgenerator), `combatant.gd` (Figur im Kampf), `combat.gd` (Kampfablauf, meldet alles über Signale), `combat_ai.gd`, `character.gd` (Crewmitglied mit allen dauerhaften Werten), `creation.gd` (Regeln der Charaktererschaffung), `psi_lists.gd` (Psi-Listen), `roster.gd` (Crew speichern und laden), `campaign.gd` (Spielstand zwischen den Szenen), `mission_result.gd` (Einsatzergebnis), `prefs.gd`, `game_data.gd` |
 | `view/` | Darstellung und Ablauf: `battle.gd` (Hauptszene, verbindet alles), `event_player.gd` (spielt die Kampf-Ereignisse nacheinander ab), `player_controller.gd` (Spielerseite: Modus, Vorschau, Tooltips), `map_view.gd` (Halle), `model_batch.gd` (Hallenmodelle einpassen und gesammelt zeichnen), `unit_view.gd` (Figur auf der Karte), `figure/` (Darstellung einer Figur: `model_figure.gd` mit 3D-Modell und Animationen, `procedural_figure.gd` aus Grundkörpern), `overlay.gd`, `fx.gd`, `camera_rig.gd` |
 | `assets/` | 3D-Modelle (`characters/`, `weapons/`, `hall/`), übertragene Animationen (`characters/anims/`), Quelle der Animationen (`source/kaykit/`), Lizenzen |
 | `tools/` | `bake_animations.gd` und `retarget.gd`: Animationen von einem Skelett auf ein anderes übertragen |
-| `ui/` | Oberfläche: `battle_ui.gd` (schwebendes Layout), `top_menu.gd`, `icon_button.gd`, `info_box.gd`, `unit_card.gd`, `action_panel.gd`, `initiative_bar.gd`, `combat_log.gd`, `dice_panel.gd`, Dialoge (`briefing_dialog.gd`, `sheet_dialog.gd`, `tables_dialog.gd`, `modal.gd`), `crew/` (Charakter-Modul: `crew_screen.gd` = Szene `crew.tscn`, `crew_overview.gd` = Charakterübersicht), `ui_theme.gd` |
+| `ui/` | Oberfläche: `battle_ui.gd` (schwebendes Layout), `top_menu.gd`, `icon_button.gd`, `info_box.gd`, `unit_card.gd`, `action_panel.gd`, `initiative_bar.gd`, `combat_log.gd`, `dice_panel.gd`, Dialoge (`briefing_dialog.gd`, `sheet_dialog.gd`, `tables_dialog.gd`, `modal.gd`), `crew/` (Charakter-Modul: `crew_screen.gd` = Szene `crew.tscn`, `crew_overview.gd` = Charakterübersicht, `character_editor.gd` = neues Crewmitglied), `ui_theme.gd` |
 | `audio/` | `sfx.gd` (Autoload `Sfx`): Soundeffekte werden synthetisch erzeugt, keine Audiodateien |
 | `tests/` | Regeltests und KI-gegen-KI-Simulation |
 

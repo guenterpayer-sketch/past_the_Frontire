@@ -6,6 +6,7 @@ extends Modal
 
 signal next_battle
 signal reset_crew
+signal create_member
 signal open_sheet(crew: Array[Character], u: Character)
 
 var _crew: Array[Character] = []
@@ -48,6 +49,9 @@ func show_crew(crew: Array[Character], result := {}) -> void:
 	reset.add_theme_color_override("font_color", UiTheme.BAD)
 	reset.pressed.connect(_confirm_reset)
 	footer.add_child(reset)
+	var create := UiTheme.button("Neues Crewmitglied", "Neues Mitglied erschaffen (ersetzt eines, wenn die Crew voll ist)")
+	create.pressed.connect(func() -> void: create_member.emit())
+	footer.add_child(create)
 	var next := UiTheme.button("Speichern & nächste Mission")
 	next.add_theme_color_override("font_color", UiTheme.ACCENT)
 	next.pressed.connect(func() -> void: next_battle.emit())
@@ -121,7 +125,7 @@ func _render() -> void:
 	hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hv.add_child(UiTheme.label("%s  (%d / %d)" % [u.name, _idx + 1, _crew.size()], 18, UiTheme.CREW))
 	var ur := _unit_result(u)
-	var sub := u.role
+	var sub := u.role + ((" · Station " + u.station) if u.station != "" and u.station != u.role else "")
 	if not ur.is_empty():
 		sub += " · %s · %d Gegner ausgeschaltet" % [{"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}.get(ur.status.state, ""), ur.kills]
 	hv.add_child(UiTheme.label(sub, 12, UiTheme.MUTED))

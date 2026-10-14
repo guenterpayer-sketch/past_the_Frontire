@@ -18,6 +18,8 @@ var armor: ArmorData
 var shield := false
 var medkits := 0
 var visual: CharacterVisual
+## Station an Bord (Creation.STATIONS, "" = keine)
+var station := ""
 ## Zustand nach dem letzten Einsatz ({state, hp, max_hp, bleed, malus}); wird noch nicht ausgewertet
 ## (Heilung und Tod zwischen Einsätzen sind noch nicht gebaut)
 var status := {}
@@ -88,7 +90,7 @@ func to_dict() -> Dictionary:
 		"attrs": attrs.duplicate(), "skills": sk, "free_xp": free_xp,
 		"weapons": weapons.map(func(w: WeaponData) -> String: return w.resource_path),
 		"armor": armor.resource_path if armor else "", "shield": shield, "medkits": medkits,
-		"visual": visual.resource_path if visual else "",
+		"visual": visual.resource_path if visual else "", "station": station,
 		"status": status.duplicate(true), "used": used.duplicate(true),
 	}
 
@@ -114,6 +116,7 @@ static func from_dict(d: Dictionary) -> Character:
 	c.shield = bool(d.get("shield", false))
 	c.medkits = int(d.get("medkits", 0))
 	c.visual = _load(d.get("visual", "")) as CharacterVisual
+	c.station = d.get("station", "")
 	c.status = d.get("status", {})
 	c.used = d.get("used", {})
 	return c

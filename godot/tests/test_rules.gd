@@ -23,6 +23,7 @@ func _init() -> void:
 	_test_missions()
 	_test_progress()
 	_test_mission_result()
+	_test_creation()
 	_test_deploy()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -300,6 +301,46 @@ func _test_mission_result() -> void:
 	check(ch.status.hp == 2 and ch.used.medkits == 1, "Zustand und Verbrauch gemerkt")
 	var again := Combatant.from_character(ch, &"crew")
 	check(again.hp == again.max_hp and again.medkit == ch.medkits, "nächster Kampf: volle TP und Ausrüstung (Heilung/Nachschub noch nicht gebaut)")
+
+
+## Charaktererschaffung: Würfe, Punkte, Ranggrenzen, Psi-Listen, TP/PP
+func _test_creation() -> void:
+	for n in 200:
+		var pool := Creation.roll_pool()
+		if pool.size() != 7 or not pool.has(Creation.LOWEST_TO) or pool.min() < 20 or pool.max() > 100:
+			check(false, "Würfe 20–100 mit einer 90: %s" % [pool])
+			return
+	check(true, "Würfe 20–100, niedrigster wird 90")
+	var ch := Character.new()
+	for a in Rules.ATTRIBUTES:
+		ch.attrs[a.id] = 80
+	check(Creation.budget(ch) == 672 and Creation.points_left(ch) == 672, "Punkte = Summe × 1,2 (560 → 672)")
+	check(Creation.ranks_cost(5) == 70 and Creation.ranks_cost(8) == 136, "Rangkosten 5 → 70, 8 → 136")
+	for i in 5:
+		Creation.raise(ch, &"gewehre")
+	check(Creation.raise_block(ch, &"gewehre") == "" , "über Rang 5 als erste Ausnahme")
+	for i in 3:
+		Creation.raise(ch, &"gewehre")
+	check(Rules.skill_rank(ch, &"gewehre") == 8 and not Creation.raise(ch, &"gewehre"), "höchstens Rang 8")
+	for i in 6:
+		Creation.raise(ch, &"pistolen")
+	for i in 6:
+		Creation.raise(ch, &"ausweichen")
+	check(Rules.skill_rank(ch, &"pistolen") == 6 and Rules.skill_rank(ch, &"ausweichen") == 5, "nur zwei Fertigkeiten über Rang 5")
+	check(Creation.spent(ch) == 136 + 90 + 70, "verbaute Punkte")
+	check(Creation.raise(ch, &"lSchutz") and Creation.raise(ch, &"lHeilung") and not Creation.raise(ch, &"lAngriff"), "höchstens zwei Psi-Listen")
+	Creation.raise(ch, &"lSchutz")
+	check(PsiLists.powers(ch, &"lSchutz").size() == 2, "Liste Schutz Rang 2: zwei Kräfte")
+	check(Creation.lower(ch, &"lHeilung") and not ch.skills.has(&"lHeilung") and Creation.raise(ch, &"lAngriff"), "Liste abwählen, andere lernen")
+	ch.attrs.MEN = 98
+	var pp := 9 + Rules.attr_bonus(98) / 2
+	check(Rules.has_psi(ch) and Rules.max_pp(ch) == pp, "PP = MEN/10 + MEN-Bonus/2 (%d)" % pp)
+	Creation.raise(ch, &"psiPunkte")
+	Creation.raise(ch, &"koerper")
+	check(Rules.max_pp(ch) == pp + 2 and Rules.max_hp(ch) == 15 + 80 / 3 + 5, "Entwicklung: +2 PP, +5 TP je Rang")
+	var crew := Roster.start_crew()
+	crew[0].station = "Steuer"
+	check(not Creation.station_free(crew, "Steuer") and Creation.station_free(crew, "Steuer", crew[0]) and Creation.station_free(crew, "Jäger"), "Station nur einmal, Jäger mehrfach")
 
 
 ## Runde 0: Aufstellung nur im Eingangsbereich, Tauschen, danach gesperrt

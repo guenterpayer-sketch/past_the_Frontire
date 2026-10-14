@@ -55,7 +55,24 @@ const SKILL_GROUPS := [
 		["hwWaffen", "Waffen", "KOO", "INT"],
 		["kochen", "Kochen", "EMP", "KOO"],
 		["medikamente", "Medikamente herstellen", "INT", "KOO"]]},
+	# nur die Ränge zählen (TP bzw. PP), die Eigenschaften spielen keine Rolle
+	{"id": "entwicklung", "name": "Entwicklung", "skills": [
+		["koerper", "Körperentwicklung", "KON", "STA"],
+		["psiPunkte", "Psi-Punkte-Entwicklung", "MEN", "EMP"]]},
+	# Psi-Listen (PsiLists): Rang = höchste verfügbare Stufe
+	{"id": "psiListen", "name": "Psi-Listen", "skills": [
+		["lSchutz", "Liste Schutz", "MEN", "EMP"],
+		["lHeilung", "Liste Heilung", "MEN", "EMP"],
+		["lAngriff", "Liste Angriff", "MEN", "EMP"],
+		["lWahrnehmung", "Liste Wahrnehmung", "MEN", "EMP"],
+		["lTelekinese", "Liste Telekinese", "MEN", "EMP"]]},
 ]
+
+## TP je Rang Körperentwicklung, PP je Rang Psi-Punkte-Entwicklung
+const HP_PER_RANK := 5
+const PP_PER_RANK := 2
+const PSI_SKILLS: Array[StringName] = [&"psiAngriff", &"psiVerteidigung", &"psiWirken", &"psiPunkte",
+	&"lSchutz", &"lHeilung", &"lAngriff", &"lWahrnehmung", &"lTelekinese"]
 
 const DIFFICULTY := {
 	"routine": {"name": "Routine", "mod": 30, "xp": 0},
@@ -268,7 +285,7 @@ static func maneuver(ch, skill_id: StringName, diff_id: String, extra_mods: Arra
 
 
 static func max_hp(ch) -> int:
-	return 15 + ch.attrs.KON / 3
+	return 15 + ch.attrs.KON / 3 + HP_PER_RANK * skill_rank(ch, &"koerper")
 
 
 static func death_at(ch) -> int:
@@ -276,11 +293,14 @@ static func death_at(ch) -> int:
 
 
 static func has_psi(ch) -> bool:
-	return skill_rank(ch, &"psiAngriff") > 0 or skill_rank(ch, &"psiWirken") > 0
+	return PSI_SKILLS.any(func(id: StringName) -> bool: return skill_rank(ch, id) > 0)
 
 
+## PP = MEN/10 + MEN-Bonus/2 + 2 je Rang Psi-Punkte-Entwicklung (mindestens 0), nur mit Psi
 static func max_pp(ch) -> int:
-	return ch.attrs.MEN / 10 + skill_rank(ch, &"psiWirken") / 2 if has_psi(ch) else 0
+	if not has_psi(ch):
+		return 0
+	return maxi(0, ch.attrs.MEN / 10 + attr_bonus(ch.attrs.MEN) / 2 + PP_PER_RANK * skill_rank(ch, &"psiPunkte"))
 
 
 static func initiative_bonus(ch) -> int:
