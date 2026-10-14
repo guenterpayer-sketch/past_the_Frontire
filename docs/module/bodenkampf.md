@@ -60,3 +60,4 @@ Verwundung, aktive Figur und Psi sind in `main` (`6162f58`), ebenso der Roster d
 1. **Truppwahl im Briefing** (bis 6, letzter Trupp vorbelegt, Gesperrte ausgegraut, Angeschlagene markiert, Warnung bei weniger als 6). Auch beim **Schnellkampf** – dort kommen die Figuren aus dem globalen Roster. Ergebnis → `Campaign.chosen_squad`. Das freigegebene Hub-Mockup („Schiff-Hub Mockup“, Bildschirm Briefing mit Einsatztrupp) ist ein Vorschlag; mit dem Nutzer bestätigen, bevor gebaut wird. Kandidatenliste mit Sperr-Status liefert das Charakter-Modul – Schnittstelle abstimmen; bis dahin mit `Campaign.crew()` bauen.
 
 → Erledigt (Truppwahl im Briefing, `hub_report()` mit `Campaign.last_fallen`), siehe Stand.
+- ~~Aufträge vom 16.10.2026 (Truppwahl im Briefing, Gefallene im Bericht)~~ → in `main` seit `b363af0`. Nichts offen; `main` holen.

@@ -93,3 +93,7 @@ Weitere Hinweise:
 - **Hub erledigt:** Anheuern im Hafen, Krankenstation, Tage vergehen, Arzt-Sperre über `HubState.blocked_ids()`.
 - **Offen nur noch beim Bodenkampf:** Truppwahl im Briefing mit `Campaign.candidates(HubState.quick_battle, HubState.blocked_ids())`, `suggested_squad()`, `set_squad()` bzw. `quick_squad`; `hub_report()` in `view/battle.gd` nimmt `Campaign.last_fallen` auf.
 
+## H. Abschluss 16.10.2026
+
+Alle Punkte aus dem Spieltest (Abschnitte A–G) sind in `main` (`b363af0`). Offen bleiben nur die Fragen, die der Nutzer noch nicht entschieden hat (z. B. eigene Anzeige für Rückzug im Schiffsbericht).
+
