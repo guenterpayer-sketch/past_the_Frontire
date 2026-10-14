@@ -13,6 +13,7 @@ var _menu: VBoxContainer
 
 
 func _ready() -> void:
+	HubState.quick_battle = false
 	var args := OS.get_cmdline_user_args()
 	if "--autotest" in args or "--autotest-player" in args:
 		HubState.game = null
@@ -111,9 +112,10 @@ func _build_ui() -> void:
 	load_b.disabled = last == 0
 	load_b.pressed.connect(func() -> void: slots.show_slots(&"load"))
 	var quick := _item("Schnellkampf (Bodenkampf ohne Schiff)")
-	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission wie bisher; Fortschritt der Crew wird in user://crew.json gespeichert."
+	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission und der aktuellen Crew. Nichts wird verbucht (keine EP), danach zurück ins Startmenü."
 	quick.pressed.connect(func() -> void:
 		HubState.game = null
+		HubState.quick_battle = true
 		get_tree().change_scene_to_file(HubState.BATTLE_SCENE))
 	_item("Einstellungen").pressed.connect(_show_settings)
 	var quit := _item("Beenden")

@@ -17,6 +17,8 @@ const OFFER_DAYS := [4, 10]
 const DIFFICULTY_ROLL := ["leicht", "mittel", "mittel", "mittel", "schwer"]
 
 static var game: HubState = null
+## Schnellkampf aus dem Startmenü: mit der aktuellen Crew, aber ohne Verbuchung, danach zurück ins Startmenü
+static var quick_battle := false
 
 var day := 1
 var sector: Sector
