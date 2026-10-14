@@ -22,9 +22,9 @@ func _ready() -> void:
 	game.abort_mission()
 	ui.action.connect(_on_action)
 	ui.star_map.travel.connect(_travel)
-	ui.star_map.wait_day.connect(func() -> void:
-		game.wait_days(1)
-		_refresh())
+	ui.star_map.wait_day.connect(wait_day)
+	ui.medbay.wait_day.connect(wait_day)
+	ui.star_map.hired.connect(func(_c: Character) -> void: _refresh())
 	ui.star_map.start.connect(_start_mission)
 	ui.star_map.closed.connect(_refresh)
 	ui.crew.next_battle.connect(func() -> void:
@@ -75,17 +75,34 @@ func open_room(id: StringName) -> void:
 	match id:
 		&"bridge":
 			ui.star_map.open(game)
+		&"medbay":
+			ui.medbay.show_medbay(game)
 		&"quarters":
 			ui.show_crew()
 		_:
 			ui.show_notice(r.name, "%s\n\nDieser Bereich kommt noch." % r.text)
 
 
+## Einen Tag warten (Brücke oder Krankenstation)
+func wait_day() -> void:
+	game.wait_days(1)
+	_after_days()
+
+
+## Nach vergangenen Tagen: offene Fenster neu zeichnen, Geheilte melden
+func _after_days() -> void:
+	_refresh()
+	if ui.medbay.visible:
+		ui.medbay.show_medbay(game)
+	if not game.last_healed.is_empty():
+		ui.show_toast("Wieder einsatzbereit: " + ", ".join(game.last_healed.map(func(c: Character) -> String: return c.name)))
+
+
 func _travel(target: int) -> void:
 	var days := game.travel_to(target)
 	if days > 0:
 		Sfx.play(&"schritt")
-	_refresh()
+	_after_days()
 
 
 func _start_mission(offer: Dictionary) -> void:
