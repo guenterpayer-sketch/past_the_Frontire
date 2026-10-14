@@ -45,7 +45,7 @@ func _run_ai() -> void:
 	var f0 := crew1.facing
 	await _click_button("drehen ⟳")
 	print("Panel: Blick %d -> %d" % [f0, crew1.facing])
-	await _click_button("Briefing anzeigen")
+	await _click_button("Briefing")
 	print("Panel: Briefing offen ", b.ui.briefing.visible)
 	await _click_button("Zur Aufstellung")
 	print("Panel: Briefing zu ", not b.ui.briefing.visible)
@@ -152,7 +152,7 @@ func _run_player() -> void:
 	var sp := b.rig.camera.unproject_position(b.map_view.tile_top(best))
 	_mouse_move(sp)
 	await get_tree().create_timer(0.4).timeout
-	print("Tooltip Feld: ", b.ui._tip_text.get_parsed_text().replace("\n", " | ").left(300))
+	print("Tooltip Feld: ", b.ui.info.text().replace("\n", " | ").left(300))
 	await _screenshot(out + "/p1_vorschau.png")
 	_mouse_click(sp)
 	await get_tree().create_timer(0.2).timeout
@@ -173,7 +173,7 @@ func _run_player() -> void:
 		var tp := b.rig.camera.unproject_position(b.views[target].position + Vector3(0, 1.0, 0))
 		_mouse_move(tp)
 		await get_tree().create_timer(0.4).timeout
-		print("Tooltip Gegner: ", b.ui._tip_text.get_parsed_text().replace("\n", " | ").left(400))
+		print("Tooltip Gegner: ", b.ui.info.text().replace("\n", " | ").left(400))
 		await _screenshot(out + "/p2_ziel.png")
 		_mouse_click(tp)
 		await get_tree().create_timer(0.6).timeout

@@ -24,7 +24,13 @@ Neuer Stand: *Fetch origin* → *Pull origin*, dann F5. Fehlermeldungen bleiben 
 | Reichweite / Raster | R / G | Buttons |
 | Abbrechen | Esc | – |
 
-Oben: Charakterbogen, Tabellen, KI für Crew (zuschauen), Ton, Würfel, Neue Mission. Einspringen nach dem Abwarten über die Initiative-Leiste.
+Die Karte nutzt den ganzen Bildschirm, die Bedienung schwebt darüber:
+- oben links die Initiative-Leiste (Einspringen nach dem Abwarten),
+- oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, Bedienung), darunter der Infokasten für das Feld bzw. die Figur unter der Maus (auf Touchgeräten mit „Ausführen“),
+- unten links Würfel, Kampflog (einklappbar) und die eigene Figur,
+- unten rechts der Aktionsblock (Waffe, Gangart, Angriffsaktivität, Aktionen, Zug beenden) bzw. in Runde 0 die Aufstellung; ist die KI am Zug, steht dort deren Figur.
+
+Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bildschirme skalieren die Oberfläche mit.
 
 ## Ablauf eines Einsatzes
 
@@ -64,7 +70,7 @@ Das Werkzeug überträgt die 75 KayKit-Animationen (Auswahl von 18) auf jedes Mo
 | `view/` | Darstellung und Ablauf: `battle.gd` (Hauptszene, verbindet alles), `event_player.gd` (spielt die Kampf-Ereignisse nacheinander ab), `player_controller.gd` (Spielerseite: Modus, Vorschau, Tooltips), `map_view.gd` (Halle), `model_batch.gd` (Hallenmodelle einpassen und gesammelt zeichnen), `unit_view.gd` (Figur auf der Karte), `figure/` (Darstellung einer Figur: `model_figure.gd` mit 3D-Modell und Animationen, `procedural_figure.gd` aus Grundkörpern), `overlay.gd`, `fx.gd`, `camera_rig.gd` |
 | `assets/` | 3D-Modelle (`characters/`, `weapons/`, `hall/`), übertragene Animationen (`characters/anims/`), Quelle der Animationen (`source/kaykit/`), Lizenzen |
 | `tools/` | `bake_animations.gd` und `retarget.gd`: Animationen von einem Skelett auf ein anderes übertragen |
-| `ui/` | Oberfläche: `battle_ui.gd` (Layout), `unit_panel.gd`, `initiative_bar.gd`, `combat_log.gd`, `dice_panel.gd`, Dialoge (`briefing_dialog.gd`, `sheet_dialog.gd`, `tables_dialog.gd`, `end_dialog.gd` = Charakterübersicht nach dem Kampf, `modal.gd`), `ui_theme.gd` |
+| `ui/` | Oberfläche: `battle_ui.gd` (schwebendes Layout), `top_menu.gd`, `icon_button.gd`, `info_box.gd`, `unit_card.gd`, `action_panel.gd`, `initiative_bar.gd`, `combat_log.gd`, `dice_panel.gd`, Dialoge (`briefing_dialog.gd`, `sheet_dialog.gd`, `tables_dialog.gd`, `end_dialog.gd` = Charakterübersicht nach dem Kampf, `modal.gd`), `ui_theme.gd` |
 | `audio/` | `sfx.gd` (Autoload `Sfx`): Soundeffekte werden synthetisch erzeugt, keine Audiodateien |
 | `tests/` | Regeltests und KI-gegen-KI-Simulation |
 

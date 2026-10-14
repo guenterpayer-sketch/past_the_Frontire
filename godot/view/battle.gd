@@ -28,6 +28,7 @@ var _touch_moved := false
 var _touch_start_ms := 0
 var _long_fired := false
 var _tap_key := ""
+var _tap_pos := Vector2.ZERO
 var _touch_used := false
 var _mouse_drag := false
 var _drag_moved := false
@@ -56,8 +57,8 @@ func _ready() -> void:
 	events.idle_changed.connect(func(_idle: bool) -> void: _dirty = true)
 	show_grid = Prefs.get_bool("grid", true)
 	ui.action.connect(_on_action)
-	ui.set_toggle(&"sound", Sfx.enabled, "Ton: %s" % ("an" if Sfx.enabled else "aus"))
-	ui.set_toggle(&"dice", events.dice_enabled, "Würfel: %s" % ("an" if events.dice_enabled else "aus"))
+	ui.set_toggle(&"sound", Sfx.enabled)
+	ui.set_toggle(&"dice", events.dice_enabled)
 	rig.rotated.connect(func() -> void: map_view.update_cutaway(rig.view_dir()))
 	new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
@@ -103,7 +104,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	rig.focus(map_view.tile_top(map.crew_start[0].pos).lerp(c, 0.35))
 	map_view.update_cutaway(rig.view_dir())
 	var sz: Dictionary = map.size_info
-	ui.hall_label.text = "%s · %s · Lagerhalle %s, ca. %d×%d m · Karte %d" % [mission.title, mission.faction.name, sz.name, roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed]
+	ui.top_menu.set_mission(mission.title, "%s · %s · Lagerhalle %s, ca. %d×%d m · Karte %d" % [mission.title, mission.faction.name, sz.name, roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed])
 	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s) in einer Lagerhalle (%s)." % [
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), sz.name], &"round")
 	ui.combat_log.add("Runde 0: Crew im Eingangsbereich aufstellen, dann „Kampf beginnen“.", &"")
@@ -133,7 +134,6 @@ func player_turn() -> bool:
 
 
 func _process(delta: float) -> void:
-	rig.right_inset = ui.panel_width()
 	_tick_ai(delta)
 	if _dirty and events.is_idle():
 		_dirty = false
@@ -193,12 +193,25 @@ func _exit_tree() -> void:
 func _refresh() -> void:
 	var u := combat.current
 	var pt := player_turn()
-	ui.round_label.text = "Runde %d" % combat.round_no if not combat.deploying else "Runde 0 – Aufstellung"
+	ui.top_menu.set_round("Runde %d" % combat.round_no if not combat.deploying else "Runde 0 – Aufstellung")
 	ui.initiative.refresh(combat, is_ai)
 	if combat.deploying:
-		ui.unit_panel.refresh_deploy(combat, deploy_sel, mission)
+		ui.card.refresh(combat, deploy_sel)
+		ui.ai_card.refresh(combat, null)
+		ui.actions.refresh_deploy(combat, deploy_sel, mission)
+	elif u == null or combat.result != &"":
+		ui.card.refresh(combat, null)
+		ui.ai_card.refresh(combat, null)
+		ui.actions.refresh(combat, player, null, false)
+	elif is_ai(u):
+		# KI am Zug: deren Figur unten rechts, kein Aktionsblock
+		ui.card.refresh(combat, null)
+		ui.ai_card.refresh(combat, u, "%s ist am Zug …" % ("Gegner" if not u.is_crew else "KI"))
+		ui.actions.refresh(combat, player, null, false)
 	else:
-		ui.unit_panel.refresh(combat, player, u, pt, show_grid)
+		ui.card.refresh(combat, u, "", player.weapon_of(u))
+		ui.ai_card.refresh(combat, null)
+		ui.actions.refresh(combat, player, u, pt)
 	_update_overlay()
 
 
@@ -225,7 +238,7 @@ func _update_hover(screen_pos: Vector2) -> void:
 	var tip := ""
 	if events.is_idle() and not ui.covers(screen_pos):
 		tip = player.tooltip(combat.current, player_turn(), _hover, _hover_unit)
-	ui.show_tip(tip, screen_pos, _touch_used)
+	ui.show_tip(tip, screen_pos, _touch_used and tip != "" and (player_turn() or combat.deploying))
 
 
 ## Feld und Figur unter einem Bildschirmpunkt: Figuren nach Bildschirmabstand,
@@ -455,6 +468,7 @@ func _tap(p: Vector2) -> void:
 		_click(p)
 	else:
 		_tap_key = key
+		_tap_pos = p
 
 
 # ---------------------------------------------------------------- Aktionen aus der Oberfläche
@@ -471,11 +485,11 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			auto_crew = arg
 		&"sound":
 			Sfx.toggle()
-			ui.set_toggle(&"sound", Sfx.enabled, "Ton: %s" % ("an" if Sfx.enabled else "aus"))
+			ui.set_toggle(&"sound", Sfx.enabled)
 		&"dice":
 			events.dice_enabled = not events.dice_enabled
 			Prefs.set_bool("dice", events.dice_enabled)
-			ui.set_toggle(&"dice", events.dice_enabled, "Würfel: %s" % ("an" if events.dice_enabled else "aus"))
+			ui.set_toggle(&"dice", events.dice_enabled)
 			if not events.dice_enabled:
 				ui.dice_panel.hide()
 		&"new":
@@ -484,6 +498,15 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			new_battle(randi() % 1000000, "", arg)
 		&"briefing":
 			ui.briefing.show_mission(mission)
+		&"help":
+			ui.show_help()
+		&"range":
+			player.show_range = not player.show_range
+		&"confirm":
+			# Touch: "Ausführen" im Infokasten = zweites Antippen
+			if _tap_key != "":
+				_tap_key = ""
+				_click(_tap_pos)
 		&"begin":
 			begin_combat()
 		&"deploy_select":
@@ -536,8 +559,6 @@ func _panel_action(u: Combatant, name: StringName, arg: Variant) -> void:
 			combat.do_crouch(u)
 		&"wait":
 			combat.do_wait(u)
-		&"range":
-			player.show_range = not player.show_range
 		&"end":
 			combat.end_turn()
 	Sfx.play(&"klick")
