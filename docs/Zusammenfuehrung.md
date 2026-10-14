@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 16.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Bodenkampf `d2e9015` → `6162f58`, Hub `0f5db25` → `fdb96d9`).
+Stand: 16.10.2026. Zuletzt zusammengeführt: Charakter `d654883` → `4e282e1`, Hub `479e767` → `675d17c`.
 
 ## Arbeitsweise mit Branches
 
@@ -10,9 +10,9 @@ Stand: 16.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Bodenkampf `
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`d2e9015`); muss `main` holen |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`5c3a346`); muss `main` holen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`0f5db25`); muss `main` holen |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`d2e9015`); arbeitet an der Truppwahl, muss `main` holen |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`d654883`); muss `main` holen (Hub) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`479e767`); muss `main` holen (Charakter) |
 
 ## Verlauf
 
@@ -28,6 +28,8 @@ Stand: 16.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Bodenkampf `
 | 15.10.2026 | `f81e9fd` | Charakter `claude/elegant-gauss-hq5bus` (`5c3a346`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Globaler Roster (`roster.tscn`, `user://roster.json`, `GlobalRoster`), Crew-Auswahl (`CrewPicker`, `Campaign.new_game`), Anheuern/Entlassen in der Charakterübersicht, Einsatztrupp (`Campaign.squad()`/`chosen_squad`); eine Zeile in `view/battle.gd`. Klärung D (Planung) noch nicht umgesetzt – auf Wunsch des Nutzers trotzdem zusammengeführt. Tests laut Modul-Chat alle grün; Koordinator: `test_rules`, `test_hub` OK. |
 | 16.10.2026 | `6162f58` | Bodenkampf `claude/confident-edison-6mxzke` (`d2e9015`) | ohne Konflikte. Verwundung statt Tod (sterbend, Stabilisieren, Todeswurf 10 % nur wenn die ganze Crew fällt; `MissionResult`: `worst_crit`, `dying`, `stabilized`, `died`), aktive Figur (Schild „am Zug“, Variante B), Psi im Kampf (`core/psi_combat.gd`, Psi-Zeile, Kontextmenü, KI). Der Branch enthielt `main` mit dem Roster **nicht**; die Kombination hat nur der Koordinator getestet. |
 | 16.10.2026 | `fdb96d9` | Hub `claude/happy-lamport-u4fvya` (`0f5db25`) | ohne Konflikte. Plätze an Bord (`HubState.berths`, Start 8), „1 Tag warten“. Koordinator nach beiden Zusammenführungen: `test_rules` OK, `test_hub` OK, `test_sim -- 10` 7 Siege / 0 hängengeblieben; grafische Tests nicht ausgeführt. |
+| 16.10.2026 | `4e282e1` | Charakter `claude/elegant-gauss-hq5bus` (`d654883`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Klärung D (Anheuern aus den Crewquartieren entfernt, Entlassene „im Hafen“ `Campaign.harbor()`, Trupp gespeichert), Verwundung (`core/injury.gd`, `docs/Skillsystem.md` 8a, `pass_days()`, `patients()`, `last_fallen`), Truppwahl-Kandidaten (`candidates()`, `suggested_squad()`, `set_squad()`, `quick_squad`). Ändert `core/combatant.gd` (Malus −10 für Angeschlagene). Koordinator: `test_rules`, `test_hub` OK. |
+| 16.10.2026 | `675d17c` | Hub `claude/happy-lamport-u4fvya` (`479e767`) | ohne Konflikte; gebaut auf `d8903d8`, also ohne den Charakter-Stand `d654883` – Kombination nur vom Koordinator geprüft: `test_rules`, `test_hub` OK, `test_sim -- 10` 7 Siege / 0 hängengeblieben; grafische Tests nicht ausgeführt. Startmenü „Roster“, neues Spiel mit `CrewPicker`, Schnellkampf aus dem Roster (ersetzt die Arbeitskopie `user://crew.json`, Spielstände unberührt), Crewquartiere mit `HubState.berths`. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 

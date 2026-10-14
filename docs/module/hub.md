@@ -82,3 +82,11 @@ Charakter (Roster, `CrewPicker`, `Campaign.squad()`) und Bodenkampf (Verwundung,
 1. **Jetzt:** Startmenü-Punkt „Roster“ (`Campaign.ROSTER_SCENE`); „Neues Spiel“ → `CrewPicker` (1–8) → `Campaign.new_game(chars)`; Crewquartiere: `seats` aus `HubState.berths`, nach `crew_changed` Knopftext neu setzen, Editor/`create_member` dort entfernen; `user://roster.json` nicht in die Slots (Anbindungsliste in `charakter.md`).
 2. **Schnellkampf:** Figuren kommen **aus dem globalen Roster** (Entscheidung 16.10.); keine eigene Auswahl im Hub – die Truppwahl macht der Bodenkampf im Briefing. Der Hub startet nur den Schnellkampf (`HubState.quick_battle`).
 3. **Danach, wenn das Charakter-Modul geliefert hat:** Anheuern auf der Brücke nur im Hafen (Roster + Liste „im Hafen“), Krankenstation mit Arzt/Helfer und Tagesprobe (Werte wie in dieser Datei), Arzt-Zuweisung für die Sperre in der Truppwahl.
+
+## Aufträge vom Koordinator (16.10.2026, nach Merge `675d17c`)
+
+Charakter `d654883` (Verwundung, Hafen-Liste, Kandidaten) und dein Stand sind in `main`. `main` holen. Jetzt bauen (Details `docs/Planung_Roster_Verwundung.md`, Abschnitt F, und die Heilungswerte in dieser Datei):
+1. Anheuern auf der Brücke nur im Hafen: Roster-Figuren und die Liste „im Hafen“ (`Campaign.harbor()`), über `Campaign.hire()`, nur bei freiem Platz.
+2. Krankenstation: Patienten (`Campaign.patients()`), Arzt/Helfer zuweisen, Tagesprobe, `Campaign.pass_days(days, bonus)` bei Reisen, Einsatz und „1 Tag warten“; EP für Arzt/Helfer.
+3. Arzt-Sperre: dem Bodenkampf die IDs für `Campaign.candidates(quick, blocked_ids)` bereitstellen (Schnittstelle mit ihm abstimmen).
+4. Das Ausblenden von „Anheuern“ in `ui/hub_ui.gd` kann entfallen (der Knopf existiert nicht mehr).
