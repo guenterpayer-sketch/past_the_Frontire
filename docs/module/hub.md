@@ -27,3 +27,4 @@
 - ~~Aufträge 1–5 (Anpassung an das Charakter-Modul)~~ → erledigt, in `main` seit 15.10.2026 (`012efdf`).
 - `main` holen (enthält jetzt die Moduldatei des Bodenkampfs).
 - Charakter-Modul (Aufleveln, `d375736`) ist seit 15.10.2026 in `main`: `main` holen. Die Charakterübersicht in den Crewquartieren hat jetzt eine 3D-Vorschau; in den Crewquartieren einmal prüfen, ob sie dort richtig angezeigt wird (vom Koordinator nicht grafisch getestet).
+- Bodenkampf `381fb01` ist in `main` (15.10.2026): Ergebnis-Banner mit „Weiter“, Rückzug ab Runde 1 (Bericht: Titel mit „(Rückzug)“, `outcome = niederlage`). Der Bodenkampf hat `tests/autotest_hub.gd` angepasst (drückt „Weiter“). `main` holen. Eigene Anzeige für Rückzug im Bericht: nur nach Entscheidung des Nutzers.

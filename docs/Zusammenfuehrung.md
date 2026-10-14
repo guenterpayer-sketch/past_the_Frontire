@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Hub `df91246` und Charakter `d375736`).
+Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Bodenkampf `381fb01`, `1dc3362`).
 
 ## Arbeitsweise mit Branches
 
@@ -10,9 +10,9 @@ Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Hub `df91246
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`1cf8d86`); muss `main` holen (Hub-Änderung an `view/battle.gd`, Aufleveln) |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`d375736`); muss `main` holen (Hub `df91246`) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`df91246`); muss `main` holen (Aufleveln) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`381fb01`) |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`d375736`); muss `main` holen (Bodenkampf `381fb01`) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`df91246`); muss `main` holen (Aufleveln, Bodenkampf `381fb01`, Änderung an `tests/autotest_hub.gd`) |
 
 ## Verlauf
 
@@ -23,7 +23,8 @@ Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Hub `df91246
 | 15.10.2026 | `012efdf` | Hub `claude/happy-lamport-u4fvya` (`77449d9`) | ohne Konflikte (der Hub hatte `main` mit dem Charakter-Modul schon eingeholt und die Konflikte im eigenen Branch gelöst); Ergebnis weicht vom getesteten Branch-Stand nur in `docs/module/bodenkampf.md` ab. Tests laut Modul-Chat: `test_rules`, `test_hub` OK, `test_sim -- 30` 22 Siege / 0 hängengeblieben, `--autotest`, `--autotest-player`, `--autotest-hub` laufen durch. Koordinator: `test_rules` und `test_hub` OK. |
 
 | 15.10.2026 | `5d0bd94` | Hub `claude/happy-lamport-u4fvya` (`df91246`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. „Crew zurücksetzen“ im Schiff ausgeblendet, Schnellkampf aus dem Startmenü verbucht nichts und führt zurück ins Startmenü (`HubState.quick_battle`, Zweig in `Battle.finish_mission()`). Tests laut Modul-Chat: alle grün (`test_sim -- 30` 22 Siege / 0 hängengeblieben, Autotests inkl. `--autotest-hub`). Koordinator: `test_rules`, `test_hub` OK. |
-| 15.10.2026 | siehe `git log` | Charakter `claude/elegant-gauss-hq5bus` (`d375736`) | ohne Konflikte. Aufleveln in der Charakterübersicht (3D-Vorschau `ui/crew/figure_preview.gd`, Name/Kürzel/Farbe/Station/Aussehen, Psi-Kräfte), Regeln `docs/Skillsystem.md` 8. Schnittstellen unverändert, Erweiterungen: `Character.new_list`, `Rules.next_rank_cost/rank_block/is_psi_list`. Tests laut Modul-Chat mit Hub `77449d9` grün (inkl. `--autotest-hub`). Koordinator nach Zusammenführung mit Hub `df91246`: `test_rules`, `test_hub` OK; grafische Tests nicht selbst ausgeführt. |
+| 15.10.2026 | `f7fe33a` | Charakter `claude/elegant-gauss-hq5bus` (`d375736`) | ohne Konflikte. Aufleveln in der Charakterübersicht (3D-Vorschau `ui/crew/figure_preview.gd`, Name/Kürzel/Farbe/Station/Aussehen, Psi-Kräfte), Regeln `docs/Skillsystem.md` 8. Schnittstellen unverändert, Erweiterungen: `Character.new_list`, `Rules.next_rank_cost/rank_block/is_psi_list`. Tests laut Modul-Chat mit Hub `77449d9` grün (inkl. `--autotest-hub`). Koordinator nach Zusammenführung mit Hub `df91246`: `test_rules`, `test_hub` OK; grafische Tests nicht selbst ausgeführt. |
+| 15.10.2026 | `1dc3362` | Bodenkampf `claude/confident-edison-6mxzke` (`381fb01`) | ohne Konflikte (erste Probe mit `d483bf4`: Konflikt in `godot/README.md`, vom Bodenkampf-Chat gelöst); Ergebnis identisch mit dem getesteten Branch-Stand. Ergebnis-Banner (`ui/result_banner.gd`), Rückzug (`Combat.retreat()`, zählt als Niederlage), Rückfrage beim Abbrechen aus dem Schiff (`BattleUI.ask()`); Schnellkampf ohne Banner (Entscheidung Nutzer). Ändert `tests/autotest_hub.gd` (Hub). Tests laut Modul-Chat alle grün inkl. `--autotest-hub`. Koordinator: `test_rules`, `test_hub` OK. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 
@@ -35,5 +36,8 @@ Die Brüche zwischen Charakter-Modul und Hub (doppelte Charakterübersicht, alte
 - Der Hub hat dafür Dateien des Bodenkampfs geändert: `view/battle.gd`, `ui/briefing_dialog.gd`, `ui/top_menu.gd`, `core/mission.gd`, `data/types/faction_data.gd`, `data/missions/*.tres` (Details in `docs/module/hub.md`).
 
 ## Offene Entscheidungen (für den Nutzer)
+
+- **Rückzug im Schiffsbericht:** `MissionResult` liefert beim Rückzug `outcome = niederlage`; der Bericht zeigt „Niederlage (Rückzug)“. Ob der Hub eine eigene Anzeige dafür bekommt, ist offen.
+- **Zustand nach dem Kampf** ist als späteres eigenes Thema vermerkt (Entscheidung Nutzer).
 
 - **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). Soll die Krankenstation im Schiff das übernehmen, und was passiert bei Tod?
