@@ -29,9 +29,8 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 
 - `core/`: Spiellogik ohne Grafik, meldet alles über Signale (`Combat`). `Character`/`Roster`/`Campaign`/`MissionResult`: Crew, Speicherstand, Schnittstelle zum Kampf. `view/`: Darstellung und Ablauf (`Battle`, `EventPlayer`, `PlayerController`). `ui/`: Oberfläche (schwebende Kästen über der Karte, Dialoge auf `Modal`). `data/`: Spieldaten als Ressourcen (`.tres`), im Editor bearbeitbar.
 - Stil: GDScript mit Typangaben, deutsche Bezeichner in Texten und Kommentaren, Kommentare knapp mit `##` über Klassen und Funktionen.
-- Tests (vor jedem Commit):
-  - `godot --headless --path godot --script res://tests/test_rules.gd` (muss „OK“ ausgeben)
-  - `godot --headless --path godot --script res://tests/test_hub.gd` (Hub: muss „OK“ ausgeben)
-  - `godot --headless --path godot --script res://tests/test_sim.gd -- 30` (KI gegen KI; `-- 45 missionen` = Siege je Schwierigkeit)
-  - mit Grafik: `godot --path godot -- --autotest`, `-- --autotest-player`, `-- --autotest-psi` und `-- --autotest-hub` (Screenshots nach `PTF_OUT`)
+- Tests (gestaffelt, Entscheidung des Nutzers 16.10.2026):
+  - **Vor jedem Commit** (schnell): `godot --headless --path godot --script res://tests/test_rules.gd` und `… res://tests/test_hub.gd` (beide müssen „OK“ ausgeben)
+  - **Vor der Fertigmeldung** zusätzlich: `godot --headless --path godot --script res://tests/test_sim.gd -- 10` (KI gegen KI, kein Kampf darf hängen; `-- 45 missionen` = Siege je Schwierigkeit, nur bei Balancing-Fragen)
+  - **Vor der Fertigmeldung, nur für geänderte Bereiche** (mit Grafik, Screenshots nach `PTF_OUT`): Kampf → `godot --path godot -- --autotest`, `-- --autotest-player`, Psi → `-- --autotest-psi`, Hub/Startmenü/Schiff → `-- --autotest-hub`. Charakterübersicht/Roster → `-- --autotest` und `-- --autotest-hub`.
 - Neue Funktionen in `godot/README.md` und, wenn Regeln betroffen sind, in `docs/Skillsystem.md` nachtragen.

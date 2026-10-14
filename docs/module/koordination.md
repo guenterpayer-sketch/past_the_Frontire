@@ -29,8 +29,9 @@ Anweisung für den Koordinations-Chat. Er arbeitet nicht an Spielfunktionen, son
 ```
 godot --headless --path godot --import
 godot --headless --path godot --script res://tests/test_rules.gd      # muss „OK“ ausgeben
-godot --headless --path godot --script res://tests/test_sim.gd -- 30
+godot --headless --path godot --script res://tests/test_hub.gd       # muss „OK“ ausgeben
 ```
+Bei Branches, die `main` nicht vollständig enthielten (Kombination ungetestet), zusätzlich `test_sim.gd -- 10`. Grafische Tests machen die Modul-Chats (gestaffelt, siehe `CLAUDE.md`).
 Weitere Tests der Module (z. B. `tests/test_hub.gd`, Selbsttests mit `--autotest…`) stehen in `godot/README.md` bzw. in der Moduldatei. Godot 4.7.2 für Linux muss dazu in der Umgebung heruntergeladen werden (GitHub-Release `godotengine/godot`, Datei `Godot_v4.7.2-stable_linux.x86_64.zip`); grafische Tests mit `xvfb-run` und `--rendering-driver opengl3`.
 
 ## Arbeitsweise
