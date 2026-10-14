@@ -5,6 +5,8 @@ extends Control
 ## Meldet travel(System) und start(Auftrag); das Schiff (Hub) führt beides aus.
 
 signal travel(system: int)
+## im Schiff einen Tag warten
+signal wait_day
 signal start(offer: Dictionary)
 signal closed
 
@@ -49,6 +51,10 @@ func _ready() -> void:
 	_status = UiTheme.label("", 15)
 	sp.add_child(_status)
 	top.add_child(sp)
+	var wait := UiTheme.button("1 Tag warten", "Tage vergehen auch beim Warten: Aufträge laufen ab, neue kommen dazu")
+	wait.custom_minimum_size.y = 44
+	wait.pressed.connect(func() -> void: wait_day.emit())
+	top.add_child(wait)
 	# unten links: Legende
 	var leg := PanelContainer.new()
 	leg.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 8))

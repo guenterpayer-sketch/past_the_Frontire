@@ -45,10 +45,16 @@
 - **Einsatz:** Der **Arzt bleibt an Bord** (nicht im Einsatztrupp, solange zugewiesen), der Helfer darf mit.
 - **Warten:** Knopf „1 Tag warten“ im Schiff (Aufträge laufen weiter ab, neue kommen).
 
+**Schon gebaut (Hub, ohne andere Module):** `HubState.berths` (Plätze an Bord, Start `BERTHS_START` = 8, im Spielstand gespeichert), `HubState.wait_days(n)` und Knopf „1 Tag warten“ auf der Brücke (Aufträge laufen ab, neue kommen dazu). Die Heilung hängt sich später an dieselben Tage (Reisen, Einsatz, Warten).
+
+**Wartet auf andere Module:** Krankenstation (braucht Verwundung in `Character`/`Campaign` und die Funktion „Tage vergehen“ vom Charakter-Modul, `MissionResult`-Felder vom Bodenkampf), Roster-Auswahl beim neuen Spiel/Schnellkampf und Anheuern (braucht den Roster-Speicher und `Campaign` mit Einsatz/Reserve vom Charakter-Modul), Einsatztrupp im Briefing (Bodenkampf).
+
 **Roster und Crew (Abschnitt A, Teil Hub):**
 - **Neues Spiel:** aus dem Roster **6 bis 8** Figuren wählen (6 Einsatztrupp, bis 2 Reserve gleich zu Beginn).
 - **Anheuern** im Schiff auf der **Brücke, nur im Hafen** = einem der **neutralen Systeme** (2 je Sektor, darunter der Heimathafen), solange Plätze an Bord frei sind.
 - **Entlassen** ist möglich. Der Fortschritt der Figur bleibt **im Spielstand** erhalten (Liste „im Hafen“); sie kann in diesem Spiel in einem Hafen wieder angeheuert werden. Der globale Roster bleibt unberührt.
-- **Mockup** (Artifact „Schiff-Hub Mockup“, Reihe „Nach dem Spieltest“, Bildschirme 5–9): Startmenü mit „Roster“, Neues Spiel (Crew aus dem Roster wählen, 6–8), Brücke im Hafen (Anheuern aus dem Roster und „im Hafen“), Krankenstation, Briefing mit Einsatztrupp (Vorschlag für den Bodenkampf). Noch nicht freigegeben.
+- **Mockup** (Artifact „Schiff-Hub Mockup“, Reihe „Nach dem Spieltest“, Bildschirme 5–9): Startmenü mit „Roster“, Neues Spiel (Crew aus dem Roster wählen, 6–8), Brücke im Hafen (Anheuern aus dem Roster und „im Hafen“), Krankenstation, Briefing mit Einsatztrupp (Vorschlag für den Bodenkampf). **Vom Nutzer freigegeben** (15.10.2026).
+- **Weniger als 6 einsatzbereit:** Einsatz trotzdem möglich (mit Warnung im Briefing), auch mit 1–5 Figuren.
+- **Schnellkampf:** genau 6 Figuren aus dem Roster wählen (kurze Auswahl wie beim neuen Spiel), verbucht weiterhin nichts.
 - **Einsatztrupp** (6 aus Crew + Reserve) wird **beim Briefing** gewählt: Gesperrte (kampfunfähig, schwer verwundet, Arzt) ausgegraut, Angeschlagene markiert. Das Briefing gehört zum Bodenkampf → Schnittstelle mit Bodenkampf und Charakter abstimmen.
 

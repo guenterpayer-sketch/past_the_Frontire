@@ -14,6 +14,8 @@ const OFFERS := 4
 const MISSION_DAYS := 1
 ## Laufzeit neuer Aufträge in Tagen (von, bis)
 const OFFER_DAYS := [4, 10]
+## Plätze an Bord zu Beginn (6 im Einsatz + 2 Reserve)
+const BERTHS_START := 8
 const DIFFICULTY_ROLL := ["leicht", "mittel", "mittel", "mittel", "schwer"]
 
 static var game: HubState = null
@@ -27,6 +29,8 @@ var position := 0
 var offers: Array[Dictionary] = []
 var next_id := 1
 var missions_done := 0
+## Plätze an Bord (Einsatztrupp 6 + Reserve), später über das Schiff ausbaubar
+var berths := BERTHS_START
 ## laufender Einsatz (Auftrag) oder leer
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
@@ -63,6 +67,12 @@ func mission_of(offer: Dictionary) -> Mission:
 
 
 ## Reisen: Tage vergehen, abgelaufene Aufträge verschwinden, neue kommen dazu. Liefert die Reisetage.
+## Im Schiff warten: Tage vergehen, Aufträge laufen ab, neue kommen dazu
+func wait_days(n := 1) -> void:
+	day += n
+	refill_offers()
+
+
 func travel_to(target: int) -> int:
 	if target == position:
 		return 0
@@ -144,7 +154,7 @@ func offers_at(system: int) -> Array[Dictionary]:
 
 func to_dict() -> Dictionary:
 	return {"day": day, "sector": sector.to_dict(), "position": position, "offers": offers.duplicate(true),
-		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name}
+		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -157,6 +167,7 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 			"expires": int(o.expires)})
 	g.next_id = int(d.get("next_id", 1))
 	g.missions_done = int(d.get("missions_done", 0))
+	g.berths = int(d.get("berths", BERTHS_START))
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g
