@@ -49,5 +49,6 @@
 - **Neues Spiel:** aus dem Roster **6 bis 8** Figuren wählen (6 Einsatztrupp, bis 2 Reserve gleich zu Beginn).
 - **Anheuern** im Schiff auf der **Brücke, nur im Hafen** = einem der **neutralen Systeme** (2 je Sektor, darunter der Heimathafen), solange Plätze an Bord frei sind.
 - **Entlassen** ist möglich. Der Fortschritt der Figur bleibt **im Spielstand** erhalten (Liste „im Hafen“); sie kann in diesem Spiel in einem Hafen wieder angeheuert werden. Der globale Roster bleibt unberührt.
+- **Mockup** (Artifact „Schiff-Hub Mockup“, Reihe „Nach dem Spieltest“, Bildschirme 5–9): Startmenü mit „Roster“, Neues Spiel (Crew aus dem Roster wählen, 6–8), Brücke im Hafen (Anheuern aus dem Roster und „im Hafen“), Krankenstation, Briefing mit Einsatztrupp (Vorschlag für den Bodenkampf). Noch nicht freigegeben.
 - **Einsatztrupp** (6 aus Crew + Reserve) wird **beim Briefing** gewählt: Gesperrte (kampfunfähig, schwer verwundet, Arzt) ausgegraut, Angeschlagene markiert. Das Briefing gehört zum Bodenkampf → Schnittstelle mit Bodenkampf und Charakter abstimmen.
 
