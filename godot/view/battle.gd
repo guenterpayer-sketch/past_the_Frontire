@@ -2,7 +2,7 @@ class_name Battle
 extends Node3D
 ## Hauptszene: verbindet Kampflogik (Combat, CombatAI), Darstellung (MapView, UnitView, Overlay, Fx),
 ## Ablauf der Ereignisse (EventPlayer), Bedienung (PlayerController) und Oberfläche (BattleUI).
-## Kampfmodul: bekommt Kopien der Charaktere (Campaign.crew), gibt am Ende ein MissionResult zurück
+## Kampfmodul: bekommt Kopien der Charaktere (im Briefing gewählter Trupp, Campaign.candidates), gibt am Ende ein MissionResult zurück
 ## und wechselt ins Charakter-Modul (crew.tscn).
 ## Aus dem Schiff gestartet (HubState.in_mission) kommt die Mission von der Sternenkarte; danach geht es
 ## mit einem Einsatzbericht zurück ins Schiff statt ins Charakter-Modul.
@@ -18,6 +18,11 @@ var player: PlayerController
 var views := {}                  # Combatant -> UnitView
 var auto_crew := false
 var show_grid := true
+## Truppwahl: Kandidaten (Campaign.candidates) und gewählter Trupp dieses Einsatzes
+var candidates: Array[Dictionary] = []
+var squad: Array[Character] = []
+var _seed := 0
+var _keep_squad := false         # Neuaufbau nach der Truppwahl: Auswahl unverändert übernehmen
 
 var _hover: Variant = null       # Feld unter der Maus (Vector2i) oder null
 var _hover_unit: Combatant = null
@@ -63,6 +68,8 @@ func _ready() -> void:
 	show_grid = Prefs.get_bool("grid", true)
 	ui.action.connect(_on_action)
 	ui.context_menu.chosen.connect(_on_context)
+	ui.briefing.accepted.connect(_on_squad)
+	ui.briefing.quick = HubState.quick_battle
 	ui.set_toggle(&"sound", Sfx.enabled)
 	ui.set_toggle(&"dice", events.dice_enabled)
 	rig.rotated.connect(func() -> void: map_view.update_cutaway(rig.view_dir()))
@@ -89,13 +96,15 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	mission = m if m else Mission.generate(seed_value, difficulty)
 	if size_id != "":
 		mission.size_id = size_id
+	_seed = seed_value
+	_pick_squad()
 	_wait_ai()
 	events.clear()
 	ui.combat_log.clear()
 	ui.result_banner.hide()
 	_end_shown = false
 	var map := MapGenerator.generate(seed_value, mission.size_id)
-	combat = Combat.new(map, Roster.build_crew(Campaign.squad()), Roster.build_units(mission.enemies, &"enemy"))
+	combat = Combat.new(map, Roster.build_crew(squad), Roster.build_units(mission.enemies, &"enemy"))
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
 	map_view.theme = GameData.hall_theme()
@@ -122,11 +131,44 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s) in einer Lagerhalle (%s)." % [
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), sz.name], &"round")
 	ui.combat_log.add("Runde 0: Crew im Eingangsbereich aufstellen, dann „Kampf beginnen“.", &"")
-	deploy_sel = combat.crew()[0]
+	deploy_sel = combat.crew()[0] if not combat.crew().is_empty() else null
 	_mark_current(deploy_sel)
 	if briefing:
-		ui.briefing.show_mission(mission)
+		ui.briefing.show_mission(mission, candidates, squad)
 	_dirty = true
+
+
+## Kandidaten und Vorbelegung (Charakter-Modul): im Spiel neu aus der Crew (letzter Trupp, Gesperrte heraus, aufgefüllt);
+## Schnellkampf: Roster-Kopien einmal holen, Auswahl bleibt bei „Andere Mission“ erhalten.
+## Arzt der Krankenstation gesperrt über HubState.blocked_ids() (Hub).
+func _pick_squad() -> void:
+	if _keep_squad:
+		_keep_squad = false
+		return
+	if HubState.quick_battle:
+		if candidates.is_empty():
+			candidates = Campaign.candidates(true)
+			squad = Campaign.suggested_squad(candidates)
+			Campaign.quick_squad = squad.duplicate()
+		return
+	candidates = Campaign.candidates(false, HubState.blocked_ids())
+	squad = Campaign.suggested_squad(candidates)
+
+
+## Briefing geschlossen: Trupp ans Charakter-Modul (Campaign.set_squad, Schnellkampf quick_squad);
+## anderer Trupp → Runde 0 mit derselben Karte neu aufbauen
+func _on_squad(sel: Array[Character]) -> void:
+	if sel.is_empty() or not combat.deploying:
+		return
+	if HubState.quick_battle:
+		Campaign.quick_squad = sel.duplicate()
+	else:
+		Campaign.set_squad(sel)
+	if sel == squad:
+		return
+	squad = sel.duplicate()
+	_keep_squad = true
+	new_battle(_seed, mission.size_id, "", false, mission)
 
 
 ## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann
@@ -161,7 +203,7 @@ func hub_report(result: Dictionary) -> Dictionary:
 	var g := HubState.game
 	var units := []
 	var states := {"ok": "kampffähig", "ko": "bewusstlos", "sterbend": "sterbend", "tot": "tot"}
-	for ch in Campaign.crew():
+	for ch in Campaign.crew() + Campaign.last_fallen:
 		var r: Dictionary = result.units.get(ch.id, {})
 		if r.is_empty():
 			continue
@@ -647,7 +689,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			else:
 				new_battle(randi() % 1000000, "", arg)
 		&"briefing":
-			ui.briefing.show_mission(mission)
+			ui.briefing.show_mission(mission, candidates, squad)
 		&"psi_tab":
 			player.psi_tab = arg
 		&"help":

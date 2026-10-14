@@ -5,7 +5,8 @@
 
 ## Schnittstellen
 
-- **Eingang:** Crew als Kopien aus `Campaign.crew()` (`Roster.build_crew()`), optional eine fertige `Mission` (aus der Sternenkarte des Hubs).
+- **Eingang:** im Briefing gewählter Trupp als Kopien (`Roster.build_crew(Battle.squad)`), optional eine fertige `Mission` (aus der Sternenkarte des Hubs).
+- **Truppwahl (seit 16.10.2026, Auftrag Truppwahl):** Kandidaten `Campaign.candidates(HubState.quick_battle, HubState.blocked_ids())` (Charakter/Hub), Vorbelegung `Campaign.suggested_squad()`; Ergebnis beim Schließen des Briefings → `Campaign.set_squad()` (im Spiel, gespeichert) bzw. `Campaign.quick_squad` (Schnellkampf). Schnellkampf: Kandidaten einmal je Szene geholt, Auswahl bleibt bei „Andere Mission“ erhalten. `Campaign.chosen_squad`/`squad()` liest der Bodenkampf nicht mehr direkt. Neu in `Battle`: `candidates`, `squad`, `_pick_squad()`, `_on_squad()` (anderer Trupp → Runde 0 mit derselben Karte neu); `BriefingDialog.show_mission(m, cands, selected)`, Signal `accepted(squad)`, `quick`, `selection()`, `toggle()`. `hub_report()` nimmt `Campaign.last_fallen` auf.
 - **Ausgang:** `MissionResult.from_combat()` → `Campaign.finish_mission()` → Szene `crew.tscn`. `ui/end_dialog.gd` und `Roster.load_progress()/save_progress()` gibt es nicht mehr.
 - **Seit 16.10.2026 (Verwundung statt Tod, Auftrag 3) – Änderung am `MissionResult` (Datei des Charakter-Moduls, vom Bodenkampf erweitert):**
   - `status.state` kann jetzt `"ok"`, `"ko"`, **`"sterbend"`** oder `"tot"` sein (vorher `"ok"/"ko"/"tot"`; `"tot"` kommt nur noch durch den Todeswurf vor). **Achtung Charakter-Modul:** `crew_overview.gd` kennt `"sterbend"` noch nicht (zeigt dann nichts an).
@@ -51,7 +52,11 @@
 
 Reihenfolge-Vorschlag: 3 (Schnittstelle, damit Charakter und Hub weiterbauen können), dann 1, dann 2.
 
+- **16.10.2026, Truppwahl im Briefing erledigt.** `main` (`d0fa909`) eingeholt, ohne Konflikte. Mockup (Artifact „Kampf-UI Mockups“, Reihe „Briefing mit Truppwahl“) vom Nutzer bestätigt: **zwei Spalten** (links Auftrag und Gegner, rechts Kachelraster im Hub-Stil), je Kachel Name, Rolle, TP/PP, **Waffen** (mit Psi-Listen) und Rüstung, Zustand; Gesperrte ausgegraut am Ende (Grund aus `candidates`, auch Arzt der Krankenstation), Angeschlagene orange mit Resttagen und −10; Zähler „n / 6“, Warnung unter 6, Startknopf „Mit n zur Aufstellung“ (bei 0 gesperrt). **Schnellkampf: immer die 6 Startfiguren vorbelegt** (Entscheidung des Nutzers), Figuren aus dem Roster. Übergangslösung `core/squad_pick.gd` wieder entfernt, seit das Charakter-Modul geliefert hat. Außerdem: `--autotest-psi` lief zum ersten Mal (Startmenü leitete ihn nicht weiter; behoben), Psi-Schild über das Kontextmenü wirkt. Tests siehe Fertigmeldung.
+
 ## Aufträge vom Koordinator (16.10.2026)
 
 Verwundung, aktive Figur und Psi sind in `main` (`6162f58`), ebenso der Roster des Charakter-Moduls (`Campaign.squad()`, Zeile in `view/battle.gd`). Dein Branch enthielt den Roster beim Bauen noch nicht – zuerst `main` holen und die Selbsttests laufen lassen (Koordinator hat nur `test_rules`, `test_hub`, `test_sim -- 10` geprüft). Grundlage: `docs/Planung_Roster_Verwundung.md`, Abschnitte D und E.
 1. **Truppwahl im Briefing** (bis 6, letzter Trupp vorbelegt, Gesperrte ausgegraut, Angeschlagene markiert, Warnung bei weniger als 6). Auch beim **Schnellkampf** – dort kommen die Figuren aus dem globalen Roster. Ergebnis → `Campaign.chosen_squad`. Das freigegebene Hub-Mockup („Schiff-Hub Mockup“, Bildschirm Briefing mit Einsatztrupp) ist ein Vorschlag; mit dem Nutzer bestätigen, bevor gebaut wird. Kandidatenliste mit Sperr-Status liefert das Charakter-Modul – Schnittstelle abstimmen; bis dahin mit `Campaign.crew()` bauen.
+
+→ Erledigt (Truppwahl im Briefing, `hub_report()` mit `Campaign.last_fallen`), siehe Stand.

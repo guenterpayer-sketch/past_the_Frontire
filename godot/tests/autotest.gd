@@ -29,7 +29,38 @@ func _run_ai() -> void:
 	for i in 40:
 		await get_tree().process_frame
 	await _screenshot(out + "/00_briefing.png")
-	b.ui.briefing.close()
+	# Anzeige Verwundeter (nur für den Screenshot, danach zurückgesetzt): angeschlagen markiert, schwer verwundet gesperrt
+	var hurt: Character = Campaign.crew()[1]
+	var down: Character = Campaign.crew()[3]
+	hurt.injury = Injury.LIGHT
+	hurt.injury_days = 2
+	down.injury = Injury.SEVERE
+	down.injury_days = 9
+	var cands := Campaign.candidates(false)
+	b.ui.briefing.show_mission(b.mission, cands, Campaign.suggested_squad(cands))
+	for i in 5:
+		await get_tree().process_frame
+	print("Truppwahl verwundet: gesperrt %d, markiert %d, vorbelegt %d, %s gewählt %s" % [
+		cands.filter(func(k: Dictionary) -> bool: return k.locked).size(), cands.filter(func(k: Dictionary) -> bool: return k.marked).size(),
+		b.ui.briefing.selection().size(), down.name, down in b.ui.briefing.selection()])
+	_mouse_click(b.ui.briefing._tiles[down].get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout
+	print("Truppwahl: Klick auf Gesperrte ändert nichts %s" % (not down in b.ui.briefing.selection()))
+	await _screenshot(out + "/00a_trupp_verwundet.png")
+	for c in [hurt, down]:
+		c.injury = Injury.NONE
+		c.injury_days = 0
+	b.ui.briefing.show_mission(b.mission, b.candidates, b.squad)
+	for i in 5:
+		await get_tree().process_frame
+	# Truppwahl: letzte Figur per Klick abwählen, mit 5 in die Aufstellung
+	var last_ch: Character = b.squad[b.squad.size() - 1]
+	_mouse_click(b.ui.briefing._tiles[last_ch].get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout
+	print("Truppwahl: %d gewählt, Knopf „%s“" % [b.ui.briefing.selection().size(), b.ui.briefing._go.text])
+	await _screenshot(out + "/00b_trupp_5.png")
+	await _click_button("Mit 5 zur Aufstellung")
+	print("Truppwahl: Runde 0 mit %d Figuren (erwartet 5), gemerkt %d, Briefing zu %s" % [b.combat.crew().size(), Campaign.chosen_squad.size(), not b.ui.briefing.visible])
 	# Runde 0: erste Figur auf ein anderes Feld im Eingangsbereich stellen (per Mausklick)
 	var crew0: Combatant = b.combat.crew()[0]
 	var zone := b.combat.deploy_tiles()
@@ -50,8 +81,10 @@ func _run_ai() -> void:
 	print("Panel: Blick %d -> %d" % [f0, crew1.facing])
 	await _click_button("Briefing")
 	print("Panel: Briefing offen ", b.ui.briefing.visible)
+	_mouse_click(b.ui.briefing._tiles[last_ch].get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout
 	await _click_button("Zur Aufstellung")
-	print("Panel: Briefing zu ", not b.ui.briefing.visible)
+	print("Panel: Briefing zu %s, Truppwahl: wieder %d Figuren (erwartet 6)" % [not b.ui.briefing.visible, b.combat.crew().size()])
 	await _click_button("Kampf beginnen")
 	print("Panel: Kampf begonnen ", not b.combat.deploying)
 	if b.combat.deploying:
@@ -251,10 +284,12 @@ func _run_psi() -> void:
 	var out := OS.get_environment("PTF_OUT")
 	b.new_battle(4711, "klein", "", false)
 	b.begin_combat()
+	print("Psi: Kampf begonnen")
 	var t0 := Time.get_ticks_msec()
 	while not b.player_turn() and Time.get_ticks_msec() - t0 < 60000:
 		await get_tree().create_timer(0.3).timeout
 	var c := b.combat
+	print("Psi: Spieler am Zug %s nach %d ms" % [b.player_turn(), Time.get_ticks_msec() - t0])
 	var nyx: Combatant = c.crew().filter(func(u: Combatant) -> bool: return u.id == &"nyx")[0]
 	c.turn_idx = c.order.find(nyx)
 	c._begin_turn(nyx)
@@ -289,7 +324,7 @@ func _run_psi() -> void:
 		await get_tree().create_timer(0.4).timeout
 		print("Psi: Kontextmenü offen ", b.ui.context_menu.visible)
 		await _screenshot(out + "/s3_kontextmenue.png")
-		await _click_button("Psi-Schild")
+		await _click_button("Psi-Schild", b.ui.context_menu)
 		while not b.events.is_idle():
 			await get_tree().process_frame
 		await get_tree().create_timer(0.5).timeout
@@ -324,11 +359,12 @@ func _mouse_click(p: Vector2) -> void:
 
 
 ## Sichtbaren Button mit passendem Text suchen und mit der Maus anklicken
-func _click_button(text: String) -> void:
+## root = nur Knöpfe darunter (null = ganze Szene)
+func _click_button(text: String, root: Node = null) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var found: Button = null
-	for n in get_tree().current_scene.find_children("*", "Button", true, false):
+	for n in (root if root else get_tree().current_scene).find_children("*", "Button", true, false):
 		var btn := n as Button
 		if btn.is_visible_in_tree() and btn.text.contains(text):
 			found = btn

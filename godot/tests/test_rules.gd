@@ -638,3 +638,4 @@ func _test_psi() -> void:
 	var entries := pc.context_powers(nyx, hexer)
 	check(entries.any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: Angriffskräfte gegen Gegner")
 	check(not pc.context_powers(nyx, crew[0]).any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: keine Angriffe gegen Verbündete")
+

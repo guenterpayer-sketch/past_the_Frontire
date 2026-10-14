@@ -131,6 +131,11 @@ func _run() -> void:
 	var b := get_tree().current_scene as Battle
 	print("Bodenkampf: %s gegen %s (erwartet %s), Briefing offen %s" % [b.mission.title, b.mission.faction.name,
 		g.sector.faction_of(o2.system).name, b.ui.briefing.visible])
+	var doc := Medbay.doctor(g)
+	var doc_c: Array = b.candidates.filter(func(k: Dictionary) -> bool: return k.ch == doc)
+	print("Truppwahl im Schiff: Arzt %s gesperrt %s (%s), nicht im Trupp %s, Trupp %d, Crew im Kampf %d" % [doc.name if doc else "-",
+		doc_c[0].locked if not doc_c.is_empty() else false, doc_c[0].reason if not doc_c.is_empty() else "-",
+		not doc in b.squad, b.squad.size(), b.combat.crew().size()])
 	await _shot("h8_briefing_aus_schiff")
 	b.ui.briefing.close()
 	b.begin_combat()
@@ -184,7 +189,14 @@ func _run() -> void:
 	print("Schnellkampf-Crew aus dem Roster: %d Figuren (Roster %d)" % [Campaign.crew().size(), GlobalRoster.entries().size()])
 	await _frames(60)
 	var qb := get_tree().current_scene as Battle
+	var start_ids := Roster.start_crew().map(func(c: Character) -> StringName: return c.id)
+	print("Schnellkampf-Truppwahl: %d Kandidaten aus dem Roster (Roster %d), vorbelegt %d, alle Startfiguren %s, Crew im Kampf %d" % [
+		qb.candidates.size(), GlobalRoster.entries().size(), qb.squad.size(),
+		qb.squad.all(func(c: Character) -> bool: return c.id in start_ids), qb.combat.crew().size()])
+	await _shot("h11_schnellkampf_truppwahl")
+	var chosen0 := Campaign.chosen_squad.size()
 	qb.ui.briefing.close()
+	print("Schnellkampf: gewählter Trupp im Spielstand unverändert %s" % (Campaign.chosen_squad.size() == chosen0))
 	qb.begin_combat()
 	for e in qb.combat.enemies():
 		e.state = Combatant.State.DEAD
