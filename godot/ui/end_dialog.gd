@@ -6,6 +6,7 @@ extends Modal
 
 signal next_battle
 signal reset_crew
+signal open_sheet(crew: Array[Combatant], u: Combatant)
 
 const FREE_XP := 3
 
@@ -135,6 +136,9 @@ func _render() -> void:
 		u.free_xp = s.free_xp
 		_render())
 	head.add_child(undo)
+	var sheet := UiTheme.button("Charakterbogen", "Vollständigen Bogen mit den aktuellen Werten öffnen (Eigenschaften, Boni, alle Fertigkeiten)")
+	sheet.pressed.connect(func() -> void: open_sheet.emit(_crew, u))
+	head.add_child(sheet)
 	v.add_child(head)
 	if not u.xp_log.is_empty():
 		var keys := u.xp_log.keys()
@@ -170,7 +174,10 @@ func _attributes(u: Combatant) -> Control:
 	for a in Rules.ATTRIBUTES:
 		var val: int = u.attrs[a.id]
 		var base: int = _snap[u].attrs[a.id] if _snap.has(u) else val
-		g.add_child(UiTheme.label(a.name, 13))
+		var an := UiTheme.label(a.name, 13)
+		an.tooltip_text = "%s zählt für: %s" % [a.name, ", ".join(Rules.skills_using(a.id))]
+		an.mouse_filter = Control.MOUSE_FILTER_PASS
+		g.add_child(an)
 		g.add_child(UiTheme.label(str(val) + ((" (+%d)" % (val - base)) if val > base else ""), 13, UiTheme.GOOD if val > base else UiTheme.TEXT))
 		g.add_child(UiTheme.label(Dice.fmt(Rules.attr_bonus(val)), 13))
 		var nb := Rules.next_bonus_step(val)
@@ -192,7 +199,7 @@ func _skills(u: Combatant) -> Control:
 	var v := VBoxContainer.new()
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var top := HBoxContainer.new()
-	var t := UiTheme.label("Fertigkeiten (Rang kostet 10 + 2 × Rang EP)", 13, UiTheme.MUTED)
+	var t := UiTheme.label("Fertigkeiten (Rang kostet 10 + 2 × Rang EP; freie EP einzahlen mit +1 / +5)", 13, UiTheme.MUTED)
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(t)
 	var all := UiTheme.button("alle zeigen", "Auch Fertigkeiten ohne Rang und EP zeigen (z. B. um sie mit freien EP zu lernen)", true)
@@ -203,9 +210,9 @@ func _skills(u: Combatant) -> Control:
 	top.add_child(all)
 	v.add_child(top)
 	var g := GridContainer.new()
-	g.columns = 5
+	g.columns = 7
 	g.add_theme_constant_override("h_separation", 10)
-	for h in ["Fertigkeit", "Rang", "Gesamt", "EP / Kosten", ""]:
+	for h in ["Fertigkeit", "Eig.", "Rang", "Gesamt", "EP / Kosten", "einzahlen", ""]:
 		g.add_child(UiTheme.label(h, 12, UiTheme.MUTED))
 	var shown := 0
 	for grp in Rules.SKILL_GROUPS:
@@ -217,10 +224,27 @@ func _skills(u: Combatant) -> Control:
 			shown += 1
 			var base_rank: int = _snap[u].skills.get(id, {}).get("rank", 0) if _snap.has(u) else s.rank
 			g.add_child(UiTheme.label(sk[1], 13, UiTheme.GOOD if u.xp_log.has(id) else UiTheme.TEXT))
+			var ab := Rules.attr_bonus(u.attrs[sk[2]]) + Rules.attr_bonus(u.attrs[sk[3]])
+			var el := UiTheme.label("%s+%s %s" % [Rules.attr_short(sk[2]), Rules.attr_short(sk[3]), Dice.fmt(ab)], 12, UiTheme.MUTED)
+			el.tooltip_text = "Eigenschaften: %s %d (%s) + %s %d (%s)" % [sk[2], u.attrs[sk[2]], Dice.fmt(Rules.attr_bonus(u.attrs[sk[2]])), sk[3], u.attrs[sk[3]], Dice.fmt(Rules.attr_bonus(u.attrs[sk[3]]))]
+			el.mouse_filter = Control.MOUSE_FILTER_PASS
+			g.add_child(el)
 			g.add_child(UiTheme.label(str(s.rank) + ((" (+%d)" % (s.rank - base_rank)) if s.rank > base_rank else ""), 13, UiTheme.GOOD if s.rank > base_rank else UiTheme.TEXT))
 			g.add_child(UiTheme.label(Dice.fmt(Rules.skill_total(u, id)), 13))
 			var cost := Rules.rank_cost(s.rank)
 			g.add_child(UiTheme.label("%d / %d" % [s.xp, cost], 13))
+			var dep := HBoxContainer.new()
+			dep.add_theme_constant_override("separation", 4)
+			for n in [1, 5]:
+				var db := UiTheme.button("+%d" % n, "%d freie EP auf %s einzahlen" % [n, sk[1]])
+				db.add_theme_font_size_override("font_size", 12)
+				db.custom_minimum_size.x = 38
+				db.disabled = u.free_xp <= 0
+				db.pressed.connect(func() -> void:
+					Rules.deposit_xp(u, id, n)
+					_render())
+				dep.add_child(db)
+			g.add_child(dep)
 			var missing := maxi(0, cost - s.xp)
 			var b: Button
 			if missing == 0:

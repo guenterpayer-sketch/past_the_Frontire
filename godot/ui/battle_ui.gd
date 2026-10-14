@@ -74,6 +74,9 @@ func _ready() -> void:
 		add_child(d)
 	end_dialog.next_battle.connect(func() -> void: action.emit(&"next_battle", null))
 	end_dialog.reset_crew.connect(func() -> void: action.emit(&"reset_crew", null))
+	end_dialog.open_sheet.connect(func(crew: Array[Combatant], u: Combatant) -> void:
+		sheet.show_sheet(crew, u)
+		sheet.move_to_front())
 	briefing.reroll.connect(func(diff: String) -> void: action.emit(&"reroll", diff))
 	combat_log.set_expanded(Prefs.get_bool("log_open", false))
 	combat_log.toggled.connect(func(on: bool) -> void: Prefs.set_bool("log_open", on))

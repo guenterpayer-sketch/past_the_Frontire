@@ -370,6 +370,7 @@ Kosten für den nächsten Rang = **10 + 2 × aktueller Rang** (Rang 0→1: 10 EP
 **Freie EP (sparen):** Pro Einsatz bekommt jede Figur **3 freie EP**, bei einem Sieg zusätzlich die **Missionsbelohnung** (leicht 2, mittel 3, schwer 5). Freie EP werden pro Figur gesammelt und bleiben gespart, bis sie ausgegeben werden:
 
 - **Rangkauf auffüllen:** Fehlen einer Fertigkeit EP für den nächsten Rang, kommen die fehlenden EP aus den freien EP (Training, Lektüre). So lassen sich auch ungenutzte Fertigkeiten aufbauen.
+- **Einzahlen:** Freie EP lassen sich in Schritten (+1 / +5) auf das Konto einer beliebigen Fertigkeit legen; den Rang kauft man, sobald das Konto reicht.
 - **Eigenschaft steigern:** +1 auf eine Eigenschaft kostet **2 + Wert/10 freie EP** (abgerundet; Wert 50 → 7 EP, 70 → 9 EP, 90 → 11 EP), höchstens bis 100. Ein Punkt wirkt nur, wenn er eine Bonusstufe erreicht (z. B. 71, 81, 91), wirkt dann aber auf alle Fertigkeiten mit dieser Eigenschaft und auf abgeleitete Werte (KON → Trefferpunkte, MEN → Psi-Punkte).
 
 ---

@@ -176,6 +176,33 @@ static func rank_up_with_pool(ch, id: StringName) -> bool:
 	return rank_up(ch, id)
 
 
+## freie EP auf das Konto einer Fertigkeit einzahlen (höchstens so viele, wie da sind); gibt die Menge zurück
+static func deposit_xp(ch, id: StringName, amount: int) -> int:
+	var n := mini(amount, ch.free_xp)
+	if n <= 0:
+		return 0
+	ch.free_xp -= n
+	ensure_skill(ch, id).xp += n
+	return n
+
+
+## Fertigkeiten, in die eine Eigenschaft einfließt (Namen)
+static func skills_using(attr: String) -> PackedStringArray:
+	var out := PackedStringArray()
+	for g in SKILL_GROUPS:
+		for sk in g.skills:
+			if sk[2] == attr or sk[3] == attr:
+				out.append(sk[1])
+	return out
+
+
+static func attr_short(attr: String) -> String:
+	for a in ATTRIBUTES:
+		if a.id == attr:
+			return a.short
+	return attr
+
+
 ## Eigenschaft um 1 steigern, bezahlt aus dem freien Pool: 2 + Wert/10 EP (50 → 7 EP, 90 → 11 EP), höchstens 100
 const ATTR_MAX := 100
 

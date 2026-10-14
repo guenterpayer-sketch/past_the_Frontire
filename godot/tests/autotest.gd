@@ -93,6 +93,12 @@ func _run_ai() -> void:
 	print("KON %d -> %d, freie EP jetzt %d" % [kon_before, cu.attrs.KON, cu.free_xp])
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04b_uebersicht.png")
+	await _click_button("+5")
+	print("Eingezahlt: freie EP jetzt %d" % cu.free_xp)
+	await _click_button("Charakterbogen")
+	print("Bogen über Übersicht offen: ", b.ui.sheet.visible and b.ui.end_dialog.visible)
+	await _screenshot(out + "/04d_bogen_ueber_uebersicht.png")
+	b.ui.sheet.close()
 	ed.page(2)
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04c_uebersicht_seite3.png")

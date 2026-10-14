@@ -241,6 +241,10 @@ func _test_progress() -> void:
 	check(not Rules.rank_up_with_pool(u, &"kochen"), "6 + 3 EP reichen nicht für 10")
 	u.free_xp = 5
 	check(Rules.rank_up_with_pool(u, &"kochen") and s.rank == 1 and s.xp == 0 and u.free_xp == 1, "fehlende 4 EP aus dem Pool")
+	u.free_xp = 3
+	check(Rules.deposit_xp(u, &"navigation", 5) == 3 and u.free_xp == 0 and u.skills[&"navigation"].xp == 3, "Einzahlen höchstens so viel wie da")
+	check(Rules.deposit_xp(u, &"navigation", 1) == 0, "ohne freie EP kein Einzahlen")
+	u.free_xp = 1
 	check(Rules.next_bonus_step(70) == 71 and Rules.next_bonus_step(50) == 71, "nächste Bonusstufe")
 	var crew: Array[Combatant] = [u]
 	var backup := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
