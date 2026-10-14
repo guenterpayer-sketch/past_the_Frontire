@@ -35,7 +35,17 @@
 2. **Krankenstation** (Abschnitt B, Teil Hub): Verwundete und Resttage anzeigen, Tage vergehen beim Reisen/Einsatz → Heilung (Funktion vom Charakter-Modul), vor dem Einsatz Gesperrte nicht mitnehmen, leicht Verletzte mit Malus. **Tage-Werte vorschlagen** (anhand typischer Reise- und Auftragsdauer) und vom Nutzer entscheiden lassen.
 3. Rückzug im Bericht: weiter offen (nur nach Entscheidung des Nutzers).
 
-### Entscheidungen des Nutzers zum Spieltest-Auftrag (15.10.2026, im Hub-Chat)
+### Gültig: Klärung Hub ⇄ Charakter (`docs/Planung_Roster_Verwundung.md`, Abschnitt D)
+
+Ersetzt abweichende Einträge weiter unten:
+- **Neues Spiel:** Der Hub ruft den **`CrewPicker` des Charakter-Moduls** auf (1 bis 8 Figuren) und baut keine eigene Auswahl. Mockup-Bildschirm „6 Neues Spiel“ entfällt.
+- **Roster im Startmenü:** Punkt „Roster“ → `Campaign.ROSTER_SCENE`.
+- **Anheuern:** nur im Hafen (neutrale Systeme) auf der Brücke, bei freiem Platz; Funktion `Campaign.hire()` vom Charakter-Modul, Hafen-Bedingung und UI vom Hub.
+- **Entlassen:** Liste „im Hafen“ gehört zu `Campaign` (mit der Crew gespeichert); der Hub zeigt sie im Hafen an. Entlassen-Knopf in den Crewquartieren (Charakter-Modul).
+- **Einsatztrupp:** wählt der **Bodenkampf im Briefing** (auch beim Schnellkampf), Ergebnis `Campaign.chosen_squad`; der Hub liefert die Arzt-Zuweisung (Arzt gesperrt).
+- **Offen:** Im Hub-Chat hatte der Nutzer für den Schnellkampf „6 aus dem Roster wählen“ entschieden; Abschnitt D sagt nur „Truppwahl im Briefing auch beim Schnellkampf“. Woher die Figuren beim Schnellkampf kommen (Roster oder Crew des Spielstands), ist damit noch nicht eindeutig.
+
+### Entscheidungen des Nutzers zum Spieltest-Auftrag (15.10.2026, im Hub-Chat) – teilweise ersetzt durch Abschnitt D
 
 **Heilung (Abschnitt B):**
 - Grundtage je Stufe („mittel“): angeschlagen **2**, kampfunfähig **5**, schwer verwundet **10** Tage. Zuschlag für den schwersten erlittenen Kritischen: A **+0**, B **+1**, C **+2**, D **+3**, E **+4**. (Grundlage: ein Einsatz-Zyklus – zum nächsten Auftrag fliegen + 1 Tag Einsatz – dauert im Schnitt 2,5 Tage, gemessen über 100 simulierte Spiele; eine Route zwischen zwei Systemen Ø 3,7 Tage, ein Sprung Ø 1,65.) → Stufe und Tage berechnet das Charakter-Modul in `Campaign.finish_mission()`.
