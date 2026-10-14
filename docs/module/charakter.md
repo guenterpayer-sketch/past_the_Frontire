@@ -36,3 +36,13 @@
 1. **Globaler Roster** (Abschnitt A): 6 Startcharaktere + selbst erstellte Figuren, unabhängig von Spielständen. Neues Spiel = Crew aus dem Roster wählen (Kopien), 6 im Einsatz + Reserve (Plätze vom Hub, zu Beginn 8). Im Spiel kein Editor mehr, sondern Anheuern aus dem Roster. Offene Punkte aus Abschnitt A mit dem Nutzer klären, Roster-Bildschirm und Auswahl erst als **Mockup** (mit dem Hub abstimmen: Startmenü).
 2. **Verwundung** (Abschnitt B, Teil Charakter): `Character` speichert Verwundung (Stufe, Resttage) und Tod; `Campaign.finish_mission()` wertet die neuen `MissionResult`-Felder aus (kommen vom Bodenkampf); Funktion für „Tage vergehen“ für den Hub; Charakterübersicht zeigt den Zustand.
 3. **Psi im Kampf:** Der Bodenkampf braucht die gelernten Listen und Ränge aus `Character`; Schnittstelle mit ihm abstimmen.
+
+### Entscheidungen zu Abschnitt A (Roster), 15.10.2026
+
+- Startmenü bekommt einen eigenen Punkt **„Roster“** (ansehen, erschaffen, bearbeiten); „Neues Spiel“ führt danach zur **Crew-Auswahl aus dem Roster** (dort auch „Neue Figur“ → Roster).
+- Roster: eigene Figuren **bearbeiten** (nur Name, Kürzel, Farbe, Aussehen – Werte fest), **löschen** (mit Abfrage), **kopieren** (exakte Kopie unter neuem Namen, auch von Startcharakteren); die 6 **Startcharaktere sind schreibgeschützt**.
+- Neues Spiel: **1 bis 8** Figuren wählen (Plätze an Bord zu Beginn 8); jede Roster-Figur **höchstens einmal** pro Spiel.
+- Im Spiel: Crewquartiere bekommen **„Anheuern“** (Roster-Figuren, die nicht an Bord sind; nur bei freiem Platz; Kopie mit Roster-Stand) und **„Entlassen“** (Fortschritt im Spiel geht verloren, Roster-Eintrag bleibt). Kein Editor mehr im Spiel.
+- **Einsatztrupp vor jedem Einsatz wählen** (bis zu 6, Gesperrte ausgegraut) – im Briefing des Hubs.
+- Mockup: Artifact „Frontire Roster“ (https://claude.ai/artifact/2jBTihVzLwRHSbuA7VwpJh), wartet auf Freigabe durch den Nutzer und Abstimmung mit dem Hub (Startmenü, Briefing, Plätze an Bord).
+
