@@ -12,16 +12,23 @@
 - `CrewOverview.show_crew(crew: Array[Character], result)` in `crew.tscn` (ersetzt `ui/end_dialog.gd`), Signale `next_battle`, `reset_crew`, `create_member`, `open_sheet`.
 - `CharacterEditor.open_new(crew, replace_idx)`, Signal `saved(ch, replace)`; Regeln in `Creation` (`core/creation.gd`), Psi-Listen in `PsiLists` (`core/psi_lists.gd`).
 - Neu (nur Erweiterungen, keine Änderung bestehender Aufrufe): `Character.new_list` (in dieser Levelphase begonnene Psi-Liste, wird in `apply_result` geleert, gespeichert), `Rules.next_rank_cost(ch, id)`, `Rules.rank_block(ch, id)`, `Rules.is_psi_list(id)`; `Rules.rank_up`/`rank_up_cost`/`can_rank_up` rechnen damit (neue Liste doppelt, eine pro Phase). `FigurePreview` (`ui/crew/figure_preview.gd`): 3D-Vorschau einer Figur.
+- **Roster (neu):** `GlobalRoster` (`core/global_roster.gd`, `user://roster.json`, gehört keinem Spielstand): `entries()`, `own()`, `find(id)`, `is_protected(ch)`, `add(ch)`, `update(ch)` (nur Name/Kürzel/Farbe/Aussehen), `remove(id)`, `copy(ch, name)`. `Character.roster_id` = Herkunft im Roster (wird gespeichert).
+- **Campaign (neu):** `new_game(picked: Array[Character])` (Crew aus Roster-Kopien), `hire(entry)` (null, wenn schon an Bord), `fire(ch)`, `is_aboard(roster_id)`, `squad()` (Figuren für den Einsatz: `chosen_squad` oder die ersten 6), `chosen_squad` (vom Hub vor dem Einsatz zu setzen), `START_SEATS = 8`, `MAX_SQUAD = 6`, `ROSTER_SCENE`.
+- **UI (neu):** `roster.tscn` (`RosterScreen`, „Zurück“ → `res://start.tscn`), `CrewPicker` (`open_pick(subtitle, seats)`, Signal `picked(chars)`), `CrewOverview.seats` und Signal `crew_changed` (nach Anheuern/Entlassen; die Übersicht baut sich dabei neu auf – eigene Knopftexte des Aufrufers danach neu setzen). „Neues Crewmitglied“ ist aus der Übersicht entfernt; das Signal `create_member` bleibt bestehen, wird aber nicht mehr gesendet. `CharacterEditor.open_for_roster()`.
+- **Geändert in `view/battle.gd` (Bodenkampf, eine Zeile):** der Kampf nimmt `Roster.build_crew(Campaign.squad())` statt der ganzen Crew (sonst kämen bis zu 8 Figuren in den Kampf).
 - `ui/modal.gd`: neue Variable `closable` (false = Klick daneben und Esc schließen nicht).
 - **Regeländerungen in `Rules`** (wirken auf alle Figuren, auch Gegner): neue Fertigkeitsgruppen „Entwicklung“ (`koerper`, `psiPunkte`) und „Psi-Listen“; TP = 15 + KON/3 + 5 × Körperentwicklung; PP = MEN/10 + MEN-Bonus/2 + 2 × Psi-Punkte-Entwicklung, nur mit Rang in einer Psi-Fertigkeit oder Liste (`Rules.PSI_SKILLS`).
 
 ## Stand (15.10.2026)
 
-- Branch enthält `main` (`1cf8d86`, mit Hub); Konflikt nur in `CLAUDE.md`, gelöst. **Bereit zum Zusammenführen.**
-- Neu: **Aufleveln** in der Charakterübersicht (Mockup „Frontire Aufleveln“ vom Nutzer freigegeben): drehende 3D-Vorschau, Name/Kürzel/Farbe/Station/Aussehen änderbar, Psi-Kräfte, keine Ranggrenze, neue Psi-Liste: erster Rang doppelt, eine pro Levelphase (`docs/Skillsystem.md` 8).
-- Schnittstellen unverändert: `CrewOverview.show_crew(crew, result)`, Signale, `current()`, `footer` – die Crewquartiere des Hubs funktionieren damit (geprüft mit `--autotest-hub`).
-- Tests nach dem Merge: `test_rules` OK, `test_hub` OK, `test_sim -- 30` 22 Siege / 0 hängengeblieben, `--autotest`, `--autotest-player`, `--autotest-hub` laufen durch.
-- Noch nicht gebaut: Psi-Listen im Kampf.
+- Roster gebaut nach Mockup „Frontire Roster“ (vom Nutzer freigegeben): Roster-Bildschirm, Crew-Auswahl, Anheuern/Entlassen, Trupp über `Campaign.squad()`. Tests in `test_rules.gd` (`_test_roster`).
+- **Für den Hub zum Anbinden** (seine Dateien, daher nicht von mir geändert):
+  1. Startmenü: Punkt „Roster“ → `get_tree().change_scene_to_file(Campaign.ROSTER_SCENE)`.
+  2. „Neues Spiel“: nach Slot und Name `CrewPicker.open_pick("Spielstand … · Slot …", seats)` öffnen; bei `picked(chars)` statt `Campaign.reset()` → `Campaign.new_game(chars)`, dann wie bisher `HubState.new_game(…)` und speichern.
+  3. Crewquartiere: `ui.crew.seats` aus den Plätzen an Bord setzen; `crew_changed` → Knopftext „Speichern & zurück“ erneut setzen; Verbindung zu `create_member` und den Editor in den Crewquartieren entfernen.
+  4. Briefing/Truppwahl: vor dem Start `Campaign.chosen_squad` setzen (bis 6; Gesperrte kommen mit Auftrag 2 Verwundung).
+  5. Spielstände: `user://roster.json` gehört **nicht** in die Slots.
+- Verwundung (Auftrag 2) wartet auf die `MissionResult`-Felder vom Bodenkampf.
 
 ## Aufträge vom Koordinator
 

@@ -6,6 +6,8 @@ extends RefCounted
 ## (MissionResult), das apply_result verbucht.
 
 var id: StringName
+## Herkunft im globalen Roster (GlobalRoster); Kopien im Spiel behalten sie, damit niemand doppelt an Bord kommt
+var roster_id: StringName
 var name := ""
 var letter := ""
 var role := ""
@@ -37,6 +39,7 @@ var xp_log := {}
 static func from_unit(d: UnitData) -> Character:
 	var c := Character.new()
 	c.id = d.id
+	c.roster_id = d.id
 	c.name = d.name
 	c.letter = d.letter
 	c.role = d.role
@@ -89,7 +92,7 @@ func to_dict() -> Dictionary:
 	for k in skills:
 		sk[String(k)] = {"rank": int(skills[k].rank), "xp": int(skills[k].xp)}
 	return {
-		"id": String(id), "name": name, "letter": letter, "role": role, "color": color.to_html(false),
+		"id": String(id), "roster_id": String(roster_id), "name": name, "letter": letter, "role": role, "color": color.to_html(false),
 		"attrs": attrs.duplicate(), "skills": sk, "free_xp": free_xp,
 		"weapons": weapons.map(func(w: WeaponData) -> String: return w.resource_path),
 		"armor": armor.resource_path if armor else "", "shield": shield, "medkits": medkits,
@@ -101,6 +104,7 @@ func to_dict() -> Dictionary:
 static func from_dict(d: Dictionary) -> Character:
 	var c := Character.new()
 	c.id = StringName(d.get("id", ""))
+	c.roster_id = StringName(d.get("roster_id", d.get("id", "")))
 	c.name = d.get("name", "")
 	c.letter = d.get("letter", "")
 	c.role = d.get("role", "")

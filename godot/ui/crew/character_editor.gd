@@ -2,7 +2,8 @@ class_name CharacterEditor
 extends Modal
 ## Charakter-Modul: neues Crewmitglied erschaffen (Regeln: Creation, docs/Skillsystem.md 7a).
 ## 7 Würfe frei auf die Eigenschaften legen, Fertigkeitspunkte verteilen, Station, Aussehen und Ausrüstung wählen.
-## Übernehmen als neues Mitglied (wenn Platz ist) oder als Ersatz für ein vorhandenes.
+## Im Roster (open_for_roster): neue Figur für den globalen Roster. Im Spiel (open_new, nur noch für alte Aufrufe):
+## als neues Mitglied (wenn Platz ist) oder als Ersatz für ein vorhandenes.
 
 signal saved(ch: Character, replace: Character)
 
@@ -14,6 +15,7 @@ var _ch: Character
 var _pool: Array[int] = []
 var _assign := {}          # Eigenschaft -> Index im Wurf
 var _target := -1          # -1 = neues Mitglied, sonst Index des ersetzten Mitglieds
+var _for_roster := false
 var _left: VBoxContainer
 var _right: VBoxContainer
 var _points: Label
@@ -23,12 +25,18 @@ var _armors: Array[ArmorData] = []
 var _visuals: Array[CharacterVisual] = []
 
 
+## Neue Figur für den globalen Roster erschaffen; saved(ch, null) liefert sie (noch nicht gespeichert)
+func open_for_roster() -> void:
+	open_new([], 0, true)
+
+
 ## Editor für ein neues Crewmitglied öffnen; replace_idx = vorgeschlagenes Mitglied zum Ersetzen (bei voller Crew)
-func open_new(crew: Array[Character], replace_idx := 0) -> void:
+func open_new(crew: Array[Character], replace_idx := 0, for_roster := false) -> void:
 	_crew = crew
+	_for_roster = for_roster
 	_load_choices()
 	_ch = Character.new()
-	_ch.name = "Neues Crewmitglied"
+	_ch.name = "Neue Figur" if for_roster else "Neues Crewmitglied"
 	_ch.letter = "N"
 	_ch.color = COLORS[crew.size() % COLORS.size()]
 	_ch.medkits = 3
@@ -39,7 +47,7 @@ func open_new(crew: Array[Character], replace_idx := 0) -> void:
 	_ch.visual = human[0] if not human.is_empty() else (_visuals[0] if not _visuals.is_empty() else null)
 	_target = -1 if crew.size() < MAX_CREW else clampi(replace_idx, 0, crew.size() - 1)
 	_reroll()
-	open("Neues Crewmitglied erschaffen")
+	open("Neue Figur für den Roster erschaffen" if for_roster else "Neues Crewmitglied erschaffen")
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 24)
 	content.add_child(cols)
@@ -60,7 +68,10 @@ func open_new(crew: Array[Character], replace_idx := 0) -> void:
 	target.select(target.get_item_index(_target + 1))
 	target.item_selected.connect(func(idx: int) -> void: _target = target.get_item_id(idx) - 1)
 	target.tooltip_text = "Die Crew hat höchstens %d Mitglieder" % MAX_CREW
-	footer.add_child(target)
+	if not for_roster:
+		footer.add_child(target)
+	else:
+		target.free()
 	add_close("Abbrechen")
 	_save = UiTheme.button("Übernehmen")
 	_save.add_theme_color_override("font_color", UiTheme.ACCENT)
@@ -321,7 +332,7 @@ func _finish() -> void:
 	_ch.name = _ch.name.strip_edges()
 	if _ch.letter == "":
 		_ch.letter = _ch.name.left(1).to_upper()
-	_ch.id = _unique_id(_ch.name)
+	_ch.id = GlobalRoster.unique_id(_ch.name) if _for_roster else _unique_id(_ch.name)
 	if _ch.role == "":
 		_ch.role = _ch.station if _ch.station != "" else "Crew"
 	var replace: Character = _crew[_target] if _target >= 0 else null

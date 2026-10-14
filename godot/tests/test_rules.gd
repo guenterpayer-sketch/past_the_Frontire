@@ -25,6 +25,7 @@ func _init() -> void:
 	_test_mission_result()
 	_test_creation()
 	_test_leveling()
+	_test_roster()
 	_test_deploy()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -377,6 +378,51 @@ func _test_leveling() -> void:
 	check(Rules.skill_rank(ch, &"psiAngriff") == r + 6, "keine Ranggrenze beim Aufleveln")
 	var d := Character.from_dict(ch.to_dict())
 	check(d.new_list == ch.new_list and d.station == ch.station, "new_list und Station gespeichert")
+
+
+## Globaler Roster und Crew im Spiel (Kopien, Anheuern, Entlassen, Trupp)
+func _test_roster() -> void:
+	var files := [GlobalRoster.PATH, Roster.PATH]
+	var backup := {}
+	for p in files:
+		backup[p] = FileAccess.get_file_as_string(p) if FileAccess.file_exists(p) else null
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	check(GlobalRoster.entries().size() == 6 and GlobalRoster.own().is_empty(), "Roster: 6 Startcharaktere")
+	var vela := GlobalRoster.entries()[0]
+	check(GlobalRoster.is_protected(vela) and not GlobalRoster.update(vela), "Startcharaktere schreibgeschützt")
+	var cp := GlobalRoster.copy(vela, "Vela (Kopie)")
+	check(GlobalRoster.own().size() == 1 and cp.id != vela.id and not GlobalRoster.is_protected(cp) and cp.attrs == vela.attrs, "Kopie als eigene Figur")
+	cp.name = "Velina"
+	cp.attrs.STA = 1
+	check(GlobalRoster.update(cp) and GlobalRoster.find(cp.id).name == "Velina" and GlobalRoster.find(cp.id).attrs.STA == vela.attrs.STA, "Bearbeiten: nur Name/Aussehen, Werte fest")
+	var picked: Array[Character] = [vela, GlobalRoster.find(cp.id)]
+	Campaign.new_game(picked)
+	check(Campaign.crew().size() == 2 and Campaign.crew()[1].roster_id == cp.id and Campaign.is_aboard(vela.roster_id), "neues Spiel mit 2 Figuren")
+	Campaign.crew()[0].free_xp = 50
+	check(GlobalRoster.find(vela.id).free_xp == 0, "Fortschritt im Spiel fließt nicht in den Roster")
+	check(Campaign.hire(vela) == null, "Roster-Figur höchstens einmal an Bord")
+	for c in GlobalRoster.entries().slice(1, 6):
+		Campaign.hire(c)
+	check(Campaign.crew().size() == 7 and Campaign.squad().size() == 6, "7 an Bord, Trupp höchstens 6")
+	var chosen: Array[Character] = [Campaign.crew()[6], Campaign.crew()[2]]
+	Campaign.chosen_squad = chosen
+	check(Campaign.squad().size() == 2 and Campaign.squad()[0] == Campaign.crew()[6], "gewählter Trupp")
+	var gone := Campaign.crew()[6]
+	Campaign.fire(gone)
+	check(Campaign.crew().size() == 6 and not Campaign.squad().has(gone) and GlobalRoster.find(cp.id) != null, "Entlassen: Roster-Eintrag bleibt")
+	Campaign.reload()
+	check(Campaign.crew().size() == 6 and Campaign.crew()[0].free_xp == 50, "Crew gespeichert")
+	check(GlobalRoster.remove(cp.id) and GlobalRoster.own().is_empty() and not GlobalRoster.remove(vela.id), "eigene löschen, Startcharakter nicht")
+	Campaign.chosen_squad = []
+	for p in files:
+		if backup[p] != null:
+			var f := FileAccess.open(p, FileAccess.WRITE)
+			f.store_string(backup[p])
+			f.close()
+		elif FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	Campaign.reload()
 
 
 ## Runde 0: Aufstellung nur im Eingangsbereich, Tauschen, danach gesperrt
