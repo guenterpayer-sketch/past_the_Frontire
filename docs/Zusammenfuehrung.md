@@ -39,4 +39,5 @@ Die Brüche zwischen Charakter-Modul und Hub (doppelte Charakterübersicht, alte
 
 - **Rückzug im Schiffsbericht:** `MissionResult` liefert beim Rückzug `outcome = niederlage`; der Bericht zeigt „Niederlage (Rückzug)“. Ob der Hub eine eigene Anzeige dafür bekommt, ist offen.
 
-- **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). Soll die Krankenstation im Schiff das übernehmen, und was passiert bei Tod? Vom Nutzer als späteres eigenes Thema zurückgestellt.
+- **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). → Entschieden am 15.10.2026: siehe `docs/Planung_Roster_Verwundung.md` (Verwundung statt Tod, Krankenstation in Spieltagen).
+- **Nach dem ersten Spieltest (15.10.2026):** Roster und Crew-Auswahl, Verwundung statt Tod, Psi im Kampf, aktive Figur sichtbar – Entscheidungen und Aufträge in `docs/Planung_Roster_Verwundung.md` und den Moduldateien.

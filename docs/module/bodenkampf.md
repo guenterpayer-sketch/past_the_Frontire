@@ -33,3 +33,11 @@
   2. **Inhaltlich, ohne Git-Konflikt:** In `main` hat `Battle.finish_mission()` vorne einen Zweig für den Schnellkampf aus dem Startmenü (`HubState.quick_battle`: nichts verbuchen, Meldung im Kampflog, nach 2,5 s zurück ins Startmenü). Nach dem Zusammenführen kehrt dieser Zweig vor dem Ergebnis-Banner zurück, der Schnellkampf zeigt also kein Banner. **Entscheidung des Nutzers: so lassen** (kein Banner beim Schnellkampf; Kampflog-Zeile und nach 2,5 s zurück ins Startmenü). Der Zweig aus `main` bleibt beim Zusammenführen also vor dem Banner.
   3. Danach Tests inkl. `--autotest-hub` (Schnellkampf-Teil, `HubState.quick_battle = true`) und als bereit melden.
 - ~~Probe-Konflikt `godot/README.md`, Schnellkampf-Zweig~~ → gelöst, in `main` seit 15.10.2026 (`1dc3362`).
+
+### Nach dem Spieltest (15.10.2026) – Grundlage: `docs/Planung_Roster_Verwundung.md`
+
+1. **Aktive Figur sichtbar machen.** Im Kampf ist schwer zu erkennen, wer am Zug ist. Erst ein **Mockup** (2–3 Varianten) zeigen, Nutzer wählt, dann bauen.
+2. **Psi im Kampf.** Eine im Editor erstellte Psi-Figur kann keine Kraft wählen (nur Pistole). Psi-Kräfte aus den gelernten Listen (`core/psi_lists.gd`, Rang = höchste Stufe, Kosten = Stufe PP) im Kampf auswählbar machen. Vorher mit dem Nutzer klären: welche Kräfte zuerst, wie die Auswahl im Aktionsfeld aussieht (Mockup). Schnittstelle zum Charakter-Modul (Listen und Ränge kommen aus `Character`) in beiden Moduldateien vermerken.
+3. **Verwundung statt Tod (Teil Kampf).** Siehe Planung, Abschnitt B: „tot“ wird zu „sterbend“ (kampfunfähig, Erste Hilfe möglich); nur wenn die ganze Crew fällt, stirbt jede sterbende Figur mit 10 %. `MissionResult` um `worst_crit`, `dying`, `died` erweitern (Vorschlag). Gilt nur für die Crew; ob Gegner weiter sterben, mit dem Nutzer klären.
+
+Reihenfolge-Vorschlag: 3 (Schnittstelle, damit Charakter und Hub weiterbauen können), dann 1, dann 2.

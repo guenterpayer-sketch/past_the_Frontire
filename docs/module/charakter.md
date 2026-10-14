@@ -30,3 +30,9 @@
 - In `main` seit 14.10.2026 (`cf5ad7e`). Hub ist seit 15.10.2026 in `main` (`012efdf`) und nutzt `Campaign`, `CrewOverview`, `CharacterEditor`, `SheetDialog` direkt in den Crewquartieren: `main` holen; Änderungen an diesen Schnittstellen vorher in dieser Datei ankündigen.
 - Hub `df91246` ist in `main`: blendet im Schiff „Crew zurücksetzen“ aus, indem er in `footer` nach dem Knopftext sucht. Knopftexte „Crew zurücksetzen“ und „Speichern & nächste Mission“ nicht ändern, ohne das hier anzukündigen. `main` holen.
 - Bodenkampf `381fb01` ist in `main` (Ergebnis-Banner vor dem Wechsel nach `crew.tscn`): `main` holen.
+
+### Nach dem Spieltest (15.10.2026) – Grundlage: `docs/Planung_Roster_Verwundung.md`
+
+1. **Globaler Roster** (Abschnitt A): 6 Startcharaktere + selbst erstellte Figuren, unabhängig von Spielständen. Neues Spiel = Crew aus dem Roster wählen (Kopien), 6 im Einsatz + Reserve (Plätze vom Hub, zu Beginn 8). Im Spiel kein Editor mehr, sondern Anheuern aus dem Roster. Offene Punkte aus Abschnitt A mit dem Nutzer klären, Roster-Bildschirm und Auswahl erst als **Mockup** (mit dem Hub abstimmen: Startmenü).
+2. **Verwundung** (Abschnitt B, Teil Charakter): `Character` speichert Verwundung (Stufe, Resttage) und Tod; `Campaign.finish_mission()` wertet die neuen `MissionResult`-Felder aus (kommen vom Bodenkampf); Funktion für „Tage vergehen“ für den Hub; Charakterübersicht zeigt den Zustand.
+3. **Psi im Kampf:** Der Bodenkampf braucht die gelernten Listen und Ränge aus `Character`; Schnittstelle mit ihm abstimmen.
