@@ -28,10 +28,6 @@ func _ready() -> void:
 		Campaign.save()
 		ui.crew.hide()
 		_refresh())
-	ui.crew.reset_crew.connect(func() -> void:
-		Campaign.reset()
-		Campaign.save()
-		ui.show_crew())
 	ui.crew.create_member.connect(func() -> void:
 		ui.editor.open_new(Campaign.crew(), Campaign.crew().find(ui.crew.current()))
 		ui.editor.move_to_front())
