@@ -53,3 +53,12 @@
 - **Einsatztrupp vor jedem Einsatz wählen** (bis zu 6, Gesperrte ausgegraut) – im Briefing des Hubs.
 - Mockup: Artifact „Frontire Roster“ (https://claude.ai/artifact/2jBTihVzLwRHSbuA7VwpJh), wartet auf Freigabe durch den Nutzer und Abstimmung mit dem Hub (Startmenü, Briefing, Plätze an Bord).
 
+### Auftrag vom Koordinator (15.10.2026, nach Merge `f81e9fd`)
+
+Roster ist in `main`. **Klärung aus `docs/Planung_Roster_Verwundung.md`, Abschnitt D, umsetzen** (ersetzt die abweichenden Einträge oben unter „Entscheidungen zu Abschnitt A“):
+1. „Anheuern“ aus den Crewquartieren entfernen – Anheuern findet auf der Brücke nur im Hafen statt (Oberfläche baut der Hub, er nutzt `Campaign.hire()`).
+2. Entlassen: Fortschritt bleibt im Spielstand; entlassene Figuren in einer Liste in `Campaign` („im Hafen“), mit der Crew gespeichert, in diesem Spiel wieder anheuerbar (`hire` aus dieser Liste mit ihrem Stand). Text im Entlassen-Dialog anpassen.
+3. `Campaign.chosen_squad` merken und speichern (letzter Trupp wird im Briefing vorbelegt); Sperr-Status je Figur für die Truppwahl bereitstellen (kommt mit der Verwundung).
+4. Moduldatei an D anpassen; Widerspruch „Mockup freigegeben“ / „wartet auf Freigabe“ klären.
+Danach Verwundung (Auftrag 2), sobald der Bodenkampf mit den `MissionResult`-Feldern in `main` ist.
+
