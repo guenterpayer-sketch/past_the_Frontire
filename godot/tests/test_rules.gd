@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_creation()
 	_test_leveling()
 	_test_roster()
+	_test_injury()
 	_test_deploy()
 	_test_dying()
 	_test_psi()
@@ -414,10 +415,71 @@ func _test_roster() -> void:
 	var gone := Campaign.crew()[6]
 	Campaign.fire(gone)
 	check(Campaign.crew().size() == 6 and not Campaign.squad().has(gone) and GlobalRoster.find(cp.id) != null, "Entlassen: Roster-Eintrag bleibt")
+	gone.free_xp = 33
+	check(Campaign.harbor().has(gone) and not Campaign.is_aboard(gone.roster_id), "Entlassene warten im Hafen")
+	var back := Campaign.hire(GlobalRoster.find(gone.roster_id))
+	check(back == gone and back.free_xp == 33 and Campaign.harbor().is_empty(), "aus dem Hafen mit Fortschritt zurück")
+	Campaign.fire(back)
+	Campaign.set_squad([Campaign.crew()[3]])
 	Campaign.reload()
 	check(Campaign.crew().size() == 6 and Campaign.crew()[0].free_xp == 50, "Crew gespeichert")
+	check(Campaign.harbor().size() == 1 and Campaign.chosen_squad.size() == 1 and Campaign.chosen_squad[0] == Campaign.crew()[3], "Hafen und Trupp gespeichert")
 	check(GlobalRoster.remove(cp.id) and GlobalRoster.own().is_empty() and not GlobalRoster.remove(vela.id), "eigene löschen, Startcharakter nicht")
 	Campaign.chosen_squad = []
+	for p in files:
+		if backup[p] != null:
+			var f := FileAccess.open(p, FileAccess.WRITE)
+			f.store_string(backup[p])
+			f.close()
+		elif FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+	Campaign.reload()
+
+
+## Verwundung: Stufe und Tage aus dem MissionResult, Heilung, Tote, Sperre, Kandidaten
+func _test_injury() -> void:
+	var r := func(state: String, hp: int, crit := "", dying := false, stab := false) -> Dictionary:
+		return {"xp": {}, "free_xp": 0, "status": {"state": state, "hp": hp, "max_hp": 40}, "worst_crit": crit, "dying": dying, "stabilized": stab, "died": false}
+	check(Injury.from_result(r.call("ok", 30)).stage == "", "unverletzt")
+	check(Injury.from_result(r.call("ok", 15)) == {"stage": Injury.LIGHT, "days": 2}, "angeschlagen: TP unter Hälfte, 2 Tage")
+	check(Injury.from_result(r.call("ok", 30, "D")) == {"stage": Injury.LIGHT, "days": 5}, "Kritischer D im Stehen: angeschlagen + 3")
+	check(Injury.from_result(r.call("ko", -2, "B")) == {"stage": Injury.DOWN, "days": 6}, "bewusstlos: kampfunfähig 5 + 1")
+	check(Injury.from_result(r.call("sterbend", -9, "E", true)) == {"stage": Injury.SEVERE, "days": 14}, "sterbend: schwer verwundet 10 + 4")
+	check(Injury.from_result(r.call("sterbend", -9, "", false, true)).stage == Injury.SEVERE, "stabilisiert: schwer verwundet")
+	check(Injury.combine(Injury.SEVERE, 3, {"stage": Injury.LIGHT, "days": 2}) == {"stage": Injury.SEVERE, "days": 5}, "erneut: schlimmere Stufe, Tage addiert")
+	var files := [GlobalRoster.PATH, Roster.PATH]
+	var backup := {}
+	for p in files:
+		backup[p] = FileAccess.get_file_as_string(p) if FileAccess.file_exists(p) else null
+	Campaign.new_game(GlobalRoster.entries())
+	var cr := Campaign.crew()
+	var res := {"outcome": &"niederlage", "mission": "", "rounds": 3, "reward_xp": 0, "units": {
+		cr[0].id: r.call("ok", 15), cr[1].id: r.call("ko", -1), cr[2].id: r.call("sterbend", -9, "C", true),
+		cr[3].id: r.call("ok", 40)}}
+	res.units[cr[4].id] = r.call("sterbend", -9)
+	res.units[cr[4].id].died = true
+	var dead := cr[4]
+	Campaign.finish_mission(res)
+	check(Campaign.crew().size() == 5 and not Campaign.crew().has(dead) and Campaign.last_fallen == [dead] and GlobalRoster.find(dead.roster_id) != null, "Tote verlassen die Crew, Roster-Eintrag bleibt")
+	check(cr[0].injury == Injury.LIGHT and cr[1].injury == Injury.DOWN and cr[2].injury == Injury.SEVERE and cr[2].injury_days == 12 and cr[3].injury == "", "Stufen nach dem Einsatz")
+	check(Combatant.from_character(cr[0], &"crew").malus == Injury.LIGHT_MALUS, "angeschlagen: Malus im Kampf")
+	check(not Campaign.squad().has(cr[1]) and not Campaign.squad().has(cr[2]) and Campaign.squad().has(cr[0]), "Gesperrte nicht im Trupp")
+	var cands := Campaign.candidates(false, [cr[3].id])
+	var by := {}
+	for k in cands:
+		by[k.ch] = k
+	check(by[cr[1]].locked and by[cr[2]].locked and by[cr[3]].locked and by[cr[3]].reason.begins_with("Arzt") and not by[cr[0]].locked and by[cr[0]].marked, "Kandidaten mit Sperre und Markierung")
+	var sug := Campaign.suggested_squad(cands)
+	check(sug.size() == 2 and not sug.has(cr[1]), "Vorbelegung ohne Gesperrte")
+	check(Campaign.candidates(true).size() == GlobalRoster.entries().size() and not Campaign.candidates(true)[0].locked, "Schnellkampf: Roster-Kopien")
+	var healed := Campaign.pass_days(2)
+	check(healed.has(cr[0]) and cr[0].injury == "" and cr[1].injury_days == 3, "2 Tage: angeschlagen geheilt, kampfunfähig noch 3")
+	Campaign.pass_days(1, 2)
+	check(cr[1].injury == "" and cr[2].injury_days == 7 and Campaign.patients() == [cr[2]], "Tag mit Arzt-Bonus +2")
+	var q: Array[Character] = [Campaign.candidates(true)[0].ch]
+	Campaign.quick_squad = q
+	check(Campaign.squad() == q, "Schnellkampf-Trupp")
+	Campaign.quick_squad = []
 	for p in files:
 		if backup[p] != null:
 			var f := FileAccess.open(p, FileAccess.WRITE)

@@ -31,12 +31,7 @@ func _ready() -> void:
 		Campaign.save()
 		ui.crew.hide()
 		_refresh())
-	ui.crew.create_member.connect(func() -> void:
-		ui.editor.open_new(Campaign.crew(), Campaign.crew().find(ui.crew.current()))
-		ui.editor.move_to_front())
-	ui.editor.saved.connect(func(ch: Character, replace: Character) -> void:
-		Campaign.add_member(ch, replace)
-		ui.show_crew())
+	ui.crew.crew_changed.connect(func() -> void: ui.relabel_crew.call_deferred())
 	ui.slots.saved.connect(func(_s: int) -> void: _refresh())
 	ui.slots.loaded.connect(func(s: int) -> void:
 		if SaveSlots.load_slot(s):

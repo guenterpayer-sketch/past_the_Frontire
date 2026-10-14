@@ -141,18 +141,21 @@ func _run_ai() -> void:
 	ce._finish()
 	var tf: Array = GlobalRoster.own().filter(func(c: Character) -> bool: return c.name == "Testfigur")
 	print("Roster: Testfigur gespeichert ", not tf.is_empty())
-	ed._show_hire()
-	await get_tree().create_timer(0.3).timeout
-	await _screenshot(out + "/04f_anheuern.png")
 	var before := Campaign.crew().size()
-	await _click_button("anheuern")
+	Campaign.hire(tf[0])
+	ed._crew = Campaign.crew()
+	ed._reopen()
 	var hired := Campaign.crew().filter(func(c: Character) -> bool: return c.name == "Testfigur")
 	print("Anheuern: Crew %d -> %d, Testfigur an Bord %s" % [before, Campaign.crew().size(), not hired.is_empty()])
 	if not hired.is_empty():
 		Campaign.fire(hired[0])
 		ed._crew = Campaign.crew()
 		ed._reopen()
-	print("Entlassen: Crew %d" % Campaign.crew().size())
+	print("Entlassen: Crew %d, im Hafen %d" % [Campaign.crew().size(), Campaign.harbor().size()])
+	for h in Campaign.harbor().duplicate():
+		if h.name == "Testfigur":
+			Campaign.harbor().erase(h)
+	Campaign.save()
 	for c in tf:
 		GlobalRoster.remove(c.id)
 	ed.next_battle.emit()

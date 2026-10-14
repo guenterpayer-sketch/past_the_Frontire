@@ -13,14 +13,14 @@ Neuer Stand: *Fetch origin* → *Pull origin*, dann F5. Fehlermeldungen bleiben 
 
 ## Spielablauf: Startmenü und Schiff (Hub)
 
-F5 startet das **Startmenü** (`start.tscn`): Fortsetzen (zuletzt gespeicherter Spielstand), Neues Spiel (Slot wählen und benennen), Laden, Schnellkampf (einzelner Bodenkampf mit der aktuellen Crew, ohne Schiff; es wird nichts verbucht, danach zurück ins Startmenü), Einstellungen (Ton, Würfelanimation), Beenden.
+F5 startet das **Startmenü** (`start.tscn`): Fortsetzen (zuletzt gespeicherter Spielstand), Neues Spiel (Slot wählen und benennen, dann die Crew aus dem Roster wählen: `CrewPicker` des Charakter-Moduls, 1–8 Figuren), Laden, Roster (`roster.tscn`, Charakter-Modul), Schnellkampf (einzelner Bodenkampf mit den Figuren des Rosters, Trupp im Briefing; nichts wird verbucht, danach zurück ins Startmenü), Einstellungen (Ton, Würfelanimation), Beenden.
 
 Das **Schiff** (`hub.tscn`) ist die zentrale Szene zwischen den Einsätzen: ein 3D-Deck mit vier Räumen, Kamera wie im Bodenkampf (ziehen, WASD, Mausrad, Q/E). Raum anklicken (oder Knopf unten links):
 
 | Raum | Was dort passiert |
 |---|---|
 | Brücke | **Sternenkarte** des Sektors: 10 zufällige Systeme, jedes von einer Fraktion kontrolliert (2 neutral, darunter der Heimathafen), Sprungrouten mit 1–3 Reisetagen. System anklicken zeigt Route, Ankunftstag und Aufträge. „Kurs setzen“ fliegt hin (Tage vergehen), „Hinfliegen & Briefing“ nimmt den gewählten Auftrag an und startet den Bodenkampf. |
-| Crewquartiere | Charakterübersicht des Charakter-Moduls (`CrewOverview`, nach einem Einsatz mit dessen Ergebnis): Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen, neues Crewmitglied (Charakter-Editor). „Crew zurücksetzen“ gibt es im Schiff nicht (dafür ein neues Spiel beginnen). „Speichern & zurück“. |
+| Crewquartiere | Charakterübersicht des Charakter-Moduls (`CrewOverview`, nach einem Einsatz mit dessen Ergebnis): Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen, Entlassen; Plätze an Bord aus `HubState.berths`. „Crew zurücksetzen“ und „Anheuern“ gibt es im Schiff nicht (neues Spiel beginnen bzw. Anheuern im Hafen). „Speichern & zurück“. |
 | Krankenstation, Waffenkammer / Hangar | Platzhalter („kommt noch“) |
 
 Oben links Spielstand, Tag, Position und offene Aufträge; oben rechts Speichern, Laden, Menü (Hauptmenü, Ton, Bedienung) und der Infokasten zum Raum unter der Maus.
@@ -29,7 +29,7 @@ Oben links Spielstand, Tag, Position und offene Aufträge; oben rechts Speichern
 
 **Nach dem Einsatz** geht es direkt zurück ins Schiff mit einem **Einsatzbericht** (Sieg/Niederlage, Zustand und Fertigkeits-EP je Figur). Verbucht wird wie im Charakter-Modul über `MissionResult` → `Campaign.finish_mission()` (Fertigkeits-EP, 3 freie EP + Missionsbelohnung bei Sieg); der Bericht wird aus demselben `MissionResult` erstellt. Ausgeben lassen sich die freien EP in den Crewquartieren. „Einsatz abbrechen“ (Menü im Kampf) bzw. „Zurück ins Schiff“ im Briefing beendet den Einsatz ohne Ergebnis, der Auftrag bleibt offen.
 
-**Spielstände** (`core/save_slots.gd`): 3 benannte Slots in `user://saves/slot_N.json`, jeweils mit dem Spiel im Schiff (Tag, Sektor, Position, Aufträge) und dem Fortschritt der Crew. Gespeichert wird nur im Schiff und nur von Hand. Der laufende Fortschritt der Crew liegt weiter in `user://crew.json`; Laden überschreibt ihn mit dem Stand des Slots und lädt die Crew neu (`Campaign.reload()`); Speichern ruft vorher `Campaign.save()`.
+**Spielstände** (`core/save_slots.gd`): 3 benannte Slots in `user://saves/slot_N.json`, jeweils mit dem Spiel im Schiff (Tag, Sektor, Position, Aufträge) und dem Fortschritt der Crew. Gespeichert wird nur im Schiff und nur von Hand. Der globale Roster (`user://roster.json`) gehört zu keinem Spielstand und wird nicht in die Slots kopiert. Der laufende Fortschritt der Crew liegt weiter in `user://crew.json`; Laden überschreibt ihn mit dem Stand des Slots und lädt die Crew neu (`Campaign.reload()`); Speichern ruft vorher `Campaign.save()`.
 
 ## Bedienung
 
@@ -63,8 +63,9 @@ Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bil
 
 - **Globaler Roster** (`roster.tscn`, `ui/crew/roster_screen.gd`, Speicher `user://roster.json` über `core/global_roster.gd`): die 6 Startcharaktere (schreibgeschützt) und alle selbst erschaffenen Figuren, unabhängig von Spielständen. Eigene Figuren: „Name & Aussehen“ (Werte bleiben fest), „Kopieren“ (auch Startcharaktere), „Löschen“; „+ Neue Figur erschaffen“ öffnet den Charakter-Editor.
 - **Neues Spiel:** `CrewPicker` (`ui/crew/crew_picker.gd`) wählt 1 bis 8 Roster-Figuren (jede einmal), `Campaign.new_game(picked)` legt Kopien als Crew an. Der Roster bleibt unverändert.
-- **Im Spiel:** Charakterübersicht mit „Anheuern“ (Roster-Figuren, die nicht an Bord sind, solange Plätze frei sind; Kopie mit Roster-Stand) und „Entlassen“ (Fortschritt geht verloren, Roster-Eintrag bleibt). Plätze an Bord: `CrewOverview.seats` (zu Beginn 8).
-- **Einsatz:** bis zu 6 Figuren (`Campaign.squad()`: vom Hub gewählter Trupp `Campaign.chosen_squad`, sonst die ersten 6).
+- **Im Spiel:** „Entlassen“ in der Charakterübersicht; Entlassene warten mit ihrem Fortschritt „im Hafen“ (`Campaign.harbor()`) und können dort wieder angeheuert werden (`Campaign.hire()`, Oberfläche auf der Brücke im Hafen vom Hub).
+- **Einsatz:** bis zu 6 Figuren (`Campaign.squad()`); Truppwahl im Briefing mit `Campaign.candidates()` (Sperr-Status) und `set_squad()`, der letzte Trupp wird gespeichert.
+- **Verwundung** (`core/injury.gd`, Regeln `docs/Skillsystem.md` 8a): `Campaign.finish_mission()` setzt Stufe und Resttage, Tote verlassen die Crew (`Campaign.last_fallen`), `Campaign.pass_days()` heilt. Die Charakterübersicht zeigt Zustand und Resttage (✚ angeschlagen, ✖ gesperrt).
 
 ## Charakter-Editor (neues Crewmitglied)
 

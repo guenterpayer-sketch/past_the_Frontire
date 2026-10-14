@@ -141,6 +141,8 @@ func _test_save_slots() -> void:
 	var i := SaveSlots.info(2)
 	check(i.name == "Erster" and i.day == 7 and i.system == g.sector.systems[g.position].name, "Kurzinfo des Slots")
 	check(SaveSlots.latest() == 2, "Fortsetzen = zuletzt gespeichert")
+	var raw: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SaveSlots.path(2)))
+	check(raw.keys().all(func(k: String) -> bool: return k in ["version", "name", "saved_at", "game", "crew"]), "Spielstand ohne Roster (roster.json gehört nicht in die Slots)")
 	HubState.game = null
 	check(SaveSlots.load_slot(2) and HubState.game.day == 7 and HubState.game.slot == 2 and HubState.game.slot_name == "Erster", "laden")
 	check(HubState.game.sector.to_dict() == g.sector.to_dict(), "Sektor nach dem Laden gleich")

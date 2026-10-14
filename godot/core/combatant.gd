@@ -106,6 +106,8 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 	u.pp = u.max_pp
 	u.medkit = ch.medkits
 	u.medkit_start = ch.medkits
+	if ch.injury == Injury.LIGHT:
+		u.malus = Injury.LIGHT_MALUS
 	for w in u.weapons:
 		if w.magazine > 0:
 			u.loaded[w.id] = w.magazine

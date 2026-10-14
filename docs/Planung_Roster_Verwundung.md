@@ -81,3 +81,10 @@ Weitere Hinweise:
 
 **Gefundene Lücke:** Die Charakterübersicht (`ui/crew/crew_overview.gd`, Ergebniszeile je Figur) kennt den Zustand „sterbend“ nicht und zeigt dann nichts an.
 
+## F. Stand 16.10.2026 (nach Charakter `d654883` und Hub `479e767`)
+
+- **Erledigt:** Klärung D, Verwundung im Charakter-Modul, Kandidatenliste für die Truppwahl, Roster im Startmenü, neues Spiel mit `CrewPicker`, Schnellkampf aus dem Roster.
+- **Offen – Hub:** Anheuern im Hafen (`Campaign.hire()`, `Campaign.harbor()`), Krankenstation (`Campaign.patients()`, `Campaign.pass_days(days, bonus)` bei Reisen, Einsatz und Warten), Arzt/Helfer mit Tagesprobe und EP, Arzt-Sperre über `blocked_ids` an `Campaign.candidates()`. Der Knopf „Anheuern“ in den Crewquartieren existiert nicht mehr; das Ausblenden in `ui/hub_ui.gd` ist damit überflüssig (schadet nicht).
+- **Offen – Bodenkampf:** Truppwahl im Briefing mit `Campaign.candidates(quick, blocked_ids)`, `suggested_squad()`, `set_squad()` bzw. `quick_squad` (Schnellkampf). Außerdem: `hub_report()` in `view/battle.gd` soll `Campaign.last_fallen` aufnehmen (Gefallene sind nach `finish_mission()` nicht mehr in `crew()`).
+- **Charakter:** nichts offen; Schnittstellen nur nach Absprache ändern. Die Knopftexte der Charakterübersicht („Crew zurücksetzen“, „Speichern & nächste Mission“) nutzt der Hub zum Umbenennen/Ausblenden.
+

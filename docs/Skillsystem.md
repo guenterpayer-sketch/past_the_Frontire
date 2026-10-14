@@ -463,6 +463,23 @@ Kosten für den nächsten Rang = **10 + 2 × aktueller Rang** (Rang 0→1: 10 EP
 
 ---
 
+## 8a. Verwundung und Heilung
+
+Kein Tod im Normalfall: Wer nach den Regeln sterben würde, ist **sterbend** (kampfunfähig, Erste Hilfe kann stabilisieren). Nur wenn die **ganze Crew fällt**, stirbt jede sterbende Figur mit 10 % (Todeswurf im Bodenkampf); Tote verlassen die Crew, ihr Roster-Eintrag bleibt.
+
+Stufe am Kampfende (Charakter-Modul, `core/injury.gd`):
+
+| Stufe | Bedingung | Grundtage | Einsatz bis zur Heilung |
+|---|---|---|---|
+| unverletzt | TP mindestens die Hälfte, kein Kritischer | – | ja |
+| angeschlagen | TP unter der Hälfte oder ein Kritischer (A–E) erlitten, aber noch stehend | 2 | ja, Malus **−10** |
+| kampfunfähig | bewusstlos | 5 | nein |
+| schwer verwundet | sterbend (auch stabilisiert) | 10 | nein |
+
+- **Zuschlag** für den schwersten erlittenen Kritischen: A +0, B +1, C +2, D +3, E +4 Tage.
+- **Erneut verwundet:** die schlimmere Stufe, die Tage werden addiert.
+- **Heilung:** jeder vergangene Spieltag (Reisen, Warten, Einsatz) zieht einen Tag ab; die Krankenstation (Hub) bringt je Tag mit einer Zweite-Hilfe-Probe +1 oder +2 Tage. Die Stufe bleibt bis zum letzten Resttag, danach unverletzt.
+
 ## 9. Annahmen und offene Punkte
 
 Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leicht zu ändern:
