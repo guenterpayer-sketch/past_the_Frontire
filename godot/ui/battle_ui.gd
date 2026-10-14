@@ -22,6 +22,7 @@ var tables: TablesDialog
 var briefing: BriefingDialog
 var help: Modal
 var result_banner: ResultBanner
+var active_tag: ActiveTag
 var _confirm: ConfirmationDialog
 var _left: VBoxContainer
 var _right: VBoxContainer
@@ -72,6 +73,9 @@ func _ready() -> void:
 	help = Modal.new()
 	for d in [sheet, tables, briefing, help]:
 		add_child(d)
+	active_tag = ActiveTag.new()
+	add_child(active_tag)
+	move_child(active_tag, 0)   # unter allen Kästen und Dialogen
 	result_banner = ResultBanner.new()
 	add_child(result_banner)
 	_confirm = ConfirmationDialog.new()

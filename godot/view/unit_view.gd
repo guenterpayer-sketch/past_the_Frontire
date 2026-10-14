@@ -8,6 +8,7 @@ const STEP_TIME := 0.16
 var unit: Combatant
 var figure: Figure
 var current := false
+var dimmed := false             # eine andere Figur ist am Zug: Namensschild abgedunkelt
 var _ring: MeshInstance3D
 var _ring_mat: StandardMaterial3D
 var _label: Label3D
@@ -54,7 +55,10 @@ func sync() -> void:
 		icons += "•"
 	_icon.text = icons
 	_ring.visible = not u.is_dead()
-	_label.visible = not u.is_dead()
+	# die Figur am Zug zeigt statt des Namensschilds das ActiveTag der Oberfläche
+	_label.visible = not u.is_dead() and not current
+	_label.modulate.a = 0.4 if dimmed and not current else 1.0
+	_icon.modulate.a = _label.modulate.a
 	_fov.visible = current and u.is_ok()
 	figure.set_ghost(not u.is_dead())
 	if not current:
@@ -82,9 +86,16 @@ func _apply_pose() -> void:
 		figure.set_pose(Figure.Pose.STAND)
 
 
-func set_current(v: bool) -> void:
+## v: diese Figur ist am Zug; dim: eine andere ist am Zug (Schild abdunkeln)
+func set_current(v: bool, dim := false) -> void:
 	current = v
+	dimmed = dim and not v
 	sync()
+
+
+## Punkt über dem Kopf (Weltkoordinaten) für das Schild „am Zug“
+func tag_point() -> Vector3:
+	return position + Vector3(0, figure.head_height() + 0.35, 0)
 
 
 func set_facing(dir: int, animate := true) -> void:

@@ -113,7 +113,7 @@ func _play(ev: Array) -> void:
 				views[ev[2]].sync()
 		&"turn":
 			for u in views:
-				views[u].set_current(u == ev[1])
+				views[u].set_current(u == ev[1], true)
 			camera.ensure_visible(views[ev[1]].position)
 
 

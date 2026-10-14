@@ -121,6 +121,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), sz.name], &"round")
 	ui.combat_log.add("Runde 0: Crew im Eingangsbereich aufstellen, dann „Kampf beginnen“.", &"")
 	deploy_sel = combat.crew()[0]
+	_mark_current(deploy_sel)
 	if briefing:
 		ui.briefing.show_mission(mission)
 	_dirty = true
@@ -191,11 +192,37 @@ func return_to_ship() -> void:
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)
 
 
+## Figur markieren, die am Zug ist bzw. aufgestellt wird (Ring, Sichtfeld, Schild); die anderen abdunkeln
+func _mark_current(cur: Combatant) -> void:
+	for o in views:
+		views[o].set_current(o == cur, cur != null)
+
+
+## Schild „am Zug“ über der Figur halten (aus dem Bild: ausblenden)
+func _update_active_tag() -> void:
+	var u: Combatant = deploy_sel if combat.deploying else combat.current
+	if u == null or combat.result != &"" or not views.has(u) or not u.is_ok():
+		ui.active_tag.hide()
+		return
+	var v: UnitView = views[u]
+	if rig.camera.is_position_behind(v.tag_point()):
+		ui.active_tag.hide()
+		return
+	var p := rig.camera.unproject_position(v.tag_point())
+	var r := get_viewport().get_visible_rect()
+	if not r.has_point(p):
+		ui.active_tag.hide()
+		return
+	var text := "%s · %s" % [u.name.split(" ")[0], "aufstellen" if combat.deploying else "am Zug"]
+	ui.active_tag.show_at(p, text, not u.is_crew)
+
+
 ## Runde 0 beenden: Kampf mit Runde 1 starten
 func begin_combat() -> void:
 	if not combat.deploying:
 		return
 	deploy_sel = null
+	_mark_current(null)
 	ui.briefing.hide()
 	combat.start()
 	_dirty = true
@@ -212,6 +239,7 @@ func player_turn() -> bool:
 
 func _process(delta: float) -> void:
 	_tick_ai(delta)
+	_update_active_tag()
 	if _dirty and events.is_idle():
 		_dirty = false
 		_refresh()
@@ -423,6 +451,7 @@ func _deploy_click(p: Vector2) -> void:
 	ui.hide_tip()
 	if hit.unit and hit.unit.is_crew and hit.unit != deploy_sel:
 		deploy_sel = hit.unit
+		_mark_current(deploy_sel)
 	elif hit.tile != null and deploy_sel:
 		var other := combat.deploy(deploy_sel, hit.tile)
 		if combat.unit_at(hit.tile) == deploy_sel:
@@ -596,6 +625,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			begin_combat()
 		&"deploy_select":
 			deploy_sel = arg
+			_mark_current(arg)
 			rig.focus(views[arg].position, false)
 		&"deploy_turn":
 			if deploy_sel:
