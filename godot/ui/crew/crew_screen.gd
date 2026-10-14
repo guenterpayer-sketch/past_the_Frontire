@@ -24,8 +24,9 @@ func _ready() -> void:
 	overview.create_member.connect(func() -> void:
 		editor.open_new(Campaign.crew(), Campaign.crew().find(overview.current()))
 		editor.move_to_front())
-	editor.saved.connect(func(ch: Character, replace: Character) -> void:
-		Campaign.add_member(ch, replace)
+	# im Spiel wird nicht mehr erschaffen; der Editor legt Figuren nur noch im Roster an
+	editor.saved.connect(func(ch: Character, _replace: Character) -> void:
+		GlobalRoster.add(ch)
 		show_crew())
 	overview.next_battle.connect(start_mission)
 	overview.reset_crew.connect(func() -> void:

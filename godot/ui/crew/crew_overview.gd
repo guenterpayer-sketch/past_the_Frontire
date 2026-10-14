@@ -456,9 +456,9 @@ func _confirm_fire(u: Character) -> void:
 
 ## Übersicht mit der geänderten Crew neu aufbauen (Knopftexte des Aufrufers gehen dabei verloren → crew_changed)
 func _reopen() -> void:
-	var title_keep := _idx
+	var keep := _idx
 	show_crew(_crew, _result)
-	_idx = title_keep
+	_idx = clampi(keep, 0, maxi(0, _crew.size() - 1))
 	_render()
 	crew_changed.emit()
 
