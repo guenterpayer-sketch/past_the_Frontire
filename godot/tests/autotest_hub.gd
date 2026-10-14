@@ -20,14 +20,26 @@ func _ready() -> void:
 func _run() -> void:
 	await _frames(30)
 	await _shot("h0_start")
-	# Neues Spiel im Slot 1
+	# Roster aus dem Startmenü und zurück
+	await _click_button(get_tree().current_scene, "Roster")
+	await _frames(20)
+	print("Roster offen: ", get_tree().current_scene.scene_file_path == Campaign.ROSTER_SCENE)
+	await _shot("h0b_roster")
+	get_tree().change_scene_to_file(HubState.START_SCENE)
+	await _frames(30)
+	# Neues Spiel im Slot 1: Slot und Name, dann Crew aus dem Roster (CrewPicker)
+	var start := get_tree().current_scene as StartScreen
+	start._new_game(1, "Autotest")
+	await _frames(10)
+	print("CrewPicker offen: ", start.picker.visible)
+	await _shot("h0c_crew_waehlen")
 	seed(4711)
-	Campaign.reset()
-	Campaign.save()
-	var g := HubState.new_game(4711, "Autotest", 1)
-	SaveSlots.save(1, "Autotest", g)
-	get_tree().change_scene_to_file(HubState.HUB_SCENE)
+	var picked: Array[Character] = GlobalRoster.entries().slice(0, 7)
+	start.start_new_game(1, "Autotest", picked)
 	await _frames(40)
+	var g := HubState.game
+	print("Neues Spiel: %d an Bord (gewählt %d), Plätze %d, Slot 1 gespeichert %s" % [Campaign.crew().size(), picked.size(), g.berths,
+		not SaveSlots.info(1).is_empty()])
 	var hub := get_tree().current_scene as Hub
 	print("Schiff: Tag %d, %s, %d Aufträge" % [g.day, g.sector.systems[g.position].name, g.offers.size()])
 	await _shot("h1_schiff")
@@ -126,9 +138,9 @@ func _run() -> void:
 	await _shot("h9b_crewquartiere_nach_einsatz")
 	var reset_visible := false
 	for fb in hub.ui.crew.footer.get_children():
-		if fb is Button and fb.visible and fb.text.begins_with("Crew zurücksetzen"):
+		if fb is Button and fb.visible and (fb.text.begins_with("Crew zurücksetzen") or fb.text == "Anheuern"):
 			reset_visible = true
-	print("Crew zurücksetzen im Schiff sichtbar: ", reset_visible)
+	print("Crew zurücksetzen/Anheuern im Schiff sichtbar: ", reset_visible)
 	await _click_button(hub.ui, "Speichern & zurück")
 	print("Crewquartiere geschlossen: ", not hub.ui.crew.visible)
 	# Laden: Slot 1 (vor dem Einsatz gespeichert)
@@ -139,10 +151,10 @@ func _run() -> void:
 	await _frames(30)
 	await _shot("h10_start_mit_spielstand")
 	# Schnellkampf: nichts verbuchen, zurück ins Startmenü
+	var slot_day: int = SaveSlots.info(1).day
+	(get_tree().current_scene as StartScreen).start_quick_battle()
 	var fx0: int = Campaign.crew()[0].free_xp
-	HubState.game = null
-	HubState.quick_battle = true
-	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+	print("Schnellkampf-Crew aus dem Roster: %d Figuren (Roster %d)" % [Campaign.crew().size(), GlobalRoster.entries().size()])
 	await _frames(60)
 	var qb := get_tree().current_scene as Battle
 	qb.ui.briefing.close()
@@ -153,6 +165,7 @@ func _run() -> void:
 	await get_tree().create_timer(5.0).timeout
 	print("Schnellkampf: zurück im Startmenü %s, freie EP %d -> %d (gespeichert %d)" % [get_tree().current_scene is StartScreen,
 		fx0, Campaign.crew()[0].free_xp, Roster.load_crew()[0].free_xp])
+	print("Spielstand nach Schnellkampf unverändert: ", SaveSlots.info(1).day == slot_day)
 	for s in range(1, SaveSlots.COUNT + 1):
 		SaveSlots.delete(s)
 	print("AUTOTEST FERTIG")

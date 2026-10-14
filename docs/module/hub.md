@@ -35,6 +35,14 @@
 2. **Krankenstation** (Abschnitt B, Teil Hub): Verwundete und Resttage anzeigen, Tage vergehen beim Reisen/Einsatz → Heilung (Funktion vom Charakter-Modul), vor dem Einsatz Gesperrte nicht mitnehmen, leicht Verletzte mit Malus. **Tage-Werte vorschlagen** (anhand typischer Reise- und Auftragsdauer) und vom Nutzer entscheiden lassen.
 3. Rückzug im Bericht: weiter offen (nur nach Entscheidung des Nutzers).
 
+### Stand 16.10.2026 (Hub-Chat) – **bereit zum Zusammenführen**
+
+- `main` (`d8903d8`) geholt, ohne Konflikte.
+- Auftrag 1 erledigt: Startmenü-Punkt **„Roster“** → `Campaign.ROSTER_SCENE`. **„Neues Spiel“** → Slot und Name → `CrewPicker.open_pick("Spielstand … · Slot …", HubState.BERTHS_START)` → `Campaign.new_game(chars)` → `HubState.new_game(…)` → speichern (`StartScreen.start_new_game()`). **Crewquartiere:** `CrewOverview.seats` = `HubState.berths`; nach `crew_changed` werden die Knopftexte neu gesetzt; Editor und `create_member` im Schiff entfernt. „Anheuern“ und „Crew zurücksetzen“ werden in den Crewquartieren ausgeblendet (Suche nach dem Knopftext in `footer` – Charakter-Modul bitte Knopftexte „Anheuern“, „Crew zurücksetzen“, „Speichern & nächste Mission“ nicht ohne Ankündigung ändern). `user://roster.json` ist nicht in den Slots (Test in `test_hub`).
+- Auftrag 2 erledigt: **Schnellkampf** nutzt `Campaign.new_game(GlobalRoster.entries())` (Trupp wählt der Bodenkampf im Briefing über `Campaign.squad()`), keine Auswahl im Hub, nichts wird verbucht. Hinweis: dabei wird die Crew-Arbeitskopie `user://crew.json` durch die Roster-Figuren ersetzt; Spielstände bleiben unverändert (geprüft im `--autotest-hub`).
+- Tests: `test_rules` OK, `test_hub` OK, `test_sim -- 30` OK (19 Siege, 0 hängengeblieben), `--autotest`, `--autotest-player`, `--autotest-hub` (Roster, CrewPicker, neues Spiel, Einsatz, Laden, Schnellkampf) durchgelaufen.
+- Auftrag 3 (Anheuern im Hafen, Krankenstation, Arzt-Zuweisung) wartet auf das Charakter-Modul (Verwundung, „Tage vergehen“, Sperr-Status).
+
 ### Gültig: Klärung Hub ⇄ Charakter (`docs/Planung_Roster_Verwundung.md`, Abschnitt D)
 
 Ersetzt abweichende Einträge weiter unten:
