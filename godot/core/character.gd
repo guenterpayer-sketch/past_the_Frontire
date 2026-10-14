@@ -22,6 +22,9 @@ var medkits := 0
 var visual: CharacterVisual
 ## Station an Bord (Creation.STATIONS, "" = keine)
 var station := ""
+## Verwundung (Injury): Stufe ("" = unverletzt) und Resttage bis zur Heilung
+var injury := ""
+var injury_days := 0
 ## In dieser Levelphase neu begonnene Psi-Liste (höchstens eine; wird nach jedem Einsatz geleert)
 var new_list: StringName = &""
 ## Zustand nach dem letzten Einsatz ({state, hp, max_hp, bleed, malus}); wird noch nicht ausgewertet
@@ -77,8 +80,34 @@ func apply_result(r: Dictionary) -> void:
 		Rules.ensure_skill(self, StringName(k)).xp += int(xp[k])
 	free_xp += int(r.get("free_xp", 0))
 	new_list = &""
+	var inj := Injury.combine(injury, injury_days, Injury.from_result(r))
+	injury = inj.stage
+	injury_days = inj.days
 	status = r.get("status", {}).duplicate(true)
 	used = r.get("used", {}).duplicate(true)
+
+
+## Heilung um n Tage; true, wenn die Figur danach wieder unverletzt ist
+func heal(days: int) -> bool:
+	if injury == "" or days <= 0:
+		return false
+	injury_days -= days
+	if injury_days <= 0:
+		injury = ""
+		injury_days = 0
+		return true
+	return false
+
+
+func is_locked() -> bool:
+	return Injury.is_locked(injury)
+
+
+## Zustand als Text, z. B. „schwer verwundet · noch 7 Tage“ ("" = unverletzt)
+func injury_text() -> String:
+	if injury == "":
+		return ""
+	return "%s · noch %d %s" % [Injury.name(injury), injury_days, "Tag" if injury_days == 1 else "Tage"]
 
 
 func duplicate_character() -> Character:
@@ -96,7 +125,7 @@ func to_dict() -> Dictionary:
 		"attrs": attrs.duplicate(), "skills": sk, "free_xp": free_xp,
 		"weapons": weapons.map(func(w: WeaponData) -> String: return w.resource_path),
 		"armor": armor.resource_path if armor else "", "shield": shield, "medkits": medkits,
-		"visual": visual.resource_path if visual else "", "station": station, "new_list": String(new_list),
+		"visual": visual.resource_path if visual else "", "station": station, "new_list": String(new_list), "injury": injury, "injury_days": injury_days,
 		"status": status.duplicate(true), "used": used.duplicate(true),
 	}
 
@@ -125,6 +154,8 @@ static func from_dict(d: Dictionary) -> Character:
 	c.visual = _load(d.get("visual", "")) as CharacterVisual
 	c.station = d.get("station", "")
 	c.new_list = StringName(d.get("new_list", ""))
+	c.injury = d.get("injury", "")
+	c.injury_days = int(d.get("injury_days", 0))
 	c.status = d.get("status", {})
 	c.used = d.get("used", {})
 	return c

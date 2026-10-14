@@ -23,7 +23,6 @@ var _preview: FigurePreview
 var _visuals: Array[CharacterVisual] = []
 ## Plätze an Bord (der Hub kann mehr erlauben)
 var seats := Campaign.START_SEATS
-var _hire: Modal
 
 
 func show_crew(crew: Array[Character], result := {}) -> void:
@@ -52,7 +51,8 @@ func show_crew(crew: Array[Character], result := {}) -> void:
 	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(intro)
 	if not result.is_empty():
-		var note := UiTheme.label("Prototyp: Tote und Bewusstlose stehen im nächsten Kampf wieder voll bereit (Regeln für Heilung, Tod und Ersatz sind noch offen).", 12, UiTheme.MUTED)
+		var fallen := ", ".join(Campaign.last_fallen.map(func(c: Character) -> String: return c.name))
+		var note := UiTheme.label(("Gefallen (haben die Crew verlassen): %s. " % fallen if fallen != "" else "") + "Verwundete heilen in Spieltagen (Krankenstation); kampfunfähig und schwer verwundet sind bis dahin gesperrt, angeschlagen mit Malus %d." % Injury.LIGHT_MALUS, 12, UiTheme.BAD if fallen != "" else UiTheme.MUTED)
 		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		content.add_child(note)
 	_page = VBoxContainer.new()
@@ -66,20 +66,24 @@ func show_crew(crew: Array[Character], result := {}) -> void:
 	aboard.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	aboard.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	footer.add_child(aboard)
-	var fire := UiTheme.button("Entlassen", "Gewählte Figur entlassen (Fortschritt in diesem Spiel geht verloren, der Roster-Eintrag bleibt)")
+	var fire := UiTheme.button("Entlassen", "Gewählte Figur entlassen: sie wartet mit ihrem Fortschritt im Hafen und kann dort wieder angeheuert werden")
 	fire.add_theme_color_override("font_color", UiTheme.BAD)
 	fire.disabled = crew.size() <= 1
 	fire.pressed.connect(func() -> void: _confirm_fire(current()))
 	footer.add_child(fire)
-	var hire := UiTheme.button("Anheuern", "Figur aus dem Roster an Bord holen" if crew.size() < seats else "Kein Platz an Bord")
-	hire.disabled = crew.size() >= seats
-	hire.pressed.connect(_show_hire)
-	footer.add_child(hire)
+	# Anheuern gibt es nur im Hafen auf der Brücke (Hub); hier nur Entlassen
 	var next := UiTheme.button("Speichern & nächste Mission")
 	next.add_theme_color_override("font_color", UiTheme.ACCENT)
 	next.pressed.connect(func() -> void: next_battle.emit())
 	footer.add_child(next)
 	_render()
+
+
+## Zustand am Kampfende als Text (inkl. sterbend/stabilisiert)
+func _end_state(ur: Dictionary) -> String:
+	if ur.get("stabilized", false):
+		return "sterbend, stabilisiert"
+	return {"ok": "kampffähig", "ko": "bewusstlos", "sterbend": "sterbend", "tot": "tot"}.get(ur.get("status", {}).get("state", ""), "")
 
 
 ## Ergebnis des letzten Einsatzes für eine Figur (leer ohne Einsatz)
@@ -122,7 +126,11 @@ func _render() -> void:
 	nav.add_theme_constant_override("separation", 6)
 	for i in _crew.size():
 		var o := _crew[i]
-		var b := UiTheme.button("%s %s%s" % [o.letter, o.name.split(" ")[0], (" · %d" % o.free_xp) if o.free_xp else ""], "%s: %d freie EP (Pfeiltasten blättern)" % [o.name, o.free_xp], true)
+		var mark := "" if o.injury == "" else (" ✚" if not o.is_locked() else " ✖")
+		var b := UiTheme.button("%s %s%s%s" % [o.letter, o.name.split(" ")[0], (" · %d" % o.free_xp) if o.free_xp else "", mark],
+			"%s: %d freie EP%s (Pfeiltasten blättern)" % [o.name, o.free_xp, (" · " + o.injury_text()) if o.injury != "" else ""], true)
+		if o.injury != "":
+			b.add_theme_color_override("font_color", UiTheme.BAD if o.is_locked() else Color("ffb04d"))
 		b.button_pressed = i == _idx
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(func() -> void:
@@ -171,7 +179,9 @@ func _left_column(u: Character) -> Control:
 	var ur := _unit_result(u)
 	var sub := u.role
 	if not ur.is_empty():
-		sub += " · %s · %d Gegner ausgeschaltet" % [{"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}.get(ur.status.state, ""), ur.kills]
+		sub += " · %s · %d Gegner ausgeschaltet" % [_end_state(ur), ur.kills]
+	if u.injury != "":
+		sub += "\n" + u.injury_text() + (" · gesperrt" if u.is_locked() else " · Malus %d im Einsatz" % Injury.LIGHT_MALUS)
 	var sl := UiTheme.label(sub, 12, UiTheme.MUTED)
 	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	person.add_child(sl)
@@ -404,45 +414,11 @@ func _effect(u: Character, id: StringName, r: int) -> String:
 	return Dice.fmt(Rules.skill_total(u, id))
 
 
-## Anheuern: Roster-Figuren, die noch nicht an Bord sind (Kopie mit dem Stand des Roster-Eintrags)
-func _show_hire() -> void:
-	if _hire == null:
-		_hire = Modal.new()
-		add_child(_hire)
-		_hire.max_size = Vector2(760, 620)
-	_hire.open("Anheuern aus dem Roster")
-	var free := GlobalRoster.entries().filter(func(c: Character) -> bool: return not Campaign.is_aboard(c.roster_id))
-	_hire.content.add_child(UiTheme.label("Figuren, die noch nicht an Bord sind. Platz: %d frei. Angeheuert wird eine Kopie mit dem Stand des Roster-Eintrags." % (seats - _crew.size()), 13, UiTheme.MUTED))
-	if free.is_empty():
-		_hire.content.add_child(UiTheme.label("Alle Roster-Figuren sind schon an Bord. Neue Figuren entstehen im Roster (Startmenü).", 13, UiTheme.MUTED))
-	for c in free:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 10)
-		row.add_child(UiTheme.badge(c.letter, c.color, 30))
-		var l := UiTheme.label("%s – %s" % [c.name, c.role], 14)
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(l)
-		var b := UiTheme.button("anheuern")
-		b.add_theme_color_override("font_color", UiTheme.ACCENT)
-		b.disabled = _crew.size() >= seats
-		b.pressed.connect(func() -> void:
-			var h := Campaign.hire(c)
-			_hire.close()
-			if h:
-				_crew = Campaign.crew()
-				_idx = _crew.find(h)
-			_reopen())
-		row.add_child(b)
-		_hire.content.add_child(row)
-	_hire.add_close()
-	_hire.move_to_front()
-
-
 func _confirm_fire(u: Character) -> void:
 	if u == null or _crew.size() <= 1:
 		return
 	var d := ConfirmationDialog.new()
-	d.dialog_text = "%s entlassen?\nDer Fortschritt in diesem Spiel geht verloren; der Roster-Eintrag bleibt und kann später neu angeheuert werden." % u.name
+	d.dialog_text = "%s entlassen?\nDie Figur wartet mit ihrem Fortschritt im Hafen und kann dort in diesem Spiel wieder angeheuert werden." % u.name
 	d.ok_button_text = "Entlassen"
 	d.cancel_button_text = "Abbrechen"
 	add_child(d)
