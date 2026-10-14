@@ -15,10 +15,12 @@
 - `ui/modal.gd`: neue Variable `closable` (false = Klick daneben und Esc schließen nicht).
 - **Regeländerungen in `Rules`** (wirken auf alle Figuren, auch Gegner): neue Fertigkeitsgruppen „Entwicklung“ (`koerper`, `psiPunkte`) und „Psi-Listen“; TP = 15 + KON/3 + 5 × Körperentwicklung; PP = MEN/10 + MEN-Bonus/2 + 2 × Psi-Punkte-Entwicklung, nur mit Rang in einer Psi-Fertigkeit oder Liste (`Rules.PSI_SKILLS`).
 
-## Stand (14.10.2026)
+## Stand (15.10.2026)
 
-- In `main` zusammengeführt (Merge `cf5ad7e`). Branch danach auf `main` = `2c91832` gebracht.
-- In Arbeit: **Aufleveln** in der Charakterübersicht (Mockup „Frontire Aufleveln“ vom Nutzer freigegeben): 3D-Vorschau, Name/Kürzel/Farbe/Station/Aussehen änderbar, Psi-Kräfte, keine Ranggrenze, neue Psi-Liste doppelt und eine pro Levelphase. `CrewOverview.show_crew(crew, result)` und die Signale bleiben unverändert.
+- Branch enthält `main` (`1cf8d86`, mit Hub); Konflikt nur in `CLAUDE.md`, gelöst. **Bereit zum Zusammenführen.**
+- Neu: **Aufleveln** in der Charakterübersicht (Mockup „Frontire Aufleveln“ vom Nutzer freigegeben): drehende 3D-Vorschau, Name/Kürzel/Farbe/Station/Aussehen änderbar, Psi-Kräfte, keine Ranggrenze, neue Psi-Liste: erster Rang doppelt, eine pro Levelphase (`docs/Skillsystem.md` 8).
+- Schnittstellen unverändert: `CrewOverview.show_crew(crew, result)`, Signale, `current()`, `footer` – die Crewquartiere des Hubs funktionieren damit (geprüft mit `--autotest-hub`).
+- Tests nach dem Merge: `test_rules` OK, `test_hub` OK, `test_sim -- 30` 22 Siege / 0 hängengeblieben, `--autotest`, `--autotest-player`, `--autotest-hub` laufen durch.
 - Noch nicht gebaut: Psi-Listen im Kampf.
 
 ## Aufträge vom Koordinator
