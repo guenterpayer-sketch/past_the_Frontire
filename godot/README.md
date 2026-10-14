@@ -11,6 +11,26 @@ Regeln wie in der HTML-Version (docs/Skillsystem.md): W100 aus zwei W10, offen n
 
 Neuer Stand: *Fetch origin* → *Pull origin*, dann F5. Fehlermeldungen bleiben sichtbar, wenn Godot über `Godot_v4.7.2-stable_win64_console.exe` gestartet wird.
 
+## Spielablauf: Startmenü und Schiff (Hub)
+
+F5 startet das **Startmenü** (`start.tscn`): Fortsetzen (zuletzt gespeicherter Spielstand), Neues Spiel (Slot wählen und benennen), Laden, Schnellkampf (einzelner Bodenkampf ohne Schiff, danach ins Charakter-Modul `crew.tscn`), Einstellungen (Ton, Würfelanimation), Beenden.
+
+Das **Schiff** (`hub.tscn`) ist die zentrale Szene zwischen den Einsätzen: ein 3D-Deck mit vier Räumen, Kamera wie im Bodenkampf (ziehen, WASD, Mausrad, Q/E). Raum anklicken (oder Knopf unten links):
+
+| Raum | Was dort passiert |
+|---|---|
+| Brücke | **Sternenkarte** des Sektors: 10 zufällige Systeme, jedes von einer Fraktion kontrolliert (2 neutral, darunter der Heimathafen), Sprungrouten mit 1–3 Reisetagen. System anklicken zeigt Route, Ankunftstag und Aufträge. „Kurs setzen“ fliegt hin (Tage vergehen), „Hinfliegen & Briefing“ nimmt den gewählten Auftrag an und startet den Bodenkampf. |
+| Crewquartiere | Charakterübersicht des Charakter-Moduls (`CrewOverview`, nach einem Einsatz mit dessen Ergebnis): Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen, neues Crewmitglied (Charakter-Editor), Crew zurücksetzen. „Speichern & zurück“. |
+| Krankenstation, Waffenkammer / Hangar | Platzhalter („kommt noch“) |
+
+Oben links Spielstand, Tag, Position und offene Aufträge; oben rechts Speichern, Laden, Menü (Hauptmenü, Ton, Bedienung) und der Infokasten zum Raum unter der Maus.
+
+**Aufträge und Zeit** (`core/hub_state.gd`): immer 4 offene Aufträge, nur in Systemen mit Fraktion (höchstens 2 je System), Gegner = Fraktion des Systems, Laufzeit 4–10 Tage. Reisen kostet die Reisetage der kürzesten Route; abgelaufene Aufträge verschwinden, neue kommen dazu. Ein Auftrag lässt sich nur annehmen, wenn das Schiff vor Ablauf ankommt. Ein Einsatz dauert 1 Tag; danach ist der Auftrag erledigt (auch bei Niederlage).
+
+**Nach dem Einsatz** geht es direkt zurück ins Schiff mit einem **Einsatzbericht** (Sieg/Niederlage, Zustand und Fertigkeits-EP je Figur). Verbucht wird wie beim Schnellkampf über `MissionResult` → `Campaign.finish_mission()` (Fertigkeits-EP, 3 freie EP + Missionsbelohnung bei Sieg); der Bericht wird aus demselben `MissionResult` erstellt. Ausgeben lassen sich die freien EP in den Crewquartieren. „Einsatz abbrechen“ (Menü im Kampf) bzw. „Zurück ins Schiff“ im Briefing beendet den Einsatz ohne Ergebnis, der Auftrag bleibt offen.
+
+**Spielstände** (`core/save_slots.gd`): 3 benannte Slots in `user://saves/slot_N.json`, jeweils mit dem Spiel im Schiff (Tag, Sektor, Position, Aufträge) und dem Fortschritt der Crew. Gespeichert wird nur im Schiff und nur von Hand. Der laufende Fortschritt der Crew liegt weiter in `user://crew.json`; Laden überschreibt ihn mit dem Stand des Slots und lädt die Crew neu (`Campaign.reload()`); Speichern ruft vorher `Campaign.save()`.
+
 ## Bedienung
 
 | Aktion | Maus / Tastatur | Handy / Tablet |
@@ -69,7 +89,7 @@ Charakter-Modul (crew.tscn)  ──Kopien der Charaktere──▶  Kampfmodul (m
   `status` (`state` ok/ko/tot, `hp`, `max_hp`, `bleed`, `malus`), `used` (`medkits`, `ammo` je Waffe).
   `Character.apply_result()` verbucht EP und freie EP. Zustand und Verbrauch werden gespeichert, aber noch nicht ausgewertet (Heilung, Tod und Nachschub sind noch nicht gebaut; jeder Einsatz beginnt heil und voll ausgerüstet).
 
-Ein neues Kampfmodul braucht also nur `Campaign.crew()` als Eingabe und muss am Ende `Campaign.finish_mission(Ergebnis)` aufrufen und nach `Campaign.CREW_SCENE` wechseln.
+Ein neues Kampfmodul braucht also nur `Campaign.crew()` als Eingabe und muss am Ende `Campaign.finish_mission(Ergebnis)` aufrufen und nach `Campaign.CREW_SCENE` wechseln – oder, wenn es aus dem Schiff gestartet wurde (`HubState.in_mission()`), `HubState.game.finish_mission(Bericht)` aufrufen und nach `HubState.HUB_SCENE` wechseln (Beispiel: `Battle.finish_mission()`/`hub_report()`).
 
 Missionsgenerator (`core/mission.gd`): Punktebudget je Schwierigkeit (leicht 42, mittel 58, schwer 76), Gegnertypen gewichtet nach Fraktion (`data/missions/*.tres`, Bedrohungswert `threat` in `data/units/enemies/*.tres`), einzelne Gegner als Veteran (+1 Rang, +5 Eigenschaften) oder Neuling (−1, −5). Hallengröße nach Gegnerzahl. Gleicher Seed = gleiche Mission.
 
@@ -83,6 +103,8 @@ Figuren, Waffen und Teile der Halle sind 3D-Modelle (frei lizenziert, siehe `ass
 | Waffen in der Hand | Quaternius Sci-Fi-Waffen (Gewehre, Pistole, Werfer); Vibroklinge und Psi leuchtende Grundformen | Waffe in `data/weapons/*.tres` → Gruppe **Darstellung** (Modell, Länge, Lage in der Hand) |
 | Halle: Boden, Wände, Kisten, Fässer, Säulen, Regale | Quaternius Modular Sci-Fi / Cyberpunk | `data/visuals/warehouse.tres` (je Objektart ein Modell und wie es eingepasst wird) |
 | Container, Barrieren, Galerie, Treppen, Leitern | Grundkörper (kein passendes Modell gefunden) | – |
+| Schiff (Hub): Böden, Wände, Fenster, Konsolen, Schlafkapseln, Heilkammern, Regale, Kisten | Quaternius Modular Sci-Fi (`assets/ship/`) | `view/ship_view.gd`: Räume (`ROOMS`), Durchgänge (`DOORS`), Fenster (`WINDOWS`), Einrichtung (`PROPS`: Modell, Position, Drehung, Maßstab) |
+| Landungsschiff im Hangar, Schiff im Startmenü | Quaternius Ultimate Spaceships (`assets/ship/dropship_insurgent.glb`, `ship_imperial.glb`) | `view/ship_view.gd` (`PROPS`), `view/start_screen.gd` |
 
 **Eigene oder andere Modelle einsetzen:** `.glb` nach `godot/assets/…` kopieren, im Inspector in das passende Feld ziehen. Hallenobjekte werden automatisch in ihren Platz gestreckt bzw. wiederholt.
 Für Figuren mit Quaternius-ähnlichem Skelett (Knochen `Hips`, `UpperArm.L` …) neue `CharacterVisual`-Datei anlegen und die Animationen übertragen:
@@ -104,7 +126,8 @@ Das Werkzeug überträgt die 75 KayKit-Animationen (Auswahl von 18) auf jedes Mo
 | `tools/` | `bake_animations.gd` und `retarget.gd`: Animationen von einem Skelett auf ein anderes übertragen |
 | `ui/` | Oberfläche: `battle_ui.gd` (schwebendes Layout), `top_menu.gd`, `icon_button.gd`, `info_box.gd`, `unit_card.gd`, `action_panel.gd`, `initiative_bar.gd`, `combat_log.gd`, `dice_panel.gd`, Dialoge (`briefing_dialog.gd`, `sheet_dialog.gd`, `tables_dialog.gd`, `modal.gd`), `crew/` (Charakter-Modul: `crew_screen.gd` = Szene `crew.tscn`, `crew_overview.gd` = Charakterübersicht, `character_editor.gd` = neues Crewmitglied), `ui_theme.gd` |
 | `audio/` | `sfx.gd` (Autoload `Sfx`): Soundeffekte werden synthetisch erzeugt, keine Audiodateien |
-| `tests/` | Regeltests und KI-gegen-KI-Simulation |
+| Schiff (Hub) | `core/sector.gd` (Sternenkarte: Systeme, Fraktionen, Routen, kürzester Weg), `core/hub_state.gd` (Spiel im Schiff: Tag, Position, Aufträge, laufender Einsatz, Bericht; statisch in `HubState.game`, übersteht den Szenenwechsel), `core/save_slots.gd` (Spielstände), `view/start_screen.gd` (Startmenü), `view/hub.gd` (Schiff: Räume, Kamera, Ablauf), `view/ship_view.gd` (3D-Deck), `ui/hub_ui.gd`, `ui/star_map.gd`, `ui/slots_dialog.gd` |
+| `tests/` | Regeltests, Hub-Tests und KI-gegen-KI-Simulation |
 
 Grundregel: `core/` kennt keine Grafik. `Combat` meldet Würfe, Schritte, Treffer usw. über Signale; `EventPlayer` spielt sie der Reihe nach ab (Würfel rollen → Schuss → Treffer → Log). Die KI plant in einem eigenen Thread, damit die Halle bedienbar bleibt.
 
@@ -114,8 +137,9 @@ Die Crew (vollständige Charaktere mit Rängen und EP, Eigenschaften, gesparten 
 
 ```
 godot --headless --path godot --script res://tests/test_rules.gd
+godot --headless --path godot --script res://tests/test_hub.gd       # Sektor, Reisen, Aufträge, Spielstände
 godot --headless --path godot --script res://tests/test_sim.gd -- 30
 godot --headless --path godot --script res://tests/test_sim.gd -- 45 missionen   # Siege je Schwierigkeit
 ```
 
-Selbsttests mit Screenshots (Ordner in `PTF_OUT`): `godot --path godot -- --autotest` (KI gegen KI, Dialoge) und `-- --autotest-player` (Bedienung mit simulierten Mausklicks). Figurengalerie (alle 12 Figuren in mehreren Haltungen): `godot --path godot --script res://tests/figure_gallery.gd`. `-- --no-shadows` schaltet Schatten aus (auf Handys automatisch).
+Selbsttests mit Screenshots (Ordner in `PTF_OUT`): `godot --path godot -- --autotest` (KI gegen KI, Dialoge) und `-- --autotest-player` (Bedienung mit simulierten Mausklicks) springen vom Startmenü direkt in den Bodenkampf; `-- --autotest-hub` spielt Startmenü → Schiff → Sternenkarte → Reise → Crewquartiere → Auftrag → Bodenkampf → Bericht durch (Spielstände dabei in `user://saves_test`). Figurengalerie (alle 12 Figuren in mehreren Haltungen): `godot --path godot --script res://tests/figure_gallery.gd`. `-- --no-shadows` schaltet Schatten aus (auf Handys automatisch).

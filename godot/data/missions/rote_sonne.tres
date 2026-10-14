@@ -16,3 +16,4 @@ description = "Gut ausgerüstete Söldner, von allem etwas."
 units = Array[ExtResource("2_unit")]([ExtResource("3_pl1"), ExtResource("4_pl2"), ExtResource("5_br"), ExtResource("6_fu"), ExtResource("7_kl"), ExtResource("8_hx")])
 weights = Array[int]([3, 3, 2, 2, 2, 1])
 max_same = 3
+color = Color(1, 0.541, 0.239, 1)

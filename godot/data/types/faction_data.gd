@@ -9,3 +9,5 @@ extends Resource
 @export var weights: Array[int] = []
 ## höchstens so viele Figuren desselben Typs
 @export var max_same := 3
+## Farbe auf der Sternenkarte
+@export var color := Color("8291ad")

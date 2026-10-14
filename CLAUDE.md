@@ -10,7 +10,8 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - Gebaut: Bodenkampf in zufälliger Lagerhalle (3D), Missionsgenerator (Fraktionen in `godot/data/missions`), Runde 0 (Aufstellung), Charakter-Modul `crew.tscn` mit Charakterübersicht (Ränge, Eigenschaften, freie EP), Speicherstand `user://crew.json` (vollständige Charaktere).
 - Module: Charakter-Modul und Kampfmodule tauschen nur Daten aus (Kampf bekommt Kopien der `Character`, gibt ein `MissionResult` zurück: EP je benutzter Fertigkeit, freie EP, Zustand, Verbrauch). Details in `godot/README.md`, „Module und Schnittstelle“.
 - Charakter-Editor für **neue** Crewmitglieder (Regeln `docs/Skillsystem.md` 7a, Psi-Listen 6.1). Prototyp zum Balancing: Artifact „Frontire Charakter-Editor“.
-- Noch nicht gebaut: Editor-Variante zum Aufleveln, Psi-Listen im Kampf (außer Psi-Schild/Psi-Stoß), Startmenü, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen.
+- Hub (Startmenü, Schiff, Sternenkarte, Spielstände): Startmenü (`start.tscn`, Hauptszene), Schiff als 3D-Deck (`hub.tscn`: Brücke mit Sternenkarte und Aufträgen, Crewquartiere mit der Charakterübersicht des Charakter-Moduls, Krankenstation und Waffenkammer/Hangar als Platzhalter), zufälliger Sektor mit Fraktionen und Reisetagen, Aufträge mit Ablaufdatum, Bodenkampf aus dem Schiff und zurück mit Einsatzbericht, 3 Spielstand-Slots. Details: `docs/module/hub.md`.
+- Noch nicht gebaut: Editor-Variante zum Aufleveln, Psi-Listen im Kampf (außer Psi-Schild/Psi-Stoß), Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen, Ausrüstung/Hangar.
 
 ## Arbeitsweise mit dem Nutzer
 
@@ -28,6 +29,7 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - Stil: GDScript mit Typangaben, deutsche Bezeichner in Texten und Kommentaren, Kommentare knapp mit `##` über Klassen und Funktionen.
 - Tests (vor jedem Commit):
   - `godot --headless --path godot --script res://tests/test_rules.gd` (muss „OK“ ausgeben)
+  - `godot --headless --path godot --script res://tests/test_hub.gd` (Hub: muss „OK“ ausgeben)
   - `godot --headless --path godot --script res://tests/test_sim.gd -- 30` (KI gegen KI; `-- 45 missionen` = Siege je Schwierigkeit)
-  - mit Grafik: `godot --path godot -- --autotest` und `-- --autotest-player` (Screenshots nach `PTF_OUT`)
+  - mit Grafik: `godot --path godot -- --autotest`, `-- --autotest-player` und `-- --autotest-hub` (Screenshots nach `PTF_OUT`)
 - Neue Funktionen in `godot/README.md` und, wenn Regeln betroffen sind, in `docs/Skillsystem.md` nachtragen.

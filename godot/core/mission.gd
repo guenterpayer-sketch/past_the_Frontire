@@ -34,7 +34,8 @@ var enemies: Array[UnitData] = []
 var reward_xp := 0
 
 
-static func generate(seed_value: int, difficulty_id := "") -> Mission:
+## faction_path: feste Fraktion (z. B. die des Systems auf der Sternenkarte), leer = zufällig
+static func generate(seed_value: int, difficulty_id := "", faction_path := "") -> Mission:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var m := Mission.new()
@@ -46,6 +47,8 @@ static func generate(seed_value: int, difficulty_id := "") -> Mission:
 	m.reward_xp = diff.reward
 	var factions := all_factions()
 	m.faction = factions[rng.randi_range(0, factions.size() - 1)]
+	if faction_path != "" and ResourceLoader.exists(faction_path):
+		m.faction = load(faction_path)
 	m.enemies = _compose(rng, m.faction, diff.budget)
 	var job: Array = JOBS[rng.randi_range(0, JOBS.size() - 1)]
 	m.title = job[0]

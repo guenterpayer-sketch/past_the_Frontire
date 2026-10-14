@@ -10,6 +10,7 @@ const MENU := [[&"new", "Neue Mission"], [&"grid", "Hexraster ein/aus (G)"], [&"
 var round_label: Label
 var mission_label: Label
 var toggles := {}
+var _popup: PopupMenu
 
 
 func _ready() -> void:
@@ -44,6 +45,7 @@ func _ready() -> void:
 	menu.focus_mode = Control.FOCUS_NONE
 	menu.flat = false
 	var popup := menu.get_popup()
+	_popup = popup
 	for i in MENU.size():
 		popup.add_item(MENU[i][1], i)
 	popup.add_theme_font_size_override("font_size", 15)
@@ -53,6 +55,13 @@ func _ready() -> void:
 		for y in [-6.0, 0.0, 6.0]:
 			menu.draw_line(o + Vector2(-8, y), o + Vector2(8, y), UiTheme.TEXT, 2.0, true))
 	row.add_child(menu)
+
+
+## Text eines Menüeintrags ändern (z. B. „Neue Mission“ im Einsatz aus dem Schiff)
+func set_menu_text(id: StringName, text: String) -> void:
+	for i in MENU.size():
+		if MENU[i][0] == id:
+			_popup.set_item_text(_popup.get_item_index(i), text)
 
 
 func set_round(text: String) -> void:

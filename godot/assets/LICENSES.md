@@ -9,6 +9,8 @@ Alle Modelle sind frei nutzbar (auch kommerziell). Quelle, Lizenz und Verwendung
 | `characters/models/mech_leela.glb` | Animated Mech Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/animatedmech.html |
 | `weapons/*.glb` | Sci-Fi Modular Gun Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/scifimodularguns.html |
 | `hall/floor_tile.glb`, `hall/wall.glb`, `hall/crate.glb`, `hall/column.glb`, `hall/shelf.glb` | Ultimate Modular Sci-Fi Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimatemodularscifi.html |
+| `ship/floortile_*.glb`, `ship/wall_*.glb`, `ship/*_wall_sidea.glb`, `ship/column_slim.glb`, `ship/props_*.glb` | Ultimate Modular Sci-Fi Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimatemodularscifi.html |
+| `ship/dropship_insurgent.glb` (Insurgent), `ship/ship_imperial.glb` (Imperial) | Ultimate Spaceships Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimatespaceships.html |
 | `hall/tank.glb` | Cyberpunk Game Kit – Quaternius | CC0 1.0 | https://quaternius.com/packs/cyberpunkgamekit.html |
 | `source/kaykit/Knight.glb` (nur Quelle der Animationen) | KayKit Character Pack: Adventurers – Kay Lousberg | CC0 1.0 | https://kaylousberg.itch.io/kaykit-adventurers, `source/kaykit/LICENSE.txt` |
 | `characters/anims/*.res` | aus den KayKit-Animationen auf die Quaternius-Skelette übertragen (`tools/bake_animations.gd`) | CC0 1.0 | – |
