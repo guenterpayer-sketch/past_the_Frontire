@@ -67,7 +67,7 @@ func _ready() -> void:
 	var hub_mission := HubState.active_mission()
 	ui.briefing.hub_mode = hub_mission != null
 	if hub_mission:
-		ui.top_menu.set_menu_text(&"new", "Einsatz abbrechen (zurück ins Schiff)")
+		ui.top_menu.set_menu_text(&"new", "Einsatz abbrechen / Rückzug")
 		new_battle(hub_mission.map_seed, "", "", true, hub_mission)
 	else:
 		new_battle(randi() % 1000000)
@@ -90,6 +90,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_wait_ai()
 	events.clear()
 	ui.combat_log.clear()
+	ui.result_banner.hide()
 	_end_shown = false
 	var map := MapGenerator.generate(seed_value, mission.size_id)
 	combat = Combat.new(map, Roster.build_crew(Campaign.crew()), Roster.build_units(mission.enemies, &"enemy"))
@@ -133,9 +134,14 @@ func finish_mission() -> void:
 	Campaign.finish_mission(result)
 	var to_ship := HubState.in_mission()
 	if to_ship:
-		HubState.game.finish_mission(hub_report(result))
-		ui.combat_log.add("%s – zurück ins Schiff …" % ("Sieg" if c.result == &"sieg" else "Niederlage"), &"round")
-	await get_tree().create_timer(1.6 if to_ship else 0.8).timeout
+		var rep := hub_report(result)
+		if c.retreated:
+			rep.title = "%s (Rückzug)" % rep.title
+		HubState.game.finish_mission(rep)
+	# Ergebnis über der Karte zeigen; die Szene wechselt erst auf „Weiter“
+	await get_tree().create_timer(0.6).timeout
+	ui.result_banner.show_result(c, result, "Zurück ins Schiff" if to_ship else "Zur Crew")
+	await ui.result_banner.continued
 	if combat == c:
 		get_tree().change_scene_to_file(HubState.HUB_SCENE if to_ship else Campaign.CREW_SCENE)
 
@@ -157,6 +163,18 @@ func hub_report(result: Dictionary) -> Dictionary:
 	return {"outcome": result.outcome, "title": result.mission, "faction": mission.faction.name,
 		"system": g.sector.systems[g.position].name, "rounds": result.rounds, "reward_xp": result.reward_xp,
 		"free_xp": MissionResult.FREE_XP + result.reward_xp, "units": units}
+
+
+## „Einsatz abbrechen“ im Schiffsmodus: vor Runde 1 zurück ins Schiff (Auftrag bleibt offen),
+## danach Rückzug (zählt als Niederlage, EP bleiben); jeweils mit Rückfrage
+func _ask_leave() -> void:
+	if combat.result != &"":
+		return
+	if combat.deploying:
+		ui.ask("Einsatz abbrechen und zurück ins Schiff?\nDer Auftrag bleibt auf der Sternenkarte offen.", "Zurück ins Schiff", return_to_ship)
+	else:
+		ui.ask("Rückzug antreten?\nDer Einsatz zählt als Niederlage: Der Auftrag ist verloren und die Zeit vergeht.\nDie EP aus diesem Kampf bleiben.", "Rückzug",
+			func() -> void: combat.retreat())
 
 
 ## Einsatz abbrechen: zurück ins Schiff, der Auftrag bleibt offen
@@ -434,7 +452,9 @@ func _key(e: InputEventKey) -> void:
 			if not ui.close_dialogs():
 				player.mode = PlayerController.Mode.MOVE
 		KEY_ENTER, KEY_KP_ENTER:
-			if combat.deploying and not ui.any_dialog_open():
+			if ui.result_banner.visible:
+				ui.result_banner.confirm()
+			elif combat.deploying and not ui.any_dialog_open():
 				begin_combat()
 			elif player_turn():
 				combat.end_turn()
@@ -546,7 +566,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 				ui.dice_panel.hide()
 		&"new":
 			if HubState.in_mission():
-				return_to_ship()
+				_ask_leave()
 			else:
 				new_battle(randi() % 1000000)
 		&"reroll":

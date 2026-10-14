@@ -383,5 +383,8 @@ func _test_deploy() -> void:
 	check(not c.can_deploy(a, outside), "nicht außerhalb des Eingangsbereichs")
 	c.deploy_face(a, 4)
 	check(a.facing == 4, "Blickrichtung in Runde 0")
+	check(not c.retreat(), "kein Rückzug in Runde 0")
 	c.start()
 	check(not c.can_deploy(a, free_tile), "nach Kampfbeginn keine Aufstellung mehr")
+	check(c.retreat() and c.result == &"niederlage" and c.retreated, "Rückzug = Niederlage")
+	check(not c.retreat(), "Rückzug nur einmal")

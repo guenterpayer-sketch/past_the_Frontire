@@ -50,6 +50,7 @@ var result: StringName = &""   # &"sieg" oder &"niederlage"
 var jump_queue: Array[Combatant] = []
 var fumbles: FumbleTableData
 var deploying := true          # Runde 0: Crew im Eingangsbereich aufstellen, bis start() aufgerufen wird
+var retreated := false         # Crew hat sich zurückgezogen (zählt als Niederlage)
 
 
 ## Modifikator für die in einen Angriff gesteckte Aktivität: 60 % = ±0, darunter −10 je 10 %, darüber +5 je 10 %
@@ -294,6 +295,17 @@ func _check_state(u: Combatant) -> void:
 		u.overwatch = {}
 		log_text("%s bricht bewusstlos zusammen." % u.name, &"death")
 		unit_changed.emit(u)
+
+
+## Rückzug der Crew (ab Runde 1): Kampf endet als Niederlage, die bis dahin gesammelten EP bleiben
+func retreat() -> bool:
+	if result != &"" or deploying:
+		return false
+	retreated = true
+	result = &"niederlage"
+	log_text("Die Crew zieht sich zurück.", &"round")
+	ended.emit(result)
+	return true
 
 
 func check_end() -> bool:
