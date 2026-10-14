@@ -162,16 +162,38 @@ static func award_xp(ch, id: StringName, amount: int) -> void:
 	ch.xp_log[id] = ch.xp_log.get(id, 0) + amount
 
 
+## Kosten des nächsten Rangs dieser Figur; der erste Rang einer neuen Psi-Liste kostet doppelt
+static func next_rank_cost(ch, id: StringName) -> int:
+	var r := skill_rank(ch, id)
+	return rank_cost(r) * (2 if r == 0 and is_psi_list(id) else 1)
+
+
+static func is_psi_list(id: StringName) -> bool:
+	return skill(id).get("group", "") == "psiListen"
+
+
+## Warum kein Rang gekauft werden darf (unabhängig von EP), sonst "":
+## pro Levelphase höchstens eine neue Psi-Liste (Character.new_list)
+static func rank_block(ch, id: StringName) -> String:
+	if is_psi_list(id) and skill_rank(ch, id) == 0 and "new_list" in ch and ch.new_list != &"" and ch.new_list != id:
+		return "In dieser Levelphase wurde schon eine neue Psi-Liste begonnen"
+	return ""
+
+
 static func can_rank_up(ch, id: StringName) -> bool:
 	var s := ensure_skill(ch, id)
-	return s.xp >= rank_cost(s.rank)
+	return s.xp >= next_rank_cost(ch, id) and rank_block(ch, id) == ""
 
 
 static func rank_up(ch, id: StringName) -> bool:
+	if rank_block(ch, id) != "":
+		return false
 	var s := ensure_skill(ch, id)
-	var cost := rank_cost(s.rank)
+	var cost := next_rank_cost(ch, id)
 	if s.xp < cost:
 		return false
+	if s.rank == 0 and is_psi_list(id) and "new_list" in ch:
+		ch.new_list = id
 	s.xp -= cost
 	s.rank += 1
 	return true
@@ -180,8 +202,8 @@ static func rank_up(ch, id: StringName) -> bool:
 ## Rangsteigerung, bei der fehlende EP aus dem freien Pool der Figur kommen: {ok, from_pool}
 static func rank_up_cost(ch, id: StringName) -> Dictionary:
 	var s := ensure_skill(ch, id)
-	var missing := maxi(0, rank_cost(s.rank) - s.xp)
-	return {"ok": missing <= ch.free_xp, "from_pool": missing}
+	var missing := maxi(0, next_rank_cost(ch, id) - s.xp)
+	return {"ok": missing <= ch.free_xp and rank_block(ch, id) == "", "from_pool": missing}
 
 
 static func rank_up_with_pool(ch, id: StringName) -> bool:
