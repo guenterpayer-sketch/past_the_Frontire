@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (`012efdf`).
+Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Hub `df91246` und Charakter `d375736`).
 
 ## Arbeitsweise mit Branches
 
@@ -10,9 +10,9 @@ Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (`012efdf`).
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`833875f`); muss `main` holen (Hub fehlt) |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`73a73ed`); muss `main` holen (Hub fehlt) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77449d9`); muss `main` holen (Moduldatei Bodenkampf fehlt) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`1cf8d86`); muss `main` holen (Hub-Änderung an `view/battle.gd`, Aufleveln) |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`d375736`); muss `main` holen (Hub `df91246`) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`df91246`); muss `main` holen (Aufleveln) |
 
 ## Verlauf
 
@@ -21,6 +21,9 @@ Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (`012efdf`).
 | 14.10.2026 | `cf5ad7e` | Charakter `claude/elegant-gauss-hq5bus` (`73a73ed`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Tests laut Modul-Chat: `test_rules` OK, `test_sim -- 30` 22 Siege / 8 Niederlagen / 0 hängengeblieben, `--autotest` und `--autotest-player` laufen durch. Koordinator: `test_rules` OK. |
 | 15.10.2026 | `403b431` | Bodenkampf `claude/confident-edison-6mxzke` (`833875f`) | ohne Konflikte; nur `docs/module/bodenkampf.md` (Simulation zu den neuen TP/PP-Formeln, Entscheidung: Balancing bleibt). |
 | 15.10.2026 | `012efdf` | Hub `claude/happy-lamport-u4fvya` (`77449d9`) | ohne Konflikte (der Hub hatte `main` mit dem Charakter-Modul schon eingeholt und die Konflikte im eigenen Branch gelöst); Ergebnis weicht vom getesteten Branch-Stand nur in `docs/module/bodenkampf.md` ab. Tests laut Modul-Chat: `test_rules`, `test_hub` OK, `test_sim -- 30` 22 Siege / 0 hängengeblieben, `--autotest`, `--autotest-player`, `--autotest-hub` laufen durch. Koordinator: `test_rules` und `test_hub` OK. |
+
+| 15.10.2026 | `5d0bd94` | Hub `claude/happy-lamport-u4fvya` (`df91246`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. „Crew zurücksetzen“ im Schiff ausgeblendet, Schnellkampf aus dem Startmenü verbucht nichts und führt zurück ins Startmenü (`HubState.quick_battle`, Zweig in `Battle.finish_mission()`). Tests laut Modul-Chat: alle grün (`test_sim -- 30` 22 Siege / 0 hängengeblieben, Autotests inkl. `--autotest-hub`). Koordinator: `test_rules`, `test_hub` OK. |
+| 15.10.2026 | siehe `git log` | Charakter `claude/elegant-gauss-hq5bus` (`d375736`) | ohne Konflikte. Aufleveln in der Charakterübersicht (3D-Vorschau `ui/crew/figure_preview.gd`, Name/Kürzel/Farbe/Station/Aussehen, Psi-Kräfte), Regeln `docs/Skillsystem.md` 8. Schnittstellen unverändert, Erweiterungen: `Character.new_list`, `Rules.next_rank_cost/rank_block/is_psi_list`. Tests laut Modul-Chat mit Hub `77449d9` grün (inkl. `--autotest-hub`). Koordinator nach Zusammenführung mit Hub `df91246`: `test_rules`, `test_hub` OK; grafische Tests nicht selbst ausgeführt. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 

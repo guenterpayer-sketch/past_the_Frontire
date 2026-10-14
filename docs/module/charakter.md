@@ -28,3 +28,4 @@
 - ~~Wird als erstes Modul zusammengeführt, sobald als bereit gemeldet.~~ → bereit (siehe Stand).
 - ~~`Campaign` neu laden können~~ → `Campaign.reload()`; der Hub ruft es nach dem Laden eines Spielstands auf.
 - In `main` seit 14.10.2026 (`cf5ad7e`). Hub ist seit 15.10.2026 in `main` (`012efdf`) und nutzt `Campaign`, `CrewOverview`, `CharacterEditor`, `SheetDialog` direkt in den Crewquartieren: `main` holen; Änderungen an diesen Schnittstellen vorher in dieser Datei ankündigen.
+- Hub `df91246` ist in `main`: blendet im Schiff „Crew zurücksetzen“ aus, indem er in `footer` nach dem Knopftext sucht. Knopftexte „Crew zurücksetzen“ und „Speichern & nächste Mission“ nicht ändern, ohne das hier anzukündigen. `main` holen.
