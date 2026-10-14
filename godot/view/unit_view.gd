@@ -20,7 +20,7 @@ var _step_id := 0
 func setup(u: Combatant) -> void:
 	unit = u
 	name = "Unit_%s" % u.id
-	figure = ModelFigure.new() if u.data.visual and u.data.visual.model else ProceduralFigure.new()
+	figure = ModelFigure.new() if u.visual and u.visual.model else ProceduralFigure.new()
 	add_child(figure)
 	figure.setup(u)
 	_build_ring(u)

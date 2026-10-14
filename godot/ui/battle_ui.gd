@@ -19,7 +19,6 @@ var ai_card: UnitCard        # unten rechts: Figur unter KI-Steuerung
 var actions: ActionPanel
 var sheet: SheetDialog
 var tables: TablesDialog
-var end_dialog: EndDialog
 var briefing: BriefingDialog
 var help: Modal
 var _left: VBoxContainer
@@ -67,16 +66,10 @@ func _ready() -> void:
 
 	sheet = SheetDialog.new()
 	tables = TablesDialog.new()
-	end_dialog = EndDialog.new()
 	briefing = BriefingDialog.new()
 	help = Modal.new()
-	for d in [sheet, tables, end_dialog, briefing, help]:
+	for d in [sheet, tables, briefing, help]:
 		add_child(d)
-	end_dialog.next_battle.connect(func() -> void: action.emit(&"next_battle", null))
-	end_dialog.reset_crew.connect(func() -> void: action.emit(&"reset_crew", null))
-	end_dialog.open_sheet.connect(func(crew: Array[Combatant], u: Combatant) -> void:
-		sheet.show_sheet(crew, u)
-		sheet.move_to_front())
 	briefing.reroll.connect(func(diff: String) -> void: action.emit(&"reroll", diff))
 	combat_log.set_expanded(Prefs.get_bool("log_open", false))
 	combat_log.toggled.connect(func(on: bool) -> void: Prefs.set_bool("log_open", on))
@@ -113,7 +106,7 @@ func set_toggle(name: StringName, on: bool, tip := "") -> void:
 
 
 func any_dialog_open() -> bool:
-	return sheet.visible or tables.visible or end_dialog.visible or briefing.visible or help.visible
+	return sheet.visible or tables.visible or briefing.visible or help.visible
 
 
 func close_dialogs() -> bool:

@@ -7,8 +7,9 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - **Aktive Version: Godot 4.7.2** im Ordner `godot/` (Überblick, Bedienung, Aufbau, Tests: `godot/README.md`).
 - **HTML/JS-Version** (`index.html`, `js/`, `css/`, `tests/` im Wurzelordner) ist **eingefroren**: nur noch Referenz, nicht weiterentwickeln.
 - Regeln und Entwürfe: `docs/Skillsystem.md` (Eigenschaften, Fertigkeiten, Proben, Kampf, Steigerung, offene Punkte), `docs/Charakterbogen_Grundgeruest.md`, `docs/Raumkampf.md`.
-- Gebaut: Bodenkampf in zufälliger Lagerhalle (3D), Missionsgenerator (Fraktionen in `godot/data/missions`), Runde 0 (Aufstellung), Charakterübersicht nach dem Kampf (Ränge, Eigenschaften, freie EP), Speicherstand `user://crew.json`.
-- Noch nicht gebaut: Charaktererstellung, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen.
+- Gebaut: Bodenkampf in zufälliger Lagerhalle (3D), Missionsgenerator (Fraktionen in `godot/data/missions`), Runde 0 (Aufstellung), Charakter-Modul `crew.tscn` mit Charakterübersicht (Ränge, Eigenschaften, freie EP), Speicherstand `user://crew.json` (vollständige Charaktere).
+- Module: Charakter-Modul und Kampfmodule tauschen nur Daten aus (Kampf bekommt Kopien der `Character`, gibt ein `MissionResult` zurück: EP je benutzter Fertigkeit, freie EP, Zustand, Verbrauch). Details in `godot/README.md`, „Module und Schnittstelle“.
+- Noch nicht gebaut: Charakter-Editor (Erstellen/Bearbeiten; Regeln für die Erstellung noch offen), Startmenü, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen.
 
 ## Arbeitsweise mit dem Nutzer
 
@@ -21,7 +22,7 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 
 ## Code (godot/)
 
-- `core/`: Spiellogik ohne Grafik, meldet alles über Signale (`Combat`). `view/`: Darstellung und Ablauf (`Battle`, `EventPlayer`, `PlayerController`). `ui/`: Oberfläche (schwebende Kästen über der Karte, Dialoge auf `Modal`). `data/`: Spieldaten als Ressourcen (`.tres`), im Editor bearbeitbar.
+- `core/`: Spiellogik ohne Grafik, meldet alles über Signale (`Combat`). `Character`/`Roster`/`Campaign`/`MissionResult`: Crew, Speicherstand, Schnittstelle zum Kampf. `view/`: Darstellung und Ablauf (`Battle`, `EventPlayer`, `PlayerController`). `ui/`: Oberfläche (schwebende Kästen über der Karte, Dialoge auf `Modal`). `data/`: Spieldaten als Ressourcen (`.tres`), im Editor bearbeitbar.
 - Stil: GDScript mit Typangaben, deutsche Bezeichner in Texten und Kommentaren, Kommentare knapp mit `##` über Klassen und Funktionen.
 - Tests (vor jedem Commit):
   - `godot --headless --path godot --script res://tests/test_rules.gd` (muss „OK“ ausgeben)
