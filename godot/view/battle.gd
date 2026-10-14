@@ -2,8 +2,10 @@ class_name Battle
 extends Node3D
 ## Hauptszene: verbindet Kampflogik (Combat, CombatAI), Darstellung (MapView, UnitView, Overlay, Fx),
 ## Ablauf der Ereignisse (EventPlayer), Bedienung (PlayerController) und Oberfläche (BattleUI).
-## Aus dem Schiff gestartet (HubState.in_mission) kommt die Mission von der Sternenkarte; nach dem Kampf geht es
-## mit einem Bericht zurück ins Schiff. Sonst (Schnellkampf, Tests) wie bisher mit zufälliger Mission.
+## Kampfmodul: bekommt Kopien der Charaktere (Campaign.crew), gibt am Ende ein MissionResult zurück
+## und wechselt ins Charakter-Modul (crew.tscn).
+## Aus dem Schiff gestartet (HubState.in_mission) kommt die Mission von der Sternenkarte; danach geht es
+## mit einem Einsatzbericht zurück ins Schiff statt ins Charakter-Modul.
 
 const AI_DELAY := 0.22
 const LONG_PRESS := 0.55
@@ -70,10 +72,12 @@ func _ready() -> void:
 	else:
 		new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
-	if "--autotest" in args or "--autotest-player" in args:
+	if ("--autotest" in args or "--autotest-player" in args) and not get_tree().root.has_node("Autotest"):
+		# der Selbsttest hängt an der Wurzel, damit er den Wechsel ins Charakter-Modul übersteht
 		var t: Node = load("res://tests/autotest.gd").new()
+		t.name = "Autotest"
 		t.battle = self
-		add_child(t)
+		get_tree().root.add_child.call_deferred(t)
 
 
 ## Neuer Einsatz: Mission würfeln (Gegner, Halle), Karte bauen, Runde 0 (Aufstellung) mit Briefing.
@@ -86,11 +90,9 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_wait_ai()
 	events.clear()
 	ui.combat_log.clear()
-	ui.end_dialog.hide()
 	_end_shown = false
 	var map := MapGenerator.generate(seed_value, mission.size_id)
-	var progress := Roster.load_progress()
-	combat = Combat.new(map, Roster.build_team(GameData.crew(), &"crew", progress), Roster.build_units(mission.enemies, &"enemy"))
+	combat = Combat.new(map, Roster.build_crew(Campaign.crew()), Roster.build_units(mission.enemies, &"enemy"))
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
 	map_view.theme = GameData.hall_theme()
@@ -123,26 +125,38 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_dirty = true
 
 
-## Einsatz aus dem Schiff beendet: freie EP gutschreiben (wie in der Charakterübersicht), Crew speichern,
-## Bericht an das Schiff geben und zurückwechseln. Steigern geht dort in den Crewquartieren.
-func finish_hub_mission() -> void:
-	var win := combat.result == &"sieg"
-	var reward := mission.reward_xp if win else 0
-	var units := []
-	for u in combat.crew():
-		u.free_xp += EndDialog.FREE_XP + reward
-		var keys := u.xp_log.keys()
-		keys.sort_custom(func(a, b) -> bool: return u.xp_log[a] > u.xp_log[b])
-		units.append({"letter": u.letter, "name": u.name, "state": u.state_name(),
-			"xp": ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), u.xp_log[k]]))})
-	Roster.save_progress(combat.crew())
+## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann
+## aus dem Schiff gestartet: Bericht ans Schiff und zurück dorthin; sonst (Schnellkampf) ins Charakter-Modul
+func finish_mission() -> void:
+	var c := combat
+	var result := MissionResult.from_combat(c, mission)
+	Campaign.finish_mission(result)
+	var to_ship := HubState.in_mission()
+	if to_ship:
+		HubState.game.finish_mission(hub_report(result))
+		ui.combat_log.add("%s – zurück ins Schiff …" % ("Sieg" if c.result == &"sieg" else "Niederlage"), &"round")
+	await get_tree().create_timer(1.6 if to_ship else 0.8).timeout
+	if combat == c:
+		get_tree().change_scene_to_file(HubState.HUB_SCENE if to_ship else Campaign.CREW_SCENE)
+
+
+## Einsatzbericht fürs Schiff aus dem MissionResult (Namen aus der Crew)
+func hub_report(result: Dictionary) -> Dictionary:
 	var g := HubState.game
-	g.finish_mission({"outcome": combat.result, "title": mission.title, "faction": mission.faction.name,
-		"system": g.sector.systems[g.position].name, "rounds": combat.round_no, "reward_xp": reward,
-		"free_xp": EndDialog.FREE_XP + reward, "units": units})
-	ui.combat_log.add("%s – zurück ins Schiff …" % ("Sieg" if win else "Niederlage"), &"round")
-	await get_tree().create_timer(1.6).timeout
-	get_tree().change_scene_to_file(HubState.HUB_SCENE)
+	var units := []
+	var states := {"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}
+	for ch in Campaign.crew():
+		var r: Dictionary = result.units.get(ch.id, {})
+		if r.is_empty():
+			continue
+		var xp: Dictionary = r.get("xp", {})
+		var keys := xp.keys()
+		keys.sort_custom(func(a, b) -> bool: return xp[a] > xp[b])
+		units.append({"letter": ch.letter, "name": ch.name, "state": states.get(r.status.state, r.status.state),
+			"xp": ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), xp[k]]))})
+	return {"outcome": result.outcome, "title": result.mission, "faction": mission.faction.name,
+		"system": g.sector.systems[g.position].name, "rounds": result.rounds, "reward_xp": result.reward_xp,
+		"free_xp": MissionResult.FREE_XP + result.reward_xp, "units": units}
 
 
 ## Einsatz abbrechen: zurück ins Schiff, der Auftrag bleibt offen
@@ -178,10 +192,7 @@ func _process(delta: float) -> void:
 		_refresh()
 	if combat.result != &"" and events.is_idle() and not _end_shown:
 		_end_shown = true
-		if HubState.in_mission():
-			finish_hub_mission()
-		else:
-			get_tree().create_timer(0.8).timeout.connect(func() -> void: ui.end_dialog.show_end(combat, mission))
+		finish_mission()
 	if _touches.size() == 1 and not _touch_moved and not _long_fired and Time.get_ticks_msec() - _touch_start_ms > LONG_PRESS * 1000:
 		_long_fired = true
 		var p: Vector2 = _touches.values()[0]
@@ -562,12 +573,6 @@ func _on_action(name: StringName, arg: Variant) -> void:
 		&"deploy_turn":
 			if deploy_sel:
 				_deploy_turn(deploy_sel, posmod(deploy_sel.facing + arg, 6))
-		&"next_battle":
-			Roster.save_progress(combat.crew())
-			new_battle(randi() % 1000000)
-		&"reset_crew":
-			Roster.reset()
-			new_battle(randi() % 1000000)
 		&"focus":
 			rig.focus(views[arg].position, false)
 		&"jump":

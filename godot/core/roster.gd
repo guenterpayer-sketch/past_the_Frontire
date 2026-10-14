@@ -1,50 +1,39 @@
 class_name Roster
 extends RefCounted
-## Fortschritt der Crew (Fertigkeiten mit Rang und EP, gesteigerte Eigenschaften, gesparte freie EP),
-## gespeichert in user://crew.json. Ausrüstung und übrige Werte kommen immer aus den Vorlagen unter res://data/units.
+## Speicherstand der Crew in user://crew.json: vollständige Charaktere (Version 3).
+## Ohne Speicherstand ist die Startcrew aus res://data/units/crew.tres die Crew.
+## Ältere Speicherstände (Version 1/2: nur Fortschritt je Figur) werden auf die Startcrew gelegt.
 
 const PATH := "user://crew.json"
-const VERSION := 2
+const VERSION := 3
 
 
-## Gespeicherter Fortschritt: {Figur-ID: {skills: {Fertigkeit: {rank, xp}}, attrs: {...}, free_xp}}
-## Liest auch das alte Format (nur {Figur-ID: {Fertigkeit: {rank, xp}}}).
-static func load_progress() -> Dictionary:
-	if not FileAccess.file_exists(PATH):
-		return {}
-	var data = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if typeof(data) != TYPE_DICTIONARY:
-		return {}
-	var crew: Dictionary = data.get("crew", {}) if data.has("version") else {}
-	if not data.has("version"):
-		for uid in data:
-			crew[uid] = {"skills": data[uid]}
-	var out := {}
-	for uid in crew:
-		var entry: Dictionary = crew[uid]
-		var skills := {}
-		var raw: Dictionary = entry.get("skills", {})
-		for sid in raw:
-			var s: Dictionary = raw[sid]
-			skills[StringName(sid)] = {"rank": int(s.get("rank", 0)), "xp": int(s.get("xp", 0))}
-		var attrs := {}
-		var raw_attrs: Dictionary = entry.get("attrs", {})
-		for a in raw_attrs:
-			attrs[String(a)] = int(raw_attrs[a])
-		out[StringName(uid)] = {"skills": skills, "attrs": attrs, "free_xp": int(entry.get("free_xp", 0))}
+static func load_crew() -> Array[Character]:
+	var data = JSON.parse_string(FileAccess.get_file_as_string(PATH)) if FileAccess.file_exists(PATH) else null
+	if typeof(data) == TYPE_DICTIONARY and int(data.get("version", 0)) >= 3:
+		var out: Array[Character] = []
+		for d in data.get("crew", []):
+			var c := Character.from_dict(d)
+			if c.is_valid():
+				out.append(c)
+		if not out.is_empty():
+			return out
+	var progress := _old_progress(data) if typeof(data) == TYPE_DICTIONARY else {}
+	return start_crew(progress)
+
+
+## Startcrew aus den Vorlagen, optional mit altem Fortschritt {Figur-ID: {skills, attrs, free_xp}}
+static func start_crew(progress := {}) -> Array[Character]:
+	var out: Array[Character] = []
+	for d in GameData.crew().units:
+		out.append(Character.from_unit(d).apply_progress(progress.get(d.id, {})))
 	return out
 
 
-static func save_progress(crew: Array[Combatant]) -> void:
-	var data := {}
-	for u in crew:
-		var skills := {}
-		for sid in u.skills:
-			skills[String(sid)] = u.skills[sid]
-		data[String(u.id)] = {"skills": skills, "attrs": u.attrs, "free_xp": u.free_xp}
+static func save_crew(crew: Array[Character]) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"version": VERSION, "crew": data}, "\t"))
+		f.store_string(JSON.stringify({"version": VERSION, "crew": crew.map(func(c: Character) -> Dictionary: return c.to_dict())}, "\t"))
 
 
 static func reset() -> void:
@@ -52,13 +41,33 @@ static func reset() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 
 
-## Kampfbereite Figuren einer Mannschaft
-static func build_team(team: TeamData, team_id: StringName, progress := {}) -> Array[Combatant]:
-	return build_units(team.units, team_id, progress)
+## Version 2: {version, crew: {Figur-ID: {skills, attrs, free_xp}}}; Version 1: {Figur-ID: {Fertigkeit: {rank, xp}}}
+static func _old_progress(data: Dictionary) -> Dictionary:
+	var crew: Dictionary = data.get("crew", {}) if data.has("version") else {}
+	if not data.has("version"):
+		for uid in data:
+			crew[uid] = {"skills": data[uid]}
+	var out := {}
+	for uid in crew:
+		out[StringName(uid)] = crew[uid]
+	return out
 
 
-static func build_units(units: Array[UnitData], team_id: StringName, progress := {}) -> Array[Combatant]:
+## Kampfbereite Kopien der Charaktere
+static func build_crew(crew: Array[Character]) -> Array[Combatant]:
+	var out: Array[Combatant] = []
+	for c in crew:
+		out.append(Combatant.from_character(c, &"crew"))
+	return out
+
+
+## Kampfbereite Figuren einer Mannschaft aus Vorlagen
+static func build_team(team: TeamData, team_id: StringName) -> Array[Combatant]:
+	return build_units(team.units, team_id)
+
+
+static func build_units(units: Array[UnitData], team_id: StringName) -> Array[Combatant]:
 	var out: Array[Combatant] = []
 	for d in units:
-		out.append(Combatant.create(d, team_id, progress.get(d.id, {})))
+		out.append(Combatant.create(d, team_id))
 	return out

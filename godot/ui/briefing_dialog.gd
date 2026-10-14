@@ -27,7 +27,7 @@ func show_mission(m: Mission) -> void:
 			sz = s
 	var s := "[b]Ziel:[/b] alle Gegner ausschalten\n"
 	s += "[b]Schwierigkeit:[/b] %s · [b]Halle:[/b] %s · [b]Belohnung bei Sieg:[/b] +%d freie EP je Figur (zusätzlich zu den %d freien EP pro Einsatz)\n\n" % [
-		m.difficulty_name(), sz.get("name", m.size_id), m.reward_xp, EndDialog.FREE_XP]
+		m.difficulty_name(), sz.get("name", m.size_id), m.reward_xp, MissionResult.FREE_XP]
 	s += "[b]Gegner (%d)[/b]\n[table=4]" % m.enemies.size()
 	for h in ["", "Typ", "Rolle", "Ausrüstung"]:
 		s += "[cell][color=#8291ad]%s[/color][/cell]" % h

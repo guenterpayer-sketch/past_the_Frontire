@@ -12,7 +12,8 @@ const MENU := [[&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"help",
 var status: Label
 var info: InfoBox
 var star_map: StarMap
-var crew: EndDialog
+var crew: CrewOverview
+var editor: CharacterEditor
 var sheet: SheetDialog
 var slots: SlotsDialog
 var report: Modal
@@ -107,18 +108,20 @@ func _ready() -> void:
 	add_child(_hint)
 
 	star_map = StarMap.new()
-	crew = EndDialog.new()
+	crew = CrewOverview.new()
+	editor = CharacterEditor.new()
 	sheet = SheetDialog.new()
 	slots = SlotsDialog.new()
 	report = Modal.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help]:
+	for d in [star_map, crew, editor, sheet, slots, report, notice, help]:
 		add_child(d)
 	notice.max_size = Vector2(620, 320)
 	report.max_size = Vector2(900, 540)
-	crew.open_sheet.connect(func(c: Array[Combatant], u: Combatant) -> void:
-		sheet.show_sheet(c, u)
+	crew.open_sheet.connect(func(c: Array[Character], u: Character) -> void:
+		var units := Roster.build_crew(c)
+		sheet.show_sheet(units, units[c.find(u)])
 		sheet.move_to_front())
 
 
@@ -161,6 +164,15 @@ func show_room_info(r: Dictionary, g: HubState) -> void:
 			(" · %d läuft bald ab" % soon) if soon else ""]
 	s += "\n[color=#8291ad]%s[/color]" % ("Klick: öffnen" if r.ready else "kommt noch")
 	info.show_info(s)
+
+
+## Crewquartiere: Charakterübersicht des Charakter-Moduls; nach einem Einsatz mit dessen Ergebnis.
+## Der Knopf „Speichern & nächste Mission“ heißt im Schiff „Speichern & zurück“.
+func show_crew() -> void:
+	crew.show_crew(Campaign.crew(), Campaign.last_result)
+	for b in crew.footer.get_children():
+		if b is Button and (b as Button).text.begins_with("Speichern"):
+			(b as Button).text = "Speichern & zurück"
 
 
 func show_notice(title: String, text: String) -> void:
@@ -219,11 +231,11 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible
+	return star_map.visible or crew.visible or editor.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible
 
 
 func close_dialogs() -> bool:
-	for d in [sheet, help, notice, slots, report]:
+	for d in [sheet, editor, help, notice, slots, report]:
 		if d.visible:
 			d.close()
 			return true

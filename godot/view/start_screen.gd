@@ -151,7 +151,8 @@ func _load(slot: int) -> void:
 
 
 func _new_game(slot: int, name: String) -> void:
-	Roster.reset()
+	Campaign.reset()
+	Campaign.save()
 	var g := HubState.new_game(randi() % 1000000, name, slot)
 	SaveSlots.save(slot, name, g)
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)

@@ -1,6 +1,14 @@
 # Zusammenführung der Module – Stand und offene Punkte
 
-Stand: 14.10.2026. Grundlage ist eine **Probe-Zusammenführung** (nicht gepusht) von `main` (= Commit `9fde5fe`) mit den beiden Modul-Branches.
+Stand: 14.10.2026, nach der Zusammenführung des Charakter-Moduls (`cf5ad7e`).
+
+## Verlauf
+
+| Datum | Commit in `main` | Branch (Commit) | Ergebnis |
+|---|---|---|---|
+| 14.10.2026 | `cf5ad7e` | Charakter `claude/elegant-gauss-hq5bus` (`73a73ed`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Tests laut Modul-Chat: `test_rules` OK, `test_sim -- 30` 22 Siege / 8 Niederlagen / 0 hängengeblieben, `--autotest` und `--autotest-player` laufen durch. Koordinator: `test_rules` OK; `test_sim` nicht selbst ausgeführt. |
+
+Der Abschnitt „Ergebnis der Probe“ weiter unten stammt von der ersten Probe (Grundlage `9fde5fe`); die Probe mit dem neuen `main` ist darunter ergänzt.
 
 ## Arbeitsweise mit Branches
 
@@ -10,16 +18,18 @@ Stand: 14.10.2026. Grundlage ist eine **Probe-Zusammenführung** (nicht gepusht)
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | = `main` |
-| `claude/elegant-gauss-hq5bus` | Charakter-Editor (bisher: Trennung Charakter-Modul ⇄ Kampf) | 1 Commit über `main`, arbeitet weiter |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | 1 Commit über `main`, arbeitet weiter |
+| `claude/confident-edison-6mxzke` | Bodenkampf | 1 Commit hinter `main` (Charakter-Modul fehlt), nichts Eigenes neu |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`73a73ed`) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | `31144f9`, hat `main` vom Stand `6bcaeaa` geholt; Charakter-Modul fehlt noch, **Konflikte** (siehe unten) |
 
-**Empfohlene Reihenfolge:** erst Charakter-Editor, dann Hub. Der Charakter-Editor ändert die Schnittstelle zwischen Crew und Kampf, der Hub muss sich danach daran anpassen.
+**Reihenfolge:** Charakter-Modul ist in `main`. Als Nächstes holt der Hub `main` und passt sich an (Aufträge in `docs/module/hub.md`).
 
 ## Ergebnis der Probe
 
 - `main` + Charakter-Editor: **ohne Konflikte**.
 - danach + Hub: **4 Dateien mit Konflikten**: `CLAUDE.md`, `godot/view/battle.gd`, `godot/ui/modal.gd`, `godot/ui/crew/crew_overview.gd` (im Hub-Branch noch `ui/end_dialog.gd`, im Charakter-Editor umbenannt).
+
+**Probe vom 14.10.2026 mit `main` = `cf5ad7e` (Charakter-Modul enthalten) + Hub `31144f9`:** dieselben 4 Dateien mit Konflikten (`CLAUDE.md`, `godot/view/battle.gd`, `godot/ui/modal.gd`, `godot/ui/crew/crew_overview.gd`). Zusätzlich verweisen im Hub-Branch noch `ui/battle_ui.gd`, `ui/hub_ui.gd`, `view/hub.gd` und `view/battle.gd` auf `EndDialog` bzw. `Roster.load_progress()/save_progress()`, die es in `main` nicht mehr gibt. Punkt 4 unten ist vom Charakter-Modul gelöst: `Campaign.reload()`.
 
 ## Was nicht zusammenpasst (gefunden im Code)
 
@@ -45,4 +55,4 @@ Stand: 14.10.2026. Grundlage ist eine **Probe-Zusammenführung** (nicht gepusht)
 ## Offene Entscheidungen (für den Nutzer)
 
 - **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). Soll die Krankenstation im Schiff das übernehmen, und was passiert bei Tod?
-- **Wer führt zusammen?** Vorschlag: der Bodenkampf-Chat, sobald Charakter-Editor und Hub einen fertigen Zwischenstand gepusht haben.
+- ~~**Wer führt zusammen?**~~ Der Koordinations-Chat (`docs/module/koordination.md`).

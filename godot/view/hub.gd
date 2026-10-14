@@ -5,7 +5,6 @@ extends Node3D
 ## Speichern/Laden. Der Spielstand liegt in HubState.game.
 
 var game: HubState
-var crew: Array[Combatant] = []
 var _hover: StringName = &""
 var _mouse_drag := false
 var _drag_moved := false
@@ -25,9 +24,20 @@ func _ready() -> void:
 	ui.star_map.travel.connect(_travel)
 	ui.star_map.start.connect(_start_mission)
 	ui.star_map.closed.connect(_refresh)
-	ui.crew.crew_done.connect(func() -> void:
-		Roster.save_progress(crew)
+	ui.crew.next_battle.connect(func() -> void:
+		Campaign.save()
+		ui.crew.hide()
 		_refresh())
+	ui.crew.reset_crew.connect(func() -> void:
+		Campaign.reset()
+		Campaign.save()
+		ui.show_crew())
+	ui.crew.create_member.connect(func() -> void:
+		ui.editor.open_new(Campaign.crew(), Campaign.crew().find(ui.crew.current()))
+		ui.editor.move_to_front())
+	ui.editor.saved.connect(func(ch: Character, replace: Character) -> void:
+		Campaign.add_member(ch, replace)
+		ui.show_crew())
 	ui.slots.saved.connect(func(_s: int) -> void: _refresh())
 	ui.slots.loaded.connect(func(s: int) -> void:
 		if SaveSlots.load_slot(s):
@@ -72,8 +82,7 @@ func open_room(id: StringName) -> void:
 		&"bridge":
 			ui.star_map.open(game)
 		&"quarters":
-			crew = Roster.build_team(GameData.crew(), &"crew", Roster.load_progress())
-			ui.crew.show_crew(crew)
+			ui.show_crew()
 		_:
 			ui.show_notice(r.name, "%s\n\nDieser Bereich kommt noch." % r.text)
 
@@ -89,6 +98,8 @@ func _start_mission(offer: Dictionary) -> void:
 	if not game.start_mission(offer):
 		_refresh()
 		return
+	Campaign.save()
+	Campaign.last_result = {}
 	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
 
 

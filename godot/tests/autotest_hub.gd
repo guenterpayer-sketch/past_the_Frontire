@@ -22,7 +22,8 @@ func _run() -> void:
 	await _shot("h0_start")
 	# Neues Spiel im Slot 1
 	seed(4711)
-	Roster.reset()
+	Campaign.reset()
+	Campaign.save()
 	var g := HubState.new_game(4711, "Autotest", 1)
 	SaveSlots.save(1, "Autotest", g)
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)
@@ -65,7 +66,7 @@ func _run() -> void:
 	# Crewquartiere
 	hub.open_room(&"quarters")
 	await _frames(10)
-	print("Crewquartiere offen: ", hub.ui.crew.visible, ", ", hub.crew.size(), " Figuren")
+	print("Crewquartiere offen: ", hub.ui.crew.visible, ", ", Campaign.crew().size(), " Figuren")
 	await _shot("h6_crewquartiere")
 	await _click_button(hub.ui, "Speichern & zurück")
 	# Speichern-Dialog
@@ -109,14 +110,20 @@ func _run() -> void:
 		hub.ui.report.visible if hub else false])
 	await _frames(10)
 	await _shot("h9_bericht")
-	var saved := Roster.load_progress()
-	var fx := 0
-	for id in saved:
-		fx = saved[id].free_xp
-	print("freie EP gespeichert: ", fx)
+	var saved := Roster.load_crew()
+	print("freie EP: im Speicher %d, gespeichert %d (erwartet je Figur %d)" % [Campaign.crew()[0].free_xp, saved[0].free_xp,
+		MissionResult.FREE_XP + int(Campaign.last_result.get("reward_xp", 0))])
+	# Crewquartiere nach dem Einsatz: Übersicht mit dem Ergebnis
+	hub.ui.report.hide()
+	hub.open_room(&"quarters")
+	await _frames(10)
+	await _shot("h9b_crewquartiere_nach_einsatz")
+	await _click_button(hub.ui, "Speichern & zurück")
+	print("Crewquartiere geschlossen: ", not hub.ui.crew.visible)
 	# Laden: Slot 1 (vor dem Einsatz gespeichert)
 	SaveSlots.load_slot(1)
-	print("geladen: Tag %d, Einsätze %d" % [HubState.game.day, HubState.game.missions_done])
+	print("geladen: Tag %d, Einsätze %d, freie EP %d (Campaign neu geladen)" % [HubState.game.day, HubState.game.missions_done,
+		Campaign.crew()[0].free_xp])
 	get_tree().change_scene_to_file(HubState.START_SCENE)
 	await _frames(30)
 	await _shot("h10_start_mit_spielstand")

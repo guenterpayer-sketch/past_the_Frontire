@@ -42,6 +42,7 @@ static func latest() -> int:
 
 static func save(slot: int, name: String, g: HubState) -> bool:
 	DirAccess.make_dir_recursive_absolute(dir)
+	Campaign.save()
 	var crew := {}
 	if FileAccess.file_exists(Roster.PATH):
 		var c = JSON.parse_string(FileAccess.get_file_as_string(Roster.PATH))
@@ -58,7 +59,7 @@ static func save(slot: int, name: String, g: HubState) -> bool:
 	return true
 
 
-## Slot laden: setzt HubState.game und schreibt den Crew-Fortschritt nach user://crew.json
+## Slot laden: setzt HubState.game, schreibt die Crew nach user://crew.json und lädt sie in Campaign neu
 static func load_slot(slot: int) -> bool:
 	var d := _read(slot)
 	if d.is_empty():
@@ -71,6 +72,7 @@ static func load_slot(slot: int) -> bool:
 		if f == null:
 			return false
 		f.store_string(JSON.stringify(crew, "\t"))
+	Campaign.reload()
 	HubState.game = HubState.from_dict(d.get("game", {}), slot)
 	HubState.game.slot_name = d.get("name", HubState.game.slot_name)
 	return true

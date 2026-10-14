@@ -79,9 +79,17 @@ func _run_ai() -> void:
 		for e in b.combat.enemies():
 			e.state = Combatant.State.DEAD
 		b.combat.check_end()
-	await get_tree().create_timer(2.0).timeout
+	await get_tree().create_timer(0.5).timeout
 	await _screenshot(out + "/04_ende.png")
-	var ed := b.ui.end_dialog
+	# Kampfmodul gibt das Ergebnis ab und wechselt ins Charakter-Modul
+	var t0_scene := Time.get_ticks_msec()
+	while not (get_tree().current_scene is CrewScreen) and Time.get_ticks_msec() - t0_scene < 10000:
+		await get_tree().process_frame
+	var cs := get_tree().current_scene as CrewScreen
+	print("Charakter-Modul offen: ", cs != null, ", Ergebnis: ", Campaign.last_result.get("outcome", ""))
+	for i in 10:
+		await get_tree().process_frame
+	var ed := cs.overview
 	var cu := ed.current()
 	print("Übersicht: %s, freie EP %d" % [cu.name, cu.free_xp])
 	cu.free_xp += 20
@@ -96,21 +104,39 @@ func _run_ai() -> void:
 	await _click_button("+5")
 	print("Eingezahlt: freie EP jetzt %d" % cu.free_xp)
 	await _click_button("Charakterbogen")
-	print("Bogen über Übersicht offen: ", b.ui.sheet.visible and b.ui.end_dialog.visible)
+	print("Bogen über Übersicht offen: ", cs.sheet.visible and ed.visible)
 	await _screenshot(out + "/04d_bogen_ueber_uebersicht.png")
-	b.ui.sheet.close()
+	cs.sheet.close()
 	ed.page(2)
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04c_uebersicht_seite3.png")
-	var xp_before: int = b.combat.crew()[0].skills.get(&"kampfsinn", {}).get("xp", 0)
-	b.ui.end_dialog.next_battle.emit()
-	b.ui.end_dialog.hide()
+	# Charakter-Editor: neues Mitglied erschaffen, ersetzt die dritte Figur
+	await _click_button("Neues Crewmitglied")
+	var ce := cs.editor
+	print("Editor offen: ", ce.visible, ", Punkte ", Creation.budget(ce._ch))
+	for id in [&"gewehre", &"gewehre", &"ausweichen", &"psiAngriff", &"lAngriff", &"lAngriff", &"koerper"]:
+		Creation.raise(ce._ch, id)
+	ce._ch.name = "Testfigur"
+	ce._render()
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/04e_editor.png")
+	var replaced := Campaign.crew()[2].name
+	await _click_button("Übernehmen")
+	print("Neue Figur: %s ersetzt %s, Crew %d, gespeichert %s" % [Campaign.crew()[2].name, replaced, Campaign.crew().size(),
+		Roster.load_crew().any(func(c: Character) -> bool: return c.name == "Testfigur")])
+	ed.next_battle.emit()
+	var t0_battle := Time.get_ticks_msec()
+	while not (get_tree().current_scene is Battle) and Time.get_ticks_msec() - t0_battle < 10000:
+		await get_tree().process_frame
+	battle = get_tree().current_scene as Battle
 	for i in 20:
 		await get_tree().process_frame
-	var saved := Roster.load_progress()
-	print("Gespeichert: KON ", saved[cu.id].attrs.get("KON"), ", freie EP ", saved[cu.id].free_xp)
+	var saved := Roster.load_crew()
+	var sv: Character = saved.filter(func(c: Character) -> bool: return c.id == cu.id)[0]
+	print("Gespeichert: KON ", sv.attrs.KON, ", freie EP ", sv.free_xp)
 	b.ui.briefing.close()
-	print("Gespeichert: ", saved.size(), " Figuren, Kampfsinn-EP Vela vorher ", xp_before, ", jetzt ", b.combat.crew()[0].skills.get(&"kampfsinn", {}).get("xp", 0))
+	var nu: Combatant = b.combat.crew().filter(func(c: Combatant) -> bool: return c.id == cu.id)[0]
+	print("Neuer Kampf: %d Figuren, KON von %s im Kampf %d" % [b.combat.crew().size(), nu.name, nu.attrs.KON])
 	b.ui.sheet.show_sheet(b.combat.crew(), b.combat.crew()[0])
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/05_bogen.png")
@@ -124,7 +150,7 @@ func _run_ai() -> void:
 
 func _screenshot(path: String) -> void:
 	await RenderingServer.frame_post_draw
-	b.get_viewport().get_texture().get_image().save_png(path)
+	get_viewport().get_texture().get_image().save_png(path)
 
 
 ## Selbsttest der Bedienung: Maus über ein Feld (Vorschau), Klick = bewegen, Maus über Gegner, Klick = angreifen
@@ -197,7 +223,7 @@ func _run_player() -> void:
 
 ## Bildschirmkoordinaten der Szene in Fensterkoordinaten (Skalierung durch stretch/canvas_items)
 func _to_window(p: Vector2) -> Vector2:
-	return b.get_viewport().get_final_transform() * p
+	return get_viewport().get_final_transform() * p
 
 
 func _mouse_move(p: Vector2) -> void:
@@ -224,7 +250,7 @@ func _click_button(text: String) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var found: Button = null
-	for n in b.ui.find_children("*", "Button", true, false):
+	for n in get_tree().current_scene.find_children("*", "Button", true, false):
 		var btn := n as Button
 		if btn.is_visible_in_tree() and btn.text.contains(text):
 			found = btn

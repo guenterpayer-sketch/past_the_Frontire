@@ -1,10 +1,11 @@
 class_name Combatant
 extends RefCounted
-## Eine Figur im Kampf: Werte aus der Vorlage (UnitData) plus Kampfzustand.
+## Eine Figur im Kampf: Kopie der dauerhaften Werte (Character) plus Kampfzustand.
+## Änderungen hier wirken nicht auf den Character zurück; was bleibt, meldet MissionResult.
 
 enum State { OK, KO, DEAD }
 
-var data: UnitData
+var visual: CharacterVisual
 var id: StringName
 var name: String
 var letter: String
@@ -31,6 +32,7 @@ var prone := false
 var next_attack_malus := 0
 var psi_shield := 0
 var medkit := 0
+var medkit_start := 0
 var loaded := {}   # Waffen-ID -> Schuss in der Waffe
 var ammo := {}     # Waffen-ID -> Reserve
 
@@ -60,37 +62,35 @@ var kills := 0
 var free_xp := 0              # gesparte freie EP (für Fertigkeiten oder Eigenschaften)
 
 
-## saved: gespeicherter Fortschritt {skills: {Fertigkeit: {rank, xp}}, attrs: {...}, free_xp}
+## Figur aus einer Vorlage (Gegner, Tests); saved = Fortschritt im alten Format {skills, attrs, free_xp}
 static func create(d: UnitData, team_id: StringName, saved := {}) -> Combatant:
+	return from_character(Character.from_unit(d).apply_progress(saved), team_id)
+
+
+## Kampfbereite Kopie eines Charakters (volle TP und PP, volle Ausrüstung)
+static func from_character(ch: Character, team_id: StringName) -> Combatant:
 	var u := Combatant.new()
-	u.data = d
-	u.id = d.id
-	u.name = d.name
-	u.letter = d.letter
-	u.role = d.role
-	u.color = d.color
+	u.visual = ch.visual
+	u.id = ch.id
+	u.name = ch.name
+	u.letter = ch.letter
+	u.role = ch.role
+	u.color = ch.color
 	u.team = team_id
 	u.is_crew = team_id == &"crew"
-	u.attrs = d.attrs.duplicate()
-	var saved_attrs: Dictionary = saved.get("attrs", {})
-	for k in saved_attrs:
-		u.attrs[String(k)] = int(saved_attrs[k])
-	u.skills = {}
-	for k in d.skills:
-		u.skills[StringName(k)] = {"rank": int(d.skills[k]), "xp": 0}
-	var saved_skills: Dictionary = saved.get("skills", {})
-	for k in saved_skills:
-		u.skills[StringName(k)] = saved_skills[k].duplicate()
-	u.free_xp = int(saved.get("free_xp", 0))
-	u.weapons = d.weapons.duplicate()
+	u.attrs = ch.attrs.duplicate()
+	u.skills = ch.skills.duplicate(true)
+	u.free_xp = ch.free_xp
+	u.weapons = ch.weapons.duplicate()
 	u.weapon = u.weapons[0]
-	u.armor = d.armor
-	u.shield = d.shield
+	u.armor = ch.armor
+	u.shield = ch.shield
 	u.max_hp = Rules.max_hp(u)
 	u.hp = u.max_hp
 	u.max_pp = Rules.max_pp(u)
 	u.pp = u.max_pp
-	u.medkit = d.medkits
+	u.medkit = ch.medkits
+	u.medkit_start = ch.medkits
 	for w in u.weapons:
 		if w.magazine > 0:
 			u.loaded[w.id] = w.magazine

@@ -6,6 +6,8 @@ signal closed
 
 ## größte Fenstergröße (kleinere Dialoge setzen sie herab)
 var max_size := Vector2(1180, 860)
+## false = bleibt offen (Klick daneben und Esc schließen nicht), z. B. als ganzer Bildschirm
+var closable := true
 var content: VBoxContainer
 var footer: HBoxContainer
 var _title: Label
@@ -74,6 +76,8 @@ func add_close(text := "Schließen") -> Button:
 
 
 func close() -> void:
+	if not closable:
+		return
 	hide()
 	closed.emit()
 
