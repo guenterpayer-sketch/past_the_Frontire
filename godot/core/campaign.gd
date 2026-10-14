@@ -42,6 +42,13 @@ static func save() -> void:
 	Roster.save_crew(crew())
 
 
+## Crew neu von der Festplatte lesen (z. B. nachdem ein Spielstand user://crew.json ersetzt hat);
+## das letzte Einsatzergebnis wird verworfen
+static func reload() -> void:
+	_crew = Roster.load_crew()
+	last_result = {}
+
+
 ## Speicherstand löschen, Startcrew laden
 static func reset() -> void:
 	Roster.reset()

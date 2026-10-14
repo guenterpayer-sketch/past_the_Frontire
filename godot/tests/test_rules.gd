@@ -340,6 +340,22 @@ func _test_creation() -> void:
 	check(Rules.max_pp(ch) == pp + 2 and Rules.max_hp(ch) == 15 + 80 / 3 + 5, "Entwicklung: +2 PP, +5 TP je Rang")
 	var crew := Roster.start_crew()
 	crew[0].station = "Steuer"
+	# Campaign.reload: Crew nach Austausch der Datei neu lesen
+	var backup := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.reset()
+	var other := Roster.start_crew()
+	other[0].name = "Geladen"
+	Roster.save_crew(other)
+	check(Campaign.crew()[0].name != "Geladen", "Campaign hält die Crew im Speicher")
+	Campaign.reload()
+	check(Campaign.crew()[0].name == "Geladen" and Campaign.last_result.is_empty(), "Campaign.reload liest den Spielstand neu")
+	if backup != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(backup)
+		f.close()
+	else:
+		Roster.reset()
+	Campaign.reload()
 	check(not Creation.station_free(crew, "Steuer") and Creation.station_free(crew, "Steuer", crew[0]) and Creation.station_free(crew, "Jäger"), "Station nur einmal, Jäger mehrfach")
 
 
