@@ -284,6 +284,8 @@ Psi funktioniert wie Magie in Rolemaster: Kräfte sind in **Listen** geordnet.
 - **Kosten**: eine Kraft kostet **Stufe PP** und 40 % Aktivität.
 - **Probe**: unterstützende Kräfte mit **Psi wirken** (Mittel), Angriffe mit **Psi-Angriffe** gegen die Psi-Verteidigung des Ziels. Kräfte, die einem Gegner etwas aufzwingen (Lähmen, Stoßen, Entwaffnen), sind Angriffe; einen eigenen Widerstandswurf gibt es nicht.
 
+**Im Bodenkampf** (Stand 16.10.2026): Alle Kräfte außer Telekinese „Heranziehen“ und „Schweben“ sind nutzbar. Angriffskräfte (Psi-Nadel, Psi-Stoß, Lähmen, Psi-Lanze, Druckwelle, Stoßen, Entwaffnen) werden wie Waffen eingesetzt (Aktivität frei wählbar, Psi-Angriffe gegen Psi-VW). Unterstützende Kräfte kosten 40 % Aktivität; Probe Psi wirken (Mittel): herausragend = verstärkt, Erfolg = voll, Teilerfolg = schwach, Fehlschlag = nichts, Patzer = Rückkopplung (betäubt 1). „Wieder auf die Beine“ und „Am Leben halten“ wirken erst ab Erfolg. **„Am Leben halten“ stabilisiert eine sterbende Figur** (statt „Gestorbene ist bewusstlos“, weil im Kampf niemand mehr stirbt). **„Gedanken orten“ hebt 3 Runden lang die Deckung der Gegner in 10 Hex auf** (es gibt keine Sichtbeschränkung im Kampf). Psi-Listen bekommen keine EP durch Benutzung; EP gibt es für die Probe (Psi-Angriffe bzw. Psi wirken).
+
 **Schutz** (Psi wirken)
 
 | Stufe | Kraft | Wirkung |
@@ -380,7 +382,9 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 
 **Abwarten** (10 %): Solange eine Figur in dieser Runde noch nichts getan hat, kann sie ihren Zug nach hinten schieben. Nach jedem beliebigen anderen Zug kann sie einspringen (im Spiel über „einspringen“ in der Initiative-Liste); wer nicht einspringt, handelt am Rundenende. Einmal pro Runde. Beim Einspringen stehen 10 % weniger Aktivität zur Verfügung; während des Wartens zählt die noch freie Aktivität als Ausweichreserve.
 
-**Erste Hilfe:** Probe auf **Leicht** (+20). Jedes Crewmitglied trägt ein **Medikit** mit 3 Anwendungen (+20 auf die Probe). Auch die KI versorgt bewusstlose oder stark blutende Kameraden.
+**Erste Hilfe:** Probe auf **Leicht** (+20). Jedes Crewmitglied trägt ein **Medikit** mit 3 Anwendungen (+20 auf die Probe). Auch die KI versorgt bewusstlose, sterbende oder stark blutende Kameraden.
+
+**Verwundung statt Tod:** Wer nach den Regeln sterben würde (TP ≤ −KON/5 oder tödlicher Kritischer), ist **sterbend**: kampfunfähig am Boden, aber nicht tot. Das gilt für Crew und Gegner. Sterbende bluten weiter (TP sinken höchstens bis −max. TP, ohne weitere Folgen). Eine **gelungene Erste Hilfe** (Erfolg oder besser) **stabilisiert**: Die Figur bleibt für den Rest des Kampfes kampfunfähig, zählt danach aber nur als kampfunfähig statt schwer verwundet. **Tod** nur, wenn die **ganze Crew fällt**: Dann stirbt jede noch unversorgte sterbende Figur mit **10 %** (W100 ≤ 10); Stabilisierte überleben. Heilung und Schwere nach dem Kampf: `docs/Planung_Roster_Verwundung.md`, Abschnitt B.
 
 
 **Feuerbereitschaft:** Wer noch nicht angegriffen hat und mindestens 30 % übrig hat, kann die gesamte restliche Aktivität zurückhalten; der Zug endet damit. Handelt danach ein Gegner im Sichtfeld und in Reichweite (bewegt sich Feld für Feld oder setzt zum Angriff an), wird sofort geschossen: Modifikator nach den zurückgehaltenen Prozent (Tabelle oben) und −10 für die Reaktion. Ein Treffer kann den Gegner mitten in der Bewegung stoppen. Einmal pro Runde; die Bereitschaft endet mit dem nächsten eigenen Zug. Danach ist keine Ausweichreserve mehr übrig.

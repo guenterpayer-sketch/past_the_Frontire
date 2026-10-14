@@ -33,6 +33,7 @@ var _touch_start_ms := 0
 var _long_fired := false
 var _tap_key := ""
 var _tap_pos := Vector2.ZERO
+var _menu_target: Combatant = null
 var _touch_used := false
 var _mouse_drag := false
 var _drag_moved := false
@@ -61,6 +62,7 @@ func _ready() -> void:
 	events.idle_changed.connect(func(_idle: bool) -> void: _dirty = true)
 	show_grid = Prefs.get_bool("grid", true)
 	ui.action.connect(_on_action)
+	ui.context_menu.chosen.connect(_on_context)
 	ui.set_toggle(&"sound", Sfx.enabled)
 	ui.set_toggle(&"dice", events.dice_enabled)
 	rig.rotated.connect(func() -> void: map_view.update_cutaway(rig.view_dir()))
@@ -72,7 +74,7 @@ func _ready() -> void:
 	else:
 		new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
-	if ("--autotest" in args or "--autotest-player" in args) and not get_tree().root.has_node("Autotest"):
+	if ("--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args) and not get_tree().root.has_node("Autotest"):
 		# der Selbsttest hängt an der Wurzel, damit er den Wechsel ins Charakter-Modul übersteht
 		var t: Node = load("res://tests/autotest.gd").new()
 		t.name = "Autotest"
@@ -121,6 +123,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), sz.name], &"round")
 	ui.combat_log.add("Runde 0: Crew im Eingangsbereich aufstellen, dann „Kampf beginnen“.", &"")
 	deploy_sel = combat.crew()[0]
+	_mark_current(deploy_sel)
 	if briefing:
 		ui.briefing.show_mission(mission)
 	_dirty = true
@@ -157,7 +160,7 @@ func finish_mission() -> void:
 func hub_report(result: Dictionary) -> Dictionary:
 	var g := HubState.game
 	var units := []
-	var states := {"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}
+	var states := {"ok": "kampffähig", "ko": "bewusstlos", "sterbend": "sterbend", "tot": "tot"}
 	for ch in Campaign.crew():
 		var r: Dictionary = result.units.get(ch.id, {})
 		if r.is_empty():
@@ -165,7 +168,7 @@ func hub_report(result: Dictionary) -> Dictionary:
 		var xp: Dictionary = r.get("xp", {})
 		var keys := xp.keys()
 		keys.sort_custom(func(a, b) -> bool: return xp[a] > xp[b])
-		units.append({"letter": ch.letter, "name": ch.name, "state": states.get(r.status.state, r.status.state),
+		units.append({"letter": ch.letter, "name": ch.name, "state": "stabilisiert" if r.get("stabilized", false) else states.get(r.status.state, r.status.state),
 			"xp": ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), xp[k]]))})
 	return {"outcome": result.outcome, "title": result.mission, "faction": mission.faction.name,
 		"system": g.sector.systems[g.position].name, "rounds": result.rounds, "reward_xp": result.reward_xp,
@@ -191,11 +194,53 @@ func return_to_ship() -> void:
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)
 
 
+## Eintrag im Kontextmenü gewählt: Psi-Angriff oder unterstützende Kraft auf das gemerkte Ziel
+func _on_context(e: Dictionary) -> void:
+	var u := combat.current
+	if not player_turn() or _menu_target == null:
+		return
+	if e.has("attack"):
+		var w: WeaponData = e.attack
+		player.select_weapon(u, w)
+		combat.do_attack(u, _menu_target, w, player.attack_pct(u, w))
+	else:
+		combat.do_power(u, e.k, u if PsiCombat.SUPPORT[e.k].target in ["self", "area", "foes"] else _menu_target)
+	player.mode = PlayerController.Mode.MOVE
+	_menu_target = null
+	_dirty = true
+
+
+## Figur markieren, die am Zug ist bzw. aufgestellt wird (Ring, Sichtfeld, Schild); die anderen abdunkeln
+func _mark_current(cur: Combatant) -> void:
+	for o in views:
+		views[o].set_current(o == cur, cur != null)
+
+
+## Schild „am Zug“ über der Figur halten (aus dem Bild: ausblenden)
+func _update_active_tag() -> void:
+	var u: Combatant = deploy_sel if combat.deploying else combat.current
+	if u == null or combat.result != &"" or not views.has(u) or not u.is_ok():
+		ui.active_tag.hide()
+		return
+	var v: UnitView = views[u]
+	if rig.camera.is_position_behind(v.tag_point()):
+		ui.active_tag.hide()
+		return
+	var p := rig.camera.unproject_position(v.tag_point())
+	var r := get_viewport().get_visible_rect()
+	if not r.has_point(p):
+		ui.active_tag.hide()
+		return
+	var text := "%s · %s" % [u.name.split(" ")[0], "aufstellen" if combat.deploying else "am Zug"]
+	ui.active_tag.show_at(p, text, not u.is_crew)
+
+
 ## Runde 0 beenden: Kampf mit Runde 1 starten
 func begin_combat() -> void:
 	if not combat.deploying:
 		return
 	deploy_sel = null
+	_mark_current(null)
 	ui.briefing.hide()
 	combat.start()
 	_dirty = true
@@ -212,6 +257,7 @@ func player_turn() -> bool:
 
 func _process(delta: float) -> void:
 	_tick_ai(delta)
+	_update_active_tag()
 	if _dirty and events.is_idle():
 		_dirty = false
 		_refresh()
@@ -270,6 +316,8 @@ func _exit_tree() -> void:
 func _refresh() -> void:
 	var u := combat.current
 	var pt := player_turn()
+	if not pt and ui.context_menu.visible:
+		ui.context_menu.hide()
 	ui.top_menu.set_round("Runde %d" % combat.round_no if not combat.deploying else "Runde 0 – Aufstellung")
 	ui.initiative.refresh(combat, is_ai)
 	if combat.deploying:
@@ -406,6 +454,9 @@ func _mouse_button(e: InputEventMouseButton) -> void:
 
 
 func _click(p: Vector2) -> void:
+	if ui.context_menu.visible:
+		ui.context_menu.hide()
+		return
 	if combat.deploying:
 		_deploy_click(p)
 		return
@@ -423,6 +474,7 @@ func _deploy_click(p: Vector2) -> void:
 	ui.hide_tip()
 	if hit.unit and hit.unit.is_crew and hit.unit != deploy_sel:
 		deploy_sel = hit.unit
+		_mark_current(deploy_sel)
 	elif hit.tile != null and deploy_sel:
 		var other := combat.deploy(deploy_sel, hit.tile)
 		if combat.unit_at(hit.tile) == deploy_sel:
@@ -440,6 +492,19 @@ func _deploy_turn(u: Combatant, dir: int) -> void:
 
 
 func _face_at(p: Vector2) -> void:
+	if not combat.deploying and player_turn():
+		# Rechtsklick auf eine Figur: Kontextmenü mit passenden Psi-Kräften (sonst drehen wie bisher)
+		var h := _pick(p)
+		var u := combat.current
+		if h.unit:
+			var entries := player.context_powers(u, h.unit)
+			if not entries.is_empty():
+				_menu_target = h.unit
+				var rel := "selbst" if h.unit == u else ("verbündet" if h.unit.team == u.team else "Gegner")
+				ui.hide_tip()
+				ui.context_menu.open_at("%s · %s, %d Hex" % [h.unit.name.split(" ")[0], rel, Hex.distance(u.pos, h.unit.pos)],
+					"PSI-KRÄFTE (%s, %d PP)" % [u.name.split(" ")[0], u.pp], entries, p)
+				return
 	if combat.deploying:
 		var hit := _pick(p)
 		if deploy_sel and hit.tile != null and hit.tile != deploy_sel.pos:
@@ -583,6 +648,8 @@ func _on_action(name: StringName, arg: Variant) -> void:
 				new_battle(randi() % 1000000, "", arg)
 		&"briefing":
 			ui.briefing.show_mission(mission)
+		&"psi_tab":
+			player.psi_tab = arg
 		&"help":
 			ui.show_help()
 		&"range":
@@ -596,6 +663,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			begin_combat()
 		&"deploy_select":
 			deploy_sel = arg
+			_mark_current(arg)
 			rig.focus(views[arg].position, false)
 		&"deploy_turn":
 			if deploy_sel:
@@ -630,8 +698,8 @@ func _panel_action(u: Combatant, name: StringName, arg: Variant) -> void:
 			combat.do_reload(u, arg)
 		&"aid":
 			player.toggle_mode(PlayerController.Mode.AID)
-		&"psi":
-			player.toggle_mode(PlayerController.Mode.PSI)
+		&"power":
+			player.choose_power(u, arg)
 		&"face":
 			player.toggle_mode(PlayerController.Mode.FACE)
 		&"crouch":

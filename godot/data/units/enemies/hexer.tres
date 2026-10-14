@@ -4,7 +4,6 @@
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_3s0aj"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_3ib2r"]
 [ext_resource type="Resource" path="res://data/visuals/characters/women_witch.tres" id="3_3s0aj"]
-[ext_resource type="Resource" path="res://data/weapons/psi_stoss.tres" id="4_22661"]
 [ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_pgiwo"]
 
 [resource]
@@ -26,12 +25,14 @@ attrs = {
 skills = {
 "ausweichen": 3,
 "kampfsinn": 3,
+"lAngriff": 4,
+"lSchutz": 2,
 "pistolen": 3,
 "psiAngriff": 8,
 "psiVerteidigung": 7,
 "psiWirken": 4
 }
-weapons = Array[ExtResource("3_3ib2r")]([ExtResource("4_22661"), ExtResource("5_pgiwo")])
+weapons = Array[ExtResource("3_3ib2r")]([ExtResource("5_pgiwo")])
 armor = ExtResource("1_18xgb")
 threat = 13
 visual = ExtResource("3_3s0aj")

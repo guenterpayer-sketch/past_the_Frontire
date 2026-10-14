@@ -4,7 +4,6 @@
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_3dir0"]
 [ext_resource type="Resource" path="res://data/visuals/characters/women_punk.tres" id="3_3dir0"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_rt2uo"]
-[ext_resource type="Resource" path="res://data/weapons/psi_stoss.tres" id="4_bcl1m"]
 [ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_nrjl6"]
 
 [resource]
@@ -27,6 +26,8 @@ skills = {
 "ausweichen": 5,
 "ersteHilfe": 3,
 "kampfsinn": 4,
+"lAngriff": 4,
+"lSchutz": 4,
 "pistolen": 3,
 "psiAngriff": 9,
 "psiVerteidigung": 8,
@@ -34,7 +35,7 @@ skills = {
 "schutzschild": 4,
 "verhandeln": 5
 }
-weapons = Array[ExtResource("3_rt2uo")]([ExtResource("4_bcl1m"), ExtResource("5_nrjl6")])
+weapons = Array[ExtResource("3_rt2uo")]([ExtResource("5_nrjl6")])
 armor = ExtResource("1_m42em")
 medkits = 3
 visual = ExtResource("3_3dir0")

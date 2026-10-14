@@ -45,7 +45,7 @@ func _init() -> void:
 		for u in c.crew():
 			if u.is_dead():
 				stats.dead += 1
-			elif u.state == Combatant.State.KO:
+			elif u.is_down():
 				stats.ko += 1
 		if i == 0:
 			for u in c.crew():
@@ -53,7 +53,7 @@ func _init() -> void:
 	print("Kämpfe: %d | Crew-Siege: %d | Niederlagen: %d | hängengeblieben: %d" % [fights, stats[&"sieg"], stats[&"niederlage"], stats.stuck])
 	print("Laufzeit: %d ms pro Kampf, KI-Schritt Ø %.1f ms, max. %.0f ms" % [(Time.get_ticks_msec() - t0) / fights,
 		stats.time_total / 1000.0 / maxi(1, stats.steps_total), stats.max_step / 1000.0])
-	print("Ø Runden: %.1f | Ø tote Crew: %.2f | Ø bewusstlose Crew: %.2f" % [float(stats.rounds) / maxi(1, fights - stats.stuck), float(stats.dead) / fights, float(stats.ko) / fights])
+	print("Ø Runden: %.1f | Ø tote Crew: %.2f | Ø kampfunfähige Crew (bewusstlos/sterbend): %.2f" % [float(stats.rounds) / maxi(1, fights - stats.stuck), float(stats.dead) / fights, float(stats.ko) / fights])
 	for d in by_diff:
 		print("  %s: %d von %d gewonnen" % [d, by_diff[d][0], by_diff[d][1]])
 	print("OK" if stats.stuck == 0 else "FEHLER: Kämpfe ohne Ende")

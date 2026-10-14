@@ -27,6 +27,8 @@ func _init() -> void:
 	_test_leveling()
 	_test_roster()
 	_test_deploy()
+	_test_dying()
+	_test_psi()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -365,9 +367,9 @@ func _test_creation() -> void:
 func _test_leveling() -> void:
 	var ch := Roster.start_crew()[4]
 	ch.free_xp = 100
-	check(Rules.next_rank_cost(ch, &"lSchutz") == 20 and Rules.next_rank_cost(ch, &"psiAngriff") == Rules.rank_cost(Rules.skill_rank(ch, &"psiAngriff")), "erster Rang einer neuen Liste kostet doppelt")
-	check(Rules.rank_up_with_pool(ch, &"lSchutz") and ch.free_xp == 80 and ch.new_list == &"lSchutz", "neue Liste begonnen (20 EP)")
-	check(Rules.next_rank_cost(ch, &"lSchutz") == 12 and Rules.rank_up_with_pool(ch, &"lSchutz"), "danach normale Kosten")
+	check(Rules.next_rank_cost(ch, &"lWahrnehmung") == 20 and Rules.next_rank_cost(ch, &"psiAngriff") == Rules.rank_cost(Rules.skill_rank(ch, &"psiAngriff")), "erster Rang einer neuen Liste kostet doppelt")
+	check(Rules.rank_up_with_pool(ch, &"lWahrnehmung") and ch.free_xp == 80 and ch.new_list == &"lWahrnehmung", "neue Liste begonnen (20 EP)")
+	check(Rules.next_rank_cost(ch, &"lWahrnehmung") == 12 and Rules.rank_up_with_pool(ch, &"lWahrnehmung"), "danach normale Kosten")
 	check(Rules.deposit_xp(ch, &"lHeilung", 5) == 5 and not Rules.rank_up_with_pool(ch, &"lHeilung") and Rules.rank_block(ch, &"lHeilung") != "", "zweite neue Liste: Einzahlen ja, Rang 1 nicht")
 	ch.apply_result({"xp": {}, "free_xp": 0})
 	check(ch.new_list == &"" and Rules.rank_up_with_pool(ch, &"lHeilung"), "nach dem Einsatz: neue Phase, nächste Liste")
@@ -454,3 +456,123 @@ func _test_deploy() -> void:
 	check(not c.can_deploy(a, free_tile), "nach Kampfbeginn keine Aufstellung mehr")
 	check(c.retreat() and c.result == &"niederlage" and c.retreated, "Rückzug = Niederlage")
 	check(not c.retreat(), "Rückzug nur einmal")
+
+
+## Verwundung statt Tod: sterbend statt tot, Stabilisieren, Todeswurf nur wenn die ganze Crew fällt
+func _test_dying() -> void:
+	var m := _row_map(8)
+	_start_maps(m, [0, 1, 2, 3, 4, 5], [7, 6, 5, 4, 3, 2])
+	var c := _combat(m, 2, 1)
+	c.start()
+	var a := c.crew()[0]
+	var b := c.crew()[1]
+	var e := c.enemies()[0]
+	a.hp = Rules.death_at(a) - 3
+	c._check_state(a)
+	check(a.state == Combatant.State.DYING and not a.is_dead() and a.is_down(), "unter der Todesgrenze: sterbend, nicht tot")
+	a.hp = -1000
+	c._check_state(a)
+	check(a.hp == -a.max_hp and a.state == Combatant.State.DYING, "TP-Untergrenze −max_hp, bleibt sterbend")
+	e.hp = Rules.death_at(e) - 1
+	c._check_state(e)
+	check(e.state == Combatant.State.DYING, "Gegner werden ebenfalls sterbend")
+	check(c.first_aid_targets(b).has(a) or Hex.distance(a.pos, b.pos) > 1, "Sterbende sind Ziel für Erste Hilfe")
+	check(c._stabilize(a) != "" and a.stabilized and a.state == Combatant.State.DYING, "Stabilisieren: bleibt kampfunfähig")
+	c._heal(a, 500)
+	check(a.state == Combatant.State.DYING, "Heilen weckt Sterbende nicht auf")
+	var crit := {"row": CritRowData.new(), "table": "test", "roll": 50, "total": 50}
+	c._apply_crit(b, crit, "C")
+	c._apply_crit(b, crit, "A")
+	check(b.worst_crit == "C", "schwerster Kritischer wird gemerkt (%s)" % b.worst_crit)
+	var r := MissionResult.from_combat(c)
+	check(r.units[a.id].stabilized and not r.units[a.id].dying and r.units[a.id].status.state == "sterbend", "MissionResult: stabilisiert")
+	check(r.units[b.id].worst_crit == "C" and not r.units[b.id].died, "MissionResult: worst_crit")
+	# ganze Crew fällt: nur unversorgte Sterbende würfeln (10 %); über viele Würfe ungefähr 10 % Tote
+	var deaths := 0
+	var stab_deaths := 0
+	for i in 400:
+		var x := Combatant.create(GameData.crew().units[0], &"crew")
+		var y := Combatant.create(GameData.crew().units[1], &"crew")
+		var en := Combatant.create(GameData.enemies().units[0], &"enemy")
+		var mm := _row_map(8)
+		mm.crew_start.append(mm.tile(Vector2i(0, 0)))
+		mm.crew_start.append(mm.tile(Vector2i(1, 0)))
+		mm.enemy_start.append(mm.tile(Vector2i(7, 0)))
+		var cr: Array[Combatant] = [x, y]
+		var ce: Array[Combatant] = [en]
+		var cx := Combat.new(mm, cr, ce)
+		cx.deploying = false
+		x.state = Combatant.State.DYING
+		y.state = Combatant.State.DYING
+		y.stabilized = true
+		cx.check_end()
+		if x.is_dead():
+			deaths += 1
+		if y.is_dead():
+			stab_deaths += 1
+	check(cx_ok(deaths), "Todeswurf ≈ 10 %% (%d von 400)" % deaths)
+	check(stab_deaths == 0, "Stabilisierte sterben nicht")
+
+
+func cx_ok(n: int) -> bool:
+	return n >= 20 and n <= 65
+
+
+## Psi im Kampf: Kräfte aus den Listen, Angriffskräfte als Waffen, unterstützende Kräfte und ihre Wirkungen
+func _test_psi() -> void:
+	var m := _row_map(10)
+	_start_maps(m, [0, 1, 2, 3, 4, 5], [9, 8, 7, 6, 5, 4])
+	var crew := Roster.build_team(GameData.crew(), &"crew")
+	var nyx: Combatant = crew.filter(func(u: Combatant) -> bool: return u.id == &"nyx")[0]
+	var hexer := Combatant.create(load("res://data/units/enemies/hexer.tres"), &"enemy")
+	check(not nyx.weapons.any(func(w: WeaponData) -> bool: return w.id == &"psi_stoss"), "alte Psi-Stoß-Waffe fällt weg")
+	var names := nyx.weapons.filter(func(w: WeaponData) -> bool: return w.power != "").map(func(w: WeaponData) -> String: return w.name)
+	check(names == ["Psi-Nadel", "Psi-Stoß", "Lähmen"], "Nyx: Angriffskräfte aus Angriff 4 (%s)" % [names])
+	check(Array(nyx.powers) == ["lSchutz/1", "lSchutz/2", "lSchutz/4"], "Nyx: Schutz 4 (%s)" % [nyx.powers])
+	check(Array(hexer.powers) == ["lSchutz/1", "lSchutz/2"] and hexer.weapons[0].name == "Laserpistole", "Hexer: Schutz 2, Pistole zuerst")
+	var a: Array[Combatant] = [nyx, crew[0]]
+	var e: Array[Combatant] = [hexer]
+	var c := Combat.new(m, a, e)
+	c.start()
+	nyx.pos = Vector2i(2, 0)
+	crew[0].pos = Vector2i(3, 0)
+	hexer.pos = Vector2i(5, 0)
+	c.order.assign([nyx, crew[0], hexer])
+	c.turn_idx = 0
+	c._begin_turn(nyx)
+	check(c.power_targets(nyx, "lSchutz/2").has(crew[0]), "Psi-Schild: Verbündeter in Sicht ist Ziel")
+	check(c.can_power(nyx, "lSchutz/2"), "Psi-Schild wirkbar")
+	var pp := nyx.pp
+	check(c.do_power(nyx, "lSchutz/2", crew[0]) and nyx.pp == pp - 2 and nyx.act == 60, "Kraft kostet Stufe PP und 40 %")
+	# Wirkungen direkt (ohne Würfelglück)
+	c._power_effect(nyx, "lSchutz/4", crew[0], 2)
+	check(crew[0].buffs.has("ablenkfeld"), "Ablenkfeld gesetzt")
+	var pistol := crew[0].weapons[0]
+	var info := c.attack_info(hexer, crew[0], hexer.weapons[0])
+	check(info.ob.any(func(x: Dictionary) -> bool: return x.label == "Ablenkfeld" and x.val == -20), "Ablenkfeld −20 auf Fernangriffe")
+	c._power_effect(nyx, "lSchutz/9", crew[0], 2)
+	var res := {"hit": true, "dmg": 0, "severity": "A", "crit": load("res://data/tables/crit_durchschlag.tres")}
+	c._apply_power_hit(hexer, crew[0], pistol, res)
+	check(not crew[0].buffs.has("barriere") and crew[0].worst_crit == "", "Letzte Barriere wehrt Kritischen A ab")
+	var lahm := PsiCombat.weapon("lAngriff/4")
+	c._apply_power_hit(nyx, hexer, lahm, {"hit": true, "dmg": 9, "severity": "", "crit": null})
+	check(hexer.stun == 1 and hexer.hp == hexer.max_hp, "Lähmen: betäubt, kein Schaden")
+	var push := PsiCombat.weapon("lTelekinese/3")
+	c._apply_power_hit(nyx, hexer, push, {"hit": true, "dmg": 9, "severity": "B", "crit": null})
+	check(hexer.pos == Vector2i(6, 0) and hexer.prone, "Stoßen: 1 Hex zurück, niedergeworfen")
+	c._apply_power_hit(nyx, hexer, PsiCombat.weapon("lTelekinese/5"), {"hit": true, "dmg": 0, "severity": "", "crit": null})
+	check(hexer.disarmed, "Entwaffnen gesetzt")
+	c._begin_turn(hexer)
+	check(not c.can_attack(hexer) and not hexer.disarmed, "entwaffnet: kein Angriff im nächsten Zug")
+	crew[0].state = Combatant.State.DYING
+	crew[0].powers = []
+	nyx.powers.append("lHeilung/10")
+	check(c.power_targets(nyx, "lHeilung/10").has(crew[0]), "Am Leben halten: sterbende Nachbarin ist Ziel")
+	check(c._power_effect(nyx, "lHeilung/10", crew[0], 2) != "" and crew[0].stabilized, "Am Leben halten stabilisiert")
+	# Kontextmenü
+	var pc := PlayerController.new(c)
+	c.turn_idx = 0
+	c._begin_turn(nyx)
+	var entries := pc.context_powers(nyx, hexer)
+	check(entries.any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: Angriffskräfte gegen Gegner")
+	check(not pc.context_powers(nyx, crew[0]).any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: keine Angriffe gegen Verbündete")
