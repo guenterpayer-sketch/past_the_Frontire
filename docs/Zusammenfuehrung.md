@@ -1,58 +1,36 @@
-# Zusammenführung der Module – Stand und offene Punkte
+# Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 14.10.2026, nach der Zusammenführung des Charakter-Moduls (`cf5ad7e`).
-
-## Verlauf
-
-| Datum | Commit in `main` | Branch (Commit) | Ergebnis |
-|---|---|---|---|
-| 14.10.2026 | `cf5ad7e` | Charakter `claude/elegant-gauss-hq5bus` (`73a73ed`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Tests laut Modul-Chat: `test_rules` OK, `test_sim -- 30` 22 Siege / 8 Niederlagen / 0 hängengeblieben, `--autotest` und `--autotest-player` laufen durch. Koordinator: `test_rules` OK; `test_sim` nicht selbst ausgeführt. |
-
-Der Abschnitt „Ergebnis der Probe“ weiter unten stammt von der ersten Probe (Grundlage `9fde5fe`); die Probe mit dem neuen `main` ist darunter ergänzt.
+Stand: 15.10.2026. Alle drei Modul-Branches sind in `main` (`012efdf`).
 
 ## Arbeitsweise mit Branches
 
-- **`main`** ist der gemeinsame Hauptbranch. Jedes Modul arbeitet auf seinem eigenen Branch und wird, wenn ein Zwischenstand fertig ist, in `main` zusammengeführt.
+- **`main`** ist der gemeinsame Hauptbranch, gepflegt vom Koordinations-Chat (`docs/module/koordination.md`). Jedes Modul arbeitet auf seinem eigenen Branch und meldet einen fertigen Zwischenstand; der Koordinator führt nur konfliktfreie Branches mit grünen Tests zusammen.
 - Danach holt jeder Modul-Chat `main` in seinen Branch (`git merge origin/main`), damit alle mit dem gleichen Stand weiterarbeiten.
 - Noch offen (nur in den GitHub-Einstellungen möglich): `main` als Standardbranch einstellen (Settings → Branches → Default branch). Bis dahin ist `claude/confident-edison-6mxzke` der Standardbranch.
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | 1 Commit hinter `main` (Charakter-Modul fehlt), nichts Eigenes neu |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`73a73ed`) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | `31144f9`, hat `main` vom Stand `6bcaeaa` geholt; Charakter-Modul fehlt noch, **Konflikte** (siehe unten) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`833875f`); muss `main` holen (Hub fehlt) |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`73a73ed`); muss `main` holen (Hub fehlt) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77449d9`); muss `main` holen (Moduldatei Bodenkampf fehlt) |
 
-**Reihenfolge:** Charakter-Modul ist in `main`. Als Nächstes holt der Hub `main` und passt sich an (Aufträge in `docs/module/hub.md`).
+## Verlauf
 
-## Ergebnis der Probe
+| Datum | Commit in `main` | Branch (Commit) | Ergebnis |
+|---|---|---|---|
+| 14.10.2026 | `cf5ad7e` | Charakter `claude/elegant-gauss-hq5bus` (`73a73ed`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Tests laut Modul-Chat: `test_rules` OK, `test_sim -- 30` 22 Siege / 8 Niederlagen / 0 hängengeblieben, `--autotest` und `--autotest-player` laufen durch. Koordinator: `test_rules` OK. |
+| 15.10.2026 | `403b431` | Bodenkampf `claude/confident-edison-6mxzke` (`833875f`) | ohne Konflikte; nur `docs/module/bodenkampf.md` (Simulation zu den neuen TP/PP-Formeln, Entscheidung: Balancing bleibt). |
+| 15.10.2026 | `012efdf` | Hub `claude/happy-lamport-u4fvya` (`77449d9`) | ohne Konflikte (der Hub hatte `main` mit dem Charakter-Modul schon eingeholt und die Konflikte im eigenen Branch gelöst); Ergebnis weicht vom getesteten Branch-Stand nur in `docs/module/bodenkampf.md` ab. Tests laut Modul-Chat: `test_rules`, `test_hub` OK, `test_sim -- 30` 22 Siege / 0 hängengeblieben, `--autotest`, `--autotest-player`, `--autotest-hub` laufen durch. Koordinator: `test_rules` und `test_hub` OK. |
 
-- `main` + Charakter-Editor: **ohne Konflikte**.
-- danach + Hub: **4 Dateien mit Konflikten**: `CLAUDE.md`, `godot/view/battle.gd`, `godot/ui/modal.gd`, `godot/ui/crew/crew_overview.gd` (im Hub-Branch noch `ui/end_dialog.gd`, im Charakter-Editor umbenannt).
+## Erledigte Punkte aus der ersten Probe (14.10.2026)
 
-**Probe vom 14.10.2026 mit `main` = `cf5ad7e` (Charakter-Modul enthalten) + Hub `31144f9`:** dieselben 4 Dateien mit Konflikten (`CLAUDE.md`, `godot/view/battle.gd`, `godot/ui/modal.gd`, `godot/ui/crew/crew_overview.gd`). Zusätzlich verweisen im Hub-Branch noch `ui/battle_ui.gd`, `ui/hub_ui.gd`, `view/hub.gd` und `view/battle.gd` auf `EndDialog` bzw. `Roster.load_progress()/save_progress()`, die es in `main` nicht mehr gibt. Punkt 4 unten ist vom Charakter-Modul gelöst: `Campaign.reload()`.
+Die Brüche zwischen Charakter-Modul und Hub (doppelte Charakterübersicht, alte `Roster`-Speicherfunktionen, doppeltes Kampfende, `Campaign` nach dem Laden eines Spielstands, `ui/modal.gd`) hat der Hub-Chat in seinem Branch gelöst. Stand jetzt:
 
-## Was nicht zusammenpasst (gefunden im Code)
-
-1. **Charakterübersicht doppelt.** Der Charakter-Editor hat sie in die Szene `crew.tscn` verlegt (`CrewOverview.show_crew(crew: Array[Character], result)`, Klasse `EndDialog` gibt es dort nicht mehr). Der Hub nutzt für die Crewquartiere noch `EndDialog.new()` und `show_crew(crew: Array[Combatant])` mit Signal `crew_done` (`ui/hub_ui.gd`, `view/hub.gd`).
-2. **Speichern über die alte Schnittstelle.** Der Hub ruft `Roster.save_progress()`, `Roster.load_progress()` und `Roster.build_team(…, progress)` auf. Im Charakter-Editor heißen sie `Roster.load_crew()`, `save_crew(Array[Character])`, `build_crew()`; die alten gibt es nicht mehr.
-3. **Kampfende doppelt.** Charakter-Editor: Kampf → `MissionResult.from_combat()` → `Campaign.finish_mission()` (verbucht EP und 3 + Belohnung freie EP) → Szene `crew.tscn`. Hub: eigenes `finish_hub_mission()` in `battle.gd`, das freie EP selbst gutschreibt (`EndDialog.FREE_XP`) und ins Schiff zurückwechselt. Beides gleichzeitig würde EP doppelt gutschreiben.
-4. **Crew im Speicher vs. Spielstände.** `Campaign` hält die Crew als statische Variable. Der Hub lädt Spielstände, indem er `user://crew.json` überschreibt (`core/save_slots.gd`). Ohne Neuladen von `Campaign` bliebe nach dem Laden eines Spielstands die alte Crew im Speicher.
-5. **Zwei Spielstand-Halter.** `Campaign` (Crew, letztes Ergebnis) und `HubState.game` (Schiff, Sternenkarte, laufender Auftrag). Wer was speichert und wie ein Spielstand-Slot beides enthält, ist nicht festgelegt.
-6. **Kleinere Überschneidungen:** `ui/modal.gd` (beide fügen eine Variable hinzu: `closable` bzw. `max_size` – beide behalten), `CLAUDE.md` (beide ändern den Abschnitt „Stand“).
-
-## Was der Kampf danach anders machen muss (Vorschlag)
-
-- **Ein Kampfende** für alle Fälle: `MissionResult` erzeugen → `Campaign.finish_mission()` → Ziel je nach Start:
-  - aus dem Schiff: zurück ins Schiff mit Einsatzbericht (Inhalt aus dem `MissionResult`), Steigern in den Crewquartieren;
-  - Schnellkampf aus dem Startmenü: in die Szene `crew.tscn`.
-- `finish_hub_mission()` rechnet keine EP mehr selbst; `EndDialog.FREE_XP` → `MissionResult.FREE_XP`.
-- Mission aus der Sternenkarte (`new_battle(…, m)`, feste Fraktion) bleibt wie im Hub-Branch.
-- „Neue Mission“/„Andere Mission“ wird im Schiffsmodus zu „Einsatz abbrechen“ (wie im Hub-Branch).
-- Crewquartiere im Hub nutzen die `CrewOverview` aus dem Charakter-Modul (oder wechseln in `crew.tscn` und zurück).
-- `Campaign` nach dem Laden eines Spielstands neu laden.
-- Tests: `tests/autotest.gd` (geht im Charakter-Editor schon in `crew.tscn`) und `tests/autotest_hub.gd` müssen beide Wege abdecken.
+- **Ein Kampfende** in `view/battle.gd` (`Battle.finish_mission()`): `MissionResult.from_combat()` → `Campaign.finish_mission()`; aus dem Schiff mit Einsatzbericht (`HubState.game.finish_mission(hub_report(result))`) zurück ins Schiff, Schnellkampf nach `crew.tscn`. Keine eigene EP-Gutschrift im Kampf.
+- Crewquartiere im Schiff nutzen `CrewOverview`, `CharacterEditor` und `SheetDialog` aus dem Charakter-Modul.
+- Spielstände: `SaveSlots.load_slot()` ruft `Campaign.reload()`, `SaveSlots.save()` vorher `Campaign.save()`.
+- Der Hub hat dafür Dateien des Bodenkampfs geändert: `view/battle.gd`, `ui/briefing_dialog.gd`, `ui/top_menu.gd`, `core/mission.gd`, `data/types/faction_data.gd`, `data/missions/*.tres` (Details in `docs/module/hub.md`).
 
 ## Offene Entscheidungen (für den Nutzer)
 
 - **Zustand nach dem Kampf:** Das `MissionResult` enthält schon bewusstlos/tot, TP, Blutung, verbrauchte Medikits und Munition, aber nichts davon wird ausgewertet (jeder Einsatz beginnt heil und voll ausgerüstet). Soll die Krankenstation im Schiff das übernehmen, und was passiert bei Tod?
-- ~~**Wer führt zusammen?**~~ Der Koordinations-Chat (`docs/module/koordination.md`).

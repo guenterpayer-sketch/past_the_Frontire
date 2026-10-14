@@ -4,6 +4,8 @@ extends Node3D
 ## Ablauf der Ereignisse (EventPlayer), Bedienung (PlayerController) und Oberfläche (BattleUI).
 ## Kampfmodul: bekommt Kopien der Charaktere (Campaign.crew), gibt am Ende ein MissionResult zurück
 ## und wechselt ins Charakter-Modul (crew.tscn).
+## Aus dem Schiff gestartet (HubState.in_mission) kommt die Mission von der Sternenkarte; danach geht es
+## mit einem Einsatzbericht zurück ins Schiff statt ins Charakter-Modul.
 
 const AI_DELAY := 0.22
 const LONG_PRESS := 0.55
@@ -62,7 +64,13 @@ func _ready() -> void:
 	ui.set_toggle(&"sound", Sfx.enabled)
 	ui.set_toggle(&"dice", events.dice_enabled)
 	rig.rotated.connect(func() -> void: map_view.update_cutaway(rig.view_dir()))
-	new_battle(randi() % 1000000)
+	var hub_mission := HubState.active_mission()
+	ui.briefing.hub_mode = hub_mission != null
+	if hub_mission:
+		ui.top_menu.set_menu_text(&"new", "Einsatz abbrechen (zurück ins Schiff)")
+		new_battle(hub_mission.map_seed, "", "", true, hub_mission)
+	else:
+		new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
 	if ("--autotest" in args or "--autotest-player" in args) and not get_tree().root.has_node("Autotest"):
 		# der Selbsttest hängt an der Wurzel, damit er den Wechsel ins Charakter-Modul übersteht
@@ -73,9 +81,10 @@ func _ready() -> void:
 
 
 ## Neuer Einsatz: Mission würfeln (Gegner, Halle), Karte bauen, Runde 0 (Aufstellung) mit Briefing.
-## size_id/difficulty leer = vom Missionsgenerator bestimmt; briefing = false überspringt die Einsatzbesprechung.
-func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true) -> void:
-	mission = Mission.generate(seed_value, difficulty)
+## size_id/difficulty leer = vom Missionsgenerator bestimmt; briefing = false überspringt die Einsatzbesprechung;
+## m = fertige Mission (aus dem Schiff).
+func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true, m: Mission = null) -> void:
+	mission = m if m else Mission.generate(seed_value, difficulty)
 	if size_id != "":
 		mission.size_id = size_id
 	_wait_ai()
@@ -116,13 +125,45 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_dirty = true
 
 
-## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann dorthin wechseln
+## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann
+## aus dem Schiff gestartet: Bericht ans Schiff und zurück dorthin; sonst (Schnellkampf) ins Charakter-Modul
 func finish_mission() -> void:
 	var c := combat
-	Campaign.finish_mission(MissionResult.from_combat(c, mission))
-	await get_tree().create_timer(0.8).timeout
+	var result := MissionResult.from_combat(c, mission)
+	Campaign.finish_mission(result)
+	var to_ship := HubState.in_mission()
+	if to_ship:
+		HubState.game.finish_mission(hub_report(result))
+		ui.combat_log.add("%s – zurück ins Schiff …" % ("Sieg" if c.result == &"sieg" else "Niederlage"), &"round")
+	await get_tree().create_timer(1.6 if to_ship else 0.8).timeout
 	if combat == c:
-		get_tree().change_scene_to_file(Campaign.CREW_SCENE)
+		get_tree().change_scene_to_file(HubState.HUB_SCENE if to_ship else Campaign.CREW_SCENE)
+
+
+## Einsatzbericht fürs Schiff aus dem MissionResult (Namen aus der Crew)
+func hub_report(result: Dictionary) -> Dictionary:
+	var g := HubState.game
+	var units := []
+	var states := {"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}
+	for ch in Campaign.crew():
+		var r: Dictionary = result.units.get(ch.id, {})
+		if r.is_empty():
+			continue
+		var xp: Dictionary = r.get("xp", {})
+		var keys := xp.keys()
+		keys.sort_custom(func(a, b) -> bool: return xp[a] > xp[b])
+		units.append({"letter": ch.letter, "name": ch.name, "state": states.get(r.status.state, r.status.state),
+			"xp": ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), xp[k]]))})
+	return {"outcome": result.outcome, "title": result.mission, "faction": mission.faction.name,
+		"system": g.sector.systems[g.position].name, "rounds": result.rounds, "reward_xp": result.reward_xp,
+		"free_xp": MissionResult.FREE_XP + result.reward_xp, "units": units}
+
+
+## Einsatz abbrechen: zurück ins Schiff, der Auftrag bleibt offen
+func return_to_ship() -> void:
+	_wait_ai()
+	HubState.game.abort_mission()
+	get_tree().change_scene_to_file(HubState.HUB_SCENE)
 
 
 ## Runde 0 beenden: Kampf mit Runde 1 starten
@@ -504,9 +545,15 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			if not events.dice_enabled:
 				ui.dice_panel.hide()
 		&"new":
-			new_battle(randi() % 1000000)
+			if HubState.in_mission():
+				return_to_ship()
+			else:
+				new_battle(randi() % 1000000)
 		&"reroll":
-			new_battle(randi() % 1000000, "", arg)
+			if HubState.in_mission():
+				return_to_ship()
+			else:
+				new_battle(randi() % 1000000, "", arg)
 		&"briefing":
 			ui.briefing.show_mission(mission)
 		&"help":

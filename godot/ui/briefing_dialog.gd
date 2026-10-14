@@ -9,6 +9,8 @@ signal accepted
 const DIFF_CHOICES := [["", "zufällig"], ["leicht", "leicht"], ["mittel", "mittel"], ["schwer", "schwer"]]
 
 var _diff := 0
+## aus dem Schiff gestartet: kein Neu-Würfeln, stattdessen zurück ins Schiff
+var hub_mode := false
 
 
 func show_mission(m: Mission) -> void:
@@ -36,16 +38,24 @@ func show_mission(m: Mission) -> void:
 		s += "[cell][b]%s[/b][/cell][cell]%s[/cell][cell]%s[/cell][cell]%s[/cell]" % [d.letter, d.name, d.role, gear]
 	s += "[/table]"
 	content.add_child(Modal.rich(s))
+	if hub_mode:
+		var back := UiTheme.button("Zurück ins Schiff", "Auftrag nicht jetzt erledigen; er bleibt auf der Sternenkarte offen")
+		back.pressed.connect(func() -> void:
+			hide()
+			reroll.emit(""))
+		footer.add_child(back)
 	var ob := OptionButton.new()
 	for c in DIFF_CHOICES:
 		ob.add_item("Schwierigkeit: %s" % c[1])
 	ob.select(_diff)
+	ob.visible = not hub_mode
 	ob.item_selected.connect(func(i: int) -> void: _diff = i)
 	footer.add_child(ob)
 	var again := UiTheme.button("Andere Mission")
 	again.pressed.connect(func() -> void:
 		hide()
 		reroll.emit(DIFF_CHOICES[_diff][0]))
+	again.visible = not hub_mode
 	footer.add_child(again)
 	var go := UiTheme.button("Zur Aufstellung")
 	go.add_theme_color_override("font_color", UiTheme.ACCENT)

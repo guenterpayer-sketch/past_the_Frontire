@@ -1,0 +1,191 @@
+class_name Hub
+extends Node3D
+## Schiff (Hub): zentrale Szene zwischen den Einsätzen. Zeigt das 3D-Deck (ShipView), verbindet die Räume
+## mit den Modulen (Brücke → Sternenkarte → Bodenkampf, Crewquartiere → Charakterübersicht) und verwaltet
+## Speichern/Laden. Der Spielstand liegt in HubState.game.
+
+var game: HubState
+var _hover: StringName = &""
+var _mouse_drag := false
+var _drag_moved := false
+var _drag_accum := Vector2.ZERO
+
+@onready var ship: ShipView = $Ship
+@onready var rig: CameraRig = $CameraRig
+@onready var ui: HubUI = $UI/HubUI
+
+
+func _ready() -> void:
+	if HubState.game == null:
+		HubState.new_game(randi() % 1000000)
+	game = HubState.game
+	game.abort_mission()
+	ui.action.connect(_on_action)
+	ui.star_map.travel.connect(_travel)
+	ui.star_map.start.connect(_start_mission)
+	ui.star_map.closed.connect(_refresh)
+	ui.crew.next_battle.connect(func() -> void:
+		Campaign.save()
+		ui.crew.hide()
+		_refresh())
+	ui.crew.reset_crew.connect(func() -> void:
+		Campaign.reset()
+		Campaign.save()
+		ui.show_crew())
+	ui.crew.create_member.connect(func() -> void:
+		ui.editor.open_new(Campaign.crew(), Campaign.crew().find(ui.crew.current()))
+		ui.editor.move_to_front())
+	ui.editor.saved.connect(func(ch: Character, replace: Character) -> void:
+		Campaign.add_member(ch, replace)
+		ui.show_crew())
+	ui.slots.saved.connect(func(_s: int) -> void: _refresh())
+	ui.slots.loaded.connect(func(s: int) -> void:
+		if SaveSlots.load_slot(s):
+			get_tree().reload_current_scene())
+	var b := ShipView.bounds()
+	rig.bounds = Rect2(b.position - Vector2(4, 4), b.size + Vector2(8, 8))
+	rig.focus(Vector3(b.get_center().x, 0, b.get_center().y))
+	rig.camera.size = 34.0
+	rig.rotated.connect(func() -> void: ship.update_cutaway(rig.view_dir()))
+	ship.update_cutaway.call_deferred(rig.view_dir())
+	_refresh()
+	if not game.report.is_empty():
+		ui.show_report(game.report)
+		game.report = {}
+	var args := OS.get_cmdline_user_args()
+	if "--autotest-hub" in args and not get_tree().root.has_node("HubAutotest"):
+		var t: Node = load("res://tests/autotest_hub.gd").new()
+		t.name = "HubAutotest"
+		get_tree().root.add_child.call_deferred(t)
+
+
+func _process(_d: float) -> void:
+	var pts := {}
+	for r in ShipView.ROOMS:
+		pts[r.id] = rig.camera.unproject_position(ShipView.room_center(r.id) + Vector3(0, 2.6, 0))
+	ui.place_tags(pts)
+
+
+func _refresh() -> void:
+	ui.set_status(game)
+	ship.set_highlight(_hover)
+	if ui.star_map.visible:
+		ui.star_map.refresh()
+
+
+# ---------------------------------------------------------------- Räume
+
+func open_room(id: StringName) -> void:
+	var r := ShipView.room(id)
+	Sfx.play(&"klick")
+	match id:
+		&"bridge":
+			ui.star_map.open(game)
+		&"quarters":
+			ui.show_crew()
+		_:
+			ui.show_notice(r.name, "%s\n\nDieser Bereich kommt noch." % r.text)
+
+
+func _travel(target: int) -> void:
+	var days := game.travel_to(target)
+	if days > 0:
+		Sfx.play(&"schritt")
+	_refresh()
+
+
+func _start_mission(offer: Dictionary) -> void:
+	if not game.start_mission(offer):
+		_refresh()
+		return
+	Campaign.save()
+	Campaign.last_result = {}
+	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+
+
+func _set_hover(id: StringName) -> void:
+	if id == _hover:
+		return
+	_hover = id
+	ship.set_highlight(_hover)
+	ui.show_room_info(ShipView.room(id) if id != &"" else {}, game)
+
+
+func _on_action(name: StringName, arg: Variant) -> void:
+	match name:
+		&"room":
+			open_room(arg)
+		&"hover_room":
+			_set_hover(arg)
+		&"save":
+			ui.slots.show_slots(&"save", true)
+		&"load":
+			ui.slots.show_slots(&"load", true)
+		&"main_menu":
+			get_tree().change_scene_to_file(HubState.START_SCENE)
+		&"sound":
+			Sfx.toggle()
+		&"help":
+			ui.show_help()
+
+
+# ---------------------------------------------------------------- Eingabe (Kamera wie im Bodenkampf)
+
+func _room_under(p: Vector2) -> StringName:
+	if ui.covers(p):
+		return &""
+	var hit: Variant = rig.ray_plane(p, 0.0)
+	if hit == null:
+		return &""
+	var r := ShipView.room_at(Vector2(hit.x, hit.z))
+	return r.id if not r.is_empty() else &""
+
+
+func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventMouseMotion:
+		if _mouse_drag and (e.button_mask & (MOUSE_BUTTON_MASK_LEFT | MOUSE_BUTTON_MASK_MIDDLE)):
+			_drag_accum += e.relative
+			if _drag_moved or _drag_accum.length() > 6.0:
+				_drag_moved = true
+				rig.pan(e.relative)
+		if not ui.any_dialog_open():
+			_set_hover(_room_under(e.position))
+	elif e is InputEventMouseButton:
+		if ui.covers(e.position):
+			return
+		match e.button_index:
+			MOUSE_BUTTON_WHEEL_UP:
+				if e.pressed:
+					rig.zoom_at(e.position, 1.12)
+			MOUSE_BUTTON_WHEEL_DOWN:
+				if e.pressed:
+					rig.zoom_at(e.position, 1 / 1.12)
+			MOUSE_BUTTON_LEFT, MOUSE_BUTTON_MIDDLE:
+				if e.pressed:
+					_mouse_drag = true
+					_drag_moved = false
+					_drag_accum = Vector2.ZERO
+				else:
+					var was_drag := _drag_moved
+					_mouse_drag = false
+					_drag_moved = false
+					if not was_drag and e.button_index == MOUSE_BUTTON_LEFT:
+						var id := _room_under(e.position)
+						if id != &"":
+							open_room(id)
+	elif e is InputEventKey and e.pressed and not e.echo:
+		match e.keycode:
+			KEY_ESCAPE:
+				ui.close_dialogs()
+			KEY_Q:
+				rig.rotate_by(-90)
+			KEY_E:
+				rig.rotate_by(90)
+			KEY_A, KEY_LEFT:
+				rig.pan(Vector2(80, 0))
+			KEY_D, KEY_RIGHT:
+				rig.pan(Vector2(-80, 0))
+			KEY_W, KEY_UP:
+				rig.pan(Vector2(0, 80))
+			KEY_S, KEY_DOWN:
+				rig.pan(Vector2(0, -80))

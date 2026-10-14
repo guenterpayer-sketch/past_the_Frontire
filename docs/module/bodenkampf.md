@@ -13,8 +13,10 @@
 - In `main`: Kampf, Missionsgenerator, Runde 0, schwebende Kampf-UI.
 - Seit `cf5ad7e` (Charakter-Modul) in `main`: Kampf übergibt nur noch Daten (`MissionResult`), Charakterübersicht liegt im Charakter-Modul. **Regeländerung, die auch den Kampf betrifft:** neue Fertigkeiten Körperentwicklung, Psi-Punkte-Entwicklung, 5 Psi-Listen; TP = 15 + KON/3 + 5 × Körperentwicklung; PP = MEN/10 + MEN-Bonus/2 + 2 × Psi-Punkte-Entwicklung (gilt auch für Gegner, Psi-Figuren haben mehr PP). Bodenkampf-Branch ist 1 Commit hinter `main`.
 
+- **15.10.2026, Bodenkampf-Branch:** `main` (`2c91832`) ohne Konflikte eingeholt; `test_rules.gd` OK, `--autotest` (Kampf → `crew.tscn` inkl. Editor) läuft durch.
+- **Auswirkung der neuen TP/PP-Formeln** (Gegner- und Crewwerte unverändert): TP bleiben bei allen Figuren gleich (niemand hat Körperentwicklung). PP: Nyx 13 → 19, Hexer 11 → 14, Corvin 0 → 7 (Rang in Psi-Verteidigung, aber keine Psi-Waffe, im Kampf ohne Wirkung). Simulation `test_sim.gd -- 150 missionen` (gleiche Startwerte, 50 Kämpfe je Stufe), Siege der Crew alt → neu: leicht 49 → 50, mittel 35 → 36, schwer 18 → 24 (gesamt 68 % → 73 %). Der Unterschied bei „schwer“ liegt innerhalb der Zufallsschwankung bei 50 Kämpfen (grob ±10 Prozentpunkte); eine Tendenz zugunsten der Crew ist möglich, aber nicht belegt. Gegnerwerte nicht angepasst; **Entscheidung des Nutzers: so lassen.**
+
 ## Aufträge vom Koordinator
 
-- Vor der nächsten Arbeit `main` holen (`git merge origin/main`, Charakter-Modul ist drin) und Gegner-Werte/Balancing mit den neuen TP/PP-Formeln prüfen.
-
-- Nach dem Zusammenführen von Charakter-Modul und Hub: **ein einziges Kampfende** (`MissionResult` → `Campaign.finish_mission()` → aus dem Schiff zurück ins Schiff mit Bericht, Schnellkampf in `crew.tscn`). Keine eigene EP-Gutschrift mehr im Kampf. Details: `docs/Zusammenfuehrung.md`.
+- ~~`main` holen und Balancing mit den neuen TP/PP-Formeln prüfen~~ → erledigt (Entscheidung: so lassen).
+- **Hub ist seit 15.10.2026 in `main` (`012efdf`).** Das gemeinsame Kampfende hat der Hub-Chat bereits in `view/battle.gd` gebaut (`Battle.finish_mission()`: `MissionResult` → `Campaign.finish_mission()` → aus dem Schiff mit Bericht zurück ins Schiff, Schnellkampf nach `crew.tscn`; keine eigene EP-Gutschrift). `main` holen und die Änderungen des Hubs an Bodenkampf-Dateien durchsehen: `view/battle.gd` (`finish_mission()`, `hub_report()`, `return_to_ship()`, `new_battle(…, m)`), `ui/briefing_dialog.gd` (`hub_mode`), `ui/top_menu.gd` (`set_menu_text()`), `core/mission.gd` (`faction_path`), `data/types/faction_data.gd` und `data/missions/*.tres` (`color`). Was davon noch fehlt oder anders sein soll, mit dem Nutzer klären, bevor gebaut wird.
