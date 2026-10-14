@@ -1,7 +1,8 @@
 class_name CrewOverview
 extends Modal
-## Charakter-Modul: Übersicht der Crew zum Durchblättern (◀ ▶, Pfeiltasten). Je Figur:
-## Ränge steigern (Fertigkeits-EP, fehlende EP aus dem freien Pool), Eigenschaften mit freien EP steigern.
+## Charakter-Modul: Übersicht der Crew zum Durchblättern (Reiter, Pfeiltasten) und Aufleveln. Je Figur:
+## 3D-Vorschau, Name/Kürzel/Farbe/Station/Aussehen ändern, Eigenschaften und Ränge mit freien EP steigern
+## (fehlende EP aus dem freien Pool, keine Ranggrenze), neue Psi-Liste: erster Rang doppelt, eine pro Levelphase.
 ## Nach einem Einsatz zeigt sie dessen Ergebnis (Campaign.last_result); die EP sind dann schon verbucht.
 
 signal next_battle
@@ -15,16 +16,22 @@ var _idx := 0
 var _snap := {}          # Character -> Stand beim Öffnen (für "zurücknehmen")
 var _show_all := false
 var _page: VBoxContainer
+var _preview: FigurePreview
+var _visuals: Array[CharacterVisual] = []
 
 
 func show_crew(crew: Array[Character], result := {}) -> void:
+	if _preview and _preview.get_parent():
+		_preview.get_parent().remove_child(_preview)
 	closable = false
 	_crew = crew
 	_result = result
 	_idx = clampi(_idx, 0, maxi(0, crew.size() - 1))
 	_snap.clear()
 	for u in _crew:
-		_snap[u] = {"skills": u.skills.duplicate(true), "attrs": u.attrs.duplicate(), "free_xp": u.free_xp}
+		_snap[u] = {"skills": u.skills.duplicate(true), "attrs": u.attrs.duplicate(), "free_xp": u.free_xp, "new_list": u.new_list}
+	if _visuals.is_empty():
+		_visuals = FigurePreview.visual_choices()
 	var intro: Label
 	if result.is_empty():
 		open("Crew")
@@ -87,53 +94,125 @@ func _unhandled_input(e: InputEvent) -> void:
 
 
 func _render() -> void:
+	# Vorschau behalten (nicht mit dem Inhalt freigeben), damit das Modell nicht bei jedem Klick neu lädt
+	if _preview and _preview.get_parent():
+		_preview.get_parent().remove_child(_preview)
 	UiTheme.clear(_page)
 	var u := current()
 	if u == null:
 		return
-	# Blättern: ◀ Reiter je Figur ▶
+	# Reiter je Figur mit freien EP
 	var nav := HBoxContainer.new()
 	nav.add_theme_constant_override("separation", 6)
-	var prev := UiTheme.button("◀", "vorige Figur (Pfeil links)")
-	prev.pressed.connect(page.bind(-1))
-	nav.add_child(prev)
 	for i in _crew.size():
 		var o := _crew[i]
-		var b := UiTheme.button("%s %s%s" % [o.letter, o.name.split(" ")[0], (" · %d" % o.free_xp) if o.free_xp else ""], "%s: %d freie EP" % [o.name, o.free_xp], true)
+		var b := UiTheme.button("%s %s%s" % [o.letter, o.name.split(" ")[0], (" · %d" % o.free_xp) if o.free_xp else ""], "%s: %d freie EP (Pfeiltasten blättern)" % [o.name, o.free_xp], true)
 		b.button_pressed = i == _idx
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(func() -> void:
 			_idx = i
 			_render())
 		nav.add_child(b)
-	var nxt := UiTheme.button("▶", "nächste Figur (Pfeil rechts)")
-	nxt.pressed.connect(page.bind(1))
-	nav.add_child(nxt)
 	_page.add_child(nav)
 
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.LINE, 8, 12))
 	_page.add_child(card)
+	var cols := HBoxContainer.new()
+	cols.add_theme_constant_override("separation", 20)
+	card.add_child(cols)
+	cols.add_child(_left_column(u))
+	cols.add_child(_skills(u))
+
+
+# ---------------------------------------------------------------- links: Person, Eigenschaften, Psi
+
+func _left_column(u: Character) -> Control:
 	var v := VBoxContainer.new()
+	v.custom_minimum_size.x = 400
 	v.add_theme_constant_override("separation", 8)
-	card.add_child(v)
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 10)
-	head.add_child(UiTheme.badge(u.letter, u.color, 34))
-	var hv := VBoxContainer.new()
-	hv.add_theme_constant_override("separation", 0)
-	hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hv.add_child(UiTheme.label("%s  (%d / %d)" % [u.name, _idx + 1, _crew.size()], 18, UiTheme.CREW))
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 12)
+	v.add_child(top)
+	if _preview == null:
+		_preview = FigurePreview.new()
+	top.add_child(_preview)
+	_preview.show_character(u)
+
+	var person := VBoxContainer.new()
+	person.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(person)
+	var name_edit := LineEdit.new()
+	name_edit.text = u.name
+	name_edit.add_theme_font_size_override("font_size", 18)
+	name_edit.add_theme_color_override("font_color", UiTheme.CREW)
+	name_edit.text_submitted.connect(func(_t: String) -> void: _render())
+	name_edit.text_changed.connect(func(t: String) -> void:
+		if t.strip_edges() != "":
+			u.name = t.strip_edges())
+	name_edit.focus_exited.connect(_render.call_deferred)
+	person.add_child(name_edit)
 	var ur := _unit_result(u)
-	var sub := u.role + ((" · Station " + u.station) if u.station != "" and u.station != u.role else "")
+	var sub := u.role
 	if not ur.is_empty():
 		sub += " · %s · %d Gegner ausgeschaltet" % [{"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}.get(ur.status.state, ""), ur.kills]
-	hv.add_child(UiTheme.label(sub, 12, UiTheme.MUTED))
-	head.add_child(hv)
+	var sl := UiTheme.label(sub, 12, UiTheme.MUTED)
+	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	person.add_child(sl)
+	var g := GridContainer.new()
+	g.columns = 2
+	g.add_theme_constant_override("h_separation", 8)
+	person.add_child(g)
+	g.add_child(UiTheme.label("Kürzel, Farbe", 12, UiTheme.MUTED))
+	var hb := HBoxContainer.new()
+	var letter := LineEdit.new()
+	letter.text = u.letter
+	letter.max_length = 1
+	letter.custom_minimum_size.x = 36
+	letter.text_changed.connect(func(t: String) -> void:
+		if t != "":
+			u.letter = t.to_upper())
+	letter.focus_exited.connect(_render.call_deferred)
+	hb.add_child(letter)
+	var col := ColorPickerButton.new()
+	col.color = u.color
+	col.edit_alpha = false
+	col.custom_minimum_size = Vector2(50, 26)
+	col.popup_closed.connect(func() -> void:
+		u.color = col.color
+		_render())
+	hb.add_child(col)
+	g.add_child(hb)
+	g.add_child(UiTheme.label("Station", 12, UiTheme.MUTED))
+	var st := OptionButton.new()
+	for i in Creation.STATIONS.size():
+		var s: String = Creation.STATIONS[i]
+		st.add_item(s if s != "" else "keine", i)
+		st.set_item_disabled(i, not Creation.station_free(_crew, s, u))
+	st.select(maxi(0, Creation.STATIONS.find(u.station)))
+	st.tooltip_text = "Jede Station nur einmal, Jäger mehrfach (docs/Raumkampf.md)"
+	st.item_selected.connect(func(i: int) -> void:
+		u.station = Creation.STATIONS[i]
+		_render())
+	g.add_child(st)
+	g.add_child(UiTheme.label("Aussehen", 12, UiTheme.MUTED))
+	var vis := OptionButton.new()
+	for i in _visuals.size():
+		vis.add_item(FigurePreview.visual_name(_visuals[i]), i)
+	vis.select(maxi(0, _visuals.find(u.visual)))
+	vis.item_selected.connect(func(i: int) -> void:
+		u.visual = _visuals[i]
+		_render())
+	g.add_child(vis)
+
+	# freie EP, zurücknehmen, Bogen
+	var pool_row := HBoxContainer.new()
+	pool_row.add_theme_constant_override("separation", 10)
 	var pool := UiTheme.label("Freie EP: %d" % u.free_xp, 20, UiTheme.ACCENT)
 	pool.tooltip_text = "Davon aus diesem Einsatz: %d" % ur.get("free_xp", 0)
 	pool.mouse_filter = Control.MOUSE_FILTER_PASS
-	head.add_child(pool)
+	pool.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pool_row.add_child(pool)
 	var undo := UiTheme.button("zurücknehmen", "Alle Steigerungen dieser Figur seit dem Öffnen der Übersicht zurücknehmen")
 	undo.disabled = not _changed(u)
 	undo.pressed.connect(func() -> void:
@@ -141,28 +220,17 @@ func _render() -> void:
 		u.skills = s.skills.duplicate(true)
 		u.attrs = s.attrs.duplicate()
 		u.free_xp = s.free_xp
+		u.new_list = s.new_list
 		_render())
-	head.add_child(undo)
-	var sheet := UiTheme.button("Charakterbogen", "Vollständigen Bogen mit den aktuellen Werten öffnen (Eigenschaften, Boni, alle Fertigkeiten)")
+	pool_row.add_child(undo)
+	var sheet := UiTheme.button("Charakterbogen", "Vollständigen Bogen mit den aktuellen Werten öffnen")
 	sheet.pressed.connect(func() -> void: open_sheet.emit(_crew, u))
-	head.add_child(sheet)
-	v.add_child(head)
-	var gained: Dictionary = ur.get("xp", {})
-	if not gained.is_empty():
-		var keys := gained.keys()
-		keys.sort_custom(func(a, b) -> bool: return gained[a] > gained[b])
-		var gl := UiTheme.label("In diesem Kampf: " + ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), gained[k]])), 13, UiTheme.GOOD)
-		gl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		v.add_child(gl)
-	elif not ur.is_empty():
-		v.add_child(UiTheme.label("In diesem Kampf keine Fertigkeit benutzt.", 13, UiTheme.MUTED))
-
-	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 24)
-	v.add_child(cols)
-	var left := _attributes(u)
-	cols.add_child(left)
-	cols.add_child(_skills(u))
+	pool_row.add_child(sheet)
+	v.add_child(pool_row)
+	v.add_child(_attributes(u))
+	v.add_child(UiTheme.label("Trefferpunkte %d · Psi-Punkte %s" % [Rules.max_hp(u), str(Rules.max_pp(u)) if Rules.has_psi(u) else "–"], 13, UiTheme.MUTED))
+	v.add_child(_psi_powers(u))
+	return v
 
 
 func _changed(u: Character) -> bool:
@@ -172,7 +240,6 @@ func _changed(u: Character) -> bool:
 
 func _attributes(u: Character) -> Control:
 	var v := VBoxContainer.new()
-	v.custom_minimum_size.x = 380
 	v.add_child(UiTheme.label("Eigenschaften (+1 kostet 2 + Wert/10 freie EP)", 13, UiTheme.MUTED))
 	var g := GridContainer.new()
 	g.columns = 5
@@ -190,8 +257,7 @@ func _attributes(u: Character) -> Control:
 		g.add_child(UiTheme.label(Dice.fmt(Rules.attr_bonus(val)), 13))
 		var nb := Rules.next_bonus_step(val)
 		g.add_child(UiTheme.label(("ab %d: %s" % [nb, Dice.fmt(Rules.attr_bonus(nb))]) if nb > 0 else "–", 12, UiTheme.MUTED))
-		var cost := Rules.attr_cost(val)
-		var b := UiTheme.button("+1 (%d EP)" % cost)
+		var b := UiTheme.button("+1 (%d)" % Rules.attr_cost(val), "+1 für %d freie EP" % Rules.attr_cost(val))
 		b.disabled = not Rules.can_raise_attr(u, a.id)
 		b.add_theme_font_size_override("font_size", 12)
 		b.pressed.connect(func() -> void:
@@ -199,15 +265,47 @@ func _attributes(u: Character) -> Control:
 			_render())
 		g.add_child(b)
 	v.add_child(g)
-	v.add_child(UiTheme.label("Trefferpunkte im nächsten Kampf: %d · Psi-Punkte: %d" % [Rules.max_hp(u), Rules.max_pp(u)], 12, UiTheme.MUTED))
 	return v
 
+
+func _psi_powers(u: Character) -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 2)
+	v.add_child(UiTheme.label("Psi-Kräfte", 13, UiTheme.MUTED))
+	var learned := PsiLists.learned(u)
+	if learned.is_empty():
+		v.add_child(UiTheme.label("keine Psi-Liste gelernt", 12, UiTheme.MUTED))
+	for id in learned:
+		var l: Dictionary = PsiLists.LISTS[id]
+		var r := Rules.skill_rank(u, id)
+		v.add_child(UiTheme.label("%s – Rang %d · %s" % [l.name, r, l.probe], 13, Color("b07ae8")))
+		for p in l.powers:
+			var on: bool = p[0] <= r
+			var pl := UiTheme.label("  %d  %s (%d PP)" % [p[0], p[1], p[0]], 12, UiTheme.TEXT if on else UiTheme.MUTED)
+			pl.tooltip_text = p[2]
+			pl.mouse_filter = Control.MOUSE_FILTER_PASS
+			if not on:
+				pl.modulate.a = 0.6
+			v.add_child(pl)
+	return v
+
+
+# ---------------------------------------------------------------- rechts: Fertigkeiten
 
 func _skills(u: Character) -> Control:
 	var v := VBoxContainer.new()
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var gained: Dictionary = _unit_result(u).get("xp", {})
+	if not gained.is_empty():
+		var keys := gained.keys()
+		keys.sort_custom(func(a, b) -> bool: return gained[a] > gained[b])
+		var gl := UiTheme.label("In diesem Einsatz: " + ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), gained[k]])), 13, UiTheme.GOOD)
+		gl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		v.add_child(gl)
+	elif not _unit_result(u).is_empty():
+		v.add_child(UiTheme.label("In diesem Einsatz keine Fertigkeit benutzt.", 13, UiTheme.MUTED))
 	var top := HBoxContainer.new()
-	var t := UiTheme.label("Fertigkeiten (Rang kostet 10 + 2 × Rang EP; freie EP einzahlen mit +1 / +5)", 13, UiTheme.MUTED)
+	var t := UiTheme.label("Fertigkeiten: Rang kostet 10 + 2 × Rang, fehlende EP aus den freien EP, keine Ranggrenze.\nNeue Psi-Liste: erster Rang doppelt, höchstens eine neue Liste pro Levelphase.", 12, UiTheme.MUTED)
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(t)
 	var all := UiTheme.button("alle zeigen", "Auch Fertigkeiten ohne Rang und EP zeigen (z. B. um sie mit freien EP zu lernen)", true)
@@ -217,37 +315,40 @@ func _skills(u: Character) -> Control:
 		_render())
 	top.add_child(all)
 	v.add_child(top)
-	var g := GridContainer.new()
-	g.columns = 7
-	g.add_theme_constant_override("h_separation", 10)
-	for h in ["Fertigkeit", "Eig.", "Rang", "Gesamt", "EP / Kosten", "einzahlen", ""]:
-		g.add_child(UiTheme.label(h, 12, UiTheme.MUTED))
 	var shown := 0
 	for grp in Rules.SKILL_GROUPS:
+		var g := GridContainer.new()
+		g.columns = 7
+		g.add_theme_constant_override("h_separation", 10)
+		var rows := 0
 		for sk in grp.skills:
 			var id := StringName(sk[0])
 			var s: Dictionary = u.skills.get(id, {"rank": 0, "xp": 0})
-			var used: bool = _unit_result(u).get("xp", {}).has(id)
-			if not _show_all and s.rank == 0 and s.xp == 0 and not used:
+			var used: bool = gained.has(id)
+			if not _show_all and s.rank == 0 and s.xp == 0 and not used and grp.id != "psiListen":
 				continue
+			if rows == 0:
+				for h in ["Fertigkeit", "Eig.", "Rang", "Gesamt", "EP / Kosten", "einzahlen", ""]:
+					g.add_child(UiTheme.label(h, 11, UiTheme.MUTED))
+			rows += 1
 			shown += 1
 			var base_rank: int = _snap[u].skills.get(id, {}).get("rank", 0) if _snap.has(u) else s.rank
-			g.add_child(UiTheme.label(sk[1], 13, UiTheme.GOOD if used else UiTheme.TEXT))
-			var ab := Rules.attr_bonus(u.attrs[sk[2]]) + Rules.attr_bonus(u.attrs[sk[3]])
-			var el := UiTheme.label("%s+%s %s" % [Rules.attr_short(sk[2]), Rules.attr_short(sk[3]), Dice.fmt(ab)], 12, UiTheme.MUTED)
-			el.tooltip_text = "Eigenschaften: %s %d (%s) + %s %d (%s)" % [sk[2], u.attrs[sk[2]], Dice.fmt(Rules.attr_bonus(u.attrs[sk[2]])), sk[3], u.attrs[sk[3]], Dice.fmt(Rules.attr_bonus(u.attrs[sk[3]]))]
-			el.mouse_filter = Control.MOUSE_FILTER_PASS
-			g.add_child(el)
+			var new_list: bool = Rules.is_psi_list(id) and s.rank == 0
+			var nl := UiTheme.label(sk[1] + ("  (neu: %d EP)" % Rules.next_rank_cost(u, id) if new_list else ""), 13,
+				UiTheme.GOOD if used else (UiTheme.TEXT if s.rank > 0 else UiTheme.MUTED))
+			nl.custom_minimum_size.x = 200
+			g.add_child(nl)
+			g.add_child(UiTheme.label("%s+%s" % [Rules.attr_short(sk[2]), Rules.attr_short(sk[3])], 12, UiTheme.MUTED))
 			g.add_child(UiTheme.label(str(s.rank) + ((" (+%d)" % (s.rank - base_rank)) if s.rank > base_rank else ""), 13, UiTheme.GOOD if s.rank > base_rank else UiTheme.TEXT))
-			g.add_child(UiTheme.label(Dice.fmt(Rules.skill_total(u, id)), 13))
-			var cost := Rules.rank_cost(s.rank)
+			g.add_child(UiTheme.label(_effect(u, id, s.rank), 13))
+			var cost := Rules.next_rank_cost(u, id)
 			g.add_child(UiTheme.label("%d / %d" % [s.xp, cost], 13))
 			var dep := HBoxContainer.new()
 			dep.add_theme_constant_override("separation", 4)
 			for n in [1, 5]:
 				var db := UiTheme.button("+%d" % n, "%d freie EP auf %s einzahlen" % [n, sk[1]])
 				db.add_theme_font_size_override("font_size", 12)
-				db.custom_minimum_size.x = 38
+				db.custom_minimum_size.x = 36
 				db.disabled = u.free_xp <= 0
 				db.pressed.connect(func() -> void:
 					Rules.deposit_xp(u, id, n)
@@ -255,22 +356,41 @@ func _skills(u: Character) -> Control:
 				dep.add_child(db)
 			g.add_child(dep)
 			var missing := maxi(0, cost - s.xp)
+			var block := Rules.rank_block(u, id)
 			var b: Button
 			if missing == 0:
-				b = UiTheme.button("Rang %d" % (s.rank + 1))
+				b = UiTheme.button("Rang %d" % (s.rank + 1), block)
 				b.add_theme_color_override("font_color", UiTheme.ACCENT)
 			else:
-				b = UiTheme.button("Rang %d (%d frei)" % [s.rank + 1, missing], "Fehlende %d EP aus den freien EP nehmen" % missing)
-				b.disabled = missing > u.free_xp
+				b = UiTheme.button("Rang %d (%d frei)" % [s.rank + 1, missing], block if block != "" else "Fehlende %d EP aus den freien EP nehmen" % missing)
+			b.disabled = missing > u.free_xp or block != ""
 			b.add_theme_font_size_override("font_size", 12)
 			b.pressed.connect(func() -> void:
 				Rules.rank_up_with_pool(u, id)
 				_render())
 			g.add_child(b)
+		if rows > 0:
+			v.add_child(UiTheme.label(grp.name, 13, UiTheme.ACCENT))
+			v.add_child(g)
 	if shown == 0:
 		v.add_child(UiTheme.label("noch keine Fertigkeit gelernt – „alle zeigen“ einschalten", 12, UiTheme.MUTED))
-	v.add_child(g)
 	return v
+
+
+## Was die Ränge bringen: Gesamtbonus, bei Entwicklung TP/PP, bei Listen die Zahl der Kräfte
+func _effect(u: Character, id: StringName, r: int) -> String:
+	if id == &"koerper":
+		return "+%d TP" % (r * Rules.HP_PER_RANK)
+	if id == &"psiPunkte":
+		return "+%d PP" % (r * Rules.PP_PER_RANK)
+	if PsiLists.is_list(id):
+		return "%d Kräfte" % PsiLists.powers(u, id).size()
+	return Dice.fmt(Rules.skill_total(u, id))
+
+
+func _exit_tree() -> void:
+	if _preview and not _preview.is_inside_tree():
+		_preview.free()
 
 
 func _confirm_reset() -> void:

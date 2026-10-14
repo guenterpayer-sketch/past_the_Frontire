@@ -167,12 +167,15 @@ func show_room_info(r: Dictionary, g: HubState) -> void:
 
 
 ## Crewquartiere: Charakterübersicht des Charakter-Moduls; nach einem Einsatz mit dessen Ergebnis.
-## Der Knopf „Speichern & nächste Mission“ heißt im Schiff „Speichern & zurück“.
+## Der Knopf „Speichern & nächste Mission“ heißt im Schiff „Speichern & zurück“; „Crew zurücksetzen“
+## gibt es im Schiff nicht (dafür ein neues Spiel beginnen).
 func show_crew() -> void:
 	crew.show_crew(Campaign.crew(), Campaign.last_result)
 	for b in crew.footer.get_children():
 		if b is Button and (b as Button).text.begins_with("Speichern"):
 			(b as Button).text = "Speichern & zurück"
+		elif b is Button and (b as Button).text.begins_with("Crew zurücksetzen"):
+			(b as Button).hide()
 
 
 func show_notice(title: String, text: String) -> void:

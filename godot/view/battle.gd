@@ -127,9 +127,16 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 
 
 ## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann
-## aus dem Schiff gestartet: Bericht ans Schiff und zurück dorthin; sonst (Schnellkampf) ins Charakter-Modul
+## aus dem Schiff gestartet: Bericht ans Schiff und zurück dorthin; sonst ins Charakter-Modul.
+## Schnellkampf aus dem Startmenü (HubState.quick_battle): nichts verbuchen, zurück ins Startmenü.
 func finish_mission() -> void:
 	var c := combat
+	if HubState.quick_battle:
+		ui.combat_log.add("%s – Schnellkampf, nichts verbucht. Zurück ins Startmenü …" % ("Sieg" if c.result == &"sieg" else "Niederlage"), &"round")
+		await get_tree().create_timer(2.5).timeout
+		if combat == c:
+			get_tree().change_scene_to_file(HubState.START_SCENE)
+		return
 	var result := MissionResult.from_combat(c, mission)
 	Campaign.finish_mission(result)
 	var to_ship := HubState.in_mission()

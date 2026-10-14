@@ -124,6 +124,11 @@ func _run() -> void:
 	hub.open_room(&"quarters")
 	await _frames(10)
 	await _shot("h9b_crewquartiere_nach_einsatz")
+	var reset_visible := false
+	for fb in hub.ui.crew.footer.get_children():
+		if fb is Button and fb.visible and fb.text.begins_with("Crew zurücksetzen"):
+			reset_visible = true
+	print("Crew zurücksetzen im Schiff sichtbar: ", reset_visible)
 	await _click_button(hub.ui, "Speichern & zurück")
 	print("Crewquartiere geschlossen: ", not hub.ui.crew.visible)
 	# Laden: Slot 1 (vor dem Einsatz gespeichert)
@@ -133,6 +138,21 @@ func _run() -> void:
 	get_tree().change_scene_to_file(HubState.START_SCENE)
 	await _frames(30)
 	await _shot("h10_start_mit_spielstand")
+	# Schnellkampf: nichts verbuchen, zurück ins Startmenü
+	var fx0: int = Campaign.crew()[0].free_xp
+	HubState.game = null
+	HubState.quick_battle = true
+	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+	await _frames(60)
+	var qb := get_tree().current_scene as Battle
+	qb.ui.briefing.close()
+	qb.begin_combat()
+	for e in qb.combat.enemies():
+		e.state = Combatant.State.DEAD
+	qb.combat.check_end()
+	await get_tree().create_timer(5.0).timeout
+	print("Schnellkampf: zurück im Startmenü %s, freie EP %d -> %d (gespeichert %d)" % [get_tree().current_scene is StartScreen,
+		fx0, Campaign.crew()[0].free_xp, Roster.load_crew()[0].free_xp])
 	for s in range(1, SaveSlots.COUNT + 1):
 		SaveSlots.delete(s)
 	print("AUTOTEST FERTIG")
