@@ -131,6 +131,11 @@ func _run() -> void:
 	var b := get_tree().current_scene as Battle
 	print("Bodenkampf: %s gegen %s (erwartet %s), Briefing offen %s" % [b.mission.title, b.mission.faction.name,
 		g.sector.faction_of(o2.system).name, b.ui.briefing.visible])
+	var doc := Medbay.doctor(g)
+	var doc_c: Array = b.candidates.filter(func(k: Dictionary) -> bool: return k.ch == doc)
+	print("Truppwahl im Schiff: Arzt %s gesperrt %s (%s), nicht im Trupp %s, Trupp %d, Crew im Kampf %d" % [doc.name if doc else "-",
+		doc_c[0].locked if not doc_c.is_empty() else false, doc_c[0].reason if not doc_c.is_empty() else "-",
+		not doc in b.squad, b.squad.size(), b.combat.crew().size()])
 	await _shot("h8_briefing_aus_schiff")
 	b.ui.briefing.close()
 	b.begin_combat()

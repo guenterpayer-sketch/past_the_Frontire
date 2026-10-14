@@ -140,7 +140,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 
 ## Kandidaten und Vorbelegung (Charakter-Modul): im Spiel neu aus der Crew (letzter Trupp, Gesperrte heraus, aufgefüllt);
 ## Schnellkampf: Roster-Kopien einmal holen, Auswahl bleibt bei „Andere Mission“ erhalten.
-## Gesperrte Ärzte (blocked_ids) liefert später der Hub (Krankenstation noch nicht gebaut).
+## Arzt der Krankenstation gesperrt über HubState.blocked_ids() (Hub).
 func _pick_squad() -> void:
 	if _keep_squad:
 		_keep_squad = false
@@ -151,7 +151,7 @@ func _pick_squad() -> void:
 			squad = Campaign.suggested_squad(candidates)
 			Campaign.quick_squad = squad.duplicate()
 		return
-	candidates = Campaign.candidates(false)
+	candidates = Campaign.candidates(false, HubState.blocked_ids())
 	squad = Campaign.suggested_squad(candidates)
 
 
