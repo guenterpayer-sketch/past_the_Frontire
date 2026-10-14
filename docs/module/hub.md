@@ -35,7 +35,17 @@
 2. **Krankenstation** (Abschnitt B, Teil Hub): Verwundete und Resttage anzeigen, Tage vergehen beim Reisen/Einsatz → Heilung (Funktion vom Charakter-Modul), vor dem Einsatz Gesperrte nicht mitnehmen, leicht Verletzte mit Malus. **Tage-Werte vorschlagen** (anhand typischer Reise- und Auftragsdauer) und vom Nutzer entscheiden lassen.
 3. Rückzug im Bericht: weiter offen (nur nach Entscheidung des Nutzers).
 
-### Stand 16.10.2026 (Hub-Chat) – **bereit zum Zusammenführen**
+### Stand 16.10.2026, zweite Runde (Hub-Chat) – **bereit zum Zusammenführen**
+
+- `main` (`92f2d5b`) geholt, ohne Konflikte.
+- **Anheuern im Hafen:** Brücke, System neutral und Schiff liegt dort → Abschnitt „Hafen: Crew“ mit Plätzen an Bord, Liste „im Hafen“ (`Campaign.harbor()`) und Roster-Figuren, die weder an Bord noch im Hafen sind; „Anheuern“ → `Campaign.hire()`, nur bei freiem Platz (`HubState.free_berths()`).
+- **Krankenstation** (`core/medbay.gd`, `ui/medbay_dialog.gd`, Raum im Schiff jetzt nutzbar): Patienten, Personal bis 2 (`HubState.medics`, im Spielstand), Arzt/Helfer nach Zweiter Hilfe, Tagesprobe 100/150, 1 EP je Behandlungstag, Protokoll (`HubState.medlog`), „1 Tag warten“. Alle vergangenen Tage (Reisen, Einsatz, Warten) laufen über `HubState.advance_days(n)` → je Tag Probe und `Campaign.pass_days(1, Zusatztage)`; Geheilte werden im Schiff gemeldet.
+- **Arzt-Sperre für die Truppwahl (Schnittstelle für den Bodenkampf):** `HubState.blocked_ids()` liefert die IDs, die gesperrt sind (der Arzt; im Schnellkampf und ohne Spiel leer). Der Bodenkampf ruft im Briefing `Campaign.candidates(HubState.quick_battle, HubState.blocked_ids())` auf.
+- Ausblenden von „Anheuern“ in den Crewquartieren entfernt (Knopf gibt es nicht mehr); „Crew zurücksetzen“ wird weiter ausgeblendet.
+- Tests: `test_rules` OK, `test_hub` OK (neu: Schwellen, Arzt/Helfer, Bonus, Sperre in `candidates`, Heilung mit/ohne Personal, EP, Reisen heilt, Hafen, Speichern von Personal/Protokoll, entlassenes Personal), `test_sim -- 30` OK (19 Siege, 0 hängengeblieben), `--autotest`, `--autotest-player`, `--autotest-hub` (neu: Entlassen und im Hafen wieder anheuern, Krankenstation mit Probe) durchgelaufen.
+- Noch offen beim Bodenkampf: Truppwahl im Briefing mit `HubState.blocked_ids()`; `hub_report()` mit `Campaign.last_fallen`.
+
+### Stand 16.10.2026 (Hub-Chat)
 
 - `main` (`d8903d8`) geholt, ohne Konflikte.
 - Auftrag 1 erledigt: Startmenü-Punkt **„Roster“** → `Campaign.ROSTER_SCENE`. **„Neues Spiel“** → Slot und Name → `CrewPicker.open_pick("Spielstand … · Slot …", HubState.BERTHS_START)` → `Campaign.new_game(chars)` → `HubState.new_game(…)` → speichern (`StartScreen.start_new_game()`). **Crewquartiere:** `CrewOverview.seats` = `HubState.berths`; nach `crew_changed` werden die Knopftexte neu gesetzt; Editor und `create_member` im Schiff entfernt. „Anheuern“ und „Crew zurücksetzen“ werden in den Crewquartieren ausgeblendet (Suche nach dem Knopftext in `footer` – Charakter-Modul bitte Knopftexte „Anheuern“, „Crew zurücksetzen“, „Speichern & nächste Mission“ nicht ohne Ankündigung ändern). `user://roster.json` ist nicht in den Slots (Test in `test_hub`).
@@ -90,3 +100,4 @@ Charakter `d654883` (Verwundung, Hafen-Liste, Kandidaten) und dein Stand sind in
 2. Krankenstation: Patienten (`Campaign.patients()`), Arzt/Helfer zuweisen, Tagesprobe, `Campaign.pass_days(days, bonus)` bei Reisen, Einsatz und „1 Tag warten“; EP für Arzt/Helfer.
 3. Arzt-Sperre: dem Bodenkampf die IDs für `Campaign.candidates(quick, blocked_ids)` bereitstellen (Schnittstelle mit ihm abstimmen).
 4. Das Ausblenden von „Anheuern“ in `ui/hub_ui.gd` kann entfallen (der Knopf existiert nicht mehr).
+- ~~Aufträge vom 16.10.2026 (Anheuern im Hafen, Krankenstation, Arzt-Sperre)~~ → in `main` seit `014eab8`. Nichts offen; `main` holen.

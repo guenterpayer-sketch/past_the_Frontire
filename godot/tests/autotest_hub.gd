@@ -43,6 +43,33 @@ func _run() -> void:
 	var hub := get_tree().current_scene as Hub
 	print("Schiff: Tag %d, %s, %d Aufträge" % [g.day, g.sector.systems[g.position].name, g.offers.size()])
 	await _shot("h1_schiff")
+	# Hafen (Start im Heimathafen): eine Figur entlassen und auf der Brücke wieder anheuern
+	var gone: Character = Campaign.crew()[Campaign.crew().size() - 1]
+	Campaign.fire(gone)
+	hub.open_room(&"bridge")
+	hub.ui.star_map.select(g.position)
+	await _frames(10)
+	await _shot("h1b_hafen")
+	await _click_button(hub.ui, "Anheuern")
+	print("Hafen: %s im Hafen, nach Anheuern an Bord %s, Crew %d / %d" % [gone.name, Campaign.crew().has(gone), Campaign.crew().size(), g.berths])
+	hub.ui.star_map.close()
+	# Krankenstation: Verwundeten anlegen, Arzt zuweisen, einen Tag warten
+	var pat: Character = Campaign.crew()[0]
+	pat.injury = Injury.DOWN
+	pat.injury_days = 5
+	for c in Campaign.crew():
+		if c != pat and g.medics.size() < Medbay.MAX_STAFF and Rules.skill_total(c, Medbay.SKILL) > -10:
+			Medbay.toggle(g, c)
+	hub.open_room(&"medbay")
+	await _frames(5)
+	await _click_button(hub.ui, "1 Tag warten")
+	await _frames(5)
+	print("Krankenstation: Arzt %s, %s noch %d Tage, Protokoll: %s" % [Medbay.doctor(g).name if Medbay.doctor(g) else "-", pat.name,
+		pat.injury_days, g.medlog[0] if not g.medlog.is_empty() else "-"])
+	await _shot("h1c_krankenstation")
+	hub.ui.medbay.hide()
+	pat.injury = ""
+	pat.injury_days = 0
 	# Maus über die Brücke: Hervorhebung und Infokasten
 	_mouse_move(hub.rig.camera.unproject_position(ShipView.room_center(&"bridge")))
 	await _frames(10)

@@ -88,3 +88,8 @@ Weitere Hinweise:
 - **Offen – Bodenkampf:** Truppwahl im Briefing mit `Campaign.candidates(quick, blocked_ids)`, `suggested_squad()`, `set_squad()` bzw. `quick_squad` (Schnellkampf). Außerdem: `hub_report()` in `view/battle.gd` soll `Campaign.last_fallen` aufnehmen (Gefallene sind nach `finish_mission()` nicht mehr in `crew()`).
 - **Charakter:** nichts offen; Schnittstellen nur nach Absprache ändern. Die Knopftexte der Charakterübersicht („Crew zurücksetzen“, „Speichern & nächste Mission“) nutzt der Hub zum Umbenennen/Ausblenden.
 
+## G. Stand 16.10.2026 (nach Hub `036ca7c`)
+
+- **Hub erledigt:** Anheuern im Hafen, Krankenstation, Tage vergehen, Arzt-Sperre über `HubState.blocked_ids()`.
+- **Offen nur noch beim Bodenkampf:** Truppwahl im Briefing mit `Campaign.candidates(HubState.quick_battle, HubState.blocked_ids())`, `suggested_squad()`, `set_squad()` bzw. `quick_squad`; `hub_report()` in `view/battle.gd` nimmt `Campaign.last_fallen` auf.
+

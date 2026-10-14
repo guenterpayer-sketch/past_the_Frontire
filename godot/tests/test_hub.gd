@@ -16,6 +16,7 @@ func _init() -> void:
 	_test_travel_and_offers()
 	_test_mission_faction()
 	_test_save_slots()
+	_test_medbay_and_harbor()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -154,3 +155,76 @@ func _test_save_slots() -> void:
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)
 	HubState.game = null
+
+
+func _test_medbay_and_harbor() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	check(Medbay.extra_days(99) == 0 and Medbay.extra_days(100) == 1 and Medbay.extra_days(149) == 1 and Medbay.extra_days(150) == 2, "Schwellen 100/150")
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(77, "Test", 1)
+	var crew := Campaign.crew()
+	# ohne Personal: genau 1 Tag Heilung pro Tag
+	var a: Character = crew[0]
+	a.injury = Injury.SEVERE
+	a.injury_days = 10
+	g.wait_days(3)
+	check(a.injury_days == 7, "ohne Personal heilt 1 Tag pro Tag (%d)" % a.injury_days)
+	check(Medbay.blocked_ids(g).is_empty(), "ohne Arzt keine Sperre")
+	# Personal: Arzt = höhere Zweite Hilfe
+	var best: Character = crew[0]
+	for c in crew:
+		if Rules.skill_total(c, Medbay.SKILL) > Rules.skill_total(best, Medbay.SKILL):
+			best = c
+	var other: Character = crew[1] if crew[1] != best else crew[2]
+	Medbay.toggle(g, other)
+	Medbay.toggle(g, best)
+	Medbay.toggle(g, crew[3] if crew[3] != best and crew[3] != other else crew[4])
+	check(g.medics.size() == Medbay.MAX_STAFF, "höchstens 2 Personal")
+	check(Medbay.doctor(g) == best and Medbay.helper(g) == other, "Arzt = höchste Zweite Hilfe, Helfer der andere")
+	check(Medbay.bonus(g) == Rules.skill_total(best, Medbay.SKILL) + Rules.skill_total(other, Medbay.SKILL) / 2, "Bonus Arzt + Helfer/2")
+	check(Medbay.blocked_ids(g) == [best.id] and HubState.blocked_ids() == [best.id], "Arzt gesperrt für die Truppwahl")
+	var cands := Campaign.candidates(false, HubState.blocked_ids())
+	var locked_doc := false
+	for k in cands:
+		if k.ch == best and k.locked:
+			locked_doc = true
+	check(locked_doc, "Campaign.candidates sperrt den Arzt")
+	# mit Personal: im Schnitt schneller (viele Tage), EP fürs Personal
+	var xp0: int = Rules.ensure_skill(best, Medbay.SKILL).xp
+	var xp1: int = Rules.ensure_skill(other, Medbay.SKILL).xp
+	Dice.set_seed(5)
+	var healed_days := 0
+	for k in 40:
+		a.injury = Injury.SEVERE
+		a.injury_days = 100
+		g.wait_days(1)
+		healed_days += 100 - a.injury_days
+	check(healed_days > 40, "mit Personal heilt mehr als 1 Tag pro Tag (%d in 40 Tagen)" % healed_days)
+	check(Rules.ensure_skill(best, Medbay.SKILL).xp == xp0 + 40 and Rules.ensure_skill(other, Medbay.SKILL).xp == xp1 + 40, "1 EP je Behandlungstag")
+	check(not g.medlog.is_empty() and g.medlog.size() <= Medbay.LOG_SIZE, "Protokoll der Krankenstation")
+	a.injury = Injury.LIGHT
+	a.injury_days = 1
+	g.wait_days(1)
+	check(a.injury == "" and a in g.last_healed, "Geheilte werden gemeldet")
+	# Reise und Einsatz lassen ebenfalls Tage vergehen
+	a.injury = Injury.DOWN
+	a.injury_days = 50
+	var d0: int = a.injury_days
+	var nb: int = g.sector.neighbors(g.position)[0][0]
+	var days := g.travel_to(nb)
+	check(a.injury_days <= d0 - days, "Reisen heilt (%d Tage)" % days)
+	# Hafen
+	check(g.is_harbor(g.sector.home) and not g.is_harbor(g.offers[0].system), "Hafen = neutrales System")
+	check(g.free_berths() == g.berths - Campaign.crew().size(), "freie Plätze")
+	# Speichern: Personal und Protokoll bleiben
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.medics == g.medics and h.medlog == g.medlog, "Personal und Protokoll im Spielstand")
+	# Entlassenes Personal wird ausgetragen
+	Campaign.fire(other)
+	g.wait_days(1)
+	check(not String(other.id) in g.medics, "entlassenes Personal ausgetragen")
+	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()

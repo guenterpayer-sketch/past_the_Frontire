@@ -16,8 +16,8 @@ const ROOMS := [
 		"text": "Ausrüstung und Landungsschiff.", "light": Color(1.0, 0.85, 0.6)},
 	{"id": &"quarters", "name": "Crewquartiere", "rect": Rect2(16, 0, 12, 8), "ready": true,
 		"text": "Crew ansehen: Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen.", "light": Color(0.75, 0.85, 1.0)},
-	{"id": &"medbay", "name": "Krankenstation", "rect": Rect2(16, 8, 12, 8), "ready": false,
-		"text": "Heilung zwischen den Einsätzen.", "light": Color(0.7, 1.0, 0.9)},
+	{"id": &"medbay", "name": "Krankenstation", "rect": Rect2(16, 8, 12, 8), "ready": true,
+		"text": "Verwundete und Resttage, Arzt und Helfer zuweisen (Zweite Hilfe), „1 Tag warten“.", "light": Color(0.7, 1.0, 0.9)},
 	{"id": &"bridge", "name": "Brücke", "rect": Rect2(28, 4, 12, 8), "ready": true,
 		"text": "Sternenkarte des Sektors, offene Aufträge, Kurs setzen. Später: Raumkampf.", "light": Color(1.0, 0.9, 0.55)},
 ]

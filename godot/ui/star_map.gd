@@ -7,6 +7,8 @@ extends Control
 signal travel(system: int)
 ## im Schiff einen Tag warten
 signal wait_day
+## im Hafen angeheuert (Crew hat sich geändert)
+signal hired(ch: Character)
 signal start(offer: Dictionary)
 signal closed
 
@@ -230,7 +232,7 @@ func _render_side() -> void:
 	var sys: Dictionary = s.systems[selected]
 	_side.add_child(UiTheme.label(sys.name, 28, UiTheme.ACCENT))
 	var f := s.faction_of(selected)
-	_side.add_child(UiTheme.label("kontrolliert von: %s" % f.name if f else "neutral – keine Aufträge", 14, f.color if f else UiTheme.MUTED))
+	_side.add_child(UiTheme.label("kontrolliert von: %s" % f.name if f else "neutral – Hafen, keine Aufträge", 14, f.color if f else UiTheme.MUTED))
 	var r := s.route(game.position, selected)
 	var route_text := "Hier liegt das Schiff."
 	if selected != game.position:
@@ -250,6 +252,8 @@ func _render_side() -> void:
 			_side.add_child(UiTheme.label("zurzeit keine", 14, UiTheme.MUTED))
 		for o in here:
 			_side.add_child(_offer_card(o))
+	else:
+		_render_harbor()
 	var others := game.offers.filter(func(o: Dictionary) -> bool: return o.system != selected)
 	if not others.is_empty():
 		_side.add_child(UiTheme.label("WEITERE AUFTRÄGE", 13, UiTheme.MUTED))
@@ -283,6 +287,61 @@ func _render_side() -> void:
 	brief.add_theme_color_override("font_color", UiTheme.ACCENT)
 	brief.pressed.connect(func() -> void: start.emit(offer))
 	row.add_child(brief)
+
+
+## Hafen (neutrales System): Anheuern aus der Liste „im Hafen“ (mit Fortschritt) und aus dem Roster, nur bei freiem Platz
+func _render_harbor() -> void:
+	if selected != game.position:
+		var l := UiTheme.label("Hafen: Anheuern ist möglich, wenn das Schiff hier liegt.", 14, UiTheme.MUTED)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_side.add_child(l)
+		return
+	var free := game.free_berths()
+	var head := HBoxContainer.new()
+	var t := UiTheme.label("HAFEN: CREW", 13, UiTheme.MUTED)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(t)
+	head.add_child(UiTheme.label("Plätze an Bord %d / %d" % [Campaign.crew().size(), game.berths], 14, UiTheme.GOOD if free > 0 else UiTheme.BAD))
+	_side.add_child(head)
+	var waiting := Campaign.harbor()
+	_side.add_child(UiTheme.label("Im Hafen (entlassen, mit Fortschritt)", 13, UiTheme.MUTED))
+	if waiting.is_empty():
+		_side.add_child(UiTheme.label("niemand", 14, UiTheme.MUTED))
+	for c in waiting:
+		_side.add_child(_hire_row(c, "wartet mit Fortschritt" + ((" · " + c.injury_text()) if c.injury != "" else ""), free))
+	_side.add_child(UiTheme.label("Aus dem Roster (Stand des Rosters)", 13, UiTheme.MUTED))
+	var any := false
+	for r in GlobalRoster.entries():
+		var rid: StringName = r.roster_id if r.roster_id != &"" else r.id
+		if Campaign.is_aboard(rid) or waiting.any(func(h: Character) -> bool: return h.roster_id == rid):
+			continue
+		any = true
+		_side.add_child(_hire_row(r, r.role, free))
+	if not any:
+		_side.add_child(UiTheme.label("alle Roster-Figuren sind an Bord oder im Hafen", 14, UiTheme.MUTED))
+
+
+func _hire_row(c: Character, note: String, free: int) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.add_child(UiTheme.badge(c.letter, c.color, 30))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_child(UiTheme.label(c.name, 15))
+	v.add_child(UiTheme.label(note, 12, UiTheme.MUTED))
+	row.add_child(v)
+	var b := UiTheme.button("Anheuern", "kein Platz an Bord frei" if free <= 0 else "")
+	b.disabled = free <= 0
+	b.add_theme_color_override("font_color", UiTheme.ACCENT)
+	b.pressed.connect(func() -> void:
+		var h := Campaign.hire(c)
+		if h:
+			Sfx.play(&"klick")
+			hired.emit(h)
+		refresh())
+	row.add_child(b)
+	return row
 
 
 func _selected_offer() -> Dictionary:
