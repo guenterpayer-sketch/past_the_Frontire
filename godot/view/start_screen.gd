@@ -7,6 +7,9 @@ extends Node3D
 const SHIP_MODEL := "res://assets/ship/ship_imperial.glb"
 
 var slots: SlotsDialog
+var picker: CrewPicker
+var _pending_slot := 0
+var _pending_name := ""
 var settings: Modal
 var _ship: Node3D
 var _menu: VBoxContainer
@@ -111,12 +114,12 @@ func _build_ui() -> void:
 	var load_b := _item("Laden")
 	load_b.disabled = last == 0
 	load_b.pressed.connect(func() -> void: slots.show_slots(&"load"))
+	var roster := _item("Roster")
+	roster.tooltip_text = "Alle Figuren (Startcharaktere und selbst erschaffene), unabhängig von den Spielständen"
+	roster.pressed.connect(func() -> void: get_tree().change_scene_to_file(Campaign.ROSTER_SCENE))
 	var quick := _item("Schnellkampf (Bodenkampf ohne Schiff)")
-	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission und der aktuellen Crew. Nichts wird verbucht (keine EP), danach zurück ins Startmenü."
-	quick.pressed.connect(func() -> void:
-		HubState.game = null
-		HubState.quick_battle = true
-		get_tree().change_scene_to_file(HubState.BATTLE_SCENE))
+	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission und Figuren aus dem Roster (Trupp im Briefing wählen). Nichts wird verbucht, danach zurück ins Startmenü."
+	quick.pressed.connect(start_quick_battle)
 	_item("Einstellungen").pressed.connect(_show_settings)
 	var quit := _item("Beenden")
 	quit.add_theme_color_override("font_color", UiTheme.MUTED)
@@ -127,6 +130,9 @@ func _build_ui() -> void:
 	root.add_child(slots)
 	slots.loaded.connect(_load)
 	slots.new_game.connect(_new_game)
+	picker = CrewPicker.new()
+	root.add_child(picker)
+	picker.picked.connect(_crew_picked)
 	settings = Modal.new()
 	root.add_child(settings)
 	settings.max_size = Vector2(560, 300)
@@ -152,12 +158,32 @@ func _load(slot: int) -> void:
 		get_tree().change_scene_to_file(HubState.HUB_SCENE)
 
 
+## Neues Spiel: nach Slot und Name die Crew aus dem Roster wählen (CrewPicker des Charakter-Moduls)
 func _new_game(slot: int, name: String) -> void:
-	Campaign.reset()
-	Campaign.save()
+	_pending_slot = slot
+	_pending_name = name
+	picker.open_pick("Spielstand %s · Slot %d" % [name, slot], HubState.BERTHS_START)
+
+
+func _crew_picked(chars: Array[Character]) -> void:
+	start_new_game(_pending_slot, _pending_name, chars)
+
+
+## Neues Spiel mit gewählter Crew beginnen, sofort speichern und ins Schiff
+func start_new_game(slot: int, name: String, chars: Array[Character]) -> void:
+	Campaign.new_game(chars)
 	var g := HubState.new_game(randi() % 1000000, name, slot)
 	SaveSlots.save(slot, name, g)
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)
+
+
+## Schnellkampf: Figuren aus dem globalen Roster (Truppwahl im Briefing des Bodenkampfs), nichts wird verbucht.
+## Die Crew-Arbeitskopie (user://crew.json) wird dabei durch die Roster-Figuren ersetzt; Spielstände bleiben unberührt.
+func start_quick_battle() -> void:
+	HubState.game = null
+	HubState.quick_battle = true
+	Campaign.new_game(GlobalRoster.entries())
+	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
 
 
 func _show_settings() -> void:
