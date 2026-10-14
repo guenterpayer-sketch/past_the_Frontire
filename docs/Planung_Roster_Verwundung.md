@@ -67,3 +67,17 @@ Hub- und Charakter-Chat hatten widersprüchliche Entscheidungen in ihren Modulda
 Weitere Hinweise:
 - Der Charakter-Branch hat in `view/battle.gd` (Bodenkampf) eine Zeile geändert (`Campaign.squad()` statt ganzer Crew). Das bleibt so; der Bodenkampf baut die Truppwahl darauf auf.
 - Heilungswerte und Krankenstation aus `hub.md` (2/5/10 Tage, Zuschlag A+0 … E+4, Arzt/Helfer mit Zweiter Hilfe, „1 Tag warten“) widersprechen nichts und gelten. Stufe und Tage rechnet das Charakter-Modul in `Campaign.finish_mission()` aus den `MissionResult`-Feldern des Bodenkampfs (`worst_crit`, `dying`, `stabilized`, `died`, Branch `c90cc1c`).
+
+## E. Stand und nächste Schritte (16.10.2026, nach Zusammenführung aller drei Branches)
+
+**In `main`:** Verwundung im Kampf mit `MissionResult`-Feldern (Bodenkampf), Psi im Kampf, aktive Figur, globaler Roster mit `CrewPicker` und `Campaign.squad()` (Charakter), Plätze an Bord und „1 Tag warten“ (Hub).
+
+**Entscheidung Schnellkampf (Nutzer, 16.10.2026):** Die Figuren für den Schnellkampf aus dem Startmenü kommen **aus dem globalen Roster** (Kopien im Roster-Stand). Truppwahl (bis 6) im Briefing wie im Spiel; verbucht nichts.
+
+**Noch offen / Aufträge:** in den Moduldateien unter „Aufträge vom Koordinator (16.10.2026)“. Reihenfolge:
+1. Charakter: Klärung D umsetzen, Verwundung auswerten, Kandidatenliste für die Truppwahl (Crew oder Roster-Kopien) mit Sperr-Status.
+2. Hub (parallel zu 1): Roster und „Neues Spiel“ anbinden; danach Anheuern im Hafen und Krankenstation, wenn das Charakter-Modul geliefert hat.
+3. Bodenkampf (parallel zu 1): Truppwahl im Briefing (erst Mockup bestätigen lassen), mit der Kandidatenliste des Charakter-Moduls.
+
+**Gefundene Lücke:** Die Charakterübersicht (`ui/crew/crew_overview.gd`, Ergebniszeile je Figur) kennt den Zustand „sterbend“ nicht und zeigt dann nichts an.
+

@@ -50,3 +50,8 @@
 3. ~~**Verwundung statt Tod (Teil Kampf).**~~ → erledigt 16.10.2026 (siehe Stand und Schnittstellen). Siehe Planung, Abschnitt B: „tot“ wird zu „sterbend“ (kampfunfähig, Erste Hilfe möglich); nur wenn die ganze Crew fällt, stirbt jede sterbende Figur mit 10 %. `MissionResult` um `worst_crit`, `dying`, `died` erweitern (Vorschlag). Gilt nur für die Crew; ob Gegner weiter sterben, mit dem Nutzer klären.
 
 Reihenfolge-Vorschlag: 3 (Schnittstelle, damit Charakter und Hub weiterbauen können), dann 1, dann 2.
+
+## Aufträge vom Koordinator (16.10.2026)
+
+Verwundung, aktive Figur und Psi sind in `main` (`6162f58`), ebenso der Roster des Charakter-Moduls (`Campaign.squad()`, Zeile in `view/battle.gd`). Dein Branch enthielt den Roster beim Bauen noch nicht – zuerst `main` holen und die Selbsttests laufen lassen (Koordinator hat nur `test_rules`, `test_hub`, `test_sim -- 10` geprüft). Grundlage: `docs/Planung_Roster_Verwundung.md`, Abschnitte D und E.
+1. **Truppwahl im Briefing** (bis 6, letzter Trupp vorbelegt, Gesperrte ausgegraut, Angeschlagene markiert, Warnung bei weniger als 6). Auch beim **Schnellkampf** – dort kommen die Figuren aus dem globalen Roster. Ergebnis → `Campaign.chosen_squad`. Das freigegebene Hub-Mockup („Schiff-Hub Mockup“, Bildschirm Briefing mit Einsatztrupp) ist ein Vorschlag; mit dem Nutzer bestätigen, bevor gebaut wird. Kandidatenliste mit Sperr-Status liefert das Charakter-Modul – Schnittstelle abstimmen; bis dahin mit `Campaign.crew()` bauen.

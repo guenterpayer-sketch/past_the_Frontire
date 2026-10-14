@@ -68,3 +68,9 @@ Ersetzt abweichende Einträge weiter unten:
 - **Schnellkampf:** genau 6 Figuren aus dem Roster wählen (kurze Auswahl wie beim neuen Spiel), verbucht weiterhin nichts.
 - **Einsatztrupp** (6 aus Crew + Reserve) wird **beim Briefing** gewählt: Gesperrte (kampfunfähig, schwer verwundet, Arzt) ausgegraut, Angeschlagene markiert. Das Briefing gehört zum Bodenkampf → Schnittstelle mit Bodenkampf und Charakter abstimmen.
 
+## Aufträge vom Koordinator (16.10.2026)
+
+Charakter (Roster, `CrewPicker`, `Campaign.squad()`) und Bodenkampf (Verwundung, Psi) sind in `main` (`fdb96d9`). Zuerst `main` holen. Grundlage: `docs/Planung_Roster_Verwundung.md`, Abschnitte D und E.
+1. **Jetzt:** Startmenü-Punkt „Roster“ (`Campaign.ROSTER_SCENE`); „Neues Spiel“ → `CrewPicker` (1–8) → `Campaign.new_game(chars)`; Crewquartiere: `seats` aus `HubState.berths`, nach `crew_changed` Knopftext neu setzen, Editor/`create_member` dort entfernen; `user://roster.json` nicht in die Slots (Anbindungsliste in `charakter.md`).
+2. **Schnellkampf:** Figuren kommen **aus dem globalen Roster** (Entscheidung 16.10.); keine eigene Auswahl im Hub – die Truppwahl macht der Bodenkampf im Briefing. Der Hub startet nur den Schnellkampf (`HubState.quick_battle`).
+3. **Danach, wenn das Charakter-Modul geliefert hat:** Anheuern auf der Brücke nur im Hafen (Roster + Liste „im Hafen“), Krankenstation mit Arzt/Helfer und Tagesprobe (Werte wie in dieser Datei), Arzt-Zuweisung für die Sperre in der Truppwahl.

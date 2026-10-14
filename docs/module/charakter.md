@@ -62,3 +62,9 @@ Roster ist in `main`. **Klärung aus `docs/Planung_Roster_Verwundung.md`, Abschn
 4. Moduldatei an D anpassen; Widerspruch „Mockup freigegeben“ / „wartet auf Freigabe“ klären.
 Danach Verwundung (Auftrag 2), sobald der Bodenkampf mit den `MissionResult`-Feldern in `main` ist.
 
+## Aufträge vom Koordinator (16.10.2026)
+
+Bodenkampf (Verwundung, Psi) und Hub (Plätze an Bord) sind in `main` (`fdb96d9`). Zuerst `main` holen. Grundlage: `docs/Planung_Roster_Verwundung.md`, Abschnitte B, D, E.
+1. **Klärung D** (Auftrag oben vom 15.10.): Anheuern aus den Crewquartieren entfernen, Entlassene mit Fortschritt „im Hafen“ (Liste in `Campaign`, gespeichert), `chosen_squad` speichern, Moduldatei bereinigen.
+2. **Verwundung auswerten:** `Campaign.finish_mission()` liest `worst_crit`, `dying`, `stabilized`, `died` aus dem `MissionResult` → Stufe und Resttage in `Character` (Werte aus `hub.md`: angeschlagen 2, kampfunfähig 5, schwer verwundet 10 Tage; Zuschlag A+0 … E+4). Tote verlassen die Crew (Roster-Eintrag bleibt). Funktion „Tage vergehen“ für den Hub (Heilung um n Tage, Ergebnis der Arzt-Probe kommt vom Hub). Charakterübersicht zeigt Zustand und Resttage; die Ergebniszeile kennt „sterbend“ noch nicht (zeigt leer).
+3. **Kandidaten für die Truppwahl:** eine Funktion, die die wählbaren Figuren mit Sperr-Status liefert (im Spiel: Crew + Reserve, gesperrt = kampfunfähig/schwer verwundet/Arzt, markiert = angeschlagen; im Schnellkampf: Kopien aus dem globalen Roster). Mit dem Bodenkampf abstimmen (er baut die Truppwahl im Briefing).

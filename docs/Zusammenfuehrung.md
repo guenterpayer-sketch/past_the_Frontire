@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 15.10.2026. Zuletzt zusammengeführt: Charakter `5c3a346` (Roster) als `f81e9fd`.
+Stand: 16.10.2026. Alle drei Modul-Branches sind in `main` (zuletzt Bodenkampf `d2e9015` → `6162f58`, Hub `0f5db25` → `fdb96d9`).
 
 ## Arbeitsweise mit Branches
 
@@ -10,9 +10,9 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Charakter `5c3a346` (Roster) als `f
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`381fb01`) |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`5c3a346`, Roster); Klärung D aus `docs/Planung_Roster_Verwundung.md` noch offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`df91246`); muss `main` holen (Aufleveln, Bodenkampf `381fb01`, Änderung an `tests/autotest_hub.gd`) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`d2e9015`); muss `main` holen |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`5c3a346`); muss `main` holen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`0f5db25`); muss `main` holen |
 
 ## Verlauf
 
@@ -26,6 +26,8 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Charakter `5c3a346` (Roster) als `f
 | 15.10.2026 | `f7fe33a` | Charakter `claude/elegant-gauss-hq5bus` (`d375736`) | ohne Konflikte. Aufleveln in der Charakterübersicht (3D-Vorschau `ui/crew/figure_preview.gd`, Name/Kürzel/Farbe/Station/Aussehen, Psi-Kräfte), Regeln `docs/Skillsystem.md` 8. Schnittstellen unverändert, Erweiterungen: `Character.new_list`, `Rules.next_rank_cost/rank_block/is_psi_list`. Tests laut Modul-Chat mit Hub `77449d9` grün (inkl. `--autotest-hub`). Koordinator nach Zusammenführung mit Hub `df91246`: `test_rules`, `test_hub` OK; grafische Tests nicht selbst ausgeführt. |
 | 15.10.2026 | `1dc3362` | Bodenkampf `claude/confident-edison-6mxzke` (`381fb01`) | ohne Konflikte (erste Probe mit `d483bf4`: Konflikt in `godot/README.md`, vom Bodenkampf-Chat gelöst); Ergebnis identisch mit dem getesteten Branch-Stand. Ergebnis-Banner (`ui/result_banner.gd`), Rückzug (`Combat.retreat()`, zählt als Niederlage), Rückfrage beim Abbrechen aus dem Schiff (`BattleUI.ask()`); Schnellkampf ohne Banner (Entscheidung Nutzer). Ändert `tests/autotest_hub.gd` (Hub). Tests laut Modul-Chat alle grün inkl. `--autotest-hub`. Koordinator: `test_rules`, `test_hub` OK. |
 | 15.10.2026 | `f81e9fd` | Charakter `claude/elegant-gauss-hq5bus` (`5c3a346`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Globaler Roster (`roster.tscn`, `user://roster.json`, `GlobalRoster`), Crew-Auswahl (`CrewPicker`, `Campaign.new_game`), Anheuern/Entlassen in der Charakterübersicht, Einsatztrupp (`Campaign.squad()`/`chosen_squad`); eine Zeile in `view/battle.gd`. Klärung D (Planung) noch nicht umgesetzt – auf Wunsch des Nutzers trotzdem zusammengeführt. Tests laut Modul-Chat alle grün; Koordinator: `test_rules`, `test_hub` OK. |
+| 16.10.2026 | `6162f58` | Bodenkampf `claude/confident-edison-6mxzke` (`d2e9015`) | ohne Konflikte. Verwundung statt Tod (sterbend, Stabilisieren, Todeswurf 10 % nur wenn die ganze Crew fällt; `MissionResult`: `worst_crit`, `dying`, `stabilized`, `died`), aktive Figur (Schild „am Zug“, Variante B), Psi im Kampf (`core/psi_combat.gd`, Psi-Zeile, Kontextmenü, KI). Der Branch enthielt `main` mit dem Roster **nicht**; die Kombination hat nur der Koordinator getestet. |
+| 16.10.2026 | `fdb96d9` | Hub `claude/happy-lamport-u4fvya` (`0f5db25`) | ohne Konflikte. Plätze an Bord (`HubState.berths`, Start 8), „1 Tag warten“. Koordinator nach beiden Zusammenführungen: `test_rules` OK, `test_hub` OK, `test_sim -- 10` 7 Siege / 0 hängengeblieben; grafische Tests nicht ausgeführt. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 
