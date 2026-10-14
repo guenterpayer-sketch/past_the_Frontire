@@ -24,6 +24,7 @@ func _init() -> void:
 	_test_progress()
 	_test_mission_result()
 	_test_creation()
+	_test_leveling()
 	_test_deploy()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -357,6 +358,25 @@ func _test_creation() -> void:
 		Roster.reset()
 	Campaign.reload()
 	check(not Creation.station_free(crew, "Steuer") and Creation.station_free(crew, "Steuer", crew[0]) and Creation.station_free(crew, "Jäger"), "Station nur einmal, Jäger mehrfach")
+
+
+## Aufleveln: keine Ranggrenze, neue Psi-Liste doppelt, höchstens eine neue Liste pro Levelphase
+func _test_leveling() -> void:
+	var ch := Roster.start_crew()[4]
+	ch.free_xp = 100
+	check(Rules.next_rank_cost(ch, &"lSchutz") == 20 and Rules.next_rank_cost(ch, &"psiAngriff") == Rules.rank_cost(Rules.skill_rank(ch, &"psiAngriff")), "erster Rang einer neuen Liste kostet doppelt")
+	check(Rules.rank_up_with_pool(ch, &"lSchutz") and ch.free_xp == 80 and ch.new_list == &"lSchutz", "neue Liste begonnen (20 EP)")
+	check(Rules.next_rank_cost(ch, &"lSchutz") == 12 and Rules.rank_up_with_pool(ch, &"lSchutz"), "danach normale Kosten")
+	check(Rules.deposit_xp(ch, &"lHeilung", 5) == 5 and not Rules.rank_up_with_pool(ch, &"lHeilung") and Rules.rank_block(ch, &"lHeilung") != "", "zweite neue Liste: Einzahlen ja, Rang 1 nicht")
+	ch.apply_result({"xp": {}, "free_xp": 0})
+	check(ch.new_list == &"" and Rules.rank_up_with_pool(ch, &"lHeilung"), "nach dem Einsatz: neue Phase, nächste Liste")
+	var r := Rules.skill_rank(ch, &"psiAngriff")
+	ch.free_xp = 1000
+	for i in 6:
+		Rules.rank_up_with_pool(ch, &"psiAngriff")
+	check(Rules.skill_rank(ch, &"psiAngriff") == r + 6, "keine Ranggrenze beim Aufleveln")
+	var d := Character.from_dict(ch.to_dict())
+	check(d.new_list == ch.new_list and d.station == ch.station, "new_list und Station gespeichert")
 
 
 ## Runde 0: Aufstellung nur im Eingangsbereich, Tauschen, danach gesperrt

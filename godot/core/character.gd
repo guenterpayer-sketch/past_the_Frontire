@@ -20,6 +20,8 @@ var medkits := 0
 var visual: CharacterVisual
 ## Station an Bord (Creation.STATIONS, "" = keine)
 var station := ""
+## In dieser Levelphase neu begonnene Psi-Liste (höchstens eine; wird nach jedem Einsatz geleert)
+var new_list: StringName = &""
 ## Zustand nach dem letzten Einsatz ({state, hp, max_hp, bleed, malus}); wird noch nicht ausgewertet
 ## (Heilung und Tod zwischen Einsätzen sind noch nicht gebaut)
 var status := {}
@@ -71,6 +73,7 @@ func apply_result(r: Dictionary) -> void:
 	for k in xp:
 		Rules.ensure_skill(self, StringName(k)).xp += int(xp[k])
 	free_xp += int(r.get("free_xp", 0))
+	new_list = &""
 	status = r.get("status", {}).duplicate(true)
 	used = r.get("used", {}).duplicate(true)
 
@@ -90,7 +93,7 @@ func to_dict() -> Dictionary:
 		"attrs": attrs.duplicate(), "skills": sk, "free_xp": free_xp,
 		"weapons": weapons.map(func(w: WeaponData) -> String: return w.resource_path),
 		"armor": armor.resource_path if armor else "", "shield": shield, "medkits": medkits,
-		"visual": visual.resource_path if visual else "", "station": station,
+		"visual": visual.resource_path if visual else "", "station": station, "new_list": String(new_list),
 		"status": status.duplicate(true), "used": used.duplicate(true),
 	}
 
@@ -117,6 +120,7 @@ static func from_dict(d: Dictionary) -> Character:
 	c.medkits = int(d.get("medkits", 0))
 	c.visual = _load(d.get("visual", "")) as CharacterVisual
 	c.station = d.get("station", "")
+	c.new_list = StringName(d.get("new_list", ""))
 	c.status = d.get("status", {})
 	c.used = d.get("used", {})
 	return c

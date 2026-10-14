@@ -453,6 +453,8 @@ Kosten für den nächsten Rang = **10 + 2 × aktueller Rang** (Rang 0→1: 10 EP
 
 - **Rangkauf auffüllen:** Fehlen einer Fertigkeit EP für den nächsten Rang, kommen die fehlenden EP aus den freien EP (Training, Lektüre). So lassen sich auch ungenutzte Fertigkeiten aufbauen.
 - **Einzahlen:** Freie EP lassen sich in Schritten (+1 / +5) auf das Konto einer beliebigen Fertigkeit legen; den Rang kauft man, sobald das Konto reicht.
+- **Keine Ranggrenze** beim Aufleveln (die Grenze 5/8 gilt nur bei der Erschaffung, 7a).
+- **Neue Psi-Liste:** Der erste Rang einer Liste kostet **doppelt** (20 EP statt 10). Pro **Levelphase** (Zeit im Charakter-Modul zwischen zwei Einsätzen) darf jede Figur **höchstens eine neue Liste** beginnen; „begonnen“ heißt: Rang 1 gekauft. EP auf weitere neue Listen einzahlen ist erlaubt. Insgesamt ist die Zahl der Listen nicht begrenzt.
 - **Eigenschaft steigern:** +1 auf eine Eigenschaft kostet **2 + Wert/10 freie EP** (abgerundet; Wert 50 → 7 EP, 70 → 9 EP, 90 → 11 EP), höchstens bis 100. Ein Punkt wirkt nur, wenn er eine Bonusstufe erreicht (z. B. 71, 81, 91), wirkt dann aber auf alle Fertigkeiten mit dieser Eigenschaft und auf abgeleitete Werte (KON → Trefferpunkte, MEN → Psi-Punkte).
 
 ---

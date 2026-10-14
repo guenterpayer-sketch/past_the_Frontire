@@ -10,7 +10,8 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - Gebaut: Bodenkampf in zufälliger Lagerhalle (3D), Missionsgenerator (Fraktionen in `godot/data/missions`), Runde 0 (Aufstellung), Charakter-Modul `crew.tscn` mit Charakterübersicht (Ränge, Eigenschaften, freie EP), Speicherstand `user://crew.json` (vollständige Charaktere).
 - Module: Charakter-Modul und Kampfmodule tauschen nur Daten aus (Kampf bekommt Kopien der `Character`, gibt ein `MissionResult` zurück: EP je benutzter Fertigkeit, freie EP, Zustand, Verbrauch). Details in `godot/README.md`, „Module und Schnittstelle“.
 - Charakter-Editor für **neue** Crewmitglieder (Regeln `docs/Skillsystem.md` 7a, Psi-Listen 6.1). Prototyp zum Balancing: Artifact „Frontire Charakter-Editor“.
-- Noch nicht gebaut: Editor-Variante zum Aufleveln, Psi-Listen im Kampf (außer Psi-Schild/Psi-Stoß), Startmenü, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen.
+- Aufleveln in der Charakterübersicht (`ui/crew/crew_overview.gd`, Regeln `docs/Skillsystem.md` 8) mit 3D-Vorschau.
+- Noch nicht gebaut: Psi-Listen im Kampf (außer Psi-Schild/Psi-Stoß), Startmenü, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen.
 
 ## Arbeitsweise mit dem Nutzer
 
