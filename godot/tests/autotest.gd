@@ -248,10 +248,12 @@ func _run_psi() -> void:
 	var out := OS.get_environment("PTF_OUT")
 	b.new_battle(4711, "klein", "", false)
 	b.begin_combat()
+	print("Psi: Kampf begonnen")
 	var t0 := Time.get_ticks_msec()
 	while not b.player_turn() and Time.get_ticks_msec() - t0 < 60000:
 		await get_tree().create_timer(0.3).timeout
 	var c := b.combat
+	print("Psi: Spieler am Zug %s nach %d ms" % [b.player_turn(), Time.get_ticks_msec() - t0])
 	var nyx: Combatant = c.crew().filter(func(u: Combatant) -> bool: return u.id == &"nyx")[0]
 	c.turn_idx = c.order.find(nyx)
 	c._begin_turn(nyx)
@@ -286,7 +288,7 @@ func _run_psi() -> void:
 		await get_tree().create_timer(0.4).timeout
 		print("Psi: Kontextmenü offen ", b.ui.context_menu.visible)
 		await _screenshot(out + "/s3_kontextmenue.png")
-		await _click_button("Psi-Schild")
+		await _click_button("Psi-Schild", b.ui.context_menu)
 		while not b.events.is_idle():
 			await get_tree().process_frame
 		await get_tree().create_timer(0.5).timeout
@@ -321,11 +323,12 @@ func _mouse_click(p: Vector2) -> void:
 
 
 ## Sichtbaren Button mit passendem Text suchen und mit der Maus anklicken
-func _click_button(text: String) -> void:
+## root = nur Knöpfe darunter (null = ganze Szene)
+func _click_button(text: String, root: Node = null) -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var found: Button = null
-	for n in get_tree().current_scene.find_children("*", "Button", true, false):
+	for n in (root if root else get_tree().current_scene).find_children("*", "Button", true, false):
 		var btn := n as Button
 		if btn.is_visible_in_tree() and btn.text.contains(text):
 			found = btn
