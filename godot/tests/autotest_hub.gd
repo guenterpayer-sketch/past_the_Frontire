@@ -145,7 +145,14 @@ func _run() -> void:
 	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
 	await _frames(60)
 	var qb := get_tree().current_scene as Battle
+	var start_ids := Roster.start_crew().map(func(c: Character) -> StringName: return c.id)
+	print("Schnellkampf-Truppwahl: %d Kandidaten aus dem Roster (Roster %d), vorbelegt %d, alle Startfiguren %s, Crew im Kampf %d" % [
+		qb.candidates.size(), GlobalRoster.entries().size(), qb.squad.size(),
+		qb.squad.all(func(c: Character) -> bool: return c.id in start_ids), qb.combat.crew().size()])
+	await _shot("h11_schnellkampf_truppwahl")
+	var chosen0 := Campaign.chosen_squad.size()
 	qb.ui.briefing.close()
+	print("Schnellkampf: gewählter Trupp im Spielstand unverändert %s" % (Campaign.chosen_squad.size() == chosen0))
 	qb.begin_combat()
 	for e in qb.combat.enemies():
 		e.state = Combatant.State.DEAD

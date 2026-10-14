@@ -29,6 +29,7 @@ func _init() -> void:
 	_test_deploy()
 	_test_dying()
 	_test_psi()
+	_test_squad_pick()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -576,3 +577,28 @@ func _test_psi() -> void:
 	var entries := pc.context_powers(nyx, hexer)
 	check(entries.any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: Angriffskräfte gegen Gegner")
 	check(not pc.context_powers(nyx, crew[0]).any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: keine Angriffe gegen Verbündete")
+
+
+## Truppwahl: Vorbelegung aus dem letzten Trupp, Gesperrte heraus, aufgefüllt, höchstens 6, Listenreihenfolge
+func _test_squad_pick() -> void:
+	var chars := Roster.start_crew()
+	chars.append(Roster.start_crew()[0])
+	chars.append(Roster.start_crew()[1])
+	var cands: Array[Dictionary] = []
+	for ch in chars:
+		cands.append({"ch": ch, "blocked": "", "hurt": ""})
+	var none: Array[Character] = []
+	var s := SquadPick.preselect(cands, none)
+	check(s.size() == 6 and s[0] == chars[0] and s[5] == chars[5], "ohne letzten Trupp: die ersten 6")
+	cands[1].blocked = "schwer verwundet"
+	var last: Array[Character] = [chars[7], chars[1], chars[3]]
+	s = SquadPick.preselect(cands, last)
+	check(s.size() == 6 and not s.has(chars[1]) and s.has(chars[7]) and s.has(chars[3]), "letzter Trupp ohne Gesperrte, aufgefüllt")
+	check(s[0] == chars[0] and s[s.size() - 1] == chars[7], "Reihenfolge wie in der Liste")
+	for c in cands:
+		c.blocked = "x"
+	cands[2].blocked = ""
+	s = SquadPick.preselect(cands, last)
+	check(s.size() == 1 and s[0] == chars[2], "nur Freie")
+	check(SquadPick.candidates(false).size() == Campaign.crew().size(), "Kandidaten im Spiel = Crew")
+	check(SquadPick.candidates(true).size() == GlobalRoster.entries().size(), "Kandidaten im Schnellkampf = Roster")

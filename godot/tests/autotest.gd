@@ -29,7 +29,14 @@ func _run_ai() -> void:
 	for i in 40:
 		await get_tree().process_frame
 	await _screenshot(out + "/00_briefing.png")
-	b.ui.briefing.close()
+	# Truppwahl: letzte Figur per Klick abwählen, mit 5 in die Aufstellung
+	var last_ch: Character = b.squad[b.squad.size() - 1]
+	_mouse_click(b.ui.briefing._tiles[last_ch].get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout
+	print("Truppwahl: %d gewählt, Knopf „%s“" % [b.ui.briefing.selection().size(), b.ui.briefing._go.text])
+	await _screenshot(out + "/00b_trupp_5.png")
+	await _click_button("Mit 5 zur Aufstellung")
+	print("Truppwahl: Runde 0 mit %d Figuren (erwartet 5), gemerkt %d, Briefing zu %s" % [b.combat.crew().size(), Campaign.chosen_squad.size(), not b.ui.briefing.visible])
 	# Runde 0: erste Figur auf ein anderes Feld im Eingangsbereich stellen (per Mausklick)
 	var crew0: Combatant = b.combat.crew()[0]
 	var zone := b.combat.deploy_tiles()
@@ -50,8 +57,10 @@ func _run_ai() -> void:
 	print("Panel: Blick %d -> %d" % [f0, crew1.facing])
 	await _click_button("Briefing")
 	print("Panel: Briefing offen ", b.ui.briefing.visible)
+	_mouse_click(b.ui.briefing._tiles[last_ch].get_global_rect().get_center())
+	await get_tree().create_timer(0.3).timeout
 	await _click_button("Zur Aufstellung")
-	print("Panel: Briefing zu ", not b.ui.briefing.visible)
+	print("Panel: Briefing zu %s, Truppwahl: wieder %d Figuren (erwartet 6)" % [not b.ui.briefing.visible, b.combat.crew().size()])
 	await _click_button("Kampf beginnen")
 	print("Panel: Kampf begonnen ", not b.combat.deploying)
 	if b.combat.deploying:
