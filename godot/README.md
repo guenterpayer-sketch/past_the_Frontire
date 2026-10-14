@@ -25,7 +25,7 @@ Das **Schiff** (`hub.tscn`) ist die zentrale Szene zwischen den Einsätzen: ein 
 
 Oben links Spielstand, Tag, Position und offene Aufträge; oben rechts Speichern, Laden, Menü (Hauptmenü, Ton, Bedienung) und der Infokasten zum Raum unter der Maus.
 
-**Aufträge und Zeit** (`core/hub_state.gd`): immer 4 offene Aufträge, nur in Systemen mit Fraktion (höchstens 2 je System), Gegner = Fraktion des Systems, Laufzeit 4–10 Tage. Reisen kostet die Reisetage der kürzesten Route; abgelaufene Aufträge verschwinden, neue kommen dazu. Ein Auftrag lässt sich nur annehmen, wenn das Schiff vor Ablauf ankommt. Ein Einsatz dauert 1 Tag; danach ist der Auftrag erledigt (auch bei Niederlage).
+**Aufträge und Zeit** (`core/hub_state.gd`): „1 Tag warten“ (Brücke, oben) lässt einen Tag vergehen. immer 4 offene Aufträge, nur in Systemen mit Fraktion (höchstens 2 je System), Gegner = Fraktion des Systems, Laufzeit 4–10 Tage. Reisen kostet die Reisetage der kürzesten Route; abgelaufene Aufträge verschwinden, neue kommen dazu. Ein Auftrag lässt sich nur annehmen, wenn das Schiff vor Ablauf ankommt. Ein Einsatz dauert 1 Tag; danach ist der Auftrag erledigt (auch bei Niederlage).
 
 **Nach dem Einsatz** geht es direkt zurück ins Schiff mit einem **Einsatzbericht** (Sieg/Niederlage, Zustand und Fertigkeits-EP je Figur). Verbucht wird wie im Charakter-Modul über `MissionResult` → `Campaign.finish_mission()` (Fertigkeits-EP, 3 freie EP + Missionsbelohnung bei Sieg); der Bericht wird aus demselben `MissionResult` erstellt. Ausgeben lassen sich die freien EP in den Crewquartieren. „Einsatz abbrechen“ (Menü im Kampf) bzw. „Zurück ins Schiff“ im Briefing beendet den Einsatz ohne Ergebnis, der Auftrag bleibt offen.
 

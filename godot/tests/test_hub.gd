@@ -99,6 +99,14 @@ func _test_travel_and_offers() -> void:
 	check(g.offers.filter(func(x: Dictionary) -> bool: return x.id == o2.id).is_empty(), "erledigter Auftrag verschwindet")
 	check(g.offers.size() == HubState.OFFERS, "nach dem Einsatz wieder aufgefüllt")
 	check(g.report.get("day", 0) == g.day, "Bericht mit Tag")
+	var day2 := g.day
+	g.offers[0].expires = g.day
+	var gone2: int = g.offers[0].id
+	g.wait_days(1)
+	check(g.day == day2 + 1 and g.offers.filter(func(x: Dictionary) -> bool: return x.id == gone2).is_empty()
+		and g.offers.size() == HubState.OFFERS, "warten: Tag vergeht, Aufträge laufen ab und werden aufgefüllt")
+	check(g.berths == HubState.BERTHS_START, "Plätze an Bord zu Beginn")
+	g.berths = 10
 	var d := g.to_dict()
 	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(d)), 2)
 	check(h.to_dict() == d and h.slot == 2, "Spiel im Schiff übersteht Speichern als JSON")

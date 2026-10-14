@@ -22,6 +22,9 @@ func _ready() -> void:
 	game.abort_mission()
 	ui.action.connect(_on_action)
 	ui.star_map.travel.connect(_travel)
+	ui.star_map.wait_day.connect(func() -> void:
+		game.wait_days(1)
+		_refresh())
 	ui.star_map.start.connect(_start_mission)
 	ui.star_map.closed.connect(_refresh)
 	ui.crew.next_battle.connect(func() -> void:
