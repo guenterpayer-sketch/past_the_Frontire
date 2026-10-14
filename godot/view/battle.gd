@@ -93,7 +93,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	ui.result_banner.hide()
 	_end_shown = false
 	var map := MapGenerator.generate(seed_value, mission.size_id)
-	combat = Combat.new(map, Roster.build_crew(Campaign.crew()), Roster.build_units(mission.enemies, &"enemy"))
+	combat = Combat.new(map, Roster.build_crew(Campaign.squad()), Roster.build_units(mission.enemies, &"enemy"))
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
 	map_view.theme = GameData.hall_theme()

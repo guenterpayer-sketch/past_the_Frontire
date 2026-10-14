@@ -7,7 +7,10 @@ extends Modal
 
 signal next_battle
 signal reset_crew
+## veraltet: im Spiel wird nicht mehr erschaffen, sondern aus dem Roster angeheuert (Signal bleibt für alte Verbindungen)
 signal create_member
+## Crew geändert (angeheuert oder entlassen; schon gespeichert)
+signal crew_changed
 signal open_sheet(crew: Array[Character], u: Character)
 
 var _crew: Array[Character] = []
@@ -18,6 +21,9 @@ var _show_all := false
 var _page: VBoxContainer
 var _preview: FigurePreview
 var _visuals: Array[CharacterVisual] = []
+## Plätze an Bord (der Hub kann mehr erlauben)
+var seats := Campaign.START_SEATS
+var _hire: Modal
 
 
 func show_crew(crew: Array[Character], result := {}) -> void:
@@ -56,9 +62,19 @@ func show_crew(crew: Array[Character], result := {}) -> void:
 	reset.add_theme_color_override("font_color", UiTheme.BAD)
 	reset.pressed.connect(_confirm_reset)
 	footer.add_child(reset)
-	var create := UiTheme.button("Neues Crewmitglied", "Neues Mitglied erschaffen (ersetzt eines, wenn die Crew voll ist)")
-	create.pressed.connect(func() -> void: create_member.emit())
-	footer.add_child(create)
+	var aboard := UiTheme.label("An Bord %d / %d" % [crew.size(), seats], 13, UiTheme.MUTED)
+	aboard.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	aboard.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	footer.add_child(aboard)
+	var fire := UiTheme.button("Entlassen", "Gewählte Figur entlassen (Fortschritt in diesem Spiel geht verloren, der Roster-Eintrag bleibt)")
+	fire.add_theme_color_override("font_color", UiTheme.BAD)
+	fire.disabled = crew.size() <= 1
+	fire.pressed.connect(func() -> void: _confirm_fire(current()))
+	footer.add_child(fire)
+	var hire := UiTheme.button("Anheuern", "Figur aus dem Roster an Bord holen" if crew.size() < seats else "Kein Platz an Bord")
+	hire.disabled = crew.size() >= seats
+	hire.pressed.connect(_show_hire)
+	footer.add_child(hire)
 	var next := UiTheme.button("Speichern & nächste Mission")
 	next.add_theme_color_override("font_color", UiTheme.ACCENT)
 	next.pressed.connect(func() -> void: next_battle.emit())
@@ -386,6 +402,65 @@ func _effect(u: Character, id: StringName, r: int) -> String:
 	if PsiLists.is_list(id):
 		return "%d Kräfte" % PsiLists.powers(u, id).size()
 	return Dice.fmt(Rules.skill_total(u, id))
+
+
+## Anheuern: Roster-Figuren, die noch nicht an Bord sind (Kopie mit dem Stand des Roster-Eintrags)
+func _show_hire() -> void:
+	if _hire == null:
+		_hire = Modal.new()
+		add_child(_hire)
+		_hire.max_size = Vector2(760, 620)
+	_hire.open("Anheuern aus dem Roster")
+	var free := GlobalRoster.entries().filter(func(c: Character) -> bool: return not Campaign.is_aboard(c.roster_id))
+	_hire.content.add_child(UiTheme.label("Figuren, die noch nicht an Bord sind. Platz: %d frei. Angeheuert wird eine Kopie mit dem Stand des Roster-Eintrags." % (seats - _crew.size()), 13, UiTheme.MUTED))
+	if free.is_empty():
+		_hire.content.add_child(UiTheme.label("Alle Roster-Figuren sind schon an Bord. Neue Figuren entstehen im Roster (Startmenü).", 13, UiTheme.MUTED))
+	for c in free:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		row.add_child(UiTheme.badge(c.letter, c.color, 30))
+		var l := UiTheme.label("%s – %s" % [c.name, c.role], 14)
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(l)
+		var b := UiTheme.button("anheuern")
+		b.add_theme_color_override("font_color", UiTheme.ACCENT)
+		b.disabled = _crew.size() >= seats
+		b.pressed.connect(func() -> void:
+			var h := Campaign.hire(c)
+			_hire.close()
+			if h:
+				_crew = Campaign.crew()
+				_idx = _crew.find(h)
+			_reopen())
+		row.add_child(b)
+		_hire.content.add_child(row)
+	_hire.add_close()
+	_hire.move_to_front()
+
+
+func _confirm_fire(u: Character) -> void:
+	if u == null or _crew.size() <= 1:
+		return
+	var d := ConfirmationDialog.new()
+	d.dialog_text = "%s entlassen?\nDer Fortschritt in diesem Spiel geht verloren; der Roster-Eintrag bleibt und kann später neu angeheuert werden." % u.name
+	d.ok_button_text = "Entlassen"
+	d.cancel_button_text = "Abbrechen"
+	add_child(d)
+	d.confirmed.connect(func() -> void:
+		Campaign.fire(u)
+		_crew = Campaign.crew()
+		_idx = clampi(_idx, 0, _crew.size() - 1)
+		_reopen())
+	d.popup_centered()
+
+
+## Übersicht mit der geänderten Crew neu aufbauen (Knopftexte des Aufrufers gehen dabei verloren → crew_changed)
+func _reopen() -> void:
+	var keep := _idx
+	show_crew(_crew, _result)
+	_idx = clampi(keep, 0, maxi(0, _crew.size() - 1))
+	_render()
+	crew_changed.emit()
 
 
 func _exit_tree() -> void:

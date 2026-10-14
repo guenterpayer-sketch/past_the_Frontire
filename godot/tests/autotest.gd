@@ -115,9 +115,10 @@ func _run_ai() -> void:
 	ed.page(2)
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04c_uebersicht_seite3.png")
-	# Charakter-Editor: neues Mitglied erschaffen, ersetzt die dritte Figur
-	await _click_button("Neues Crewmitglied")
+	# Roster: Figur erschaffen (Editor im Roster-Modus), anheuern, entlassen; danach wieder aus dem Roster löschen
 	var ce := cs.editor
+	ce.open_for_roster()
+	ce.move_to_front()
 	print("Editor offen: ", ce.visible, ", Punkte ", Creation.budget(ce._ch))
 	for id in [&"gewehre", &"gewehre", &"ausweichen", &"psiAngriff", &"lAngriff", &"lAngriff", &"koerper"]:
 		Creation.raise(ce._ch, id)
@@ -125,10 +126,23 @@ func _run_ai() -> void:
 	ce._render()
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04e_editor.png")
-	var replaced := Campaign.crew()[2].name
-	await _click_button("Übernehmen")
-	print("Neue Figur: %s ersetzt %s, Crew %d, gespeichert %s" % [Campaign.crew()[2].name, replaced, Campaign.crew().size(),
-		Roster.load_crew().any(func(c: Character) -> bool: return c.name == "Testfigur")])
+	ce._finish()
+	var tf: Array = GlobalRoster.own().filter(func(c: Character) -> bool: return c.name == "Testfigur")
+	print("Roster: Testfigur gespeichert ", not tf.is_empty())
+	ed._show_hire()
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/04f_anheuern.png")
+	var before := Campaign.crew().size()
+	await _click_button("anheuern")
+	var hired := Campaign.crew().filter(func(c: Character) -> bool: return c.name == "Testfigur")
+	print("Anheuern: Crew %d -> %d, Testfigur an Bord %s" % [before, Campaign.crew().size(), not hired.is_empty()])
+	if not hired.is_empty():
+		Campaign.fire(hired[0])
+		ed._crew = Campaign.crew()
+		ed._reopen()
+	print("Entlassen: Crew %d" % Campaign.crew().size())
+	for c in tf:
+		GlobalRoster.remove(c.id)
 	ed.next_battle.emit()
 	var t0_battle := Time.get_ticks_msec()
 	while not (get_tree().current_scene is Battle) and Time.get_ticks_msec() - t0_battle < 10000:
