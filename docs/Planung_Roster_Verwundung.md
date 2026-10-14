@@ -50,3 +50,20 @@ Zuschlag: schwerster erlittener Kritischer (A–E) verlängert die Tage.
 
 - **Psi im Kampf** (Bodenkampf, mit Charakter): Eine im Editor erstellte Psi-Figur kann im Kampf keine Kraft wählen. Heute gibt es nur Psi-Schild (eigene Aktion) und Psi-Stoß (als Waffe eingetragen); die Psi-Listen (`core/psi_lists.gd`) sind nur Anzeige.
 - **Aktive Figur im Bodenkampf schlecht erkennbar** (Bodenkampf): sichtbar besser hervorheben, erst als Mockup.
+
+## D. Klärung Hub ⇄ Charakter (15.10.2026, Koordinator mit dem Nutzer)
+
+Hub- und Charakter-Chat hatten widersprüchliche Entscheidungen in ihren Moduldateien. **Diese Klärung gilt und ersetzt die abweichenden Einträge**; beide Chats übernehmen sie in ihre Moduldatei.
+
+| Thema | Entscheidung | Zuständig |
+|---|---|---|
+| Crew-Auswahl beim neuen Spiel | **`CrewPicker` aus dem Charakter-Modul** (schon gebaut). Der Hub ruft ihn auf (Startmenü „Neues Spiel“), baut **keine** eigene Auswahl; die entsprechenden Bildschirme im Hub-Mockup entfallen. | Charakter (UI), Hub (Aufruf) |
+| Roster im Startmenü | Punkt „Roster“ → `Campaign.ROSTER_SCENE` | Hub (Aufruf), Charakter (Roster-Bildschirm) |
+| Anzahl beim neuen Spiel | **1 bis 8** Figuren | Charakter |
+| Anheuern | **nur im Hafen** (neutrale Systeme), auf der **Brücke**; nur bei freiem Platz. Die Crewquartiere bieten kein Anheuern mehr an. Daten/Funktion `Campaign.hire()` vom Charakter-Modul, Ort und Bedingung „im Hafen“ vom Hub. | Hub (UI, Hafen), Charakter (`Campaign`) |
+| Entlassen | **Fortschritt bleibt im Spielstand**: entlassene Figuren warten „im Hafen“ und können in diesem Spiel mit ihrem Stand wieder angeheuert werden. Der globale Roster bleibt unberührt. Die Liste gehört zu `Campaign` (wird mit der Crew gespeichert). Entlassen-Knopf darf in den Crewquartieren bleiben. | Charakter (`Campaign`, Crewquartiere), Hub (Anzeige im Hafen) |
+| Einsatztrupp (bis 6) | wird **im Briefing** gewählt (vor Runde 0), **letzter Trupp vorbelegt** (Gesperrte automatisch heraus, freie Plätze aus der Reserve aufgefüllt), ändern oder bestätigen. **Auch beim Schnellkampf** aus dem Startmenü. Gesperrte (kampfunfähig, schwer verwundet, Arzt der Krankenstation) ausgegraut, Angeschlagene markiert. Ergebnis → `Campaign.chosen_squad`. | **Bodenkampf** (Briefing), Charakter (`chosen_squad` merken und speichern, Sperr-Status je Figur), Hub (Arzt-Zuweisung) |
+
+Weitere Hinweise:
+- Der Charakter-Branch hat in `view/battle.gd` (Bodenkampf) eine Zeile geändert (`Campaign.squad()` statt ganzer Crew). Das bleibt so; der Bodenkampf baut die Truppwahl darauf auf.
+- Heilungswerte und Krankenstation aus `hub.md` (2/5/10 Tage, Zuschlag A+0 … E+4, Arzt/Helfer mit Zweiter Hilfe, „1 Tag warten“) widersprechen nichts und gelten. Stufe und Tage rechnet das Charakter-Modul in `Campaign.finish_mission()` aus den `MissionResult`-Feldern des Bodenkampfs (`worst_crit`, `dying`, `stabilized`, `died`, Branch `c90cc1c`).
