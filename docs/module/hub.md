@@ -12,6 +12,8 @@
 
 - Branch ist 1 Commit über `main`. Probe-Zusammenführung nach dem Charakter-Modul: **Konflikte** in `CLAUDE.md`, `godot/view/battle.gd`, `godot/ui/modal.gd`, Charakterübersicht (`ui/end_dialog.gd` ↔ `ui/crew/crew_overview.gd`).
 
+- 14.10.2026 (Hub-Chat): `main` (`6bcaeaa`) in den Hub-Branch geholt, ohne Konflikte; Tests `test_rules` und `test_hub` „OK“. Die Aufträge 1–5 warten darauf, dass das Charakter-Modul in `main` ist (Stand jetzt: `claude/elegant-gauss-hq5bus` mit `cb63a27` und `1c6b94d` ist noch nicht in `main`).
+
 ## Aufträge vom Koordinator
 
 Sobald das Charakter-Modul in `main` ist, `main` in den Hub-Branch holen und dort anpassen:
