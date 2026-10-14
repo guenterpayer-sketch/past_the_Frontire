@@ -14,3 +14,4 @@ description = "Viele leicht bewaffnete Schützen, kaum Rüstung, dafür in der �
 units = Array[ExtResource("2_unit")]([ExtResource("3_pl1"), ExtResource("4_pl2"), ExtResource("5_fu"), ExtResource("6_kl")])
 weights = Array[int]([4, 4, 2, 1])
 max_same = 4
+color = Color(0.435, 0.863, 0.435, 1)

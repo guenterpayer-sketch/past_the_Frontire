@@ -13,3 +13,4 @@ description = "Psi-Begabte mit fanatischen Klingenkämpfern als Schutz."
 units = Array[ExtResource("2_unit")]([ExtResource("3_hx"), ExtResource("4_kl"), ExtResource("5_pl2")])
 weights = Array[int]([3, 4, 1])
 max_same = 3
+color = Color(0.706, 0.549, 1, 1)

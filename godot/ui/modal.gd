@@ -4,6 +4,8 @@ extends Control
 
 signal closed
 
+## größte Fenstergröße (kleinere Dialoge setzen sie herab)
+var max_size := Vector2(1180, 860)
 var content: VBoxContainer
 var footer: HBoxContainer
 var _title: Label
@@ -45,8 +47,8 @@ func _ready() -> void:
 
 func _layout() -> void:
 	var s := size
-	var w := minf(s.x - 24.0, 1180.0)
-	var h := minf(s.y - 24.0, 860.0)
+	var w := minf(s.x - 24.0, max_size.x)
+	var h := minf(s.y - 24.0, max_size.y)
 	_panel.offset_left = (s.x - w) / 2.0 - 0.0
 	_panel.anchor_left = 0
 	_panel.anchor_right = 0

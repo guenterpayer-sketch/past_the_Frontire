@@ -13,3 +13,4 @@ description = "Wenige, schwer gepanzerte Profis mit schweren Waffen."
 units = Array[ExtResource("2_unit")]([ExtResource("3_br"), ExtResource("4_fu"), ExtResource("5_pl1")])
 weights = Array[int]([3, 3, 2])
 max_same = 3
+color = Color(0.365, 0.718, 1, 1)

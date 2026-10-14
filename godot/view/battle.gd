@@ -2,6 +2,8 @@ class_name Battle
 extends Node3D
 ## Hauptszene: verbindet Kampflogik (Combat, CombatAI), Darstellung (MapView, UnitView, Overlay, Fx),
 ## Ablauf der Ereignisse (EventPlayer), Bedienung (PlayerController) und Oberfläche (BattleUI).
+## Aus dem Schiff gestartet (HubState.in_mission) kommt die Mission von der Sternenkarte; nach dem Kampf geht es
+## mit einem Bericht zurück ins Schiff. Sonst (Schnellkampf, Tests) wie bisher mit zufälliger Mission.
 
 const AI_DELAY := 0.22
 const LONG_PRESS := 0.55
@@ -60,7 +62,13 @@ func _ready() -> void:
 	ui.set_toggle(&"sound", Sfx.enabled)
 	ui.set_toggle(&"dice", events.dice_enabled)
 	rig.rotated.connect(func() -> void: map_view.update_cutaway(rig.view_dir()))
-	new_battle(randi() % 1000000)
+	var hub_mission := HubState.active_mission()
+	ui.briefing.hub_mode = hub_mission != null
+	if hub_mission:
+		ui.top_menu.set_menu_text(&"new", "Einsatz abbrechen (zurück ins Schiff)")
+		new_battle(hub_mission.map_seed, "", "", true, hub_mission)
+	else:
+		new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
 	if "--autotest" in args or "--autotest-player" in args:
 		var t: Node = load("res://tests/autotest.gd").new()
@@ -69,9 +77,10 @@ func _ready() -> void:
 
 
 ## Neuer Einsatz: Mission würfeln (Gegner, Halle), Karte bauen, Runde 0 (Aufstellung) mit Briefing.
-## size_id/difficulty leer = vom Missionsgenerator bestimmt; briefing = false überspringt die Einsatzbesprechung.
-func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true) -> void:
-	mission = Mission.generate(seed_value, difficulty)
+## size_id/difficulty leer = vom Missionsgenerator bestimmt; briefing = false überspringt die Einsatzbesprechung;
+## m = fertige Mission (aus dem Schiff).
+func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true, m: Mission = null) -> void:
+	mission = m if m else Mission.generate(seed_value, difficulty)
 	if size_id != "":
 		mission.size_id = size_id
 	_wait_ai()
@@ -114,6 +123,35 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_dirty = true
 
 
+## Einsatz aus dem Schiff beendet: freie EP gutschreiben (wie in der Charakterübersicht), Crew speichern,
+## Bericht an das Schiff geben und zurückwechseln. Steigern geht dort in den Crewquartieren.
+func finish_hub_mission() -> void:
+	var win := combat.result == &"sieg"
+	var reward := mission.reward_xp if win else 0
+	var units := []
+	for u in combat.crew():
+		u.free_xp += EndDialog.FREE_XP + reward
+		var keys := u.xp_log.keys()
+		keys.sort_custom(func(a, b) -> bool: return u.xp_log[a] > u.xp_log[b])
+		units.append({"letter": u.letter, "name": u.name, "state": u.state_name(),
+			"xp": ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), u.xp_log[k]]))})
+	Roster.save_progress(combat.crew())
+	var g := HubState.game
+	g.finish_mission({"outcome": combat.result, "title": mission.title, "faction": mission.faction.name,
+		"system": g.sector.systems[g.position].name, "rounds": combat.round_no, "reward_xp": reward,
+		"free_xp": EndDialog.FREE_XP + reward, "units": units})
+	ui.combat_log.add("%s – zurück ins Schiff …" % ("Sieg" if win else "Niederlage"), &"round")
+	await get_tree().create_timer(1.6).timeout
+	get_tree().change_scene_to_file(HubState.HUB_SCENE)
+
+
+## Einsatz abbrechen: zurück ins Schiff, der Auftrag bleibt offen
+func return_to_ship() -> void:
+	_wait_ai()
+	HubState.game.abort_mission()
+	get_tree().change_scene_to_file(HubState.HUB_SCENE)
+
+
 ## Runde 0 beenden: Kampf mit Runde 1 starten
 func begin_combat() -> void:
 	if not combat.deploying:
@@ -140,7 +178,10 @@ func _process(delta: float) -> void:
 		_refresh()
 	if combat.result != &"" and events.is_idle() and not _end_shown:
 		_end_shown = true
-		get_tree().create_timer(0.8).timeout.connect(func() -> void: ui.end_dialog.show_end(combat, mission))
+		if HubState.in_mission():
+			finish_hub_mission()
+		else:
+			get_tree().create_timer(0.8).timeout.connect(func() -> void: ui.end_dialog.show_end(combat, mission))
 	if _touches.size() == 1 and not _touch_moved and not _long_fired and Time.get_ticks_msec() - _touch_start_ms > LONG_PRESS * 1000:
 		_long_fired = true
 		var p: Vector2 = _touches.values()[0]
@@ -493,9 +534,15 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			if not events.dice_enabled:
 				ui.dice_panel.hide()
 		&"new":
-			new_battle(randi() % 1000000)
+			if HubState.in_mission():
+				return_to_ship()
+			else:
+				new_battle(randi() % 1000000)
 		&"reroll":
-			new_battle(randi() % 1000000, "", arg)
+			if HubState.in_mission():
+				return_to_ship()
+			else:
+				new_battle(randi() % 1000000, "", arg)
 		&"briefing":
 			ui.briefing.show_mission(mission)
 		&"help":

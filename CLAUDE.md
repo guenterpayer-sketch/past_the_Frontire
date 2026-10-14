@@ -8,7 +8,8 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - **HTML/JS-Version** (`index.html`, `js/`, `css/`, `tests/` im Wurzelordner) ist **eingefroren**: nur noch Referenz, nicht weiterentwickeln.
 - Regeln und Entwürfe: `docs/Skillsystem.md` (Eigenschaften, Fertigkeiten, Proben, Kampf, Steigerung, offene Punkte), `docs/Charakterbogen_Grundgeruest.md`, `docs/Raumkampf.md`.
 - Gebaut: Bodenkampf in zufälliger Lagerhalle (3D), Missionsgenerator (Fraktionen in `godot/data/missions`), Runde 0 (Aufstellung), Charakterübersicht nach dem Kampf (Ränge, Eigenschaften, freie EP), Speicherstand `user://crew.json`.
-- Noch nicht gebaut: Charaktererstellung, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen.
+- Hub (Main System, dieser Branch): Startmenü (`start.tscn`, Hauptszene), Schiff als 3D-Deck (`hub.tscn`: Brücke mit Sternenkarte und Aufträgen, Crewquartiere, Krankenstation und Waffenkammer/Hangar als Platzhalter), zufälliger Sektor mit Fraktionen und Reisetagen, Aufträge mit Ablaufdatum, Bodenkampf aus dem Schiff und zurück mit Einsatzbericht, 3 Spielstand-Slots. Andere Module (Bodenkampf, Charakter-Editor) werden in eigenen Chats/Branches gebaut und hier angebunden.
+- Noch nicht gebaut: Charaktererstellung, Weltraumkampf, Story/Kampagne, Heilung/Tod zwischen Einsätzen, Ausrüstung/Hangar.
 
 ## Arbeitsweise mit dem Nutzer
 
@@ -25,6 +26,7 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - Stil: GDScript mit Typangaben, deutsche Bezeichner in Texten und Kommentaren, Kommentare knapp mit `##` über Klassen und Funktionen.
 - Tests (vor jedem Commit):
   - `godot --headless --path godot --script res://tests/test_rules.gd` (muss „OK“ ausgeben)
+  - `godot --headless --path godot --script res://tests/test_hub.gd` (Hub: muss „OK“ ausgeben)
   - `godot --headless --path godot --script res://tests/test_sim.gd -- 30` (KI gegen KI; `-- 45 missionen` = Siege je Schwierigkeit)
-  - mit Grafik: `godot --path godot -- --autotest` und `-- --autotest-player` (Screenshots nach `PTF_OUT`)
+  - mit Grafik: `godot --path godot -- --autotest`, `-- --autotest-player` und `-- --autotest-hub` (Screenshots nach `PTF_OUT`)
 - Neue Funktionen in `godot/README.md` und, wenn Regeln betroffen sind, in `docs/Skillsystem.md` nachtragen.

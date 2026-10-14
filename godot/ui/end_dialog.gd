@@ -7,6 +7,8 @@ extends Modal
 signal next_battle
 signal reset_crew
 signal open_sheet(crew: Array[Combatant], u: Combatant)
+## Crewquartiere im Schiff: „Speichern & zurück“
+signal crew_done
 
 const FREE_XP := 3
 
@@ -58,6 +60,32 @@ func show_end(c: Combat, mission: Mission = null) -> void:
 		hide()
 		next_battle.emit())
 	footer.add_child(next)
+	_render()
+
+
+## Ohne Kampf (Crewquartiere im Schiff): dieselbe Übersicht mit dem gespeicherten Stand der Crew
+func show_crew(crew: Array[Combatant]) -> void:
+	_combat = null
+	_mission = null
+	_crew = crew
+	_idx = clampi(_idx, 0, maxi(0, crew.size() - 1))
+	_snap.clear()
+	_gain.clear()
+	for u in _crew:
+		_snap[u] = {"skills": u.skills.duplicate(true), "attrs": u.attrs.duplicate(), "free_xp": u.free_xp}
+	open("Crewquartiere")
+	var intro := UiTheme.label("Freie EP füllen fehlende EP beim Rangkauf auf oder steigern Eigenschaften; nicht ausgegebene freie EP bleiben gespart. Fertigkeits-EP gibt es im Einsatz nur für benutzte Fertigkeiten.", 13, UiTheme.MUTED)
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(intro)
+	_page = VBoxContainer.new()
+	_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(_page)
+	var done := UiTheme.button("Speichern & zurück")
+	done.add_theme_color_override("font_color", UiTheme.ACCENT)
+	done.pressed.connect(func() -> void:
+		hide()
+		crew_done.emit())
+	footer.add_child(done)
 	_render()
 
 
@@ -121,13 +149,13 @@ func _render() -> void:
 	hv.add_theme_constant_override("separation", 0)
 	hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hv.add_child(UiTheme.label("%s  (%d / %d)" % [u.name, _idx + 1, _crew.size()], 18, UiTheme.CREW))
-	hv.add_child(UiTheme.label("%s · %s · %d Gegner ausgeschaltet" % [u.role, u.state_name(), u.kills], 12, UiTheme.MUTED))
+	hv.add_child(UiTheme.label("%s · %s · %d Gegner ausgeschaltet" % [u.role, u.state_name(), u.kills] if _combat else u.role, 12, UiTheme.MUTED))
 	head.add_child(hv)
 	var pool := UiTheme.label("Freie EP: %d" % u.free_xp, 20, UiTheme.ACCENT)
 	pool.tooltip_text = "Davon aus diesem Einsatz: %d" % _gain.get(u, 0)
 	pool.mouse_filter = Control.MOUSE_FILTER_PASS
 	head.add_child(pool)
-	var undo := UiTheme.button("zurücknehmen", "Alle Steigerungen dieser Figur seit Kampfende zurücknehmen")
+	var undo := UiTheme.button("zurücknehmen", "Alle Steigerungen dieser Figur seit dem Öffnen zurücknehmen")
 	undo.disabled = not _changed(u)
 	undo.pressed.connect(func() -> void:
 		var s: Dictionary = _snap[u]
@@ -140,7 +168,9 @@ func _render() -> void:
 	sheet.pressed.connect(func() -> void: open_sheet.emit(_crew, u))
 	head.add_child(sheet)
 	v.add_child(head)
-	if not u.xp_log.is_empty():
+	if _combat == null:
+		pass
+	elif not u.xp_log.is_empty():
 		var keys := u.xp_log.keys()
 		keys.sort_custom(func(a, b) -> bool: return u.xp_log[a] > u.xp_log[b])
 		var gl := UiTheme.label("In diesem Kampf: " + ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), u.xp_log[k]])), 13, UiTheme.GOOD)

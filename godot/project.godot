@@ -6,7 +6,7 @@ config_version=5
 
 config/name="Past the Frontire"
 config/description="Party-RPG im Weltraum: rundenbasierter Bodenkampf im RMSS-Stil"
-run/main_scene="res://main.tscn"
+run/main_scene="res://start.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
