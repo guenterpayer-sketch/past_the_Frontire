@@ -64,15 +64,15 @@ func sync() -> void:
 		figure.stand_up()
 	elif u.is_ok():
 		_apply_pose()
-	elif u.state == Combatant.State.KO and not down:
-		figure.fall(false)  # bewusstlos; der Tod wird über play_down abgespielt
+	elif u.is_down() and not down:
+		figure.fall(false)  # bewusstlos oder sterbend; der Tod wird über play_down abgespielt
 
 
 func _apply_pose() -> void:
 	var u := unit
 	if u.is_dead():
 		figure.set_pose(Figure.Pose.DEAD)
-	elif u.state == Combatant.State.KO:
+	elif u.is_down():
 		figure.set_pose(Figure.Pose.KO)
 	elif u.crouched:
 		figure.set_pose(Figure.Pose.CROUCH)

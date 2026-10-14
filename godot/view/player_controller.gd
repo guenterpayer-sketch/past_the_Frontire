@@ -188,7 +188,7 @@ func tooltip(u: Combatant, player_turn: bool, tile_pos: Variant, o: Combatant) -
 		return ""
 	var h := ""
 	if o:
-		var st := "" if o.is_ok() else (" – bewusstlos" if o.state == Combatant.State.KO else " – tot")
+		var st := "" if o.is_ok() else " – " + o.state_name()
 		h += "[b]%s[/b] [color=#8291ad]%s%s[/color]\nTP %d/%d%s · %s" % [o.name, o.role, st, o.hp, o.max_hp,
 			(" · PP %d/%d" % [o.pp, o.max_pp]) if o.max_pp else "", o.armor.name]
 		if o != u and o.is_ok():

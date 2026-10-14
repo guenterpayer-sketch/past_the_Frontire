@@ -141,12 +141,12 @@ func _first_aid_step(c: Combat, u: Combatant, avail: int, memo: Dictionary) -> D
 	if avail < cost or (Rules.skill_rank(u, &"ersteHilfe") < 1 and u.medkit <= 0):
 		return {}
 	var needs := c.units.filter(func(o: Combatant) -> bool:
-		return o != u and o.team == u.team and not o.is_dead() and (o.state == Combatant.State.KO or o.bleed >= 2))
+		return o != u and o.team == u.team and not o.is_dead() and (o.is_down() or o.bleed >= 2) and not o.stabilized)
 	if needs.is_empty():
 		return {}
 	var near := c.first_aid_targets(u).filter(func(o: Combatant) -> bool: return needs.has(o))
 	if not near.is_empty():
-		near.sort_custom(func(a: Combatant, b: Combatant) -> bool: return a.state == Combatant.State.KO and b.state != Combatant.State.KO)
+		near.sort_custom(func(a: Combatant, b: Combatant) -> bool: return a.is_down() and not b.is_down())
 		return {"type": &"aid", "target": near[0]}
 	if memo.moved or not c.can_move(u, &"gehen"):
 		return {}
@@ -159,7 +159,7 @@ func _first_aid_step(c: Combat, u: Combatant, avail: int, memo: Dictionary) -> D
 		for o in needs:
 			if Hex.distance(p, o.pos) != 1:
 				continue
-			var score := (20.0 if o.state == Combatant.State.KO else 0.0) + _safety(c, u, reach.dest[p].tile) * 10 - mc
+			var score := (20.0 if o.is_down() else 0.0) + _safety(c, u, reach.dest[p].tile) * 10 - mc
 			if best.is_empty() or score > best.score:
 				best = {"score": score, "tile": p}
 	return {"type": &"move", "tile": best.tile, "gait": &"gehen"} if not best.is_empty() else {}

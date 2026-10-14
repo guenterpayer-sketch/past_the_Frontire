@@ -32,16 +32,20 @@ func show_result(c: Combat, result: Dictionary, next_text: String) -> void:
 		_box.add_child(m)
 	var down := c.enemies().filter(func(u: Combatant) -> bool: return not u.is_ok()).size()
 	var ko := 0
+	var dying := 0
 	var dead := 0
 	for u in c.crew():
 		if u.is_dead():
 			dead += 1
+		elif u.state == Combatant.State.DYING and not u.stabilized:
+			dying += 1
 		elif not u.is_ok():
 			ko += 1
 	var lines := PackedStringArray()
 	lines.append("Runden: %d" % c.round_no)
 	lines.append("Gegner ausgeschaltet: %d von %d" % [down, c.enemies().size()])
-	lines.append("Crew: %d kampffähig%s%s" % [c.crew().size() - ko - dead, (", %d bewusstlos" % ko) if ko else "", (", %d tot" % dead) if dead else ""])
+	lines.append("Crew: %d kampffähig%s%s%s" % [c.crew().size() - ko - dying - dead, (", %d kampfunfähig" % ko) if ko else "",
+		(", %d schwer verwundet" % dying) if dying else "", (", %d tot" % dead) if dead else ""])
 	lines.append("Jede Figur: +%d freie EP%s" % [MissionResult.FREE_XP + int(result.get("reward_xp", 0)),
 		(" (davon +%d Belohnung)" % result.reward_xp) if int(result.get("reward_xp", 0)) > 0 else ""])
 	if c.retreated:

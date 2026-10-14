@@ -40,6 +40,8 @@ const REACTION_MOD := -10
 const FACING_MOD := {&"flanke": 15, &"ruecken": 30}
 const PSI_SHIELD_BONUS := 20
 const PSI_SHIELD_PP := 2
+## Todeswurf (%), wenn die ganze Crew gefallen ist; nur unversorgte Sterbende
+const DEATH_CHANCE := 10
 
 var map: BattleMap
 var units: Array[Combatant] = []
@@ -282,19 +284,38 @@ func end_turn() -> void:
 	_next_turn()
 
 
+## Zustand nach TP: unter der Todesgrenze sterbend (nicht tot), unter 0 bewusstlos.
+## TP sinken nie unter −max_hp (Untergrenze nur für die Anzeige, Sterbende sterben im Kampf nicht).
 func _check_state(u: Combatant) -> void:
 	if u.is_dead():
 		return
+	u.hp = maxi(u.hp, -u.max_hp)
+	if u.state == Combatant.State.DYING:
+		return
 	if u.hp <= Rules.death_at(u):
-		u.state = Combatant.State.DEAD
+		u.state = Combatant.State.DYING
 		u.overwatch = {}
-		log_text("%s ist tot." % u.name, &"death")
-		died.emit(u)
+		log_text("%s liegt im Sterben." % u.name, &"death")
+		unit_changed.emit(u)
 	elif u.hp <= 0 and u.is_ok():
 		u.state = Combatant.State.KO
 		u.overwatch = {}
 		log_text("%s bricht bewusstlos zusammen." % u.name, &"death")
 		unit_changed.emit(u)
+
+
+## Die ganze Crew ist gefallen: jede unversorgte sterbende Figur stirbt mit DEATH_CHANCE %
+func _death_rolls() -> void:
+	for u in crew():
+		if u.state != Combatant.State.DYING or u.stabilized:
+			continue
+		var r := Dice.d(100)
+		if r <= DEATH_CHANCE:
+			u.state = Combatant.State.DEAD
+			log_text("%s stirbt an den Verletzungen (Wurf %d, ≤ %d)." % [u.name, r, DEATH_CHANCE], &"death")
+			died.emit(u)
+		else:
+			log_text("%s überlebt schwer verwundet (Wurf %d, > %d)." % [u.name, r, DEATH_CHANCE], &"heal")
 
 
 ## Rückzug der Crew (ab Runde 1): Kampf endet als Niederlage, die bis dahin gesammelten EP bleiben
@@ -315,6 +336,7 @@ func check_end() -> bool:
 		result = &"sieg"
 	elif crew().all(func(u: Combatant) -> bool: return not u.is_ok()):
 		result = &"niederlage"
+		_death_rolls()
 	if result != &"":
 		ended.emit(result)
 		return true
@@ -714,6 +736,8 @@ func _apply_hit(att: Combatant, target: Combatant, res: Dictionary) -> void:
 
 func _apply_crit(u: Combatant, crit: Dictionary, sev: String) -> void:
 	var r: CritRowData = crit.row
+	if Tables.SEVERITIES.find(sev) > Tables.SEVERITIES.find(u.worst_crit):
+		u.worst_crit = sev
 	if r.kill:
 		u.hp = mini(u.hp, Rules.death_at(u))
 	u.hp -= r.dmg
@@ -819,7 +843,7 @@ func do_reload(u: Combatant, w: WeaponData) -> bool:
 func first_aid_targets(u: Combatant) -> Array[Combatant]:
 	return units.filter(func(o: Combatant) -> bool:
 		return o.team == u.team and not o.is_dead() and Hex.distance(o.pos, u.pos) <= 1 \
-			and (o.bleed > 0 or o.state == Combatant.State.KO or o.hp < o.max_hp))
+			and (o.bleed > 0 or o.is_down() or o.hp < o.max_hp))
 
 
 func do_first_aid(u: Combatant, target: Combatant) -> bool:
@@ -842,12 +866,12 @@ func do_first_aid(u: Combatant, target: Combatant) -> bool:
 			target.bleed = 0
 			target.stun = 0
 			_heal(target, h)
-			fx = "Blutung gestoppt, +%d TP, Betäubung aufgehoben" % h
+			fx = "Blutung gestoppt, +%d TP, Betäubung aufgehoben" % h + _stabilize(target)
 		&"erfolg":
 			var h := Dice.d(10)
 			target.bleed = 0
 			_heal(target, h)
-			fx = "Blutung gestoppt, +%d TP" % h
+			fx = "Blutung gestoppt, +%d TP" % h + _stabilize(target)
 		&"teilerfolg":
 			var h := Dice.d(5)
 			target.bleed /= 2
@@ -865,6 +889,14 @@ func do_first_aid(u: Combatant, target: Combatant) -> bool:
 	unit_changed.emit(target)
 	unit_changed.emit(u)
 	return true
+
+
+## Erfolgreiche Erste Hilfe bei Sterbenden: stabilisiert (bleibt kampfunfähig, zählt am Ende leichter)
+func _stabilize(u: Combatant) -> String:
+	if u.state != Combatant.State.DYING or u.stabilized:
+		return ""
+	u.stabilized = true
+	return ", %s ist stabilisiert" % u.name
 
 
 func _heal(u: Combatant, amount: int) -> void:

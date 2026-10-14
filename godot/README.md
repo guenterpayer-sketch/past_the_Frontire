@@ -86,7 +86,7 @@ Charakter-Modul (crew.tscn)  ──Kopien der Charaktere──▶  Kampfmodul (m
 - Kampf: `Combatant.from_character()` macht eine Kopie mit vollen TP, PP und voller Ausrüstung. Der Kampf ändert die Charaktere nicht.
 - `core/mission_result.gd` (**MissionResult**): was ein Kampfmodul zurückgibt, je Figur:
   `xp` (benutzte Fertigkeiten → EP), `free_xp` (3 + Missionsbelohnung bei Sieg), `kills`,
-  `status` (`state` ok/ko/tot, `hp`, `max_hp`, `bleed`, `malus`), `used` (`medkits`, `ammo` je Waffe).
+  `status` (`state` ok/ko/sterbend/tot, `hp`, `max_hp`, `bleed`, `malus`), `worst_crit` (""/A–E), `dying` (sterbend, unversorgt), `stabilized` (sterbend, stabilisiert), `died` (nur durch den Todeswurf, wenn die ganze Crew fällt), `used` (`medkits`, `ammo` je Waffe).
   `Character.apply_result()` verbucht EP und freie EP. Zustand und Verbrauch werden gespeichert, aber noch nicht ausgewertet (Heilung, Tod und Nachschub sind noch nicht gebaut; jeder Einsatz beginnt heil und voll ausgerüstet).
 
 Ein neues Kampfmodul braucht also nur `Campaign.crew()` als Eingabe und muss am Ende `Campaign.finish_mission(Ergebnis)` aufrufen und nach `Campaign.CREW_SCENE` wechseln – oder, wenn es aus dem Schiff gestartet wurde (`HubState.in_mission()`), `HubState.game.finish_mission(Bericht)` aufrufen und nach `HubState.HUB_SCENE` wechseln (Beispiel: `Battle.finish_mission()`/`hub_report()`).

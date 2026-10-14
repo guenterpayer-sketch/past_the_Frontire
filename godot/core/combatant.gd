@@ -3,7 +3,9 @@ extends RefCounted
 ## Eine Figur im Kampf: Kopie der dauerhaften Werte (Character) plus Kampfzustand.
 ## Änderungen hier wirken nicht auf den Character zurück; was bleibt, meldet MissionResult.
 
-enum State { OK, KO, DEAD }
+## DYING = sterbend: wäre nach den Regeln tot, ist aber nur kampfunfähig (Erste Hilfe kann stabilisieren).
+## DEAD gibt es nur noch durch den Todeswurf am Kampfende, wenn die ganze Crew gefallen ist.
+enum State { OK, KO, DYING, DEAD }
 
 var visual: CharacterVisual
 var id: StringName
@@ -59,6 +61,8 @@ var wait_act := 0
 
 var xp_log := {}
 var kills := 0
+var stabilized := false        # sterbend, aber per Erster Hilfe stabilisiert
+var worst_crit := ""           # schwerster erlittener Kritischer (A–E), "" = keiner
 var free_xp := 0              # gesparte freie EP (für Fertigkeiten oder Eigenschaften)
 
 
@@ -107,8 +111,15 @@ func is_dead() -> bool:
 	return state == State.DEAD
 
 
+## kampfunfähig am Boden (bewusstlos oder sterbend)
+func is_down() -> bool:
+	return state == State.KO or state == State.DYING
+
+
 func state_name() -> String:
-	return ["kampffähig", "bewusstlos", "tot"][state]
+	if state == State.DYING and stabilized:
+		return "stabilisiert"
+	return ["kampffähig", "bewusstlos", "sterbend", "tot"][state]
 
 
 func has_overwatch() -> bool:
@@ -117,6 +128,8 @@ func has_overwatch() -> bool:
 
 func status_list() -> PackedStringArray:
 	var s := PackedStringArray()
+	if state == State.DYING:
+		s.append("stabilisiert" if stabilized else "sterbend")
 	if bleed:
 		s.append("Blutung %d" % bleed)
 	if stun:

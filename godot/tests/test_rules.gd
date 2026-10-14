@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_creation()
 	_test_leveling()
 	_test_deploy()
+	_test_dying()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -408,3 +409,63 @@ func _test_deploy() -> void:
 	check(not c.can_deploy(a, free_tile), "nach Kampfbeginn keine Aufstellung mehr")
 	check(c.retreat() and c.result == &"niederlage" and c.retreated, "Rückzug = Niederlage")
 	check(not c.retreat(), "Rückzug nur einmal")
+
+
+## Verwundung statt Tod: sterbend statt tot, Stabilisieren, Todeswurf nur wenn die ganze Crew fällt
+func _test_dying() -> void:
+	var m := _row_map(8)
+	_start_maps(m, [0, 1, 2, 3, 4, 5], [7, 6, 5, 4, 3, 2])
+	var c := _combat(m, 2, 1)
+	c.start()
+	var a := c.crew()[0]
+	var b := c.crew()[1]
+	var e := c.enemies()[0]
+	a.hp = Rules.death_at(a) - 3
+	c._check_state(a)
+	check(a.state == Combatant.State.DYING and not a.is_dead() and a.is_down(), "unter der Todesgrenze: sterbend, nicht tot")
+	a.hp = -1000
+	c._check_state(a)
+	check(a.hp == -a.max_hp and a.state == Combatant.State.DYING, "TP-Untergrenze −max_hp, bleibt sterbend")
+	e.hp = Rules.death_at(e) - 1
+	c._check_state(e)
+	check(e.state == Combatant.State.DYING, "Gegner werden ebenfalls sterbend")
+	check(c.first_aid_targets(b).has(a) or Hex.distance(a.pos, b.pos) > 1, "Sterbende sind Ziel für Erste Hilfe")
+	check(c._stabilize(a) != "" and a.stabilized and a.state == Combatant.State.DYING, "Stabilisieren: bleibt kampfunfähig")
+	c._heal(a, 500)
+	check(a.state == Combatant.State.DYING, "Heilen weckt Sterbende nicht auf")
+	var crit := {"row": CritRowData.new(), "table": "test", "roll": 50, "total": 50}
+	c._apply_crit(b, crit, "C")
+	c._apply_crit(b, crit, "A")
+	check(b.worst_crit == "C", "schwerster Kritischer wird gemerkt (%s)" % b.worst_crit)
+	var r := MissionResult.from_combat(c)
+	check(r.units[a.id].stabilized and not r.units[a.id].dying and r.units[a.id].status.state == "sterbend", "MissionResult: stabilisiert")
+	check(r.units[b.id].worst_crit == "C" and not r.units[b.id].died, "MissionResult: worst_crit")
+	# ganze Crew fällt: nur unversorgte Sterbende würfeln (10 %); über viele Würfe ungefähr 10 % Tote
+	var deaths := 0
+	var stab_deaths := 0
+	for i in 400:
+		var x := Combatant.create(GameData.crew().units[0], &"crew")
+		var y := Combatant.create(GameData.crew().units[1], &"crew")
+		var en := Combatant.create(GameData.enemies().units[0], &"enemy")
+		var mm := _row_map(8)
+		mm.crew_start.append(mm.tile(Vector2i(0, 0)))
+		mm.crew_start.append(mm.tile(Vector2i(1, 0)))
+		mm.enemy_start.append(mm.tile(Vector2i(7, 0)))
+		var cr: Array[Combatant] = [x, y]
+		var ce: Array[Combatant] = [en]
+		var cx := Combat.new(mm, cr, ce)
+		cx.deploying = false
+		x.state = Combatant.State.DYING
+		y.state = Combatant.State.DYING
+		y.stabilized = true
+		cx.check_end()
+		if x.is_dead():
+			deaths += 1
+		if y.is_dead():
+			stab_deaths += 1
+	check(cx_ok(deaths), "Todeswurf ≈ 10 %% (%d von 400)" % deaths)
+	check(stab_deaths == 0, "Stabilisierte sterben nicht")
+
+
+func cx_ok(n: int) -> bool:
+	return n >= 20 and n <= 65

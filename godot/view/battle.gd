@@ -157,7 +157,7 @@ func finish_mission() -> void:
 func hub_report(result: Dictionary) -> Dictionary:
 	var g := HubState.game
 	var units := []
-	var states := {"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}
+	var states := {"ok": "kampffähig", "ko": "bewusstlos", "sterbend": "sterbend", "tot": "tot"}
 	for ch in Campaign.crew():
 		var r: Dictionary = result.units.get(ch.id, {})
 		if r.is_empty():
@@ -165,7 +165,7 @@ func hub_report(result: Dictionary) -> Dictionary:
 		var xp: Dictionary = r.get("xp", {})
 		var keys := xp.keys()
 		keys.sort_custom(func(a, b) -> bool: return xp[a] > xp[b])
-		units.append({"letter": ch.letter, "name": ch.name, "state": states.get(r.status.state, r.status.state),
+		units.append({"letter": ch.letter, "name": ch.name, "state": "stabilisiert" if r.get("stabilized", false) else states.get(r.status.state, r.status.state),
 			"xp": ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), xp[k]]))})
 	return {"outcome": result.outcome, "title": result.mission, "faction": mission.faction.name,
 		"system": g.sector.systems[g.position].name, "rounds": result.rounds, "reward_xp": result.reward_xp,

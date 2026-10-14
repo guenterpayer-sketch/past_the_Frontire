@@ -7,6 +7,10 @@
 
 - **Eingang:** Crew als Kopien aus `Campaign.crew()` (`Roster.build_crew()`), optional eine fertige `Mission` (aus der Sternenkarte des Hubs).
 - **Ausgang:** `MissionResult.from_combat()` → `Campaign.finish_mission()` → Szene `crew.tscn`. `ui/end_dialog.gd` und `Roster.load_progress()/save_progress()` gibt es nicht mehr.
+- **Seit 16.10.2026 (Verwundung statt Tod, Auftrag 3) – Änderung am `MissionResult` (Datei des Charakter-Moduls, vom Bodenkampf erweitert):**
+  - `status.state` kann jetzt `"ok"`, `"ko"`, **`"sterbend"`** oder `"tot"` sein (vorher `"ok"/"ko"/"tot"`; `"tot"` kommt nur noch durch den Todeswurf vor). **Achtung Charakter-Modul:** `crew_overview.gd` kennt `"sterbend"` noch nicht (zeigt dann nichts an).
+  - Neu je Figur: `worst_crit` (`""` oder `"A"`–`"E"`, schwerster erlittener Kritischer), `dying` (bool: am Ende sterbend und nicht stabilisiert), `stabilized` (bool: sterbend, per Erster Hilfe stabilisiert → laut Nutzer „kampfunfähig“ statt „schwer verwundet“), `died` (bool: tot durch den Todeswurf).
+  - `Combatant`: `State { OK, KO, DYING, DEAD }`, `stabilized`, `worst_crit`, `is_down()`; `Combat.DEATH_CHANCE = 10`.
 
 ## Stand (14.10.2026)
 
@@ -22,6 +26,7 @@
   - Rückzug ist im Regeltest geprüft (`test_rules.gd`), im grafischen Hub-Selbsttest noch nicht.
   - **Später, eigenes Thema (Entscheidung Nutzer):** Zustand nach dem Kampf (Verletzte, Tote, Vorräte) auswerten.
 - **15.10.2026, `main` (`c3be261`) eingeholt:** Konflikt in `godot/README.md` gelöst (Punkt 3 mit Ergebnis-Banner, Rückzug und Schnellkampf ohne Banner; Punkt 4 „Aufleveln“ aus `main`). `Battle.finish_mission()`: Schnellkampf-Zweig aus `main` steht vor dem Banner (Entscheidung: kein Banner beim Schnellkampf). Tests: `test_rules.gd` OK, `test_hub.gd` OK, `test_sim.gd -- 30` ohne Hänger, `--autotest`, `--autotest-player`, `--autotest-hub` (inkl. Schnellkampf: zurück ins Startmenü, nichts verbucht) laufen durch. **Bereit zum Zusammenführen.**
+- **16.10.2026, Auftrag 3 (Verwundung statt Tod, Teil Kampf) erledigt.** `main` (`8d09ba4`) eingeholt, ohne Konflikte. Entscheidungen des Nutzers: **auch Gegner werden sterbend** statt tot; **Erste Hilfe** (Erfolg oder besser) **stabilisiert** Sterbende: bleiben im Kampf kampfunfähig, zählen am Ende als kampfunfähig statt schwer verwundet; **Sterbende bluten weiter** bis zur Untergrenze −max. TP (ohne Folgen); **Todeswurf** (10 %) nur für unversorgte Sterbende, wenn die ganze Crew fällt (nicht beim Rückzug). Schnittstelle siehe oben. Regeltext in `docs/Skillsystem.md` (bei Erste Hilfe). Tests: `test_rules.gd` OK (neuer Test `_test_dying`, Todeswurf 400×), `test_hub.gd` OK, `test_sim.gd -- 30` ohne Hänger (21 Siege; Ø Runden 16,0 statt bisher ca. 13,6 – vermutlich, weil die KI jetzt auch Sterbende versorgt, nicht näher untersucht), `--autotest`, `--autotest-player`, `--autotest-hub` laufen durch.
 
 ## Aufträge vom Koordinator
 
@@ -38,6 +43,6 @@
 
 1. **Aktive Figur sichtbar machen.** Im Kampf ist schwer zu erkennen, wer am Zug ist. Erst ein **Mockup** (2–3 Varianten) zeigen, Nutzer wählt, dann bauen.
 2. **Psi im Kampf.** Eine im Editor erstellte Psi-Figur kann keine Kraft wählen (nur Pistole). Psi-Kräfte aus den gelernten Listen (`core/psi_lists.gd`, Rang = höchste Stufe, Kosten = Stufe PP) im Kampf auswählbar machen. Vorher mit dem Nutzer klären: welche Kräfte zuerst, wie die Auswahl im Aktionsfeld aussieht (Mockup). Schnittstelle zum Charakter-Modul (Listen und Ränge kommen aus `Character`) in beiden Moduldateien vermerken.
-3. **Verwundung statt Tod (Teil Kampf).** Siehe Planung, Abschnitt B: „tot“ wird zu „sterbend“ (kampfunfähig, Erste Hilfe möglich); nur wenn die ganze Crew fällt, stirbt jede sterbende Figur mit 10 %. `MissionResult` um `worst_crit`, `dying`, `died` erweitern (Vorschlag). Gilt nur für die Crew; ob Gegner weiter sterben, mit dem Nutzer klären.
+3. ~~**Verwundung statt Tod (Teil Kampf).**~~ → erledigt 16.10.2026 (siehe Stand und Schnittstellen). Siehe Planung, Abschnitt B: „tot“ wird zu „sterbend“ (kampfunfähig, Erste Hilfe möglich); nur wenn die ganze Crew fällt, stirbt jede sterbende Figur mit 10 %. `MissionResult` um `worst_crit`, `dying`, `died` erweitern (Vorschlag). Gilt nur für die Crew; ob Gegner weiter sterben, mit dem Nutzer klären.
 
 Reihenfolge-Vorschlag: 3 (Schnittstelle, damit Charakter und Hub weiterbauen können), dann 1, dann 2.
