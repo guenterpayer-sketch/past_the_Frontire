@@ -34,3 +34,20 @@
 1. **Roster und neues Spiel** (Abschnitt A, Teil Hub): Startmenü-Eintrag „Roster“, „Neues Spiel“ → Crew aus dem Roster wählen (UI mit dem Charakter-Modul abstimmen, erst **Mockup**). Plätze an Bord im `HubState` (zu Beginn 8, später ausbaubar), Anheuern aus dem Roster im Schiff. Spielstände enthalten die Crew, nicht den Roster.
 2. **Krankenstation** (Abschnitt B, Teil Hub): Verwundete und Resttage anzeigen, Tage vergehen beim Reisen/Einsatz → Heilung (Funktion vom Charakter-Modul), vor dem Einsatz Gesperrte nicht mitnehmen, leicht Verletzte mit Malus. **Tage-Werte vorschlagen** (anhand typischer Reise- und Auftragsdauer) und vom Nutzer entscheiden lassen.
 3. Rückzug im Bericht: weiter offen (nur nach Entscheidung des Nutzers).
+
+### Entscheidungen des Nutzers zum Spieltest-Auftrag (15.10.2026, im Hub-Chat)
+
+**Heilung (Abschnitt B):**
+- Grundtage je Stufe („mittel“): angeschlagen **2**, kampfunfähig **5**, schwer verwundet **10** Tage. Zuschlag für den schwersten erlittenen Kritischen: A **+0**, B **+1**, C **+2**, D **+3**, E **+4**. (Grundlage: ein Einsatz-Zyklus – zum nächsten Auftrag fliegen + 1 Tag Einsatz – dauert im Schnitt 2,5 Tage, gemessen über 100 simulierte Spiele; eine Route zwischen zwei Systemen Ø 3,7 Tage, ein Sprung Ø 1,65.) → Stufe und Tage berechnet das Charakter-Modul in `Campaign.finish_mission()`.
+- **Krankenstation:** bis zu 2 Crewmitglieder zugewiesen. Wer die höchste **Zweite Hilfe** hat, ist **Arzt** (voller Bonus), der zweite **Helfer** (halber Bonus).
+- **Jeden Tag** eine **Zweite-Hilfe-Probe**: W100 offen + Arzt-Bonus + Helfer-Bonus/2. Unter 100: der normale Heiltag (1). 100–149: +1 Tag. Ab 150: +2 Tage. Gilt für jeden Patienten. (Beispiel Arzt +50, Helfer +30: Ø ca. 1,8 Tage Heilung pro Tag; schwer verwundet meist nach 6 Tagen fit.)
+- **EP:** Arzt und Helfer bekommen je Tag mit mindestens einem Patienten 1 EP in Zweite Hilfe.
+- **Einsatz:** Der **Arzt bleibt an Bord** (nicht im Einsatztrupp, solange zugewiesen), der Helfer darf mit.
+- **Warten:** Knopf „1 Tag warten“ im Schiff (Aufträge laufen weiter ab, neue kommen).
+
+**Roster und Crew (Abschnitt A, Teil Hub):**
+- **Neues Spiel:** aus dem Roster **6 bis 8** Figuren wählen (6 Einsatztrupp, bis 2 Reserve gleich zu Beginn).
+- **Anheuern** im Schiff auf der **Brücke, nur im Hafen** = einem der **neutralen Systeme** (2 je Sektor, darunter der Heimathafen), solange Plätze an Bord frei sind.
+- **Entlassen** ist möglich. Der Fortschritt der Figur bleibt **im Spielstand** erhalten (Liste „im Hafen“); sie kann in diesem Spiel in einem Hafen wieder angeheuert werden. Der globale Roster bleibt unberührt.
+- **Einsatztrupp** (6 aus Crew + Reserve) wird **beim Briefing** gewählt: Gesperrte (kampfunfähig, schwer verwundet, Arzt) ausgegraut, Angeschlagene markiert. Das Briefing gehört zum Bodenkampf → Schnittstelle mit Bodenkampf und Charakter abstimmen.
+
