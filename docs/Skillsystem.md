@@ -126,6 +126,15 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 | Kochen | EMP + KOO |
 | Medikamente herstellen | INT + KOO |
 
+**Entwicklung** (nur Ränge zählen, die Eigenschaften spielen keine Rolle)
+
+| Fertigkeit | Wirkung |
+|---|---|
+| Körperentwicklung | +5 Trefferpunkte je Rang (Abschnitt 6) |
+| Psi-Punkte-Entwicklung | +2 Psi-Punkte je Rang (Abschnitt 6) |
+
+**Psi-Listen**: jede Liste ist eine eigene Fertigkeit (MEN + EMP), Regeln und Kräfte in Abschnitt 6.1.
+
 ---
 
 ## 4. Proben (Manöver)
@@ -259,12 +268,69 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 
 | Wert | Formel |
 |---|---|
-| Trefferpunkte (TP) | 15 + KON / 3 (+10 mit schwerer Rüstung **nicht**, Rüstung wirkt über Tabelle) |
+| Trefferpunkte (TP) | 15 + KON / 3 + 5 × Rang Körperentwicklung (Rüstung wirkt über die Tabelle, nicht auf TP) |
 | Bewusstlos | bei 0 TP oder weniger |
 | Tot | bei −(KON / 5) TP oder durch Kritischen |
-| Psi-Punkte (PP) | MEN / 10 + Ränge Psi wirken / 2 (nur mit mindestens 1 Rang in einer Psi-Fertigkeit) |
+| Psi-Punkte (PP) | MEN / 10 + MEN-Bonus / 2 + 2 × Rang Psi-Punkte-Entwicklung, mindestens 0 (nur mit mindestens 1 Rang in einer Psi-Fertigkeit oder Psi-Liste) |
 | Initiative (jede Runde neu) | 2W10 + Bonus GEW + Kampfsinn-Gesamtbonus / 5 |
 | Bewegung | Gehen 1 Hex je 10 % Aktivität; dazu Gratis-Felder pro Runde = Bonus GEW / 5 (schwere Rüstung −1) |
+
+### 6.1 Psi-Listen
+
+Psi funktioniert wie Magie in Rolemaster: Kräfte sind in **Listen** geordnet.
+
+- Jede Liste ist eine **eigene Fertigkeit**; Ränge kosten wie jede Fertigkeit (10 + 2 × Rang).
+- **Rang = höchste verfügbare Stufe**: mit Rang 4 in „Schutz“ stehen alle Kräfte der Stufen 1–4 dieser Liste zur Verfügung. Nicht jede Stufe hat eine Kraft.
+- **Kosten**: eine Kraft kostet **Stufe PP** und 40 % Aktivität.
+- **Probe**: unterstützende Kräfte mit **Psi wirken** (Mittel), Angriffe mit **Psi-Angriffe** gegen die Psi-Verteidigung des Ziels. Kräfte, die einem Gegner etwas aufzwingen (Lähmen, Stoßen, Entwaffnen), sind Angriffe; einen eigenen Widerstandswurf gibt es nicht.
+
+**Schutz** (Psi wirken)
+
+| Stufe | Kraft | Wirkung |
+|---|---|---|
+| 1 | Abschirmen | selbst: +10 Psi-VW für 3 Runden |
+| 2 | Psi-Schild | ein Ziel in Sicht: +20 VW und +20 Psi-VW für 1–3 Runden (im Spiel vorhanden) |
+| 4 | Ablenkfeld | ein Ziel: Fernangriffe dagegen −20 für 2 Runden |
+| 6 | Schildkuppel | alle Verbündeten in 2 Hex: +15 VW für 2 Runden |
+| 9 | Letzte Barriere | ein Ziel: der nächste Kritische zählt eine Stufe schwächer |
+
+**Heilung** (Psi wirken, Berührung)
+
+| Stufe | Kraft | Wirkung |
+|---|---|---|
+| 1 | Blutung stillen | Blutung −3 |
+| 3 | Wunden schließen | heilt 2W10 TP |
+| 5 | Schmerz dämpfen | Wundmalus zählt 5 Runden nicht |
+| 7 | Wieder auf die Beine | eine bewusstlose Figur steht mit 1 TP auf |
+| 10 | Am Leben halten | eine in dieser Runde gestorbene Figur ist stattdessen bewusstlos |
+
+**Angriff** (Psi-Angriffe gegen Psi-Verteidigung)
+
+| Stufe | Kraft | Wirkung |
+|---|---|---|
+| 1 | Psi-Nadel | wie Psi-Stoß, 5 m, Angriff −20 |
+| 2 | Psi-Stoß | Tabelle Psi, 10 m (im Spiel vorhanden) |
+| 4 | Lähmen | kein Schaden, Ziel 1–2 Runden betäubt |
+| 6 | Psi-Lanze | 30 m, Kritische eine Stufe stärker |
+| 8 | Druckwelle | alle Gegner in 2 Hex, Angriff −20 |
+
+**Wahrnehmung** (Psi wirken)
+
+| Stufe | Kraft | Wirkung |
+|---|---|---|
+| 1 | Gefahrensinn | selbst: +10 Ausweichreserve bis zum nächsten Zug |
+| 3 | Gedanken orten | Gegner in 10 Hex für 3 Runden sichtbar, auch hinter Deckung |
+| 5 | Vorahnung | ein Verbündeter: +20 Ausweichen gegen den nächsten Angriff |
+| 7 | Schwachstelle | ein Gegner wird markiert: der nächste Angriff eines Verbündeten auf ihn +20 |
+
+**Telekinese** (gemischt)
+
+| Stufe | Kraft | Probe | Wirkung |
+|---|---|---|---|
+| 1 | Heranziehen | Psi wirken | einen Gegenstand aus bis zu 5 Hex holen (z. B. Medikit) |
+| 3 | Stoßen | Psi-Angriffe | Ziel 1 Hex zurück, bei starkem Treffer niedergeworfen |
+| 5 | Entwaffnen | Psi-Angriffe | Ziel kann im nächsten Zug nicht angreifen |
+| 8 | Schweben | Psi wirken | selbst: eine Höhenstufe ohne Treppe oder Leiter überwinden |
 
 ---
 
@@ -351,6 +417,22 @@ Vereinfachung: Unter der Galerie kann man nicht hindurchgehen; sie wirkt wie ein
 
 ---
 
+## 7a. Charaktererschaffung
+
+Gilt für neue Crewmitglieder. Für das spätere Aufleveln wird eine Variante davon gebraucht (noch offen).
+
+1. **Eigenschaften auswürfeln:** 7 Würfe mit W100, Würfe unter 20 werden wiederholt (jeder Wert 20–100 gleich wahrscheinlich). Der **niedrigste Wurf wird durch 90 ersetzt** (in Rolemaster abhängig vom Beruf; hier gibt es keine Berufe). Neu würfeln ist **beliebig oft** erlaubt.
+2. **Verteilen:** Die 7 Werte werden frei auf die 7 Eigenschaften gelegt.
+3. **Fertigkeitspunkte:** Eigenschaftssumme × **1,2** (abgerundet). Ränge kosten wie beim Steigern **10 + 2 × aktueller Rang** (Rang 1 kostet 10, Rang 5 insgesamt 70, Rang 8 insgesamt 136).
+4. **Ranggrenze:** Bei der Erschaffung höchstens **Rang 5**, bei **zwei** Fertigkeiten höchstens **Rang 8**.
+5. **Psi-Listen:** höchstens **zwei** Listen bei der Erschaffung; weitere später mit EP.
+6. **Station** an Bord wählen (Steuer, Navigation, Geschütze, Schilde, Technik, Computer, Jäger; siehe `Raumkampf.md`). Jede Station nur einmal, Jäger mehrfach.
+7. **Ausrüstung** (Waffen, Rüstung) und Aussehen werden frei gewählt; Regeln für Kauf und Ausrüstung gibt es noch nicht.
+
+Zum Vergleich: Bei 1,2 bekommt eine neue Figur im Mittel etwa 580 Fertigkeitspunkte (80 % zwischen ca. 485 und 665); die Startcrew hat 586–846 verbaut (Ø 738), Gegner 182–408. Ausprobiert im Prototyp „Frontire Charakter-Editor“ (Artifact).
+
+---
+
 ## 8. Steigerung – Erfahrung nur durch Benutzung
 
 Jede Fertigkeit hat ein eigenes Erfahrungskonto. Erfahrung (EP) bekommt eine Fertigkeit **nur, wenn sie benutzt wurde**:
@@ -390,3 +472,7 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert.
 9. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m.
 10. **Aktivitätssystem:** Prinzip nach RMSS/RMFRP, alle Werte (Gangarten, Angriffsmodifikatoren, Kosten, Reserve 50 % vor dem ersten Zug, Feuerbereitschaft) sind eigene Vorschläge, nicht aus dem Regelwerk.
+11. **Charaktererschaffung (7a):** Faktor 1,2, Ranggrenzen 5/8 und „niedrigster Wurf → 90“ sind festgelegt, aber noch nicht im Kampf getestet. Beliebig oftes Neuwürfeln erlaubt sehr starke Figuren (Eigenschaftssumme 600 und mehr in ca. 1 % der Würfe).
+12. **Psi-Punkte:** Die neue Formel ergibt mehr PP als die alte (MEN 98: 19 statt 13 ohne Entwicklungsränge). Ob das mit „Kosten = Stufe“ passt, ist im Kampf zu prüfen.
+13. **Psi-Listen (6.1)** sind ein Vorschlag. Im Spiel gibt es bisher nur Psi-Schild und Psi-Stoß, und sie sind noch nicht an Listen gebunden. Gedanken orten, Schwachstelle, Heranziehen und Schweben brauchen neue Mechanik im Bodenkampf.
+14. **Startcrew** hat in Körperentwicklung, Psi-Punkte-Entwicklung und den Psi-Listen noch keine Ränge.

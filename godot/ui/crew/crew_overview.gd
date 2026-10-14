@@ -1,50 +1,47 @@
-class_name EndDialog
+class_name CrewOverview
 extends Modal
-## Nach dem Kampf: Charakterübersicht zum Durchblättern (◀ ▶, Pfeiltasten). Je Figur:
+## Charakter-Modul: Übersicht der Crew zum Durchblättern (◀ ▶, Pfeiltasten). Je Figur:
 ## Ränge steigern (Fertigkeits-EP, fehlende EP aus dem freien Pool), Eigenschaften mit freien EP steigern.
-## Freie EP: FREE_XP pro Einsatz + Missionsbelohnung bei Sieg; was nicht ausgegeben wird, bleibt gespart.
+## Nach einem Einsatz zeigt sie dessen Ergebnis (Campaign.last_result); die EP sind dann schon verbucht.
 
 signal next_battle
 signal reset_crew
-signal open_sheet(crew: Array[Combatant], u: Combatant)
+signal create_member
+signal open_sheet(crew: Array[Character], u: Character)
 
-const FREE_XP := 3
-
-var _combat: Combat
-var _mission: Mission
-var _crew: Array[Combatant] = []
+var _crew: Array[Character] = []
+var _result := {}
 var _idx := 0
-var _snap := {}          # Combatant -> Stand beim Öffnen (für "zurücknehmen")
-var _gain := {}          # Combatant -> freie EP aus diesem Einsatz
+var _snap := {}          # Character -> Stand beim Öffnen (für "zurücknehmen")
 var _show_all := false
 var _page: VBoxContainer
 
 
-func show_end(c: Combat, mission: Mission = null) -> void:
-	if c != _combat:
-		_combat = c
-		_mission = mission
-		_crew = c.crew()
-		_idx = 0
-		_snap.clear()
-		_gain.clear()
-		var win := c.result == &"sieg"
-		for u in _crew:
-			var g := FREE_XP + (mission.reward_xp if mission and win else 0)
-			u.free_xp += g
-			_gain[u] = g
-			_snap[u] = {"skills": u.skills.duplicate(true), "attrs": u.attrs.duplicate(), "free_xp": u.free_xp}
-	var win := c.result == &"sieg"
-	open("%s%s" % ["Sieg!" if win else "Niederlage", (" – " + _mission.title) if _mission else ""])
-	var reward := ""
-	if _mission:
-		reward = " Missionsbelohnung: +%d freie EP%s." % [_mission.reward_xp if win else 0, "" if win else " (nur bei Sieg)"]
-	var intro := UiTheme.label("Runde %d. Fertigkeits-EP gab es nur für benutzte Fertigkeiten. Jede Figur bekommt %d freie EP pro Einsatz.%s Freie EP füllen fehlende EP beim Rangkauf auf oder steigern Eigenschaften; nicht ausgegebene freie EP bleiben gespart." % [c.round_no, FREE_XP, reward], 13, UiTheme.MUTED)
+func show_crew(crew: Array[Character], result := {}) -> void:
+	closable = false
+	_crew = crew
+	_result = result
+	_idx = clampi(_idx, 0, maxi(0, crew.size() - 1))
+	_snap.clear()
+	for u in _crew:
+		_snap[u] = {"skills": u.skills.duplicate(true), "attrs": u.attrs.duplicate(), "free_xp": u.free_xp}
+	var intro: Label
+	if result.is_empty():
+		open("Crew")
+		intro = UiTheme.label("Freie EP füllen fehlende EP beim Rangkauf auf oder steigern Eigenschaften; nicht ausgegebene freie EP bleiben gespart.", 13, UiTheme.MUTED)
+	else:
+		var win: bool = result.outcome == &"sieg"
+		open("%s%s" % ["Sieg!" if win else "Niederlage", (" – " + result.mission) if result.mission != "" else ""])
+		var reward := ""
+		if result.mission != "":
+			reward = " Missionsbelohnung: +%d freie EP%s." % [result.reward_xp, "" if win else " (nur bei Sieg)"]
+		intro = UiTheme.label("Runde %d. Fertigkeits-EP gab es nur für benutzte Fertigkeiten. Jede Figur bekommt %d freie EP pro Einsatz.%s Freie EP füllen fehlende EP beim Rangkauf auf oder steigern Eigenschaften; nicht ausgegebene freie EP bleiben gespart." % [result.rounds, MissionResult.FREE_XP, reward], 13, UiTheme.MUTED)
 	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(intro)
-	var note := UiTheme.label("Prototyp: Tote und Bewusstlose stehen im nächsten Kampf wieder voll bereit (Regeln für Heilung, Tod und Ersatz sind noch offen).", 12, UiTheme.MUTED)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(note)
+	if not result.is_empty():
+		var note := UiTheme.label("Prototyp: Tote und Bewusstlose stehen im nächsten Kampf wieder voll bereit (Regeln für Heilung, Tod und Ersatz sind noch offen).", 12, UiTheme.MUTED)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		content.add_child(note)
 	_page = VBoxContainer.new()
 	_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(_page)
@@ -52,16 +49,22 @@ func show_end(c: Combat, mission: Mission = null) -> void:
 	reset.add_theme_color_override("font_color", UiTheme.BAD)
 	reset.pressed.connect(_confirm_reset)
 	footer.add_child(reset)
+	var create := UiTheme.button("Neues Crewmitglied", "Neues Mitglied erschaffen (ersetzt eines, wenn die Crew voll ist)")
+	create.pressed.connect(func() -> void: create_member.emit())
+	footer.add_child(create)
 	var next := UiTheme.button("Speichern & nächste Mission")
 	next.add_theme_color_override("font_color", UiTheme.ACCENT)
-	next.pressed.connect(func() -> void:
-		hide()
-		next_battle.emit())
+	next.pressed.connect(func() -> void: next_battle.emit())
 	footer.add_child(next)
 	_render()
 
 
-func current() -> Combatant:
+## Ergebnis des letzten Einsatzes für eine Figur (leer ohne Einsatz)
+func _unit_result(u: Character) -> Dictionary:
+	return _result.get("units", {}).get(u.id, {})
+
+
+func current() -> Character:
 	return _crew[_idx] if not _crew.is_empty() else null
 
 
@@ -121,13 +124,17 @@ func _render() -> void:
 	hv.add_theme_constant_override("separation", 0)
 	hv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hv.add_child(UiTheme.label("%s  (%d / %d)" % [u.name, _idx + 1, _crew.size()], 18, UiTheme.CREW))
-	hv.add_child(UiTheme.label("%s · %s · %d Gegner ausgeschaltet" % [u.role, u.state_name(), u.kills], 12, UiTheme.MUTED))
+	var ur := _unit_result(u)
+	var sub := u.role + ((" · Station " + u.station) if u.station != "" and u.station != u.role else "")
+	if not ur.is_empty():
+		sub += " · %s · %d Gegner ausgeschaltet" % [{"ok": "kampffähig", "ko": "bewusstlos", "tot": "tot"}.get(ur.status.state, ""), ur.kills]
+	hv.add_child(UiTheme.label(sub, 12, UiTheme.MUTED))
 	head.add_child(hv)
 	var pool := UiTheme.label("Freie EP: %d" % u.free_xp, 20, UiTheme.ACCENT)
-	pool.tooltip_text = "Davon aus diesem Einsatz: %d" % _gain.get(u, 0)
+	pool.tooltip_text = "Davon aus diesem Einsatz: %d" % ur.get("free_xp", 0)
 	pool.mouse_filter = Control.MOUSE_FILTER_PASS
 	head.add_child(pool)
-	var undo := UiTheme.button("zurücknehmen", "Alle Steigerungen dieser Figur seit Kampfende zurücknehmen")
+	var undo := UiTheme.button("zurücknehmen", "Alle Steigerungen dieser Figur seit dem Öffnen der Übersicht zurücknehmen")
 	undo.disabled = not _changed(u)
 	undo.pressed.connect(func() -> void:
 		var s: Dictionary = _snap[u]
@@ -140,13 +147,14 @@ func _render() -> void:
 	sheet.pressed.connect(func() -> void: open_sheet.emit(_crew, u))
 	head.add_child(sheet)
 	v.add_child(head)
-	if not u.xp_log.is_empty():
-		var keys := u.xp_log.keys()
-		keys.sort_custom(func(a, b) -> bool: return u.xp_log[a] > u.xp_log[b])
-		var gl := UiTheme.label("In diesem Kampf: " + ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), u.xp_log[k]])), 13, UiTheme.GOOD)
+	var gained: Dictionary = ur.get("xp", {})
+	if not gained.is_empty():
+		var keys := gained.keys()
+		keys.sort_custom(func(a, b) -> bool: return gained[a] > gained[b])
+		var gl := UiTheme.label("In diesem Kampf: " + ", ".join(keys.map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), gained[k]])), 13, UiTheme.GOOD)
 		gl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		v.add_child(gl)
-	else:
+	elif not ur.is_empty():
 		v.add_child(UiTheme.label("In diesem Kampf keine Fertigkeit benutzt.", 13, UiTheme.MUTED))
 
 	var cols := HBoxContainer.new()
@@ -157,12 +165,12 @@ func _render() -> void:
 	cols.add_child(_skills(u))
 
 
-func _changed(u: Combatant) -> bool:
+func _changed(u: Character) -> bool:
 	var s: Dictionary = _snap.get(u, {})
 	return not s.is_empty() and (s.free_xp != u.free_xp or s.attrs != u.attrs or s.skills != u.skills)
 
 
-func _attributes(u: Combatant) -> Control:
+func _attributes(u: Character) -> Control:
 	var v := VBoxContainer.new()
 	v.custom_minimum_size.x = 380
 	v.add_child(UiTheme.label("Eigenschaften (+1 kostet 2 + Wert/10 freie EP)", 13, UiTheme.MUTED))
@@ -195,7 +203,7 @@ func _attributes(u: Combatant) -> Control:
 	return v
 
 
-func _skills(u: Combatant) -> Control:
+func _skills(u: Character) -> Control:
 	var v := VBoxContainer.new()
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var top := HBoxContainer.new()
@@ -219,11 +227,12 @@ func _skills(u: Combatant) -> Control:
 		for sk in grp.skills:
 			var id := StringName(sk[0])
 			var s: Dictionary = u.skills.get(id, {"rank": 0, "xp": 0})
-			if not _show_all and s.rank == 0 and s.xp == 0 and not u.xp_log.has(id):
+			var used: bool = _unit_result(u).get("xp", {}).has(id)
+			if not _show_all and s.rank == 0 and s.xp == 0 and not used:
 				continue
 			shown += 1
 			var base_rank: int = _snap[u].skills.get(id, {}).get("rank", 0) if _snap.has(u) else s.rank
-			g.add_child(UiTheme.label(sk[1], 13, UiTheme.GOOD if u.xp_log.has(id) else UiTheme.TEXT))
+			g.add_child(UiTheme.label(sk[1], 13, UiTheme.GOOD if used else UiTheme.TEXT))
 			var ab := Rules.attr_bonus(u.attrs[sk[2]]) + Rules.attr_bonus(u.attrs[sk[3]])
 			var el := UiTheme.label("%s+%s %s" % [Rules.attr_short(sk[2]), Rules.attr_short(sk[3]), Dice.fmt(ab)], 12, UiTheme.MUTED)
 			el.tooltip_text = "Eigenschaften: %s %d (%s) + %s %d (%s)" % [sk[2], u.attrs[sk[2]], Dice.fmt(Rules.attr_bonus(u.attrs[sk[2]])), sk[3], u.attrs[sk[3]], Dice.fmt(Rules.attr_bonus(u.attrs[sk[3]]))]
@@ -270,7 +279,5 @@ func _confirm_reset() -> void:
 	d.ok_button_text = "Zurücksetzen"
 	d.cancel_button_text = "Abbrechen"
 	add_child(d)
-	d.confirmed.connect(func() -> void:
-		hide()
-		reset_crew.emit())
+	d.confirmed.connect(func() -> void: reset_crew.emit())
 	d.popup_centered()

@@ -22,6 +22,8 @@ func _init() -> void:
 	_test_data()
 	_test_missions()
 	_test_progress()
+	_test_mission_result()
+	_test_creation()
 	_test_deploy()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -228,7 +230,7 @@ func _test_missions() -> void:
 
 ## Freie EP, Eigenschaften steigern, Rangkauf mit Pool, Speichern und Laden
 func _test_progress() -> void:
-	var u := Roster.build_team(GameData.crew(), &"crew")[0]
+	var u := Roster.start_crew()[0]
 	u.free_xp = 10
 	var kon: int = u.attrs.KON
 	var cost := Rules.attr_cost(kon)
@@ -246,25 +248,115 @@ func _test_progress() -> void:
 	check(Rules.deposit_xp(u, &"navigation", 1) == 0, "ohne freie EP kein Einzahlen")
 	u.free_xp = 1
 	check(Rules.next_bonus_step(70) == 71 and Rules.next_bonus_step(50) == 71, "nächste Bonusstufe")
-	var crew: Array[Combatant] = [u]
 	var backup := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
-	Roster.save_progress(crew)
-	var p := Roster.load_progress()
-	var v := Combatant.create(u.data, &"crew", p.get(u.id, {}))
-	check(v.attrs.KON == kon + 1 and v.free_xp == 1 and v.skills[&"kochen"].rank == 1, "Fortschritt gespeichert und geladen")
-	check(v.max_hp == Rules.max_hp(v), "TP aus gesteigerter KON")
-	# altes Format (nur Fertigkeiten) wird weiter gelesen
+	u.name = "Testname"
+	Roster.save_crew([u])
+	var loaded := Roster.load_crew()
+	var w := loaded[0]
+	check(loaded.size() == 1 and w.name == "Testname" and w.attrs.KON == kon + 1 and w.free_xp == 1 and w.skills[&"kochen"].rank == 1, "Charakter gespeichert und geladen")
+	check(w.weapons.size() == u.weapons.size() and w.armor == u.armor and w.visual == u.visual and w.color.is_equal_approx(u.color), "Ausrüstung und Aussehen gespeichert")
+	var v := Combatant.from_character(w, &"crew")
+	check(v.max_hp == Rules.max_hp(w) and v.max_hp == 15 + (kon + 1) / 3, "TP aus gesteigerter KON")
+	# alte Formate (Version 1: nur Fertigkeiten, Version 2: Fortschritt) werden auf die Startcrew gelegt
 	var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify({String(u.id): {"gewehre": {"rank": 9, "xp": 4}}}))
 	f.close()
-	p = Roster.load_progress()
-	check(p[u.id].skills[&"gewehre"].rank == 9 and p[u.id].free_xp == 0, "altes Speicherformat")
+	loaded = Roster.load_crew()
+	check(loaded.size() == 6 and loaded[0].skills[&"gewehre"].rank == 9 and loaded[0].free_xp == 0, "Speicherformat 1")
+	f = FileAccess.open(Roster.PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"version": 2, "crew": {String(u.id): {"skills": {}, "attrs": {"KON": 77}, "free_xp": 4}}}))
+	f.close()
+	loaded = Roster.load_crew()
+	check(loaded[0].attrs.KON == 77 and loaded[0].free_xp == 4, "Speicherformat 2")
 	if backup != "":
 		f = FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(backup)
 		f.close()
 	else:
 		Roster.reset()
+
+
+## Schnittstelle Kampf ⇄ Charakter-Modul: Kampf arbeitet auf Kopien, Ergebnis wird verbucht
+func _test_mission_result() -> void:
+	var crew := Roster.start_crew()
+	var ch := crew[0]
+	var xp_before: int = Rules.ensure_skill(ch, &"kampfsinn").xp
+	var c := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(crew), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
+	var u := c.crew()[0]
+	Rules.award_xp(u, &"kampfsinn", 3)
+	u.medkit -= 1
+	u.hp = 2
+	check(ch.skills[&"kampfsinn"].xp == xp_before, "Kampf ändert den Charakter nicht")
+	for e in c.enemies():
+		e.state = Combatant.State.DEAD
+	c.check_end()
+	var m := Mission.generate(4711)
+	var r := MissionResult.from_combat(c, m)
+	var ur: Dictionary = r.units[ch.id]
+	check(r.outcome == &"sieg" and ur.xp[&"kampfsinn"] >= 3 and ur.free_xp == MissionResult.FREE_XP + m.reward_xp, "Ergebnis: EP und freie EP")
+	check(ur.status.state == "ok" and ur.status.hp == 2 and ur.used.medkits == 1, "Ergebnis: Zustand und Verbrauch")
+	var free_before := ch.free_xp
+	ch.apply_result(ur)
+	check(ch.skills[&"kampfsinn"].xp == xp_before + ur.xp[&"kampfsinn"] and ch.free_xp == free_before + ur.free_xp, "Ergebnis verbucht")
+	check(ch.status.hp == 2 and ch.used.medkits == 1, "Zustand und Verbrauch gemerkt")
+	var again := Combatant.from_character(ch, &"crew")
+	check(again.hp == again.max_hp and again.medkit == ch.medkits, "nächster Kampf: volle TP und Ausrüstung (Heilung/Nachschub noch nicht gebaut)")
+
+
+## Charaktererschaffung: Würfe, Punkte, Ranggrenzen, Psi-Listen, TP/PP
+func _test_creation() -> void:
+	for n in 200:
+		var pool := Creation.roll_pool()
+		if pool.size() != 7 or not pool.has(Creation.LOWEST_TO) or pool.min() < 20 or pool.max() > 100:
+			check(false, "Würfe 20–100 mit einer 90: %s" % [pool])
+			return
+	check(true, "Würfe 20–100, niedrigster wird 90")
+	var ch := Character.new()
+	for a in Rules.ATTRIBUTES:
+		ch.attrs[a.id] = 80
+	check(Creation.budget(ch) == 672 and Creation.points_left(ch) == 672, "Punkte = Summe × 1,2 (560 → 672)")
+	check(Creation.ranks_cost(5) == 70 and Creation.ranks_cost(8) == 136, "Rangkosten 5 → 70, 8 → 136")
+	for i in 5:
+		Creation.raise(ch, &"gewehre")
+	check(Creation.raise_block(ch, &"gewehre") == "" , "über Rang 5 als erste Ausnahme")
+	for i in 3:
+		Creation.raise(ch, &"gewehre")
+	check(Rules.skill_rank(ch, &"gewehre") == 8 and not Creation.raise(ch, &"gewehre"), "höchstens Rang 8")
+	for i in 6:
+		Creation.raise(ch, &"pistolen")
+	for i in 6:
+		Creation.raise(ch, &"ausweichen")
+	check(Rules.skill_rank(ch, &"pistolen") == 6 and Rules.skill_rank(ch, &"ausweichen") == 5, "nur zwei Fertigkeiten über Rang 5")
+	check(Creation.spent(ch) == 136 + 90 + 70, "verbaute Punkte")
+	check(Creation.raise(ch, &"lSchutz") and Creation.raise(ch, &"lHeilung") and not Creation.raise(ch, &"lAngriff"), "höchstens zwei Psi-Listen")
+	Creation.raise(ch, &"lSchutz")
+	check(PsiLists.powers(ch, &"lSchutz").size() == 2, "Liste Schutz Rang 2: zwei Kräfte")
+	check(Creation.lower(ch, &"lHeilung") and not ch.skills.has(&"lHeilung") and Creation.raise(ch, &"lAngriff"), "Liste abwählen, andere lernen")
+	ch.attrs.MEN = 98
+	var pp := 9 + Rules.attr_bonus(98) / 2
+	check(Rules.has_psi(ch) and Rules.max_pp(ch) == pp, "PP = MEN/10 + MEN-Bonus/2 (%d)" % pp)
+	Creation.raise(ch, &"psiPunkte")
+	Creation.raise(ch, &"koerper")
+	check(Rules.max_pp(ch) == pp + 2 and Rules.max_hp(ch) == 15 + 80 / 3 + 5, "Entwicklung: +2 PP, +5 TP je Rang")
+	var crew := Roster.start_crew()
+	crew[0].station = "Steuer"
+	# Campaign.reload: Crew nach Austausch der Datei neu lesen
+	var backup := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.reset()
+	var other := Roster.start_crew()
+	other[0].name = "Geladen"
+	Roster.save_crew(other)
+	check(Campaign.crew()[0].name != "Geladen", "Campaign hält die Crew im Speicher")
+	Campaign.reload()
+	check(Campaign.crew()[0].name == "Geladen" and Campaign.last_result.is_empty(), "Campaign.reload liest den Spielstand neu")
+	if backup != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(backup)
+		f.close()
+	else:
+		Roster.reset()
+	Campaign.reload()
+	check(not Creation.station_free(crew, "Steuer") and Creation.station_free(crew, "Steuer", crew[0]) and Creation.station_free(crew, "Jäger"), "Station nur einmal, Jäger mehrfach")
 
 
 ## Runde 0: Aufstellung nur im Eingangsbereich, Tauschen, danach gesperrt

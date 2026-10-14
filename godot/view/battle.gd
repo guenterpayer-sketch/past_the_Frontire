@@ -2,6 +2,8 @@ class_name Battle
 extends Node3D
 ## Hauptszene: verbindet Kampflogik (Combat, CombatAI), Darstellung (MapView, UnitView, Overlay, Fx),
 ## Ablauf der Ereignisse (EventPlayer), Bedienung (PlayerController) und Oberfläche (BattleUI).
+## Kampfmodul: bekommt Kopien der Charaktere (Campaign.crew), gibt am Ende ein MissionResult zurück
+## und wechselt ins Charakter-Modul (crew.tscn).
 
 const AI_DELAY := 0.22
 const LONG_PRESS := 0.55
@@ -62,10 +64,12 @@ func _ready() -> void:
 	rig.rotated.connect(func() -> void: map_view.update_cutaway(rig.view_dir()))
 	new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
-	if "--autotest" in args or "--autotest-player" in args:
+	if ("--autotest" in args or "--autotest-player" in args) and not get_tree().root.has_node("Autotest"):
+		# der Selbsttest hängt an der Wurzel, damit er den Wechsel ins Charakter-Modul übersteht
 		var t: Node = load("res://tests/autotest.gd").new()
+		t.name = "Autotest"
 		t.battle = self
-		add_child(t)
+		get_tree().root.add_child.call_deferred(t)
 
 
 ## Neuer Einsatz: Mission würfeln (Gegner, Halle), Karte bauen, Runde 0 (Aufstellung) mit Briefing.
@@ -77,11 +81,9 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_wait_ai()
 	events.clear()
 	ui.combat_log.clear()
-	ui.end_dialog.hide()
 	_end_shown = false
 	var map := MapGenerator.generate(seed_value, mission.size_id)
-	var progress := Roster.load_progress()
-	combat = Combat.new(map, Roster.build_team(GameData.crew(), &"crew", progress), Roster.build_units(mission.enemies, &"enemy"))
+	combat = Combat.new(map, Roster.build_crew(Campaign.crew()), Roster.build_units(mission.enemies, &"enemy"))
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
 	map_view.theme = GameData.hall_theme()
@@ -114,6 +116,15 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	_dirty = true
 
 
+## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann dorthin wechseln
+func finish_mission() -> void:
+	var c := combat
+	Campaign.finish_mission(MissionResult.from_combat(c, mission))
+	await get_tree().create_timer(0.8).timeout
+	if combat == c:
+		get_tree().change_scene_to_file(Campaign.CREW_SCENE)
+
+
 ## Runde 0 beenden: Kampf mit Runde 1 starten
 func begin_combat() -> void:
 	if not combat.deploying:
@@ -140,7 +151,7 @@ func _process(delta: float) -> void:
 		_refresh()
 	if combat.result != &"" and events.is_idle() and not _end_shown:
 		_end_shown = true
-		get_tree().create_timer(0.8).timeout.connect(func() -> void: ui.end_dialog.show_end(combat, mission))
+		finish_mission()
 	if _touches.size() == 1 and not _touch_moved and not _long_fired and Time.get_ticks_msec() - _touch_start_ms > LONG_PRESS * 1000:
 		_long_fired = true
 		var p: Vector2 = _touches.values()[0]
@@ -515,12 +526,6 @@ func _on_action(name: StringName, arg: Variant) -> void:
 		&"deploy_turn":
 			if deploy_sel:
 				_deploy_turn(deploy_sel, posmod(deploy_sel.facing + arg, 6))
-		&"next_battle":
-			Roster.save_progress(combat.crew())
-			new_battle(randi() % 1000000)
-		&"reset_crew":
-			Roster.reset()
-			new_battle(randi() % 1000000)
 		&"focus":
 			rig.focus(views[arg].position, false)
 		&"jump":

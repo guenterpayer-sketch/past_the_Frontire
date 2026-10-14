@@ -25,7 +25,7 @@ var _prefix := ""
 
 func setup(u: Combatant) -> void:
 	super(u)
-	visual = u.data.visual
+	visual = u.visual
 	_model = visual.model.instantiate()
 	add_child(_model)
 	var aabb := _measure(_model)
