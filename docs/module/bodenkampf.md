@@ -21,6 +21,7 @@
   - **Hinweis an Hub:** `tests/autotest_hub.gd` drückt jetzt den „Weiter“-Knopf des Banners (sonst bleibt der Test im Kampf stehen). `HubState`/`hub_ui.gd` unverändert; ein eigener Ausgang „Rückzug“ im Bericht wäre Sache des Hubs (`MissionResult` liefert weiter `outcome = niederlage`).
   - Rückzug ist im Regeltest geprüft (`test_rules.gd`), im grafischen Hub-Selbsttest noch nicht.
   - **Später, eigenes Thema (Entscheidung Nutzer):** Zustand nach dem Kampf (Verletzte, Tote, Vorräte) auswerten.
+- **15.10.2026, `main` (`c3be261`) eingeholt:** Konflikt in `godot/README.md` gelöst (Punkt 3 mit Ergebnis-Banner, Rückzug und Schnellkampf ohne Banner; Punkt 4 „Aufleveln“ aus `main`). `Battle.finish_mission()`: Schnellkampf-Zweig aus `main` steht vor dem Banner (Entscheidung: kein Banner beim Schnellkampf). Tests: `test_rules.gd` OK, `test_hub.gd` OK, `test_sim.gd -- 30` ohne Hänger, `--autotest`, `--autotest-player`, `--autotest-hub` (inkl. Schnellkampf: zurück ins Startmenü, nichts verbucht) laufen durch. **Bereit zum Zusammenführen.**
 
 ## Aufträge vom Koordinator
 
