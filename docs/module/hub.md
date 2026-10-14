@@ -100,3 +100,4 @@ Charakter `d654883` (Verwundung, Hafen-Liste, Kandidaten) und dein Stand sind in
 2. Krankenstation: Patienten (`Campaign.patients()`), Arzt/Helfer zuweisen, Tagesprobe, `Campaign.pass_days(days, bonus)` bei Reisen, Einsatz und „1 Tag warten“; EP für Arzt/Helfer.
 3. Arzt-Sperre: dem Bodenkampf die IDs für `Campaign.candidates(quick, blocked_ids)` bereitstellen (Schnittstelle mit ihm abstimmen).
 4. Das Ausblenden von „Anheuern“ in `ui/hub_ui.gd` kann entfallen (der Knopf existiert nicht mehr).
+- ~~Aufträge vom 16.10.2026 (Anheuern im Hafen, Krankenstation, Arzt-Sperre)~~ → in `main` seit `014eab8`. Nichts offen; `main` holen.
