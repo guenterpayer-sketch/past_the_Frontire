@@ -23,6 +23,7 @@ var _save: Button
 var _weapons: Array[WeaponData] = []
 var _armors: Array[ArmorData] = []
 var _visuals: Array[CharacterVisual] = []
+var _psi_view: PsiListView
 
 
 ## Neue Figur für den globalen Roster erschaffen; saved(ch, null) liefert sie (noch nicht gespeichert)
@@ -47,6 +48,8 @@ func open_new(crew: Array[Character], replace_idx := 0, for_roster := false) -> 
 	_ch.visual = human[0] if not human.is_empty() else (_visuals[0] if not _visuals.is_empty() else null)
 	_target = -1 if crew.size() < MAX_CREW else clampi(replace_idx, 0, crew.size() - 1)
 	_reroll()
+	if _psi_view:
+		_psi_view.hide()
 	open("Neue Figur für den Roster erschaffen" if for_roster else "Neues Crewmitglied erschaffen")
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 24)
@@ -270,7 +273,30 @@ func _psi_powers() -> Control:
 			if not on:
 				pl.modulate.a = 0.6
 			v.add_child(pl)
+	var all := _psi_info_button(&"", "Alle Psi-Listen ansehen")
+	all.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	v.add_child(all)
 	return v
+
+
+## Knopf, der die Übersicht der Psi-Listen öffnet (list leer = erste gelernte Liste)
+func _psi_info_button(list: StringName, text: String) -> Button:
+	var b := UiTheme.button(text, "Übersicht der Psi-Listen: Kräfte je Stufe, Wirkung, Ziel")
+	b.add_theme_font_size_override("font_size", 12)
+	b.add_theme_color_override("font_color", PsiListView.PSI)
+	b.pressed.connect(func() -> void:
+		if _psi_view == null:
+			_psi_view = PsiListView.new()
+			add_child(_psi_view)
+		_psi_view.open_for(_ch, list)
+		_psi_view.move_to_front())
+	return b
+
+
+func _unhandled_input(e: InputEvent) -> void:
+	if _psi_view and _psi_view.visible and e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE:
+		_psi_view.close()
+		get_viewport().set_input_as_handled()
 
 
 # ---------------------------------------------------------------- rechts: Fertigkeiten
@@ -288,7 +314,10 @@ func _render_skills() -> void:
 			var r := Rules.skill_rank(_ch, id)
 			var nl := UiTheme.label(sk[1], 13, UiTheme.TEXT if r > 0 else UiTheme.MUTED)
 			nl.custom_minimum_size.x = 190
-			g.add_child(nl)
+			if PsiLists.is_list(id):
+				g.add_child(_psi_cell(id, nl))
+			else:
+				g.add_child(nl)
 			var ab := Rules.attr_bonus(_ch.attrs[sk[2]]) + Rules.attr_bonus(_ch.attrs[sk[3]])
 			var el := UiTheme.label("%s+%s %s" % [Rules.attr_short(sk[2]), Rules.attr_short(sk[3]), Dice.fmt(ab)], 12, UiTheme.MUTED)
 			el.custom_minimum_size.x = 100
@@ -300,6 +329,7 @@ func _render_skills() -> void:
 			var minus := UiTheme.button("−", "Rang senken")
 			minus.disabled = r == 0
 			minus.custom_minimum_size.x = 30
+			minus.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			minus.pressed.connect(func() -> void:
 				Creation.lower(_ch, id)
 				_render.call_deferred())
@@ -308,11 +338,27 @@ func _render_skills() -> void:
 			var plus := UiTheme.button("+ (%d)" % Rules.rank_cost(r), why if why != "" else "Rang %d für %d Punkte" % [r + 1, Rules.rank_cost(r)])
 			plus.disabled = why != ""
 			plus.custom_minimum_size.x = 56
+			plus.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			plus.pressed.connect(func() -> void:
 				Creation.raise(_ch, id)
 				_render.call_deferred())
 			g.add_child(plus)
 		_right.add_child(g)
+
+
+## Name einer Psi-Liste mit ⓘ und darunter, was die Liste bringt (vor der Wahl: die ersten Kräfte)
+func _psi_cell(id: StringName, name_label: Label) -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	var h := HBoxContainer.new()
+	h.add_child(name_label)
+	h.add_child(_psi_info_button(id, "ⓘ"))
+	v.add_child(h)
+	var hint := UiTheme.label(PsiListView.preview_hint(_ch, id), 11, UiTheme.MUTED)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size.x = 240
+	v.add_child(hint)
+	return v
 
 
 ## Was ein Rang bringt: Gesamtbonus, bei Entwicklung TP/PP, bei Listen die Zahl der Kräfte

@@ -151,6 +151,21 @@ func _run_ai() -> void:
 	ed.page(2)
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04c_uebersicht_seite3.png")
+	# Übersicht der Psi-Listen: Seite einer Psi-Figur, dann der Dialog
+	var psi_idx := -1
+	for i in ed._crew.size():
+		if psi_idx < 0 and not PsiLists.learned(ed._crew[i]).is_empty():
+			psi_idx = i
+	if psi_idx >= 0:
+		ed.page(psi_idx - ed._idx)
+		await get_tree().create_timer(0.3).timeout
+		await _screenshot(out + "/04f_uebersicht_psi.png")
+		ed.psi_view().open_for(ed.current(), &"")
+		ed.psi_view().move_to_front()
+		print("Psi-Listen offen: ", ed.psi_view().visible, " für ", ed.current().name)
+		await get_tree().create_timer(0.3).timeout
+		await _screenshot(out + "/04g_psi_listen.png")
+		ed.psi_view().close()
 	# Roster: Figur erschaffen (Editor im Roster-Modus), anheuern, entlassen; danach wieder aus dem Roster löschen
 	var ce := cs.editor
 	ce.open_for_roster()

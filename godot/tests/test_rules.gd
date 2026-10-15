@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_roster()
 	_test_injury()
 	_test_equipment()
+	_test_psi_view()
 	_test_deploy()
 	_test_dying()
 	_test_psi()
@@ -689,3 +690,25 @@ func _test_psi() -> void:
 	check(entries.any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: Angriffskräfte gegen Gegner")
 	check(not pc.context_powers(nyx, crew[0]).any(func(x: Dictionary) -> bool: return x.has("attack")), "Kontextmenü: keine Angriffe gegen Verbündete")
 
+
+
+func _test_psi_view() -> void:
+	check(PsiLists.kind(&"lAngriff", 2) == PsiLists.ATTACK and PsiLists.kind(&"lHeilung", 3) == PsiLists.SUPPORT
+		and PsiLists.kind(&"lTelekinese", 1) == PsiLists.OFF, "Psi: Art der Kraft wie im Bodenkampf")
+	check(PsiLists.target(&"lAngriff", 2) == "Gegner, bis %d m" % PsiCombat.weapon("lAngriff/2").max_range_m(), "Psi: Reichweite aus dem Bodenkampf")
+	check(PsiLists.target(&"lSchutz", 6) == "Verbündete in 2 Hex" and PsiLists.target(&"lTelekinese", 8) == "selbst", "Psi: Ziele")
+	# jede Kraft hat eine Art und ein Ziel
+	for id in PsiLists.LISTS:
+		for p in PsiLists.LISTS[id].powers:
+			check(PsiLists.target(id, p[0]) != "", "Psi: Ziel für %s" % p[1])
+	var ch := Character.new()
+	ch.attrs = {"KON": 50, "GEW": 50, "STÄ": 50, "INT": 50, "MEN": 50, "EMP": 50, "WAH": 50}
+	ch.skills = {&"lAngriff": {"rank": 4, "xp": 0}, &"lSchutz": {"rank": 1, "xp": 0}}
+	check(PsiLists.next_power(ch, &"lAngriff")[1] == "Psi-Lanze", "Psi: nächste Kraft")
+	check(PsiListView.next_hint(ch, &"lAngriff").begins_with("Rang 5: keine neue Kraft · Rang 6: Psi-Lanze"), "Psi: Hinweis nächster Rang ohne Kraft")
+	check(PsiListView.next_hint(ch, &"lSchutz").begins_with("Rang 2: Psi-Schild"), "Psi: Hinweis nächster Rang mit Kraft")
+	check(PsiListView.next_hint(ch, &"lTelekinese") == "Rang 1: Heranziehen (nicht im Kampf)", "Psi: Kraft außerhalb des Kampfs")
+	check(PsiListView.preview_hint(ch, &"lHeilung") == "Rang 1: Blutung stillen · Rang 3: Wunden schließen · Rang 5: Schmerz dämpfen …", "Psi: Vorschau ungelernte Liste")
+	check(PsiListView.preview_hint(ch, &"lAngriff") == "verfügbar: Psi-Nadel, Psi-Stoß, Lähmen · Rang 6: Psi-Lanze", "Psi: Vorschau gelernte Liste")
+	ch.skills[&"lAngriff"].rank = 8
+	check(PsiListView.next_hint(ch, &"lAngriff") == "alle Kräfte verfügbar", "Psi: alles verfügbar")
