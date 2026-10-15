@@ -94,6 +94,7 @@ Das Charakter-Modul baut eine gemeinsame Anzeige der Psi-Listen (siehe `docs/mod
 1. Im Kampfmenü **„Tabellen“** (`ui/tables_dialog.gd`) neben den Waffen auch die Psi-Listen (Wunsch des Nutzers).
 2. **Tooltip** im Aktionsfeld beim Auswählen einer Psi-Kraft: Wirkung, Kosten, Probe.
 Keine eigene Liste der Wirkungstexte anlegen; Daten aus `PsiLists`.
+- **Erledigt (15.10.2026):** Im Dialog „Tabellen“ Knopf „Psi-Listen …“ → `PsiListView.open_for(figur)` (Figur am Zug, wenn Crew mit Psi-Listen, sonst nur die Listen; `BattleUI.psi_lists`, `TablesDialog.show_tables(waffe, figur)`, Esc schließt zuerst die Übersicht). Tooltip jeder Psi-Kraft in der Seitenleiste (Abschnitt Psi und Psi-Angriffe im Abschnitt Waffe): `ActionPanel.psi_tip(liste, stufe)` mit Wirkung, Ziel (`PsiLists.target`), Kosten (Stufe PP, Aktivität) und Probe; bei fehlendem Rang „Ab Rang N“. Daten nur aus `PsiLists`/`PsiCombat`. Tests: `test_rules`, `test_hub` OK; gezielter Screenshot Tabellen → Psi-Listen.
 
 ## Aufträge vom Koordinator (15.10.2026): eigene Waffen
 
