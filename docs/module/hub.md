@@ -101,3 +101,7 @@ Charakter `d654883` (Verwundung, Hafen-Liste, Kandidaten) und dein Stand sind in
 3. Arzt-Sperre: dem Bodenkampf die IDs für `Campaign.candidates(quick, blocked_ids)` bereitstellen (Schnittstelle mit ihm abstimmen).
 4. Das Ausblenden von „Anheuern“ in `ui/hub_ui.gd` kann entfallen (der Knopf existiert nicht mehr).
 - ~~Aufträge vom 16.10.2026 (Anheuern im Hafen, Krankenstation, Arzt-Sperre)~~ → in `main` seit `014eab8`. Nichts offen; `main` holen.
+
+## Aufträge vom Koordinator (15.10.2026): Waffenkammer
+
+Grundlage: `docs/Planung_Waffenkammer.md`. Raum „Waffenkammer“ im Schiff nutzbar machen (jederzeit), er öffnet den **Ausrüstungsdialog des Charakter-Moduls**. Keine eigene Ausrüstungs-Oberfläche bauen. Warten, bis das Charakter-Modul den Dialog geliefert hat; den Aufruf aus `charakter.md` übernehmen.

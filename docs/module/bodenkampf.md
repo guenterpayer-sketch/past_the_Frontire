@@ -61,3 +61,7 @@ Verwundung, aktive Figur und Psi sind in `main` (`6162f58`), ebenso der Roster d
 
 → Erledigt (Truppwahl im Briefing, `hub_report()` mit `Campaign.last_fallen`), siehe Stand.
 - ~~Aufträge vom 16.10.2026 (Truppwahl im Briefing, Gefallene im Bericht)~~ → in `main` seit `b363af0`. Nichts offen; `main` holen.
+
+## Hinweis vom Koordinator (15.10.2026): Waffenkammer
+
+Das Charakter-Modul baut einen Ausrüstungsdialog, der `WeaponData`/`ArmorData` (deine Dateien) nur liest; der Hub öffnet ihn im Schiff. Für dich nichts zu bauen. Falls das Charakter-Modul Felder für die Anzeige braucht, abstimmen. Details: `docs/Planung_Waffenkammer.md`.

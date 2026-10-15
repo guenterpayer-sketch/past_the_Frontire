@@ -54,3 +54,7 @@
 ## Aufträge vom Koordinator (16.10.2026, nach Merge `4e282e1`)
 
 In `main`, nichts offen. `main` holen (Hub `479e767` ist drin). Schnittstellen und Knopftexte der Charakterübersicht nur nach Ankündigung ändern (Hub benennt/blendet über die Texte um). Auf Fragen von Hub (Krankenstation, Anheuern) und Bodenkampf (Truppwahl) antworten; nächste Aufgabe kommt vom Nutzer.
+
+## Aufträge vom Koordinator (15.10.2026): Waffenkammer
+
+Grundlage: `docs/Planung_Waffenkammer.md`. Du baust den **Ausrüstungsdialog** (Waffe 1/2, Rüstung, Schild ändern; Medikits/Munition nur anzeigen; Werte aus `WeaponData`/`ArmorData` inkl. Bonus der Figur in der Waffenfertigkeit). Bestand unbegrenzt, Änderung gilt für die Figur im Spielstand. **Erst Mockup**, vom Nutzer bestätigen lassen, dann bauen. Der Hub öffnet den Dialog aus dem Raum „Waffenkammer“ – Aufruf (Funktion/Signal) in den Schnittstellen vermerken.
