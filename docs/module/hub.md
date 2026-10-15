@@ -166,3 +166,7 @@ Entscheidungen des Nutzers: Musik im **Startmenü, Schiff, Bodenkampf und bei Si
 ## Aufträge vom Koordinator (15.10.2026): Editor für eigene Waffen und Rüstungen
 
 Grundlage: `docs/Planung_Ausruestungs_Editor.md` (Entscheidungen des Nutzers). Editor im Startmenü, globale Speicherung, Baustein für die anderen Module (Abschnitt „Aufteilung“, Punkt 1). Bodenkampf und Charakter binden danach an. **Vorher:** offene Punkte klären und Mockup vom Nutzer bestätigen lassen.
+
+## Hinweis vom Koordinator (15.10.2026): Munition
+
+Neue Entscheidungen in `docs/Planung_Munition.md`: Feuerstoß mit *Schuss pro Angriff*, *Munitionsart* je Waffe, Schiffsvorrat je Munitionsart mit Kauf im Raumhafen. Der Bodenkampf baut zuerst die Felder in `WeaponData`; erst danach der Hub-Teil (Vorrat, Kauf, Abzug, Editor-Felder). Für den Ausrüstungs-Editor: die beiden neuen Felder vorsehen, sobald sie in `main` sind.
