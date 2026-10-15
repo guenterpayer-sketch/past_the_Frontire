@@ -13,7 +13,7 @@ Neuer Stand: *Fetch origin* → *Pull origin*, dann F5. Fehlermeldungen bleiben 
 
 ## Spielablauf: Startmenü und Schiff (Hub)
 
-F5 startet das **Startmenü** (`start.tscn`): Fortsetzen (zuletzt gespeicherter Spielstand), Neues Spiel (Slot wählen und benennen, dann die Crew aus dem Roster wählen: `CrewPicker` des Charakter-Moduls, 1–8 Figuren), Laden, Roster (`roster.tscn`, Charakter-Modul), Schnellkampf (einzelner Bodenkampf mit den Figuren des Rosters, Trupp im Briefing; nichts wird verbucht, danach zurück ins Startmenü), Einstellungen (Ton, Würfelanimation), Beenden.
+F5 startet das **Startmenü** (`start.tscn`): Fortsetzen (zuletzt gespeicherter Spielstand), Neues Spiel (Slot wählen und benennen, dann die Crew aus dem Roster wählen: `CrewPicker` des Charakter-Moduls, 1–8 Figuren), Laden, Roster (`roster.tscn`, Charakter-Modul), Schnellkampf (einzelner Bodenkampf mit den Figuren des Rosters, Trupp im Briefing; nichts wird verbucht, danach zurück ins Startmenü), Einstellungen (Ton, Würfelanimation, **UI-Größe** 75/90/100/125 %), Beenden. Die UI-Größe (`ui/ui_scale.gd`, gespeichert in `user://ui.cfg`) skaliert alle Oberflächen im ganzen Spiel über `Window.content_scale_factor`; die 3D-Ansicht bleibt gleich. Auch im Schiff über das Menü oben rechts („UI-Größe …“).
 
 Das **Schiff** (`hub.tscn`) ist die zentrale Szene zwischen den Einsätzen: ein 3D-Deck mit vier Räumen, Kamera wie im Bodenkampf (ziehen, WASD, Mausrad, Q/E). Raum anklicken (oder Knopf unten links):
 

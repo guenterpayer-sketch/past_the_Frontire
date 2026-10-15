@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `d6478f3` (Waffenkammer) → `7a9e704`. Alle Branches in `main`.
+Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `4069823` (UI-Größe) → `6fb7cec`.
 
 ## Arbeitsweise mit Branches
 
@@ -10,9 +10,9 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `d6478f3` (Waffenkammer) → `7
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`afaccd5`) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | `1d9a325`; arbeitet an Sichtlinie und kompakter Kampf-UI |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`14163cc`) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`d6478f3`) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`4069823`) |
 
 ## Verlauf
 
@@ -34,6 +34,7 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `d6478f3` (Waffenkammer) → `7
 | 16.10.2026 | `b363af0` | Bodenkampf `claude/confident-edison-6mxzke` (`afaccd5`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Truppwahl im Briefing (Mockup bestätigt; `Campaign.candidates(HubState.quick_battle, HubState.blocked_ids())`, `suggested_squad()`, `set_squad()`/`quick_squad`; Schnellkampf: 6 Startfiguren vorbelegt), `hub_report()` mit `Campaign.last_fallen`, `--autotest-psi` aus dem Startmenü erreichbar. Tests laut Modul-Chat alle grün; Koordinator: `test_rules`, `test_hub` OK. `CLAUDE.md`: `--autotest-psi` in die Testliste. |
 | 15.10.2026 | `0c251f9` | Charakter `claude/elegant-gauss-hq5bus` (`14163cc`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Waffenkammer-Dialog (`ui/crew/armory_dialog.gd`, Regeln `core/equipment.gd`: Waffe 1 Pflicht, keine doppelt, keine Psi-Waffen, Schild nur mit einhändigen Waffen). Ändert Bodenkampf-Daten auf Anweisung des Nutzers: Vibroklinge einhändig, Laserkarabiner Fertigkeit Gewehre (Ikko/Rhea treffen schlechter, Nutzer: so lassen). Koordinator: `test_rules`, `test_hub` OK. |
 | 15.10.2026 | `7a9e704` | Hub `claude/happy-lamport-u4fvya` (`d6478f3`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Waffenkammer und Hangar als getrennte Räume; Waffenkammer öffnet `ArmoryDialog` (`open_for(Campaign.crew(), 0)`), Hangar bleibt Platzhalter. Koordinator: `test_rules`, `test_hub` OK; `CLAUDE.md` „Stand“ nachgezogen. |
+| 15.10.2026 | `6fb7cec` | Hub `claude/happy-lamport-u4fvya` (`4069823`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Einstellung „UI-Größe“ 75/90/100/125 % (`UiScale`, `user://ui.cfg`, `content_scale_factor` des Hauptfensters), im Startmenü „Einstellungen“ und im Schiffsmenü. Koordinator: `test_rules`, `test_hub` OK. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 

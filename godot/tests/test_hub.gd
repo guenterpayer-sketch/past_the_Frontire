@@ -17,6 +17,7 @@ func _init() -> void:
 	_test_mission_faction()
 	_test_save_slots()
 	_test_medbay_and_harbor()
+	_test_ui_scale()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -228,3 +229,14 @@ func _test_medbay_and_harbor() -> void:
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)
 	Campaign.reload()
+
+
+func _test_ui_scale() -> void:
+	var before := UiScale.get_factor()
+	check(UiScale.STEPS == [0.75, 0.9, 1.0, 1.25] and before in UiScale.STEPS, "UI-Größe: Stufen 75/90/100/125 %")
+	UiScale.set_factor(0.75, self)
+	check(is_equal_approx(UiScale.get_factor(), 0.75) and is_equal_approx(root.content_scale_factor, 0.75), "UI-Größe gespeichert und angewendet")
+	UiScale.set_factor(0.5, self)
+	check(is_equal_approx(UiScale.get_factor(), 0.75), "ungültige Stufe wird ignoriert")
+	check(UiScale.label(0.9) == "90 %", "Beschriftung")
+	UiScale.set_factor(before, self)

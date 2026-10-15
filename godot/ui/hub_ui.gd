@@ -7,7 +7,7 @@ extends Control
 signal action(name: StringName, arg: Variant)
 
 const MARGIN := 14.0
-const MENU := [[&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"help", "Bedienung"]]
+const MENU := [[&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "UI-Größe …"], [&"help", "Bedienung"]]
 
 var status: Label
 var info: InfoBox
@@ -199,6 +199,17 @@ func show_toast(text: String) -> void:
 	tw.tween_interval(3.5)
 	tw.tween_property(p, "modulate:a", 0.0, 0.6)
 	tw.tween_callback(p.queue_free)
+
+
+## Einstellung UI-Größe (gilt fürs ganze Spiel, sofort)
+func show_ui_scale() -> void:
+	notice.open("UI-Größe")
+	notice.content.add_child(UiScale.picker(get_tree()))
+	var l := UiTheme.label("Größe von Schrift und Kästen im ganzen Spiel; die 3D-Ansicht bleibt gleich. Wird gespeichert.", 13, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	notice.content.add_child(l)
+	notice.add_close()
+	notice.move_to_front()
 
 
 func show_notice(title: String, text: String) -> void:
