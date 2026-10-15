@@ -31,3 +31,10 @@ Stand: 15.10.2026. Entscheidungen des Nutzers im Koordinations-Chat.
 - Auswahl von Medikits und Munition (Grenze z. B. Traglast oder feste Plätze).
 - Enzyklopädie als eigener Bildschirm.
 - Ob der Hangar ein eigener Raum wird (heute ein Raum „Waffenkammer / Hangar“).
+
+## Stand 15.10.2026
+
+- **Charakter erledigt** (`14163cc`, in `main` `0c251f9`): `ArmoryDialog` mit Aufruf `ArmoryDialog.new()`, `open_for(Campaign.crew(), index)`, Signal `done` (danach ist gespeichert). Zusätzliche Regeln (vom Nutzer im Charakter-Chat entschieden): Waffe 1 Pflicht, Waffe 2 darf leer sein, keine Waffe doppelt, Psi-Waffen nicht wählbar, Schild nur mit einhändigen Waffen (Fäuste ausgenommen).
+- **Datenänderungen (Bodenkampf-Dateien, Anweisung des Nutzers):** Vibroklinge einhändig; Laserkarabiner nutzt Gewehre statt Pistolen.
+- **Offen – Hub:** Raum „Waffenkammer“ öffnet den Dialog.
+
