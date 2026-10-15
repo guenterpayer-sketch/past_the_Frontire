@@ -11,6 +11,7 @@ var picker: CrewPicker
 var _pending_slot := 0
 var _pending_name := ""
 var settings: Modal
+var gear: GearEditor
 var _ship: Node3D
 var _menu: VBoxContainer
 
@@ -119,6 +120,9 @@ func _build_ui() -> void:
 	var roster := _item("Roster")
 	roster.tooltip_text = "Alle Figuren (Startcharaktere und selbst erschaffene), unabhängig von den Spielständen"
 	roster.pressed.connect(func() -> void: get_tree().change_scene_to_file(Campaign.ROSTER_SCENE))
+	var gear_b := _item("Ausrüstung")
+	gear_b.tooltip_text = "Eigene Waffen und Rüstungen erstellen, bearbeiten, löschen (für alle Spielstände)"
+	gear_b.pressed.connect(func() -> void: gear.show_editor())
 	var quick := _item("Schnellkampf (Bodenkampf ohne Schiff)")
 	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission und Figuren aus dem Roster (Trupp im Briefing wählen). Nichts wird verbucht, danach zurück ins Startmenü."
 	quick.pressed.connect(start_quick_battle)
@@ -130,6 +134,8 @@ func _build_ui() -> void:
 		_menu.add_child(UiTheme.label("„Fortsetzen“ lädt den zuletzt gespeicherten Spielstand.", 13, UiTheme.MUTED))
 	slots = SlotsDialog.new()
 	root.add_child(slots)
+	gear = GearEditor.new()
+	root.add_child(gear)
 	slots.loaded.connect(_load)
 	slots.new_game.connect(_new_game)
 	picker = CrewPicker.new()

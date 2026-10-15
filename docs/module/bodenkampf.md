@@ -108,3 +108,7 @@ Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausru
 - **Gebaut (15.10.2026):** siehe „Schnittstellen“ → Munition. Tests: `_test_ammo` in `test_rules` (Verteilung, Feuerstoß, Verbrauch, `ammo_used`, KI mit nur leeren Waffen endet), `test_sim -- 10`. **Hinweis an Charakter:** `ui/crew/armory_dialog.gd` zeigt „Feuerstoß“ noch aus `ob_bonus` (MG jetzt `shots`) und „Munition gesamt“ statt 3 Magazine.
 
 Grundlage: `docs/Planung_Munition.md` (Entscheidungen des Nutzers). Du baust zuerst (Abschnitt „Aufteilung“, Teil Bodenkampf): `WeaponData` um *Schuss pro Angriff* und *Munitionsart*, Verbrauch je Angriff, Einsatzstart mit übergebenem Vorrat (Schnellkampf voll), Verbrauch je Munitionsart im `MissionResult`, KI bei leeren Waffen prüfen. **Vorher** die offenen Punkte mit dem Nutzer klären; Schnittstelle mit dem Hub abstimmen und unter „Schnittstellen“ eintragen.
+
+## Aufträge vom Koordinator (15.10.2026): eigene Waffen anbinden
+
+Baustein des Hubs ist in `main` (`52efbe2`): `GameData.weapons()` um `Gear.weapons()` ergänzen; Gegner bekommen `Gear.enemy_weapons/armors(faction_path)`. Details `docs/module/hub.md`. Reihenfolge mit dem Auftrag „Munition“ frei wählbar (mit dem Nutzer abstimmen).

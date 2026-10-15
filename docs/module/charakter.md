@@ -96,3 +96,4 @@ Vorher **Mockup** zeigen und vom Nutzer bestätigen lassen.
 ## Aufträge vom Koordinator (15.10.2026): eigene Rüstungen
 
 Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausruestungs_Editor.md`). **Warten, bis sein Baustein in `main` ist.** Dann: `Equipment.armors()` liefert auch eigene Rüstungen, die Waffenkammer zeigt eigene Ausrüstung; Verhalten, wenn getragene Ausrüstung gelöscht wird, mit dem Nutzer klären (Abschnitt „Aufteilung“, Punkt 3).
+- **Baustein des Hubs ist in `main` (`52efbe2`):** `Equipment.weapons()/armors()` um `Gear.weapons()/armors()` ergänzen; gelöschte Datei: Waffe 1 → `Gear.FALLBACK_WEAPON` (Fäuste), Waffe 2 leer, Rüstung → `Gear.FALLBACK_ARMOR` (keine) – vom Nutzer so entschieden; Vermerk „frei“ über `Gear.is_free(r)`. Details `docs/module/hub.md`. Jetzt `main` holen und anbinden.
