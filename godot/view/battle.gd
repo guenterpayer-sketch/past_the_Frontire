@@ -103,6 +103,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	ui.combat_log.clear()
 	ui.result_banner.hide()
 	_end_shown = false
+	Music.play(Music.BRIEFING)   # Briefing und Runde 0 (Musikspieler des Hubs)
 	var map := MapGenerator.generate(seed_value, mission.size_id)
 	combat = Combat.new(map, Roster.build_crew(squad), Roster.build_units(mission.enemies, &"enemy"))
 	ai = CombatAI.new()
@@ -176,6 +177,7 @@ func _on_squad(sel: Array[Character]) -> void:
 ## Schnellkampf aus dem Startmenü (HubState.quick_battle): nichts verbuchen, zurück ins Startmenü.
 func finish_mission() -> void:
 	var c := combat
+	Music.play(Music.VICTORY if c.result == &"sieg" else Music.DEFEAT)   # Niederlage auch bei Rückzug
 	if HubState.quick_battle:
 		ui.combat_log.add("%s – Schnellkampf, nichts verbucht. Zurück ins Startmenü …" % ("Sieg" if c.result == &"sieg" else "Niederlage"), &"round")
 		await get_tree().create_timer(2.5).timeout
@@ -284,6 +286,7 @@ func begin_combat() -> void:
 	deploy_sel = null
 	_mark_current(null)
 	ui.briefing.hide()
+	Music.play(Music.BATTLE)
 	combat.start()
 	_dirty = true
 
