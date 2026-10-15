@@ -127,3 +127,16 @@ Grundlage: `docs/Planung_UI_Groesse.md`. Einstellung „UI-Größe“ (z. B. 75 
   - `UiScale.picker(get_tree()) -> HBoxContainer` – fertige Knopfzeile „UI-Größe 75 % | 90 % | 100 % | 125 %“ zum Einbauen in einen Dialog (so im Startmenü und im Schiff; der Bodenkampf kann sie in sein Kampfmenü setzen).
   - Wirkung: `get_tree().root.content_scale_factor`; alle 2D-Oberflächen aller Szenen werden skaliert, 3D bleibt gleich. Eigener Speicherort `user://ui.cfg` (nicht `settings.cfg`, damit sich `Prefs` und `UiScale` beim Speichern nicht überschreiben).
 - Tests: `test_rules` OK, `test_hub` OK (Stufen, Speichern/Anwenden, ungültige Stufe), `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (UI-Größe im Schiff auf 75 % und zurück).
+
+## Aufträge vom Koordinator (15.10.2026): Reise, Schiff, Credits
+
+Grundlage: `docs/Planung_Reise_Schiff.md` (Entscheidungen des Nutzers). Das Hub-Modul baut alles allein: Reiseproben pro Reisetag (Pilot, Navigation, Computer, Reparatur nach Station, sonst Bester verfügbar) mit EP, Treibstoff, Hülle, Schiffsmaterial, Credits, Lohn und Beute nach Fraktion und Schwierigkeit, Kaufen im Raumhafen, Speichern und Anzeige. **Vorher:** Zahlenvorschlag (Tabelle) und Mockup der Anzeige dem Nutzer vorlegen und bestätigen lassen. Regeln danach in `docs/Skillsystem.md` nachtragen.
+
+### Stand Reise, Schiff, Credits (Hub-Chat, 15.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`2d378ab`) geholt, ohne Konflikte.
+- Zahlen und Mockup vom Nutzer bestätigt (Artifact „Schiff-Hub Mockup“, Reihe „Reise, Schiff, Credits“, Bildschirme 10–14), mit seinen Änderungen: Lohn knapper (80/140/220), **Notkredit** für Treibstoff, **große Reparatur auch durch die Crew** unterwegs, **Krankenstation (Arzt und Helfer) würfelt keine Reiseprobe**. Regeln in `docs/Skillsystem.md` 8b.
+- Neu: `core/voyage.gd` (Regeln), `HubState` mit `credits`, `fuel`, `hull`, `material`, `emergency` (im Spielstand; alte Spielstände bekommen die Startwerte), `last_travel` (Reisebericht), `stranded()`, `nearest_harbor()`, `can_travel()`, `crew_repair()`; Lohn und Beute in `HubState.finish_mission()` (Bericht `rep.payout`) – **keine Änderung am Bodenkampf nötig**.
+- Anzeige: Statusleiste im Schiff (Credits, Treibstoff- und Hüllenbalken, Material, Warnungen), Sternenkarte (Treibstoff-Schätzung, Reiseposten, „Große Reparatur (1 Tag)“, Reiter „Raumhafen“/„Crew anheuern“ im Hafen), Reisebericht nach jeder Reise (vor dem Einsatz: „Weiter“ → Briefing), Lohn und Beute im Einsatzbericht. Veralteter Hinweis „Prototyp: Verletzte … wieder voll da“ im Einsatzbericht entfernt.
+- Vom Hub-Chat festgelegt (nicht vom Nutzer): freie Posten nach höchster Wertesumme besetzt; bei Hülle 0 gehen Werft und Material auch auf Notkredit (sonst kann das Spiel im Hafen festsitzen); unbesetzter Posten = keine Probe.
+- Tests: siehe Fertigmeldung im Chat.

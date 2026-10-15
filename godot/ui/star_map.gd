@@ -10,6 +10,10 @@ signal wait_day
 ## im Hafen angeheuert (Crew hat sich geändert)
 signal hired(ch: Character)
 signal start(offer: Dictionary)
+## im Raumhafen gekauft (Credits, Treibstoff, Hülle oder Material geändert)
+signal bought
+## große Reparatur durch die Crew (1 Tag)
+signal crew_repair
 signal closed
 
 const PANEL_W := 420.0
@@ -23,6 +27,8 @@ var _canvas: Control
 var _side: VBoxContainer
 var _status: Label
 var _hover := -1
+var _port_tab := 0            # im Hafen: 0 = Raumhafen, 1 = Crew anheuern
+var _repair_btn: Button
 
 
 func _ready() -> void:
@@ -57,6 +63,10 @@ func _ready() -> void:
 	wait.custom_minimum_size.y = 44
 	wait.pressed.connect(func() -> void: wait_day.emit())
 	top.add_child(wait)
+	_repair_btn = UiTheme.button("Große Reparatur (1 Tag)", "Überall möglich: 1 Tag, 1 Schiffsmaterial, Reparaturprobe. Teilerfolg +10, Erfolg +20, Herausragend +40 Hülle; Fehlschlag ±0, Patzer −5 (Material ist weg)")
+	_repair_btn.custom_minimum_size.y = 44
+	_repair_btn.pressed.connect(func() -> void: crew_repair.emit())
+	top.add_child(_repair_btn)
 	# unten links: Legende
 	var leg := PanelContainer.new()
 	leg.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 8))
@@ -117,7 +127,11 @@ func refresh() -> void:
 	if game == null:
 		return
 	var sys: Dictionary = game.sector.systems[game.position]
-	_status.text = "Tag %d · Position: %s · %s" % [game.day, sys.name, game.sector.name]
+	_status.text = "Tag %d · Position: %s · %s\n%d Cr · Treibstoff %d/%d · Hülle %d/%d · Material %d" % [game.day, sys.name, game.sector.name,
+		game.credits, game.fuel, Voyage.TANK, game.hull, Voyage.HULL_MAX, game.material]
+	_repair_btn.disabled = not Voyage.can_crew_repair(game)
+	var who := Voyage.repairer(game)
+	_repair_btn.text = "Große Reparatur (1 Tag)" + ((" · %s %s" % [who.name.split(" ")[0], Dice.fmt(Rules.skill_total(who, &"rsReparatur"))]) if who else "")
 	_render_side()
 	_canvas.queue_redraw()
 
@@ -241,6 +255,8 @@ func _render_side() -> void:
 	var rl := UiTheme.label(route_text, 14, UiTheme.MUTED)
 	rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_side.add_child(rl)
+	if selected != game.position and r.days > 0:
+		_render_route(r.days)
 	var sep := ColorRect.new()
 	sep.color = UiTheme.LINE
 	sep.custom_minimum_size.y = 1
@@ -252,8 +268,26 @@ func _render_side() -> void:
 			_side.add_child(UiTheme.label("zurzeit keine", 14, UiTheme.MUTED))
 		for o in here:
 			_side.add_child(_offer_card(o))
+	elif selected == game.position:
+		var tabs := HBoxContainer.new()
+		tabs.add_theme_constant_override("separation", 6)
+		_side.add_child(tabs)
+		for i in 2:
+			var t := UiTheme.button(["Raumhafen", "Crew anheuern"][i], "", true)
+			t.button_pressed = i == _port_tab
+			t.custom_minimum_size.y = 40
+			t.pressed.connect(func() -> void:
+				_port_tab = i
+				refresh())
+			tabs.add_child(t)
+		if _port_tab == 0:
+			_render_port()
+		else:
+			_render_harbor()
 	else:
-		_render_harbor()
+		var l := UiTheme.label("Hafen: Raumhafen (Tanken, Werft, Material) und Anheuern, wenn das Schiff hier liegt.", 14, UiTheme.MUTED)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_side.add_child(l)
 	var others := game.offers.filter(func(o: Dictionary) -> bool: return o.system != selected)
 	if not others.is_empty():
 		_side.add_child(UiTheme.label("WEITERE AUFTRÄGE", 13, UiTheme.MUTED))
@@ -273,7 +307,7 @@ func _render_side() -> void:
 	_side.add_child(row)
 	var go := UiTheme.button("Kurs setzen (%d %s)" % [r.days, "Tag" if r.days == 1 else "Tage"] if selected != game.position else "Schiff ist hier",
 		"Zum System fliegen, ohne einen Auftrag anzunehmen")
-	go.disabled = selected == game.position or r.days < 0
+	go.disabled = selected == game.position or r.days < 0 or not game.can_travel(selected)
 	go.custom_minimum_size.y = 48
 	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	go.pressed.connect(func() -> void: travel.emit(selected))
@@ -287,6 +321,106 @@ func _render_side() -> void:
 	brief.add_theme_color_override("font_color", UiTheme.ACCENT)
 	brief.pressed.connect(func() -> void: start.emit(offer))
 	row.add_child(brief)
+
+
+## Kurs: Treibstoff (Schätzung, höchstens), Reiseposten, Warnungen
+func _render_route(days: int) -> void:
+	var est := Voyage.estimate_fuel(game, days)
+	var fl := UiTheme.label("Treibstoff: ca. %d (höchstens %d) · Tank %d" % [est, Voyage.FUEL_PER_DAY * days, game.fuel], 14,
+		UiTheme.BAD if game.fuel <= 0 else (Color("ff8a3d") if est > game.fuel else UiTheme.TEXT))
+	fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_side.add_child(fl)
+	if not game.can_travel(selected):
+		var why := "Tank leer" if game.fuel <= 0 else "Hülle 0"
+		var port := game.nearest_harbor()
+		var w := UiTheme.label("%s: nur Kurs zum nächsten Hafen (%s)." % [why, game.sector.systems[port].name if port >= 0 else "–"], 14, UiTheme.BAD)
+		w.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_side.add_child(w)
+	elif game.fuel <= 0:
+		_side.add_child(UiTheme.label("Notsprit: kein Verbrauch bis zum Hafen.", 14, Color("ff8a3d")))
+	elif est > game.fuel:
+		var w := UiTheme.label("Der Tank reicht vielleicht nicht. Läuft er leer, endet die Reise trotzdem am Ziel (Notsprit), danach nur Kurs zum Hafen.", 13, Color("ff8a3d"))
+		w.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_side.add_child(w)
+	_side.add_child(UiTheme.label("REISEPOSTEN (je Reisetag eine Probe)", 13, UiTheme.MUTED))
+	var g := GridContainer.new()
+	g.columns = 3
+	g.add_theme_constant_override("h_separation", 12)
+	for e in Voyage.assign(game):
+		g.add_child(UiTheme.label(e.post.name, 14, UiTheme.MUTED))
+		if e.ch == null:
+			g.add_child(UiTheme.label("unbesetzt", 14, UiTheme.BAD))
+			g.add_child(UiTheme.label("", 14))
+			continue
+		var n := HBoxContainer.new()
+		n.add_theme_constant_override("separation", 6)
+		n.add_child(UiTheme.label(e.ch.name, 14))
+		n.add_child(UiTheme.label(e.post.station if e.own else "Bester verfügbar", 12, UiTheme.MUTED if e.own else Color("ff8a3d")))
+		g.add_child(n)
+		g.add_child(UiTheme.label(Dice.fmt(Rules.skill_total(e.ch, e.post.skill)), 14))
+	_side.add_child(g)
+	var out := Campaign.crew().filter(func(c: Character) -> bool: return String(c.id) in game.medics and not c.is_locked())
+	if not out.is_empty():
+		var l := UiTheme.label("Nicht eingeteilt: %s – Krankenstation" % ", ".join(out.map(func(c: Character) -> String: return c.name)), 13, UiTheme.MUTED)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_side.add_child(l)
+
+
+## Raumhafen: Tanken (immer, auch auf Notkredit), Werft (große Reparatur), Schiffsmaterial
+func _render_port() -> void:
+	_side.add_child(UiTheme.label("Credits: %d Cr" % game.credits, 16, UiTheme.BAD if game.credits < 0 else UiTheme.ACCENT))
+	var price := Voyage.fuel_price(game)
+	var need := Voyage.TANK - game.fuel
+	var fuel := _port_box("Tanken", "Tank %d / %d" % [game.fuel, Voyage.TANK],
+		"%d Cr je Einheit%s · Tanken geht immer (Notkredit)" % [price, " (nach Notsprit doppelt)" if game.emergency else ""])
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	for n in [10, 25]:
+		var amt := mini(n, need)
+		row.add_child(_buy_button("+%d (%d Cr)" % [n, n * price], amt <= 0 or n > need, func() -> void: Voyage.buy_fuel(game, n)))
+	row.add_child(_buy_button("Volltanken +%d (%d Cr)" % [need, need * price], need <= 0, func() -> void: Voyage.buy_fuel(game, need)))
+	fuel.add_child(row)
+	var yard := _port_box("Werft: große Reparatur", "Hülle %d / %d" % [game.hull, Voyage.HULL_MAX],
+		"+%d Hülle für 1 Material + %d Cr Werftlohn%s" % [Voyage.YARD_HULL, Voyage.YARD_COST, " · Hülle 0: auch auf Notkredit" if Voyage.hull_emergency(game) else ""])
+	yard.add_child(_buy_button("1× reparieren (1 Material, %d Cr)" % Voyage.YARD_COST, not Voyage.can_yard_repair(game), func() -> void: Voyage.yard_repair(game)))
+	var mat := _port_box("Schiffsmaterial", "an Bord %d" % game.material, "%d Cr je Einheit · nur für große Reparaturen" % Voyage.MATERIAL_PRICE)
+	var mrow := HBoxContainer.new()
+	mrow.add_theme_constant_override("separation", 6)
+	for n in [1, 3]:
+		mrow.add_child(_buy_button("%d kaufen (%d Cr)" % [n, n * Voyage.MATERIAL_PRICE], not Voyage.can_buy_material(game, n), func() -> void: Voyage.buy_material(game, n)))
+	mat.add_child(mrow)
+
+
+func _port_box(title: String, value: String, note: String) -> VBoxContainer:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.LINE, 8, 10))
+	_side.add_child(p)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	p.add_child(v)
+	var head := HBoxContainer.new()
+	var t := UiTheme.label(title, 15)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(t)
+	head.add_child(UiTheme.label(value, 14))
+	v.add_child(head)
+	var l := UiTheme.label(note, 12, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(l)
+	return v
+
+
+func _buy_button(text: String, off: bool, act: Callable) -> Button:
+	var b := UiTheme.button(text)
+	b.disabled = off
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.add_theme_font_size_override("font_size", 13)
+	b.pressed.connect(func() -> void:
+		act.call()
+		Sfx.play(&"klick")
+		bought.emit()
+		refresh())
+	return b
 
 
 ## Hafen (neutrales System): Anheuern aus der Liste „im Hafen“ (mit Fortschritt) und aus dem Roster, nur bei freiem Platz

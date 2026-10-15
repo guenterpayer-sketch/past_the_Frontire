@@ -41,6 +41,15 @@ var last_healed: Array[Character] = []
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
 var report := {}
+## Schiff und Geld (Regeln: Voyage). Credits dürfen durch Notkredit negativ sein.
+var credits := Voyage.START_CREDITS
+var fuel := Voyage.TANK
+var hull := Voyage.HULL_MAX
+var material := Voyage.START_MATERIAL
+## Tank war leer (Notsprit): das nächste Tanken kostet das Doppelte
+var emergency := false
+## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
+var last_travel := {}
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
 var slot := 0
 var slot_name := ""
@@ -101,20 +110,66 @@ static func blocked_ids() -> Array:
 	return Medbay.blocked_ids(game) if game and not quick_battle else []
 
 
-## Reisen: Tage vergehen (siehe advance_days). Liefert die Reisetage.
+## Schiff festgesetzt: Tank leer oder Hülle 0 → nur noch Kurs zum nächsten Hafen
+func stranded() -> bool:
+	return fuel <= 0 or hull <= 0
+
+
+## Nächster Hafen (wenigste Reisetage; der eigene, wenn das Schiff in einem liegt)
+func nearest_harbor() -> int:
+	var best := -1
+	var best_days := 1 << 30
+	for i in sector.systems.size():
+		if not is_harbor(i):
+			continue
+		var d: int = 0 if i == position else sector.route(position, i).days
+		if d >= 0 and d < best_days:
+			best_days = d
+			best = i
+	return best
+
+
+## Darf das Schiff dorthin? Festgesetzt nur zum nächsten Hafen (aus einem Hafen heraus gar nicht)
+func can_travel(target: int) -> bool:
+	if target == position:
+		return false
+	if not stranded():
+		return true
+	return target == nearest_harbor()
+
+
+## Reisen: je Reisetag Reiseproben (Voyage.travel_day: Treibstoff, Hülle, EP), dann vergehen die Tage
+## (siehe advance_days). Liefert die Reisetage; den Bericht in last_travel.
 func travel_to(target: int) -> int:
 	if target == position:
 		return 0
 	var r := sector.route(position, target)
-	if r.days < 0:
+	if r.days < 0 or not can_travel(target):
 		return -1
+	var rep := {"from": sector.systems[position].name, "to": sector.systems[target].name, "days": r.days,
+		"day0": day, "fuel0": fuel, "hull0": hull, "rows": [], "emergency": fuel <= 0}
+	for i in r.days:
+		rep.rows.append(Voyage.travel_day(self, day + i + 1))
+	rep.fuel1 = fuel
+	rep.hull1 = hull
+	last_travel = rep
 	position = target
 	advance_days(r.days)
 	return r.days
 
 
+## Große Reparatur durch die Crew: 1 Tag, 1 Material, Reparaturprobe (Voyage.crew_repair). Leer = nicht möglich.
+func crew_repair() -> Dictionary:
+	var r := Voyage.crew_repair(self)
+	if not r.is_empty():
+		advance_days(1)
+	return r
+
+
 ## Ein Auftrag ist noch zu schaffen, wenn das Schiff vor Ablauf dort ist
 func reachable(offer: Dictionary) -> bool:
+	if offer.system != position and not can_travel(offer.system):
+		return false
 	return arrival_day(offer.system) <= int(offer.expires)
 
 
@@ -140,8 +195,17 @@ func abort_mission() -> void:
 	active = {}
 
 
-## Einsatz abgeschlossen: Auftrag erledigt (auch bei Niederlage), Zeit vergeht, Bericht fürs Schiff
+## Einsatz abgeschlossen: Auftrag erledigt (auch bei Niederlage), Lohn und Beute bei Sieg, Zeit vergeht, Bericht fürs Schiff
 func finish_mission(rep: Dictionary) -> void:
+	if not active.is_empty():
+		var pay := Voyage.payout(String(active.difficulty), String(sector.systems[active.system].faction), rep.get("outcome", &"") == &"sieg")
+		if not pay.is_empty():
+			pay.credits0 = credits
+			credits += int(pay.pay) + int(pay.bonus)
+			material += int(pay.loot)
+			pay.credits1 = credits
+			pay.difficulty = String(active.difficulty)
+		rep.payout = pay
 	offers = offers.filter(func(o: Dictionary) -> bool: return o.id != active.get("id", -1))
 	active = {}
 	missions_done += 1
@@ -182,7 +246,8 @@ func offers_at(system: int) -> Array[Dictionary]:
 func to_dict() -> Dictionary:
 	return {"day": day, "sector": sector.to_dict(), "position": position, "offers": offers.duplicate(true),
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
-		"medics": medics.duplicate(), "medlog": medlog.duplicate()}
+		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
+		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -198,6 +263,11 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.berths = int(d.get("berths", BERTHS_START))
 	g.medics = d.get("medics", []).map(func(x) -> String: return String(x))
 	g.medlog = d.get("medlog", []).duplicate()
+	g.credits = int(d.get("credits", Voyage.START_CREDITS))
+	g.fuel = int(d.get("fuel", Voyage.TANK))
+	g.hull = int(d.get("hull", Voyage.HULL_MAX))
+	g.material = int(d.get("material", Voyage.START_MATERIAL))
+	g.emergency = bool(d.get("emergency", false))
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g

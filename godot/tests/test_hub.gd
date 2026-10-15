@@ -18,6 +18,7 @@ func _init() -> void:
 	_test_save_slots()
 	_test_medbay_and_harbor()
 	_test_ui_scale()
+	_test_voyage()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -240,3 +241,113 @@ func _test_ui_scale() -> void:
 	check(is_equal_approx(UiScale.get_factor(), 0.75), "ungültige Stufe wird ignoriert")
 	check(UiScale.label(0.9) == "90 %", "Beschriftung")
 	UiScale.set_factor(before, self)
+
+
+func _test_voyage() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(91, "Reise", 1)
+	var crew := Campaign.crew()
+	check(g.credits == Voyage.START_CREDITS and g.fuel == Voyage.TANK and g.hull == Voyage.HULL_MAX and g.material == Voyage.START_MATERIAL, "Startwerte Schiff")
+	# Einteilung: Station zuerst, sonst Bester; jede Person ein Posten; Krankenstation und Gesperrte nicht
+	for c in crew:
+		c.station = ""
+	var tech: Character = crew[5]
+	tech.station = "Technik"
+	var a := Voyage.assign(g)
+	check(a[3].ch == tech and a[3].own, "Station Technik würfelt Reparatur")
+	var best_pilot: Character = null
+	for c in crew:
+		if c != tech and (best_pilot == null or Rules.skill_total(c, &"pilot") > Rules.skill_total(best_pilot, &"pilot")):
+			best_pilot = c
+	check(a[0].ch == best_pilot and not a[0].own, "ohne Station: Bester in Pilot")
+	var ids := {}
+	for e in a:
+		ids[e.ch] = true
+	check(ids.size() == 4, "jede Person höchstens ein Posten")
+	g.medics = [String(best_pilot.id)]
+	check(Voyage.assign(g)[0].ch != best_pilot and not best_pilot in Voyage.available(g), "Krankenstation würfelt keine Reiseprobe")
+	g.medics = []
+	best_pilot.injury = Injury.SEVERE
+	best_pilot.injury_days = 5
+	check(not best_pilot in Voyage.available(g), "Gesperrte würfeln nicht")
+	best_pilot.injury = ""
+	best_pilot.injury_days = 0
+	# Reisetag: Verbrauch zwischen Mindest- und Grundverbrauch, EP für die Würfelnden, Hülle im Rahmen
+	Dice.set_seed(11)
+	var xp0: int = Rules.ensure_skill(tech, &"rsReparatur").xp
+	var row := Voyage.travel_day(g, 2)
+	check(-row.fuel >= Voyage.FUEL_MIN and -row.fuel <= Voyage.FUEL_PER_DAY and g.fuel == Voyage.TANK + row.fuel, "Verbrauch je Reisetag (%d)" % row.fuel)
+	check(row.checks.size() == 4 and Rules.ensure_skill(tech, &"rsReparatur").xp == xp0 + row.checks[3].xp, "EP in der benutzten Fertigkeit")
+	check(row.hull == clampi(Voyage.HULL_MAX + int(Voyage.HULL_TRAVEL[row.checks[3].result]), 0, Voyage.HULL_MAX) - Voyage.HULL_MAX, "Hülle je Reparaturprobe (höchstens voll)")
+	# Schätzung: gute Crew spart, schlechte kaum
+	check(Voyage.expected_save(200) > Voyage.expected_save(0) and Voyage.expected_save(-100) < 0.1, "erwartete Ersparnis steigt mit dem Bonus")
+	check(Voyage.estimate_fuel(g, 3) <= 3 * Voyage.FUEL_PER_DAY and Voyage.estimate_fuel(g, 3) >= 3 * Voyage.FUEL_MIN, "Schätzung im Rahmen")
+	# Reise mit Bericht
+	g.fuel = Voyage.TANK
+	var nb: int = g.sector.neighbors(g.position)[0][0]
+	var days := g.travel_to(nb)
+	check(days > 0 and g.last_travel.rows.size() == days and g.last_travel.fuel1 == g.fuel, "Reisebericht je Tag")
+	# Tank leer: nur zum nächsten Hafen, Notsprit ohne Verbrauch, danach doppelter Preis
+	g.fuel = 1
+	Voyage.travel_day(g, g.day)
+	check(g.fuel == 0 and g.emergency and g.stranded(), "Tank läuft leer → Notsprit")
+	var port := g.nearest_harbor()
+	var other := -1
+	for i in g.sector.systems.size():
+		if i != port and i != g.position:
+			other = i
+			break
+	check(not g.can_travel(other) and g.travel_to(other) == -1, "festgesetzt: kein Kurs außer zum Hafen")
+	if port != g.position:
+		check(g.can_travel(port) and g.travel_to(port) > 0 and g.fuel == 0, "Notsprit bis zum Hafen ohne Verbrauch")
+	check(g.position == port and g.is_harbor(port), "im Hafen")
+	g.credits = 50
+	var got := Voyage.buy_fuel(g, 100)
+	check(got == Voyage.TANK and g.credits == 50 - Voyage.TANK * Voyage.FUEL_PRICE_EMERGENCY and not g.emergency, "Tanken nach Notsprit doppelt, Notkredit (%d Cr)" % g.credits)
+	check(Voyage.fuel_price(g) == Voyage.FUEL_PRICE, "danach wieder normaler Preis")
+	# Ohne Credits: Material und Werft gesperrt (außer Hülle 0)
+	g.hull = 50
+	check(not Voyage.can_buy_material(g) and not Voyage.buy_material(g) and not Voyage.can_yard_repair(g), "Material und Werft nicht auf Kredit")
+	g.credits = 1000
+	check(Voyage.buy_material(g, 3) and g.material == Voyage.START_MATERIAL + 3 and g.credits == 1000 - 3 * Voyage.MATERIAL_PRICE, "Material kaufen")
+	var m0 := g.material
+	check(Voyage.yard_repair(g) and g.hull == 50 + Voyage.YARD_HULL and g.material == m0 - 1, "Werft: +25 Hülle für 1 Material")
+	g.hull = 0
+	g.credits = -10
+	check(not g.can_travel(g.sector.neighbors(g.position)[0][0]), "Hülle 0: festgesetzt")
+	check(Voyage.can_yard_repair(g) and Voyage.yard_repair(g) and g.hull == Voyage.YARD_HULL, "Hülle 0: Werft auch auf Notkredit")
+	# große Reparatur durch die Crew: 1 Tag, 1 Material
+	g.hull = 40
+	g.material = 1
+	var d0 := g.day
+	var r := g.crew_repair()
+	check(not r.is_empty() and g.day == d0 + 1 and g.material == 0 and g.hull == clampi(40 + int(Voyage.HULL_CREW[r.result]), 0, 100), "Crew-Reparatur (%s)" % r.get("result_name", ""))
+	check(g.crew_repair().is_empty(), "ohne Material keine Crew-Reparatur")
+	# Lohn und Beute
+	check(Voyage.payout("mittel", "res://data/missions/rote_sonne.tres", true) == {"pay": 140, "bonus": 28, "factor": 1.2, "loot": 1}, "Lohn Rote Sonne mittel")
+	check(Voyage.payout("schwer", "res://data/missions/schmuggler.tres", true).loot == 3, "Beute Schmuggler schwer")
+	check(Voyage.payout("leicht", "res://data/missions/konzern.tres", false).is_empty(), "Niederlage: nichts")
+	var o: Dictionary = g.offers[0]
+	g.active = o
+	g.credits = -30
+	var cr0 := g.credits
+	var mat0 := g.material
+	g.finish_mission({"outcome": &"sieg"})
+	var pay: Dictionary = g.report.payout
+	check(g.credits == cr0 + int(pay.pay) + int(pay.bonus) and g.material == mat0 + int(pay.loot) and pay.credits0 == cr0, "Lohn verbucht, gleicht Schulden aus")
+	g.active = g.offers[0]
+	var cr1 := g.credits
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.credits == cr1 and g.report.payout.is_empty(), "Niederlage: kein Lohn")
+	# Speichern
+	g.emergency = true
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.credits == g.credits and h.fuel == g.fuel and h.hull == g.hull and h.material == g.material and h.emergency, "Schiffswerte im Spielstand")
+	var old := HubState.from_dict({"sector": g.sector.to_dict()})
+	check(old.credits == Voyage.START_CREDITS and old.fuel == Voyage.TANK, "alte Spielstände bekommen Startwerte")
+	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
