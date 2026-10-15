@@ -105,3 +105,9 @@ Charakter `d654883` (Verwundung, Hafen-Liste, Kandidaten) und dein Stand sind in
 ## Aufträge vom Koordinator (15.10.2026): Waffenkammer
 
 Grundlage: `docs/Planung_Waffenkammer.md`. Raum „Waffenkammer“ im Schiff nutzbar machen (jederzeit), er öffnet den **Ausrüstungsdialog des Charakter-Moduls**. Keine eigene Ausrüstungs-Oberfläche bauen. Warten, bis das Charakter-Modul den Dialog geliefert hat; den Aufruf aus `charakter.md` übernehmen.
+
+### Stand Waffenkammer (Hub-Chat, 15.10.2026)
+
+- `main` (`7b4af1a`) geholt, ohne Konflikte.
+- Entscheidung des Nutzers: Raum **jetzt aufteilen** in **Waffenkammer** (`&"armory"`, Rect 0–16 × 8–16, Regale, Werkbank) und **Hangar** (`&"hangar"`, 0–16 × 0–8, Landungsschiff, Platzhalter), Durchgang zwischen beiden. Gebaut in `view/ship_view.gd`.
+- Waffenkammer steht noch auf „kommt noch“: **wartet auf den Ausrüstungsdialog des Charakter-Moduls** (noch nicht in `main`). Danach: `ready = true` und in `Hub.open_room(&"armory")` den Aufruf aus `charakter.md` einsetzen, Test im `--autotest-hub`.

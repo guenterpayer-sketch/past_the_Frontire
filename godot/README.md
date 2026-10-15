@@ -22,7 +22,8 @@ Das **Schiff** (`hub.tscn`) ist die zentrale Szene zwischen den Einsätzen: ein 
 | Brücke | **Sternenkarte** des Sektors: 10 zufällige Systeme, jedes von einer Fraktion kontrolliert (2 neutral, darunter der Heimathafen), Sprungrouten mit 1–3 Reisetagen. System anklicken zeigt Route, Ankunftstag und Aufträge. „Kurs setzen“ fliegt hin (Tage vergehen), „Hinfliegen & Briefing“ nimmt den gewählten Auftrag an und startet den Bodenkampf. **Hafen** (neutrale Systeme, wenn das Schiff dort liegt): Anheuern aus der Liste „im Hafen“ (entlassene Figuren mit Fortschritt) und aus dem Roster (Kopie mit Roster-Stand), nur bei freiem Platz an Bord (`Campaign.hire()`). |
 | Crewquartiere | Charakterübersicht des Charakter-Moduls (`CrewOverview`, nach einem Einsatz mit dessen Ergebnis): Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen, Entlassen; Plätze an Bord aus `HubState.berths`. „Crew zurücksetzen“ und „Anheuern“ gibt es im Schiff nicht (neues Spiel beginnen bzw. Anheuern im Hafen). „Speichern & zurück“. |
 | Krankenstation | Patienten (`Campaign.patients()`) mit Stufe und Resttagen, Personal zuweisen (bis 2): wer die höhere **Zweite Hilfe** hat, ist **Arzt** (voller Bonus, bleibt beim Einsatz an Bord, in der Truppwahl gesperrt), der andere **Helfer** (halber Bonus). Jeden Tag mit Patienten eine Probe W100 offen + Arzt + Helfer/2: ab 100 heilt ein Tag zusätzlich, ab 150 zwei; Personal bekommt je Behandlungstag 1 EP in Zweiter Hilfe. Protokoll der letzten Tage, „1 Tag warten“ (`core/medbay.gd`, `ui/medbay_dialog.gd`). |
-| Waffenkammer / Hangar | Platzhalter („kommt noch“) |
+| Waffenkammer | Ausrüstung ändern (Dialog des Charakter-Moduls, sobald er in `main` ist; bis dahin „kommt noch“) |
+| Hangar | Platzhalter mit dem Landungsschiff („kommt noch“) |
 
 Oben links Spielstand, Tag, Position und offene Aufträge; oben rechts Speichern, Laden, Menü (Hauptmenü, Ton, Bedienung) und der Infokasten zum Raum unter der Maus.
 
