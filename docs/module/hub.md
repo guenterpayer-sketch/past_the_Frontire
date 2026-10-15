@@ -177,7 +177,7 @@ Grundlage: `docs/Planung_Ausruestungs_Editor.md` (Entscheidungen des Nutzers). E
   - `Gear.weapons()`, `Gear.armors()`: alle eigenen. `Gear.enemy_weapons(faction_path)`, `Gear.enemy_armors(faction_path)`: für Gegner dieser Fraktion freigegeben (Pfad der `FactionData`). `Gear.is_custom(r)`, `Gear.is_free(r)` (Vermerk „frei“).
   - Gelöscht: Datei fehlt, `load()` des Pfads schlägt fehl. **Charakter:** dann `Gear.FALLBACK_WEAPON` (Fäuste) für Waffe 1, Waffe 2 leer, `Gear.FALLBACK_ARMOR` (keine); `Equipment.weapons()/armors()` um `Gear.weapons()/armors()` ergänzen.
   - **Bodenkampf:** `GameData.weapons()` um `Gear.weapons()` ergänzen; Gegner bekommen `Gear.enemy_weapons/armors(Fraktion)` laut Einstellung.
-- **Offen (Nutzer: „später klären“):** Munition im Editor. Mit den Grenzen (±50 %) bleiben Magazin/Munition bei Vorlagen ohne Munition auf 0; einstellbar nur mit „frei“. Klären, wenn der Bodenkampf die Munition gebaut hat (`docs/Planung_Munition.md`).
+- ~~Offen: Munition im Editor~~ → erledigt mit „Munition (Teil Hub)“ (ohne Grenzen). Mit den Grenzen (±50 %) bleiben Magazin/Munition bei Vorlagen ohne Munition auf 0; einstellbar nur mit „frei“. Klären, wenn der Bodenkampf die Munition gebaut hat (`docs/Planung_Munition.md`).
 - Tests: `test_rules` OK, `test_hub` OK (Grenzen, Speichern mit Metadaten, Bearbeiten ändert getragenen Eintrag, frei, Gegner nach Fraktion, Charakter speichert per Pfad, Löschen), `--autotest-hub` durchgelaufen (Editor). `test_sim` nicht gelaufen (Bodenkampf unverändert, Testregel).
 
 ## Hinweis vom Koordinator (15.10.2026): Munition
@@ -189,3 +189,11 @@ Neue Entscheidungen in `docs/Planung_Munition.md`: Feuerstoß mit *Schuss pro An
 Munition Teil Kampf ist in `main` (`928b0f9`); Schnittstelle in `docs/module/bodenkampf.md` unter „Schnittstellen“ → Munition. Grundlage `docs/Planung_Munition.md`.
 1. Vorrat im Spielstand: `HubState.game.ammo = {"energie": n, "projektil": n, "raketen": n}`; nach dem Einsatz `ammo_used` aus dem `MissionResult` abziehen; Anzeige im Schiff; Kauf im Raumhafen (Preise mit dem Nutzer).
 2. Ausrüstungs-Editor: Felder `shots` (Schuss pro Angriff) und `ammo_type` (Munitionsart) ergänzen; `ammo_total` ist jetzt die Obergrenze der Mitnahme. `core/gear.gd` führt `ob_bonus` als „Angriffsbonus“ – der Feuerstoß läuft jetzt über `shots`.
+
+### Stand Munition, Teil Hub (Hub-Chat, 15.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`36ca0fe`) geholt, ohne Konflikte.
+- Entscheidungen des Nutzers: Startvorrat Energiezellen 200, Projektil 300, Raketen 6; Preise **teurer**: 2 / 2 / 50 Cr je Schuss (Pakete +30/+100, Raketen +1/+5), nur mit genug Credits (kein Notkredit); **Beute bei Sieg: wenig, zufällig** (eine Art, Energie/Projektil +10 bis +40, Raketen +1); Editor: Magazin, Munition gesamt, Schuss pro Angriff **ohne Grenzen** (kein Vermerk „frei“), Munitionsart wählbar; Anzeige ohne Mockup.
+- Gebaut: `HubState.ammo` (im Spielstand, alte Stände bekommen den Startvorrat), Abzug in `HubState.finish_mission()` aus `Campaign.last_result.ammo_used` (nicht unter 0; `rep.ammo_used` im Einsatzbericht), Statusleiste „Munition“, Kasten „Munition“ im Raumhafen, Beute im Einsatzbericht. Editor: Felder `magazine`, `ammo_total`, `shots`, Munitionsart; `ob_bonus` heißt jetzt „Angriffsbonus (fest)“. Regeln in `docs/Skillsystem.md` 8b.
+- **Schnittstelle:** unverändert wie vom Bodenkampf vorgegeben – `HubState.game.ammo = {"energie": n, "projektil": n, "raketen": n}` (`Battle.ammo_stock()` liest ihn), Rückgabe über `MissionResult.ammo_used`. Am Bodenkampf nichts geändert.
+- Tests: `test_rules` OK, `test_hub` OK (Startvorrat, Kauf nur im Hafen/mit Credits, Abzug nicht unter 0, Einsatzende mit Verbrauch und Beute, Speichern, Editor-Felder), `--autotest-hub` durchgelaufen (Raumhafen, Statusleiste, Einsatz mit Beute, Editor). `test_sim` nicht gelaufen (Kampf unverändert).

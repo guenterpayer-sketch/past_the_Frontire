@@ -33,6 +33,11 @@ const PAY_FACTOR := {"rote_sonne": 1.2, "konzern": 1.2}
 ## Beute (Schiffsmaterial) bei Sieg je Schwierigkeit, Zuschlag je Fraktion
 const LOOT := {"leicht": 0, "mittel": 1, "schwer": 2}
 const LOOT_BONUS := {"schmuggler": 1}
+## Munition (Arten Ammo.TYPES): Startvorrat, Preis je Schuss, Kaufpakete, Beute bei Sieg (eine zufällige Art)
+const AMMO_START := {"energie": 200, "projektil": 300, "raketen": 6}
+const AMMO_PRICE := {"energie": 2, "projektil": 2, "raketen": 50}
+const AMMO_PACKS := {"energie": [30, 100], "projektil": [30, 100], "raketen": [1, 5]}
+const AMMO_LOOT := {"energie": [10, 40], "projektil": [10, 40], "raketen": [1, 1]}
 
 ## Reiseposten: Fertigkeit, Station (Character.station), Anzeigename
 const POSTS := [
@@ -241,6 +246,38 @@ static func crew_repair(g: HubState) -> Dictionary:
 	return r
 
 
+## Munition kaufen (nur im Hafen, nur mit genug Credits)
+static func can_buy_ammo(g: HubState, type: String, n: int) -> bool:
+	return g.is_harbor(g.position) and n > 0 and g.credits >= n * int(AMMO_PRICE.get(type, 0))
+
+
+static func buy_ammo(g: HubState, type: String, n: int) -> bool:
+	if not can_buy_ammo(g, type, n):
+		return false
+	g.credits -= n * int(AMMO_PRICE[type])
+	g.ammo[type] = int(g.ammo.get(type, 0)) + n
+	return true
+
+
+## Verbrauch aus dem Einsatz abziehen (MissionResult.ammo_used), nicht unter 0. Gibt den tatsächlichen Abzug zurück.
+static func use_ammo(g: HubState, used: Dictionary) -> Dictionary:
+	var out := {}
+	for t in used:
+		var have := int(g.ammo.get(String(t), 0))
+		var n := mini(have, int(used[t]))
+		g.ammo[String(t)] = have - n
+		if n > 0:
+			out[String(t)] = n
+	return out
+
+
+## Munitions-Beute bei Sieg: eine zufällige Art, Menge aus AMMO_LOOT
+static func ammo_loot() -> Dictionary:
+	var types := AMMO_LOOT.keys()
+	var t: String = types[randi() % types.size()]
+	return {t: randi_range(AMMO_LOOT[t][0], AMMO_LOOT[t][1])}
+
+
 ## Lohn und Beute für einen Auftrag; leer bei Niederlage/Rückzug
 static func payout(difficulty: String, faction_path: String, win: bool) -> Dictionary:
 	if not win:
@@ -249,4 +286,4 @@ static func payout(difficulty: String, faction_path: String, win: bool) -> Dicti
 	var base: int = PAY.get(difficulty, 0)
 	var total := roundi(base * float(PAY_FACTOR.get(key, 1.0)))
 	return {"pay": base, "bonus": total - base, "factor": float(PAY_FACTOR.get(key, 1.0)),
-		"loot": int(LOOT.get(difficulty, 0)) + int(LOOT_BONUS.get(key, 0))}
+		"loot": int(LOOT.get(difficulty, 0)) + int(LOOT_BONUS.get(key, 0)), "ammo": ammo_loot()}

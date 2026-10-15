@@ -25,9 +25,11 @@ const WEAPON_FIELDS := [
 	{"key": "max_result", "name": "Höchstergebnis", "kind": "abs", "d": 10, "step": 1, "min": 50},
 	{"key": "fumble", "name": "Patzer bis", "kind": "abs", "d": 2, "step": 1, "min": 1},
 	{"key": "damage", "name": "Schaden", "kind": "abs", "d": 0.2, "step": 0.1, "min": 0.1},
-	{"key": "ob_bonus", "name": "Angriffsbonus", "kind": "abs", "d": 10, "step": 1, "min": -100, "sign": true},
-	{"key": "magazine", "name": "Magazin", "kind": "pct", "step": 1, "min": 0},
-	{"key": "ammo_total", "name": "Munition", "kind": "pct", "step": 1, "min": 0},
+	{"key": "ob_bonus", "name": "Angriffsbonus (fest)", "kind": "abs", "d": 10, "step": 1, "min": -100, "sign": true},
+	# Munition: ohne Grenzen (Entscheidung des Nutzers), kein Vermerk „frei“; Regeln core/ammo.gd
+	{"key": "magazine", "name": "Magazin (0 = ohne)", "kind": "pct", "step": 1, "min": 0, "unlimited": true, "ranged": true},
+	{"key": "ammo_total", "name": "Munition gesamt", "kind": "pct", "step": 1, "min": 0, "unlimited": true, "ranged": true},
+	{"key": "shots", "name": "Schuss pro Angriff", "kind": "abs", "d": 0, "step": 1, "min": 1, "unlimited": true, "ranged": true},
 	{"key": "splash0", "name": "Druckwelle 1,5 m", "kind": "abs", "d": 10, "step": 1, "min": -100, "sign": true, "splash": 0},
 	{"key": "splash1", "name": "Druckwelle 3 m", "kind": "abs", "d": 10, "step": 1, "min": -100, "sign": true, "splash": 1},
 ]
@@ -218,7 +220,7 @@ static func set_value(r: Resource, f: Dictionary, v: float) -> void:
 ## Grenzen [min, max] eines Werts um die Vorlage (bei free nur die Unter- und eine sehr hohe Obergrenze)
 static func limits(r: Resource, f: Dictionary) -> Vector2:
 	var lo := float(f.get("min", 0))
-	if is_free(r):
+	if is_free(r) or f.get("unlimited", false):
 		return Vector2(lo, FREE_MAX)
 	var t := template_of(r)
 	var base := get_value(t, f) if t else get_value(r, f)

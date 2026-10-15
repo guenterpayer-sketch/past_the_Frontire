@@ -48,6 +48,8 @@ var hull := Voyage.HULL_MAX
 var material := Voyage.START_MATERIAL
 ## Tank war leer (Notsprit): das nächste Tanken kostet das Doppelte
 var emergency := false
+## Schiffsvorrat Munition {Art: Schuss} (Arten Ammo.TYPES); der Bodenkampf liest ihn (Battle.ammo_stock())
+var ammo := Voyage.AMMO_START.duplicate()
 ## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
 var last_travel := {}
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
@@ -198,11 +200,15 @@ func abort_mission() -> void:
 ## Einsatz abgeschlossen: Auftrag erledigt (auch bei Niederlage), Lohn und Beute bei Sieg, Zeit vergeht, Bericht fürs Schiff
 func finish_mission(rep: Dictionary) -> void:
 	if not active.is_empty():
+		# Munitionsverbrauch aus dem Einsatz abziehen (Campaign.finish_mission() lief vorher mit dem MissionResult)
+		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
 		var pay := Voyage.payout(String(active.difficulty), String(sector.systems[active.system].faction), rep.get("outcome", &"") == &"sieg")
 		if not pay.is_empty():
 			pay.credits0 = credits
 			credits += int(pay.pay) + int(pay.bonus)
 			material += int(pay.loot)
+			for t in pay.ammo:
+				ammo[t] = int(ammo.get(t, 0)) + int(pay.ammo[t])
 			pay.credits1 = credits
 			pay.difficulty = String(active.difficulty)
 		rep.payout = pay
@@ -247,7 +253,7 @@ func to_dict() -> Dictionary:
 	return {"day": day, "sector": sector.to_dict(), "position": position, "offers": offers.duplicate(true),
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
-		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency}
+		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate()}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -268,6 +274,10 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.hull = int(d.get("hull", Voyage.HULL_MAX))
 	g.material = int(d.get("material", Voyage.START_MATERIAL))
 	g.emergency = bool(d.get("emergency", false))
+	var am: Dictionary = d.get("ammo", Voyage.AMMO_START)
+	g.ammo = {}
+	for t in Voyage.AMMO_START:
+		g.ammo[t] = int(am.get(t, Voyage.AMMO_START[t]))
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g
