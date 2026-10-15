@@ -87,3 +87,10 @@ Grundlage: `docs/Planung_UI_Groesse.md`.
 Der Hub baut einen Musikspieler (Autoload `Music`, siehe `docs/module/hub.md`, Auftrag „Musik“). **Warten, bis er in `main` ist.** Dann nur Aufrufe einbauen: Kampfmusik im Bodenkampf (ob ruhiger in Runde 0, mit dem Nutzer klären), Sieg/Niederlage beim Ergebnis-Banner. Keinen eigenen Spieler bauen.
 - **Musikspieler ist in `main` (`b9f6c33`).** Aufrufe: Briefing und Runde 0 `Music.play(Music.BRIEFING)`, ab Runde 1 `Music.play(Music.BATTLE)`, Ergebnis-Banner `Music.play(Music.VICTORY)` bzw. `Music.play(Music.DEFEAT)`. Details `docs/module/hub.md`. Jetzt `main` holen und einbauen.
 - **Erledigt (15.10.2026):** `Battle.new_battle` → `Music.play(Music.BRIEFING)` (Briefing und Runde 0, auch bei „Neue Mission“ im Kampf), `Battle.begin_combat` → `Music.play(Music.BATTLE)`, `Battle.finish_mission` → `Music.play(Music.VICTORY)` bzw. `Music.DEFEAT` (Rückzug = Niederlage; auch im Schnellkampf, der kein Banner hat, bis zur Rückkehr ins Startmenü). Kein eigener Spieler. Tests: `test_rules`, `test_hub` OK; Kampfstart ohne Grafik geprüft (Aufrufe ohne Fehler).
+
+## Aufträge vom Koordinator (15.10.2026): Übersicht Psi-Listen
+
+Das Charakter-Modul baut eine gemeinsame Anzeige der Psi-Listen (siehe `docs/module/charakter.md`, gleicher Auftrag). **Warten, bis sie in `main` ist**, dann einbauen:
+1. Im Kampfmenü **„Tabellen“** (`ui/tables_dialog.gd`) neben den Waffen auch die Psi-Listen (Wunsch des Nutzers).
+2. **Tooltip** im Aktionsfeld beim Auswählen einer Psi-Kraft: Wirkung, Kosten, Probe.
+Keine eigene Liste der Wirkungstexte anlegen; Daten aus `PsiLists`.

@@ -69,3 +69,11 @@ In `main`, nichts offen. `main` holen (Hub `479e767` ist drin). Schnittstellen u
 
 Grundlage: `docs/Planung_Waffenkammer.md`. Du baust den **Ausrüstungsdialog** (Waffe 1/2, Rüstung, Schild ändern; Medikits/Munition nur anzeigen; Werte aus `WeaponData`/`ArmorData` inkl. Bonus der Figur in der Waffenfertigkeit). Bestand unbegrenzt, Änderung gilt für die Figur im Spielstand. **Erst Mockup**, vom Nutzer bestätigen lassen, dann bauen. Der Hub öffnet den Dialog aus dem Raum „Waffenkammer“ – Aufruf (Funktion/Signal) in den Schnittstellen vermerken.
 - (15.10.2026) Waffenkammer: Ausrüstungsdialog → gebaut (siehe Stand); Aufruf für den Hub unter „Schnittstellen“.
+
+## Aufträge vom Koordinator (15.10.2026): Übersicht Psi-Listen
+
+Nutzer: Es fehlt eine Übersicht, was die Psi-Listen und ihre Kräfte bewirken. Daten liegen in `core/psi_lists.gd` (`PsiLists.LISTS`, je Kraft Stufe, Name, Wirkung; Regeln `docs/Skillsystem.md` 6.1).
+1. **Gemeinsamer Baustein (nur du baust ihn):** eine Anzeige der Listen mit Kräften je Stufe (Name, Stufe = PP-Kosten, Wirkung, Probe; bei einer Figur: welche Stufen schon verfügbar sind). Als Funktion/Widget, das auch der Bodenkampf einbauen kann. Schnittstelle unter „Schnittstellen“ vermerken.
+2. Einbauen in **Charakterübersicht/Aufleveln** (was bringt der nächste Rang) und **Charakter-Editor** (bei der Wahl der Listen).
+3. Kommentar oben in `core/psi_lists.gd` („im Kampf bisher nur Psi-Schild und Psi-Stoß“) ist veraltet; Wirkungstexte mit dem Stand im Bodenkampf abgleichen (z. B. „Am Leben halten“ stabilisiert, siehe 6.1).
+Vorher **Mockup** zeigen und vom Nutzer bestätigen lassen.
