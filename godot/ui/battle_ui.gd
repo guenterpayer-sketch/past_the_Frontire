@@ -1,21 +1,23 @@
 class_name BattleUI
 extends Control
-## Oberfläche als schwebende Kästen über der Karte (die Karte nutzt den ganzen Bildschirm):
-## oben links Initiative, oben rechts Menü und Infokasten, unten links Würfel, Kampflog und Figurenkarte,
-## unten rechts Aktionsblock (eigener Zug, Aufstellung) oder Karte der Figur, die die KI steuert.
+## Oberfläche als schwebende Kästen über der Karte (die Karte nutzt den ganzen Bildschirm), Variante C
+## (Entscheidung Nutzer 15.10.2026): oben links Initiative, oben rechts Menü; darunter rechts eine **Seitenleiste**
+## (Figurenkarte, Aktionen in einklappbaren Abschnitten, „Zug beenden“), selbst einklappbar; links daneben der
+## Infokasten; unten links Würfel und Kampflog (eingeklappt eine Zeile).
 
 signal action(name: StringName, arg: Variant)
 
 const MARGIN := 14.0
 const GAP := 8.0
+const SIDE_W := 290.0
 
 var top_menu: TopMenu
 var info: InfoBox
 var initiative: InitiativeBar
 var dice_panel: DicePanel
 var combat_log: CombatLog
-var card: UnitCard           # unten links: eigene Figur
-var ai_card: UnitCard        # unten rechts: Figur unter KI-Steuerung
+var card: UnitCard           # Seitenleiste: eigene Figur
+var ai_card: UnitCard        # Seitenleiste: Figur unter KI-Steuerung
 var actions: ActionPanel
 var sheet: SheetDialog
 var tables: TablesDialog
@@ -25,9 +27,9 @@ var result_banner: ResultBanner
 var active_tag: ActiveTag
 var context_menu: ContextMenu
 var _confirm: ConfirmationDialog
+var side: PanelContainer     # Seitenleiste rechts
+var _fold: Button            # Seitenleiste ein-/ausklappen
 var _left: VBoxContainer
-var _right: VBoxContainer
-var _top_right: VBoxContainer
 
 
 func _ready() -> void:
@@ -39,34 +41,41 @@ func _ready() -> void:
 	initiative.jump.connect(func(u: Combatant) -> void: action.emit(&"jump", u))
 	add_child(initiative)
 
-	_top_right = _stack(false)
 	top_menu = TopMenu.new()
 	top_menu.action.connect(func(n: StringName, a: Variant) -> void: action.emit(n, a))
-	_top_right.add_child(top_menu)
+	add_child(top_menu)
 	info = InfoBox.new()
 	info.confirm.connect(func() -> void: action.emit(&"confirm", null))
-	_top_right.add_child(info)
-	info.size_flags_horizontal = Control.SIZE_SHRINK_END
-	top_menu.size_flags_horizontal = Control.SIZE_SHRINK_END
+	add_child(info)
 
 	_left = _stack(true)
 	dice_panel = DicePanel.new()
 	dice_panel.custom_minimum_size.x = 360
+	dice_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_left.add_child(dice_panel)
 	combat_log = CombatLog.new()
 	_left.add_child(combat_log)
+
+	side = PanelContainer.new()
+	side.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.94), UiTheme.LINE, 10, 10))
+	side.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(side)
+	var sv := VBoxContainer.new()
+	sv.add_theme_constant_override("separation", 6)
+	side.add_child(sv)
 	card = UnitCard.new()
 	card.action.connect(func(n: StringName, a: Variant) -> void: action.emit(n, a))
-	_left.add_child(card)
-
-	_right = _stack(true)
+	sv.add_child(card)
 	ai_card = UnitCard.new()
-	_right.add_child(ai_card)
+	sv.add_child(ai_card)
 	actions = ActionPanel.new()
 	actions.action.connect(func(n: StringName, a: Variant) -> void: action.emit(n, a))
-	_right.add_child(actions)
-	ai_card.size_flags_horizontal = Control.SIZE_SHRINK_END
-	actions.size_flags_horizontal = Control.SIZE_SHRINK_END
+	sv.add_child(actions)
+	_fold = UiTheme.button("›", "Seitenleiste einklappen")
+	_fold.custom_minimum_size = Vector2(26, 44)
+	_fold.pressed.connect(func() -> void: set_side_open(not side.visible))
+	add_child(_fold)
+	set_side_open(Prefs.get_bool("side_open", true))
 
 	sheet = SheetDialog.new()
 	tables = TablesDialog.new()
@@ -99,13 +108,31 @@ func _stack(bottom: bool) -> VBoxContainer:
 	return v
 
 
+## Seitenleiste ein- oder ausklappen (gespeichert); eingeklappt bleibt nur der Knopf am Rand (Enter beendet den Zug)
+func set_side_open(on: bool) -> void:
+	side.visible = on
+	_fold.text = "›" if on else "‹"
+	_fold.tooltip_text = "Seitenleiste einklappen" if on else "Seitenleiste ausklappen (Aktionen, Zug beenden)"
+	Prefs.set_bool("side_open", on)
+
+
 func _process(_d: float) -> void:
 	# Stapel passen sich ihrem Inhalt an (Karten werden bei jedem Zug neu gefüllt)
-	for v in [_left, _right, _top_right]:
-		v.reset_size()
+	_left.reset_size()
+	top_menu.reset_size()
+	info.reset_size()
 	_place(_left, Vector2(MARGIN, size.y - MARGIN - _left.size.y))
-	_place(_right, Vector2(size.x - MARGIN - _right.size.x, size.y - MARGIN - _right.size.y))
-	_place(_top_right, Vector2(size.x - MARGIN - _top_right.size.x, MARGIN))
+	_place(top_menu, Vector2(size.x - MARGIN - top_menu.size.x, MARGIN))
+	var top := MARGIN + top_menu.size.y + GAP
+	var side_x := size.x - MARGIN - SIDE_W
+	_place(side, Vector2(side_x, top))
+	# ohne Aktionen (Gegner/KI am Zug) nur so hoch wie die Figurenkarte
+	var side_size := Vector2(SIDE_W, size.y - top - MARGIN if actions.visible else side.get_combined_minimum_size().y)
+	if side.size != side_size:
+		side.size = side_size
+	_place(_fold, Vector2((side_x if side.visible else size.x - MARGIN) - _fold.size.x, top + 16))
+	var info_right := (side_x if side.visible else size.x - MARGIN) - _fold.size.x - GAP
+	_place(info, Vector2(info_right - info.size.x, top))
 	if result_banner.visible:
 		result_banner.reset_size()
 		_place(result_banner, (size - result_banner.size) / 2.0)
@@ -139,8 +166,8 @@ func close_dialogs() -> bool:
 
 func show_help() -> void:
 	help.open("Bedienung")
-	var l := UiTheme.label("""Maus über ein blaues Feld: Vorschau im Infokasten oben rechts. Grüne Linien/Ringe = von dort treffbar, rote = wer dich dort treffen kann.
-Blaues Feld anklicken: bewegen (Gangart im Aktionsblock). Rot umrandeten Gegner anklicken: angreifen (Aktivität 20–100 %).
+	var l := UiTheme.label("""Maus über ein blaues Feld: Vorschau im Infokasten oben (links neben der Seitenleiste). Grüne Linien/Ringe = von dort treffbar, rote = wer dich dort treffen kann.
+Blaues Feld anklicken: bewegen (Gangart in der Seitenleiste rechts; Abschnitte per Klick auf die Überschrift ein-/ausklappen, „›“ klappt die ganze Leiste ein). Rot umrandeten Gegner anklicken: angreifen (Aktivität 20–100 %).
 Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.
 Kamera: ziehen (links/Mitte), WASD/Pfeile, Mausrad = Zoom, Q/E = um 90° drehen. Enter = Zug beenden, R = Reichweite, G = Raster, Esc = abbrechen.
 Handy/Tablet: ziehen = verschieben, zwei Finger = zoomen, antippen = Vorschau, „Ausführen“ im Infokasten oder nochmal antippen = ausführen, lange drücken = drehen.""", 15)
@@ -162,7 +189,7 @@ func hide_tip() -> void:
 func covers(p: Vector2) -> bool:
 	if any_dialog_open():
 		return true
-	for c in [top_menu, info, dice_panel, combat_log, card, ai_card, actions, result_banner, context_menu]:
+	for c in [top_menu, info, dice_panel, combat_log, side, _fold, result_banner, context_menu]:
 		if c.visible and c.get_global_rect().has_point(p):
 			return true
 	for c in initiative.get_children():
@@ -179,3 +206,13 @@ func ask(text: String, ok_text: String, on_ok: Callable) -> void:
 	_confirm.ok_button_text = ok_text
 	_confirm.confirmed.connect(on_ok, CONNECT_ONE_SHOT)
 	_confirm.popup_centered()
+
+
+## Einstellung UI-Größe (Funktion des Hubs, gilt fürs ganze Spiel, sofort)
+func show_ui_scale() -> void:
+	help.open("UI-Größe")
+	var l := UiTheme.label("Größe der Oberfläche für das ganze Spiel (gespeichert). Die Karte bleibt gleich.", 14, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.content.add_child(l)
+	help.content.add_child(UiScale.picker(get_tree()))
+	help.add_close()

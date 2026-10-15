@@ -228,6 +228,7 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+70 VW**; auf ein Ziel in voller Deckung sind nur gezielte Schüsse möglich (mind. 60 % Aktivität), keine Reaktionsschüsse |
 | Angreifer steht mind. 2 Stufen (3 m) über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
 | Hohe Hindernisse zwischen Schütze und Ziel | blockieren die Sichtlinie |
+| **Kistenstapel** (1,5 m) zwischen Schütze und Ziel | ein einzelner Stapel auf der Linie sperrt die Sicht nicht, erst zwei oder mehr (Kistenwand); direkt vor dem Ziel bleibt er halbe Deckung (Entscheidung 15.10.2026) |
 | Figur an der Kante der **Galerie** gegen tiefer stehende Schützen | **Geländer**: halbe Deckung (+40 VW) |
 | Niedrige Deckung direkt neben Schütze oder Ziel | wird überschossen – aber nur, wenn das Auge des Schützen über ihrer Oberkante liegt (von unten blockiert sie) |
 

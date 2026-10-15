@@ -5,7 +5,9 @@ extends PanelContainer
 
 signal action(name: StringName, arg: Variant)
 
-const MENU := [[&"new", "Neue Mission"], [&"grid", "Hexraster ein/aus (G)"], [&"range", "Reichweite zeigen (R)"], [&"help", "Bedienung"]]
+const MENU := [[&"new", "Neue Mission"], [&"grid", "Hexraster ein/aus (G)"], [&"range", "Reichweite zeigen (R)"], [&"ui_scale", "UI-Größe …"], [&"help", "Bedienung"]]
+## Seitenlänge der Symbolknöpfe (kompakte Kampf-UI)
+const ICON := 36.0
 
 var round_label: Label
 var mission_label: Label
@@ -14,18 +16,18 @@ var _popup: PopupMenu
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 6))
+	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 5))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	add_child(row)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 0)
 	col.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.custom_minimum_size.x = 150
-	round_label = UiTheme.label("Runde 0", 16, UiTheme.ACCENT)
-	mission_label = UiTheme.label("", 12, UiTheme.MUTED)
+	col.custom_minimum_size.x = 130
+	round_label = UiTheme.label("Runde 0", 14, UiTheme.ACCENT)
+	mission_label = UiTheme.label("", 11, UiTheme.MUTED)
 	mission_label.clip_text = true
-	mission_label.custom_minimum_size.x = 150
+	mission_label.custom_minimum_size.x = 130
 	mission_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	col.add_child(round_label)
 	col.add_child(mission_label)
@@ -33,15 +35,15 @@ func _ready() -> void:
 	for spec in [[&"sheet", &"person", "Charakterbogen", false], [&"tables", &"table", "Tabellen", false],
 			[&"auto", &"chip", "KI für Crew (zuschauen)", true], [&"sound", &"speaker", "Ton an/aus", true],
 			[&"dice", &"dice", "Würfelanimation an/aus (2 W10: rot = Zehner, weiß = Einer)", true]]:
-		var b := IconButton.new(spec[1], spec[2], spec[3])
+		var b := IconButton.new(spec[1], spec[2], spec[3], ICON)
 		b.pressed.connect(func() -> void: action.emit(spec[0], b.button_pressed))
 		row.add_child(b)
 		if spec[3]:
 			toggles[spec[0]] = b
 	# Menü als MenuButton (Godot setzt das Aufklappmenü selbst richtig), Symbol: drei Striche
 	var menu := MenuButton.new()
-	menu.tooltip_text = "Menü: Neue Mission, Raster, Reichweite, Bedienung"
-	menu.custom_minimum_size = Vector2(44, 44)
+	menu.tooltip_text = "Menü: Neue Mission, Raster, Reichweite, UI-Größe, Bedienung"
+	menu.custom_minimum_size = Vector2(ICON, ICON)
 	menu.focus_mode = Control.FOCUS_NONE
 	menu.flat = false
 	var popup := menu.get_popup()

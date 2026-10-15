@@ -302,6 +302,8 @@ func _run_psi() -> void:
 		await get_tree().process_frame
 	print("Psi: am Zug %s, Kräfte %s, Angriffskräfte %s" % [c.current.name, nyx.powers, nyx.weapons.filter(func(w: WeaponData) -> bool: return w.power != "").map(func(w: WeaponData) -> String: return w.name)])
 	await _screenshot(out + "/s1_psi_zeile.png")
+	if not ActionPanel.is_open(&"psi"):
+		await _click_button("PSI ·")
 	await _click_button("Schutz 4")
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/s2_reiter_schutz.png")

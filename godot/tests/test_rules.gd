@@ -101,6 +101,23 @@ func _test_cover() -> void:
 	check(m.cover(T.call(2), T.call(8)).get("level", 0) == 2, "1 Stufe über dem Container: volle Deckung bleibt")
 	T.call(8).h = 4
 	check(m.cover(T.call(2), T.call(8)).get("level", 0) == 1, "2 Stufen über dem Container: halbe Deckung")
+	# Kistenstapel (Höhe 1) sperren die Sicht nur als Wand: eines auf der Linie nicht, zwei schon
+	var k := _row_map(10)
+	var K := func(q: int) -> BattleMap.Tile: return k.tile(Vector2i(q, 0))
+	K.call(4).terrain = &"kiste"
+	K.call(4).h = 1
+	check(k.line_of_sight(K.call(9), K.call(1)), "ein Kistenstapel mitten auf der Linie sperrt nicht")
+	check(k.cover(K.call(1), K.call(9)).is_empty(), "Kiste 3 Felder vor dem Ziel: keine Deckung")
+	K.call(5).terrain = &"kiste"
+	K.call(5).h = 1
+	k.clear_cache()
+	check(not k.line_of_sight(K.call(9), K.call(1)), "zwei Kistenstapel auf der Linie sperren")
+	K.call(5).terrain = &"boden"
+	K.call(5).h = 0
+	K.call(2).terrain = &"kiste"
+	K.call(2).h = 1
+	k.clear_cache()
+	check(k.cover(K.call(1), K.call(9)).get("level", 0) == 1, "Kiste direkt vor dem Ziel: halbe Deckung")
 
 
 func _test_facing() -> void:

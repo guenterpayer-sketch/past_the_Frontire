@@ -1,7 +1,7 @@
 class_name UnitCard
 extends PanelContainer
-## Karte einer Figur: Name, Rolle, TP/PP/Aktivität, AW/VW/INI, Blickrichtung, Zustände.
-## Unten links für die eigene Figur, unten rechts für die Figur, die die KI gerade steuert.
+## Karte einer Figur (kompakt, oben in der Seitenleiste): Name, Rolle, TP/PP/Aktivität, AW/VW/INI, Blickrichtung, Zustände.
+## Für die eigene Figur am Zug bzw. in Runde 0 die gewählte, sonst für die Figur, die die KI gerade steuert.
 
 signal action(name: StringName, arg: Variant)
 
@@ -9,11 +9,10 @@ var _box: VBoxContainer
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.94), UiTheme.LINE, 12, 12))
-	custom_minimum_size.x = 360
+	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_box = VBoxContainer.new()
-	_box.add_theme_constant_override("separation", 7)
+	_box.add_theme_constant_override("separation", 4)
 	add_child(_box)
 
 
@@ -26,18 +25,21 @@ func refresh(c: Combat, u: Combatant, note := "", w: WeaponData = null) -> void:
 		return
 	show()
 	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 10)
-	head.add_child(UiTheme.badge(u.letter, u.color, 40))
+	head.add_theme_constant_override("separation", 8)
+	head.add_child(UiTheme.badge(u.letter, u.color, 30))
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 0)
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	col.add_child(UiTheme.label(u.name, 18, UiTheme.CREW if u.is_crew else UiTheme.ENEMY))
-	var sub := UiTheme.label("%s · %s" % [u.role, "Crew" if u.is_crew else "Gegner"], 12, UiTheme.MUTED)
+	var nm := UiTheme.label(u.name, 15, UiTheme.CREW if u.is_crew else UiTheme.ENEMY)
+	nm.clip_text = true
+	col.add_child(nm)
+	var sub := UiTheme.label("%s · %s" % [u.role, "Crew" if u.is_crew else "Gegner"], 11, UiTheme.MUTED)
 	sub.clip_text = true
 	col.add_child(sub)
 	head.add_child(col)
 	if u.is_crew:
 		var b := UiTheme.button("Bogen", "Charakterbogen")
+		b.add_theme_font_size_override("font_size", 12)
 		b.pressed.connect(action.emit.bind(&"sheet", u))
 		head.add_child(b)
 	_box.add_child(head)
@@ -54,19 +56,18 @@ func refresh(c: Combat, u: Combatant, note := "", w: WeaponData = null) -> void:
 	stats.add_child(_stat("VW", c.dodge_value(u), "Ausweichen ½ + ½ × übrige Aktivität, + Rüstung (ohne Deckung/Schild)"))
 	if not c.deploying:
 		stats.add_child(_stat("INI", u.init, "Initiative diese Runde"))
-	var facing := UiTheme.label("Blick %s" % Hex.DIR_NAMES[u.facing], 14, UiTheme.MUTED)
+	var facing := UiTheme.label("Blick %s" % Hex.DIR_NAMES[u.facing], 12, UiTheme.MUTED)
 	facing.tooltip_text = "Blickrichtung (Rechtsklick dreht)"
 	facing.mouse_filter = Control.MOUSE_FILTER_PASS
 	stats.add_child(facing)
 	_box.add_child(stats)
 	var status := u.status_list()
 	if status:
-		var st := UiTheme.label(" · ".join(status), 12, UiTheme.ACCENT)
+		var st := UiTheme.label(" · ".join(status), 11, UiTheme.ACCENT)
 		st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_box.add_child(st)
 	if note != "":
-		_box.add_child(UiTheme.label(note, 15, UiTheme.ENEMY if not u.is_crew else UiTheme.CREW))
-	reset_size()
+		_box.add_child(UiTheme.label(note, 13, UiTheme.ENEMY if not u.is_crew else UiTheme.CREW))
 
 
 static func bar(text: String, v: int, max_v: int, color: Color) -> Control:
@@ -74,9 +75,9 @@ static func bar(text: String, v: int, max_v: int, color: Color) -> Control:
 	pb.max_value = maxi(max_v, 1)
 	pb.value = clampi(v, 0, max_v)
 	pb.show_percentage = false
-	pb.custom_minimum_size.y = 22
+	pb.custom_minimum_size.y = 17
 	pb.add_theme_stylebox_override("fill", UiTheme.box(Color(color, 0.75), color, 4, 0, 0))
-	var l := UiTheme.label(text, 13, Color.WHITE)
+	var l := UiTheme.label(text, 11, Color.WHITE)
 	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	l.offset_left = 8
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -85,7 +86,7 @@ static func bar(text: String, v: int, max_v: int, color: Color) -> Control:
 
 
 func _stat(name: String, v: int, tip: String) -> Label:
-	var l := UiTheme.label("%s %d" % [name, v], 15)
+	var l := UiTheme.label("%s %d" % [name, v], 12)
 	l.tooltip_text = tip
 	l.mouse_filter = Control.MOUSE_FILTER_PASS
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL

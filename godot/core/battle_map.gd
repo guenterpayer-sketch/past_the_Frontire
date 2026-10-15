@@ -230,10 +230,13 @@ static func _line_point(a: Vector2i, b: Vector2i, i: int, n: int, nudge: int) ->
 	return Hex.round_axial(a.x + e + (b.x - a.x) * f, a.y + e + (b.y - a.y) * f)
 
 
+## Kistenstapel sperren nur als Wand: ein einzelnes Kistenfeld auf der Linie nicht, erst das zweite
+## (Entscheidung Nutzer 15.10.2026, Variante C; einzelne Kisten bleiben Deckung, siehe cover()).
 func _line(x: Tile, y: Tile, nudge: int) -> bool:
 	var n := Hex.distance(x.pos, y.pos)
 	var h0 := x.h + EYE
 	var h1 := y.h + AIM
+	var crates := 0
 	for i in range(1, n):
 		var t: Tile = tiles.get(_line_point(x.pos, y.pos, i, n, nudge))
 		if t == null:
@@ -247,6 +250,10 @@ func _line(x: Tile, y: Tile, nudge: int) -> bool:
 			continue
 		if i == n - 1 and top - y.h < FULL and x.h + EYE >= top:
 			continue
+		if t.terrain == &"kiste":
+			crates += 1
+			if crates < 2:
+				continue
 		return false
 	return true
 
