@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_arse7")
+ammo_type = &"projektil"
 id = &"sturmgewehr"
 name = "Sturmgewehr"
 skill = &"gewehre"

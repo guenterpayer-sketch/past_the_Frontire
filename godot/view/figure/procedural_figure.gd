@@ -96,7 +96,7 @@ func _build(u: Combatant) -> void:
 	elif not w.splash.is_empty():
 		_part(_box(Vector3(0.18, 0.18, 1.1)), Vector3(0.28, 1.45, -0.2), Color(0.3, 0.33, 0.28))
 	else:
-		var length := 0.95 if w.ob_bonus > 0 else (0.8 if w.inc_m >= 15 else 0.45)
+		var length := 0.95 if w.shots > 1 else (0.8 if w.inc_m >= 15 else 0.45)
 		_part(_box(Vector3(0.08, 0.12, length)), Vector3(0.2, 1.18, -0.2 - length / 2.0), dark)
 		_part(_box(Vector3(0.07, 0.16, 0.12)), Vector3(0.2, 1.08, -0.3), dark)
 	if u.shield:

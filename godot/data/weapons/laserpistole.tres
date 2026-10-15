@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_eafsl")
+ammo_type = &"energie"
 id = &"laserpistole"
 name = "Laserpistole"
 skill = &"pistolen"

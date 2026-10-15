@@ -37,6 +37,7 @@ var medkit := 0
 var medkit_start := 0
 var loaded := {}   # Waffen-ID -> Schuss in der Waffe
 var ammo := {}     # Waffen-ID -> Reserve
+var ammo_start := {}   # Waffen-ID -> mitgenommene Schuss (für den Verbrauch)
 
 var pos := Vector2i.ZERO
 var facing := 0
@@ -109,9 +110,11 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 	if ch.injury == Injury.LIGHT:
 		u.malus = Injury.LIGHT_MALUS
 	for w in u.weapons:
-		if w.magazine > 0:
-			u.loaded[w.id] = w.magazine
-			u.ammo[w.id] = w.ammo_total - w.magazine
+		if w.magazine > 0:   # voll; den Schiffsvorrat legt Ammo.apply() darüber
+			var n := Ammo.carry(w)
+			u.loaded[w.id] = mini(n, w.magazine)
+			u.ammo[w.id] = n - u.loaded[w.id]
+			u.ammo_start[w.id] = n
 	u.facing = 0 if u.is_crew else 3
 	return u
 

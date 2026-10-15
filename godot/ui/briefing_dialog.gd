@@ -18,6 +18,9 @@ var _diff := 0
 var hub_mode := false
 ## Schnellkampf aus dem Startmenü: Figuren aus dem globalen Roster
 var quick := false
+## Schiffsvorrat je Munitionsart ({Art: Schuss}) oder null = alles voll (von Battle gesetzt)
+var ammo_stock: Variant = null
+var _ammo_line: Label
 var _cands: Array[Dictionary] = []
 var _sel: Array[Character] = []
 var _tiles := {}          # Character -> Button
@@ -163,6 +166,9 @@ func _squad_column() -> VBoxContainer:
 				grid.add_child(b)
 				_tiles[c.ch] = b
 	right.add_child(grid)
+	_ammo_line = UiTheme.label("", 13, SUB)
+	_ammo_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	right.add_child(_ammo_line)
 	_warn = PanelContainer.new()
 	_warn.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.BG, HURT, 8, 10))
 	_warn_text = UiTheme.label("", 14, Color("ffcf9e"))
@@ -222,6 +228,9 @@ func _tile(c: Dictionary) -> Button:
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(spacer)
+	var ammo := _line("", 12, HURT)
+	ammo.name = "Ammo"
+	v.add_child(ammo)
 	var state := "einsatzbereit"
 	var col := UiTheme.MUTED
 	if c.locked:
@@ -233,6 +242,28 @@ func _tile(c: Dictionary) -> Button:
 	v.add_child(_line(state, 12, col))
 	b.tooltip_text = "%s (%s)\n%s\n%s\n%s" % [ch.name, ch.role, weapons, armor, state]
 	return b
+
+
+## Munition: Hinweis auf den Kacheln der Gewählten, Zeile mit Schiffsvorrat und Mitnahme (Ammo.plan)
+func _refresh_ammo() -> void:
+	var loadouts: Array = []
+	for ch in _sel:
+		loadouts.append(ch.weapons)
+	var p := Ammo.plan(loadouts, ammo_stock)
+	for ch in _tiles:
+		var l := (_tiles[ch] as Button).find_child("Ammo", true, false) as Label
+		var i := _sel.find(ch)
+		l.text = " · ".join(p.short[i]) if i >= 0 else ""
+		l.tooltip_text = l.text
+	if _ammo_line == null:
+		return
+	_ammo_line.visible = ammo_stock is Dictionary
+	if ammo_stock is Dictionary:
+		var parts: Array[String] = []
+		for t in Ammo.TYPES:
+			var have := int(ammo_stock.get(t, ammo_stock.get(String(t), 0)))
+			parts.append("%s %d (Trupp nimmt %d)" % [Ammo.TYPES[t], have, p.take.get(t, 0)])
+		_ammo_line.text = "Munition an Bord: " + " · ".join(parts)
 
 
 func _line(text: String, size: int, color: Color) -> Label:
@@ -265,6 +296,7 @@ func _refresh() -> void:
 			b.add_theme_stylebox_override(s, sb)
 		b.add_theme_stylebox_override("hover", hover)
 		(b.find_child("Mark", true, false) as Label).text = "✓" if on else ""
+	_refresh_ammo()
 	if _count == null:
 		return
 	var n := _sel.size()

@@ -575,7 +575,10 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 	if def.crouched and w.melee:
 		ob.append({"label": "Ziel geduckt", "val": CROUCH_MELEE_OB})
 	if w.ob_bonus:
-		ob.append({"label": w.name if w.power != "" else "Feuerstoß", "val": w.ob_bonus})
+		ob.append({"label": w.name if w.power != "" else "Bonus", "val": w.ob_bonus})
+	var burst := Ammo.shots_next(w, att.loaded.get(w.id, 0))
+	if Ammo.burst_bonus(burst):
+		ob.append({"label": "Feuerstoß ×%d" % burst, "val": Ammo.burst_bonus(burst)})
 	if def.buffs.has("ablenkfeld") and not w.melee:
 		ob.append({"label": "Ablenkfeld", "val": -def.buffs.ablenkfeld.val})
 	if def.buffs.has("schwachstelle") and def.team != att.team:
@@ -678,7 +681,7 @@ func _resolve_attack(u: Combatant, target: Combatant, info: Dictionary, tag := "
 	if w.pp_cost and pay:
 		u.pp -= w.pp_cost
 	if w.magazine:
-		u.loaded[w.id] -= 1
+		u.loaded[w.id] -= Ammo.shots_next(w, u.loaded[w.id])
 	var roll := Dice.open_d100(w.fumble)
 	rolled.emit(roll, "%s%s → %s (%s)" % ["Feuerbereitschaft: " if tag else "", u.name, target.name, w.name])
 	Rules.award_xp(u, w.skill, 1)

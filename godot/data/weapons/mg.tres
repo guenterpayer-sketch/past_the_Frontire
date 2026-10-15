@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_sygx0")
+ammo_type = &"projektil"
 id = &"mg"
 name = "Schweres MG (Feuerstoß)"
 skill = &"schnellfeuer"
@@ -14,7 +15,7 @@ inc_m = 20
 stages = 4
 fumble = 5
 damage = 1.1
-ob_bonus = 15
+shots = 3
 splash = PackedInt32Array()
 model = ExtResource("1_acstc")
 length_m = 1.1
