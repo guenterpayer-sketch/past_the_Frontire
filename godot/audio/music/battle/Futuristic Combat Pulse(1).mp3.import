@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://5p6d6ahq6bo"
+path="res://.godot/imported/Futuristic Combat Pulse(1).mp3-ba7e8dc907b940628202ff141370031d.mp3str"
+
+[deps]
+
+source_file="res://audio/music/battle/Futuristic Combat Pulse(1).mp3"
+dest_files=["res://.godot/imported/Futuristic Combat Pulse(1).mp3-ba7e8dc907b940628202ff141370031d.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
