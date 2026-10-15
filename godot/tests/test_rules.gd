@@ -32,6 +32,7 @@ func _init() -> void:
 	_test_deploy()
 	_test_dying()
 	_test_psi()
+	_test_ammo()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -712,3 +713,56 @@ func _test_psi_view() -> void:
 	check(PsiListView.preview_hint(ch, &"lAngriff") == "verfügbar: Psi-Nadel, Psi-Stoß, Lähmen · Rang 6: Psi-Lanze", "Psi: Vorschau gelernte Liste")
 	ch.skills[&"lAngriff"].rank = 8
 	check(PsiListView.next_hint(ch, &"lAngriff") == "alle Kräfte verfügbar", "Psi: alles verfügbar")
+
+
+## Munition: Mitnahme aus dem Schiffsvorrat, Feuerstoß, Verbrauch je Art, KI mit leeren Waffen
+func _test_ammo() -> void:
+	var by_id := {}
+	for w in GameData.weapons():
+		by_id[w.id] = w
+	check(Ammo.carry(by_id[&"raketenwerfer"]) == 2, "Raketenwerfer: 3 Magazine, höchstens Munition gesamt (2)")
+	check(Ammo.carry(by_id[&"mg"]) == 0 and by_id[&"mg"].shots == 3 and by_id[&"mg"].ob_bonus == 0, "MG: unbegrenzt, Feuerstoß 3 statt festem Bonus")
+	check(by_id[&"laserkarabiner"].ammo_type == &"energie" and by_id[&"sturmgewehr"].ammo_type == &"projektil" and by_id[&"raketenwerfer"].ammo_type == &"raketen", "Munitionsarten zugeordnet")
+	check(Ammo.burst_bonus(1) == 0 and Ammo.burst_bonus(2) == 10 and Ammo.burst_bonus(3) == 15, "Feuerstoß +5 je Kugel ab 2")
+	var w := WeaponData.new()
+	w.id = &"test_mg"
+	w.name = "Test-MG"
+	w.magazine = 30
+	w.shots = 3
+	w.ammo_type = &"projektil"
+	check(Ammo.carry(w) == 90 and Ammo.shots_next(w, 30) == 3 and Ammo.shots_next(w, 2) == 2, "3 Magazine; Rest-Feuerstoß")
+	var p := Ammo.plan([[w], [w]], {&"projektil": 50})
+	check(p.give[0][&"test_mg"] == 50 and p.give[1][&"test_mg"] == 0 and p.take[&"projektil"] == 50, "Vorrat reicht nur für die erste Figur")
+	check(p.short[0].size() == 1 and "nur 50" in p.short[0][0] and "keine Munition" in p.short[1][0], "Hinweise bei knapper Munition")
+	check(Ammo.plan([[w]], null).give[0][&"test_mg"] == 90, "ohne Vorrat (Schnellkampf): voll")
+	# Verbrauch und Rückmeldung
+	var c := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
+	var u := c.crew()[0]
+	u.weapons.append(w)
+	Ammo.apply(c.crew(), {&"projektil": 40, &"raketen": 1})
+	check(u.loaded[&"test_mg"] == 30 and u.ammo[&"test_mg"] == 10, "Magazin voll, Rest als Reserve")
+	u.loaded[&"test_mg"] -= Ammo.shots_next(w, u.loaded[&"test_mg"])
+	check(u.loaded[&"test_mg"] == 27, "ein Feuerstoß verbraucht 3 Schuss")
+	var used := Ammo.used(c.crew())
+	check(used.get("projektil", 0) == 3, "Verbrauch je Munitionsart")
+	for e in c.enemies():
+		e.state = Combatant.State.DEAD
+	c.check_end()
+	check(MissionResult.from_combat(c).ammo_used.get("projektil", 0) == 3, "MissionResult meldet ammo_used")
+	# KI: Crew nur mit leeren Waffen darf den Kampf nicht aufhalten
+	Dice.set_seed(11)
+	var c2 := Combat.new(MapGenerator.generate(4712, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4712).enemies, &"enemy"))
+	for cu in c2.crew():
+		var ew := w.duplicate()
+		ew.id = StringName("leer_%s" % cu.id)
+		cu.weapons.assign([ew])
+		cu.weapon = ew
+	Ammo.apply(c2.crew(), {})
+	check(c2.usable_weapons(c2.crew()[0]).is_empty(), "leere Waffe nicht nutzbar")
+	var ai := CombatAI.new()
+	c2.start()
+	var steps := 0
+	while c2.result == &"" and steps < 5000 and c2.round_no <= 60:
+		ai.act(c2)
+		steps += 1
+	check(c2.result != &"" or c2.round_no > 60, "KI mit leeren Waffen hängt nicht (Ergebnis %s, Runde %d)" % [c2.result, c2.round_no])

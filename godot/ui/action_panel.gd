@@ -56,14 +56,16 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 	var wflow := _flow()
 	var usable := c.usable_weapons(u)
 	for wd in u.weapons:
-		var extra := ""
+		var extra := (" ×%d" % wd.shots) if wd.shots > 1 else ""   # Feuerstoß
+		var empty := wd.magazine > 0 and u.loaded.get(wd.id, 0) <= 0 and u.ammo.get(wd.id, 0) <= 0
 		if wd.magazine:
-			extra = " %d/%d" % [u.loaded.get(wd.id, 0), wd.magazine]
+			extra += " · %d/%d" % [u.loaded.get(wd.id, 0), wd.magazine] if not empty else " · ohne Munition"
 		elif wd.pp_cost:
 			extra = " %d PP" % wd.pp_cost
 		var b := _btn("%s%s%s" % [wd.name, " ✓" if wd == u.weapon else "", extra], &"weapon", wd, wd == w, dis.call(usable.has(wd)))
 		b.tooltip_text = "%s%s, %s, max. %d m%s" % [wd.name, extra, "Nahkampf" if wd.melee else "%d m/Stufe" % wd.inc_m, wd.max_range_m(),
-			(" · Reserve %d" % u.ammo.get(wd.id, 0)) if wd.magazine else ""]
+			(" · Reserve %d" % u.ammo.get(wd.id, 0)) if wd.magazine else ""] + (
+			"\nFeuerstoß: %d Schuss pro Angriff, +%d (+%d je Kugel)" % [wd.shots, Ammo.burst_bonus(wd.shots), Ammo.BURST] if wd.shots > 1 else "")
 		if wd.power != "":
 			_psi_border(b)
 			b.tooltip_text = psi_tip(PsiCombat.list_of(wd.power), PsiCombat.level_of(wd.power))

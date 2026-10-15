@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_ajxnu")
+ammo_type = &"energie"
 id = &"laserkarabiner"
 name = "Laserkarabiner"
 skill = &"gewehre"

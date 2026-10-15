@@ -374,7 +374,7 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 | Ducken / Aufstehen | 10 % |
 | Abwarten (siehe 7.2) | 10 % |
 | Psi-Schild (Psi wirken, Mittel, 2 PP): +20 VW und +20 Psi-VW für 1–3 Runden | 40 % |
-| Nachladen (Raketenwerfer: 1 Schuss pro Ladung, 2 insgesamt) | 30 % |
+| Nachladen (Magazin aus der Reserve auffüllen) | 30 % |
 | Aufstehen | 30 % |
 | Waffe wechseln | 10 % |
 | Drehen (Blickrichtung ändern) | kostenlos, jederzeit im eigenen Zug |
@@ -521,7 +521,7 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 3. **„Psi wirken“ vs. „Psi-Angriffe“**: angenommen ist, dass „Psi wirken“ für unterstützende Kräfte steht.
 4. **„Panzerung“ (Raumschiff-Kampf)**: angenommen ist Schadenskontrolle / Panzerung umleiten.
 5. **Zahlenwerte** (TP-Formel, Tabellen-Schwellen, Schadensfaktoren, EP-Kosten) sind ein erster Entwurf und noch nicht ausbalanciert.
-6. **Munition / Nachladen** gibt es im Prototyp nur beim Raketenwerfer (2 Schuss).
+6. **Munition (Entscheidungen 15.10.2026, `docs/Planung_Munition.md`):** Waffen mit Magazin brauchen Munition einer **Munitionsart** (Energiezellen, Projektil, Raketen; Schiffsvorrat je Art). Jede Figur nimmt je Waffe **3 Magazine** mit, höchstens „Munition gesamt“ der Waffe, solange der Vorrat reicht; ohne Vorrat ist die Waffe im Kampf nicht nutzbar. **Feuerstoß:** Waffenwert *Schuss pro Angriff*; ab 2 Schuss ein Angriffswurf mit **+5 je Kugel** (MG: 3 Schuss = +15); reicht das Magazin nicht, mit dem Rest und anteiligem Bonus. Waffen ohne Magazinwert sind unbegrenzt (heute alle außer dem Raketenwerfer).
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
 8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
 9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert.

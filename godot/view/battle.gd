@@ -106,6 +106,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	Music.play(Music.BRIEFING)   # Briefing und Runde 0 (Musikspieler des Hubs)
 	var map := MapGenerator.generate(seed_value, mission.size_id)
 	combat = Combat.new(map, Roster.build_crew(squad), Roster.build_units(mission.enemies, &"enemy"))
+	Ammo.apply(combat.crew(), ammo_stock())   # Munition aus dem Schiffsvorrat (Gegner: voll)
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
 	map_view.theme = GameData.hall_theme()
@@ -135,6 +136,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	deploy_sel = combat.crew()[0] if not combat.crew().is_empty() else null
 	_mark_current(deploy_sel)
 	if briefing:
+		ui.briefing.ammo_stock = ammo_stock()
 		ui.briefing.show_mission(mission, candidates, squad)
 	_dirty = true
 
@@ -170,6 +172,15 @@ func _on_squad(sel: Array[Character]) -> void:
 	squad = sel.duplicate()
 	_keep_squad = true
 	new_battle(_seed, mission.size_id, "", false, mission)
+
+
+## Schiffsvorrat je Munitionsart (Schnittstelle zum Hub: HubState.game.ammo = {Art: Schuss});
+## null = alles voll (Schnellkampf, Testkampf ohne Schiff, Hub ohne Vorrat)
+func ammo_stock() -> Variant:
+	if HubState.quick_battle or HubState.game == null or not HubState.in_mission():
+		return null
+	var st: Variant = HubState.game.get("ammo")
+	return st if st is Dictionary else null
 
 
 ## Kampf vorbei: Ergebnis an das Charakter-Modul geben (dort verbucht und gespeichert), dann
@@ -692,6 +703,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			else:
 				new_battle(randi() % 1000000, "", arg)
 		&"briefing":
+			ui.briefing.ammo_stock = ammo_stock()
 			ui.briefing.show_mission(mission, candidates, squad)
 		&"psi_tab":
 			player.psi_tab = arg

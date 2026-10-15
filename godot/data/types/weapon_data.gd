@@ -19,11 +19,15 @@ extends Resource
 @export var fumble := 2
 ## Schadensfaktor
 @export var damage := 1.0
-## Zusätzlicher Angriffsbonus (Feuerstoß)
+## Zusätzlicher fester Angriffsbonus (z. B. Psi-Angriffe); der Feuerstoß ergibt sich aus shots (Ammo.burst_bonus)
 @export var ob_bonus := 0
-## Schuss pro Ladung (0 = kein Nachladen nötig)
+## Schuss pro Angriff (Feuerstoß ab 2: +5 je Kugel, Ammo.BURST)
+@export var shots := 1
+## Munitionsart für den Schiffsvorrat (Ammo.TYPES: energie, projektil, raketen; leer = keine)
+@export var ammo_type: StringName = &""
+## Schuss pro Ladung (0 = unbegrenzt, kein Nachladen nötig)
 @export var magazine := 0
-## Schuss insgesamt
+## Höchstens mitgeführte Schuss (0 = nur Ammo.MAGS Magazine)
 @export var ammo_total := 0
 ## Abzug der Druckwelle je Ring (1,5 m, 3 m)
 @export var splash: PackedInt32Array = PackedInt32Array()

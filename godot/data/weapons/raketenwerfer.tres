@@ -6,6 +6,7 @@
 
 [resource]
 script = ExtResource("1_2joey")
+ammo_type = &"raketen"
 id = &"raketenwerfer"
 name = "Raketenwerfer"
 skill = &"raketenwerfer"

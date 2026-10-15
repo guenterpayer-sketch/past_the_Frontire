@@ -8,7 +8,8 @@ extends RefCounted
 ##          worst_crit: ""/"A"–"E" (schwerster erlittener Kritischer),
 ##          dying: am Ende sterbend und nicht stabilisiert, stabilized: sterbend, aber per Erster Hilfe stabilisiert,
 ##          died: tot (nur durch den Todeswurf, wenn die ganze Crew gefallen ist),
-##          used: {medkits, ammo: {Waffen-ID: Schuss}}}}}
+##          used: {medkits, ammo: {Waffen-ID: Schuss}}}},
+##  ammo_used: {Munitionsart: Schuss} (ganze Crew, für den Schiffsvorrat; Ammo.TYPES)}
 
 ## freie EP pro Einsatz für jede Figur (dazu bei Sieg die Missionsbelohnung)
 const FREE_XP := 3
@@ -23,7 +24,7 @@ static func from_combat(c: Combat, mission: Mission = null) -> Dictionary:
 		var ammo := {}
 		for w in u.weapons:
 			if w.magazine > 0:
-				var n: int = w.ammo_total - u.loaded.get(w.id, 0) - u.ammo.get(w.id, 0)
+				var n: int = u.ammo_start.get(w.id, 0) - u.loaded.get(w.id, 0) - u.ammo.get(w.id, 0)
 				if n > 0:
 					ammo[String(w.id)] = n
 		units[u.id] = {
@@ -38,4 +39,4 @@ static func from_combat(c: Combat, mission: Mission = null) -> Dictionary:
 			"used": {"medkits": u.medkit_start - u.medkit, "ammo": ammo},
 		}
 	return {"outcome": c.result, "mission": mission.title if mission else "", "rounds": c.round_no,
-		"reward_xp": reward, "units": units}
+		"reward_xp": reward, "units": units, "ammo_used": Ammo.used(c.crew())}
