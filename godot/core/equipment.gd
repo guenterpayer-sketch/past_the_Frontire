@@ -4,18 +4,32 @@ extends RefCounted
 ## Rüstung, Schild. Bestand unbegrenzt. Psi-Waffen sind nicht wählbar (Psi-Angriffe kommen aus den Psi-Listen).
 ## Keine Waffe doppelt; Schild nur, wenn Waffe 1 und Waffe 2 einhändig sind (Waffe 2 darf leer sein).
 
-## wählbare Waffen (alle Waffendateien außer Psi), nach Name
+## wählbare Waffen: mitgelieferte (außer Psi) nach Name, danach die eigenen aus dem Ausrüstungs-Editor (Gear)
 static func weapons() -> Array[WeaponData]:
-	return GameData.weapons().filter(func(w: WeaponData) -> bool: return not w.psi)
+	var out: Array[WeaponData] = GameData.weapons().filter(func(w: WeaponData) -> bool: return not w.psi)
+	var have := out.map(func(w: WeaponData) -> String: return w.resource_path)
+	for w in Gear.weapons():
+		if not w.psi and not w.resource_path in have:
+			out.append(w)
+	return out
 
 
+## wählbare Rüstungen: mitgelieferte nach Klasse, danach die eigenen (Gear)
 static func armors() -> Array[ArmorData]:
 	var out: Array[ArmorData] = []
 	for f in ResourceLoader.list_directory("res://data/armor"):
 		if f.ends_with(".tres"):
 			out.append(load("res://data/armor/" + f))
 	out.sort_custom(func(a: ArmorData, b: ArmorData) -> bool: return a.cls < b.cls)
+	out.append_array(Gear.armors())
 	return out
+
+
+## Name mit Vermerk „frei“ für eigene Ausrüstung mit Werten ohne Grenzen (Gear.is_free)
+static func label(r: Resource) -> String:
+	if r == null:
+		return "–"
+	return String(r.get("name")) + (" (frei)" if Gear.is_free(r) else "")
 
 
 ## Waffe im Platz (0 oder 1) oder null

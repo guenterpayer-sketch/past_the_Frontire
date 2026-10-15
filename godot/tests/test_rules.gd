@@ -29,6 +29,7 @@ func _init() -> void:
 	_test_injury()
 	_test_equipment()
 	_test_psi_view()
+	_test_own_gear()
 	_test_deploy()
 	_test_dying()
 	_test_psi()
@@ -766,3 +767,38 @@ func _test_ammo() -> void:
 		ai.act(c2)
 		steps += 1
 	check(c2.result != &"" or c2.round_no > 60, "KI mit leeren Waffen hängt nicht (Ergebnis %s, Runde %d)" % [c2.result, c2.round_no])
+
+
+## eigene Ausrüstung (Gear) in der Waffenkammer; gelöscht → Fäuste / keine Rüstung
+func _test_own_gear() -> void:
+	var old_dir := Gear.dir
+	Gear.dir = "user://gear_test_charakter"
+	var pistol: WeaponData = load("res://data/weapons/laserpistole.tres")
+	var w := Gear.save(Gear.from_template(pistol)) as WeaponData
+	var t: ArmorData = Equipment.armors()[1]
+	var draft := Gear.from_template(t)
+	draft.set_meta(&"free", true)
+	var a := Gear.save(draft) as ArmorData
+	check(w in Equipment.weapons() and a in Equipment.armors(), "eigene Ausrüstung wählbar")
+	check(Equipment.label(a).ends_with("(frei)") and Equipment.label(pistol) == "Laserpistole", "Vermerk frei")
+	var ch := Roster.start_crew()[0]
+	ch.weapons = [w, pistol] as Array[WeaponData]
+	ch.armor = a
+	var d := ch.to_dict()
+	Gear.delete(w)
+	Gear.delete(a)
+	var c := Character.from_dict(d)
+	check(c.weapons.size() == 2 and c.weapons[0].resource_path == Gear.FALLBACK_WEAPON and c.weapons[1] == pistol, "gelöschte Waffe 1 → Fäuste")
+	check(c.armor.resource_path == Gear.FALLBACK_ARMOR, "gelöschte Rüstung → keine")
+	d.weapons = [pistol.resource_path, w.resource_path]
+	c = Character.from_dict(d)
+	check(c.weapons.size() == 1 and c.weapons[0] == pistol, "gelöschte Waffe 2 → leer")
+	DirAccess.remove_absolute(Gear.dir.path_join("weapons"))
+	DirAccess.remove_absolute(Gear.dir.path_join("armor"))
+	DirAccess.remove_absolute(Gear.dir)
+	Gear.dir = old_dir
+	# Munition: Feuerstoß aus shots, Mitnahme 3 Magazine, höchstens „Munition gesamt“
+	var mg: WeaponData = load("res://data/weapons/mg.tres")
+	check(mg.shots == 3 and Ammo.burst_bonus(mg.shots) == 15 and mg.ob_bonus == 0, "MG: Feuerstoß über shots")
+	var rw: WeaponData = load("res://data/weapons/raketenwerfer.tres")
+	check(Ammo.carry(rw) == (mini(rw.magazine * Ammo.MAGS, rw.ammo_total) if rw.ammo_total > 0 else rw.magazine * Ammo.MAGS), "Mitnahme mit Obergrenze")

@@ -144,11 +144,18 @@ static func from_dict(d: Dictionary) -> Character:
 		c.attrs[String(k)] = int(a[k])
 	c.apply_progress({"skills": d.get("skills", {})})
 	c.free_xp = int(d.get("free_xp", 0))
-	for p in d.get("weapons", []):
-		var w := _load(p) as WeaponData
+	# gelöschte eigene Ausrüstung (Gear): Waffe 1 → Fäuste, Waffe 2 entfällt, Rüstung → keine (Entscheidung des Nutzers)
+	var paths: Array = d.get("weapons", [])
+	for i in paths.size():
+		var w := _load(paths[i]) as WeaponData
+		if w == null and i == 0:
+			w = load(Gear.FALLBACK_WEAPON)
 		if w:
 			c.weapons.append(w)
-	c.armor = _load(d.get("armor", "")) as ArmorData
+	var ap: String = d.get("armor", "")
+	c.armor = _load(ap) as ArmorData
+	if c.armor == null and ap != "":
+		c.armor = load(Gear.FALLBACK_ARMOR)
 	c.shield = bool(d.get("shield", false))
 	c.medkits = int(d.get("medkits", 0))
 	c.visual = _load(d.get("visual", "")) as CharacterVisual
@@ -162,8 +169,11 @@ static func from_dict(d: Dictionary) -> Character:
 
 
 ## Ressource nur laden, wenn es sie (noch) gibt
+## (user://-Dateien prüft FileAccess: eine gelöschte eigene Ausrüstung kann noch im Ressourcen-Cache liegen)
 static func _load(path: String) -> Resource:
-	return load(path) if path != "" and ResourceLoader.exists(path) else null
+	if path == "" or (path.begins_with("user://") and not FileAccess.file_exists(path)):
+		return null
+	return load(path) if ResourceLoader.exists(path) else null
 
 
 ## Vollständig genug für einen Kampf?

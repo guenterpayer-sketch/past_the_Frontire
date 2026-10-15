@@ -129,12 +129,12 @@ func _render_left(u: Character) -> void:
 	for slot in 2:
 		var w := Equipment.weapon(u, slot)
 		if w:
-			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), w.name,
+			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), Equipment.label(w),
 				"%s · %s" % [Rules.skill_name(w.skill), "Nahkampf" if w.melee else "Fernkampf"], Rules.skill_total(u, w.skill)))
 		else:
 			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), "leer", "keine zweite Waffe", null))
 	var a := u.armor
-	_left.add_child(_slot_button("armor", "Rüstung", a.name if a else "–", _armor_text(a), null))
+	_left.add_child(_slot_button("armor", "Rüstung", Equipment.label(a), _armor_text(a), null))
 	_left.add_child(_slot_button("shield", "Schild", "getragen" if u.shield else "kein Schild",
 		"Verteidigung +10 + ½ Rangbonus Schild", Equipment.shield_bonus(u) if u.shield else null))
 	_left.add_child(UiTheme.label("Vorrat (nur Anzeige)", 13, UiTheme.MUTED))
@@ -147,13 +147,13 @@ func _render_left(u: Character) -> void:
 	for w in u.weapons:
 		if w.magazine > 0:
 			any_ammo = true
-			g.add_child(UiTheme.label("Munition %s" % w.name, 13, UiTheme.MUTED))
-			g.add_child(UiTheme.label("%d Schuss" % w.ammo_total, 13))
+			g.add_child(UiTheme.label("Mitnahme %s" % w.name, 13, UiTheme.MUTED))
+			g.add_child(UiTheme.label("%d Schuss %s" % [Ammo.carry(w), Ammo.TYPES.get(w.ammo_type, "")], 13))
 	if not any_ammo:
 		g.add_child(UiTheme.label("Munition", 13, UiTheme.MUTED))
-		g.add_child(UiTheme.label("kein Nachladen nötig", 13))
+		g.add_child(UiTheme.label("keine nötig", 13))
 	_left.add_child(g)
-	var note := UiTheme.label("Jeder Einsatz beginnt mit vollem Vorrat; Auswahl kommt später mit Bestand und Kauf.", 11, UiTheme.MUTED)
+	var note := UiTheme.label("Mitnahme je Waffe: %d Magazine, höchstens „Munition gesamt“ der Waffe, solange der Munitionsvorrat des Schiffs reicht (Schnellkampf: voll)." % Ammo.MAGS, 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_left.add_child(note)
 	if Rules.skill_rank(u, &"psiAngriff") > 0 or Rules.skill_rank(u, &"lAngriff") > 0:
@@ -233,7 +233,7 @@ func _weapon_list(u: Character, slot: int) -> void:
 	var cur := Equipment.weapon(u, slot)
 	for w in _weapons:
 		var why := Equipment.weapon_block(u, slot, w)
-		var b := UiTheme.button(("▸ " if w == cur else "") + w.name, why if why != "" else "%s als Waffe %d nehmen" % [w.name, slot + 1])
+		var b := UiTheme.button(("▸ " if w == cur else "") + Equipment.label(w), why if why != "" else "%s als Waffe %d nehmen" % [w.name, slot + 1])
 		b.disabled = why != "" and w != cur
 		if w == cur:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
@@ -273,7 +273,7 @@ func _armor_list(u: Character) -> void:
 	for h in ["Rüstung", "Klasse", "Schaden erhalten", "Verteidigung", "Bewegung"]:
 		g.add_child(UiTheme.label(h, 11, UiTheme.MUTED))
 	for a in _armors:
-		var b := UiTheme.button(("▸ " if a == u.armor else "") + a.name)
+		var b := UiTheme.button(("▸ " if a == u.armor else "") + Equipment.label(a))
 		if a == u.armor:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
 		b.custom_minimum_size.x = 220
@@ -326,12 +326,15 @@ func _range(w: WeaponData) -> String:
 
 func _extra(w: WeaponData) -> String:
 	var parts: Array[String] = []
+	if w.shots >= 2:
+		parts.append("Feuerstoß ×%d (%s)" % [w.shots, Dice.fmt(Ammo.burst_bonus(w.shots))])
 	if w.ob_bonus:
-		parts.append("Feuerstoß %s" % Dice.fmt(w.ob_bonus))
+		parts.append("Angriffsbonus %s" % Dice.fmt(w.ob_bonus))
 	if not w.splash.is_empty():
 		parts.append("Druckwelle %s" % "/".join(Array(w.splash).map(func(v: int) -> String: return str(v))))
 	if w.magazine:
-		parts.append("%d Schuss, Magazin %d" % [w.ammo_total, w.magazine])
+		var cap := " (höchstens %d)" % w.ammo_total if w.ammo_total > 0 and w.ammo_total < w.magazine * Ammo.MAGS else ""
+		parts.append("%s, Magazin %d, Mitnahme %d%s" % [Ammo.TYPES.get(w.ammo_type, "Munition"), w.magazine, Ammo.carry(w), cap])
 	parts.append("zweihändig" if Equipment.blocks_shield(w) else ("mit Schild möglich" if w.two_handed else "einhändig"))
 	return " · ".join(parts)
 
