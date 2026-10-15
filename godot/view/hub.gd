@@ -16,6 +16,7 @@ var _drag_accum := Vector2.ZERO
 
 
 func _ready() -> void:
+	UiScale.apply(get_tree())
 	if HubState.game == null:
 		HubState.new_game(randi() % 1000000)
 	game = HubState.game
@@ -140,6 +141,8 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			get_tree().change_scene_to_file(HubState.START_SCENE)
 		&"sound":
 			Sfx.toggle()
+		&"ui_scale":
+			ui.show_ui_scale()
 		&"help":
 			ui.show_help()
 

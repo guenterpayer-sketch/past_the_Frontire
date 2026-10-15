@@ -16,6 +16,7 @@ var _menu: VBoxContainer
 
 
 func _ready() -> void:
+	UiScale.apply(get_tree())
 	HubState.quick_battle = false
 	var args := OS.get_cmdline_user_args()
 	if "--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args:
@@ -135,7 +136,7 @@ func _build_ui() -> void:
 	picker.picked.connect(_crew_picked)
 	settings = Modal.new()
 	root.add_child(settings)
-	settings.max_size = Vector2(560, 300)
+	settings.max_size = Vector2(620, 340)
 
 
 func _item(text: String, primary := false) -> Button:
@@ -197,4 +198,5 @@ func _show_settings() -> void:
 		c.button_pressed = spec[1]
 		c.toggled.connect(spec[2])
 		settings.content.add_child(c)
+	settings.content.add_child(UiScale.picker(get_tree()))
 	settings.add_close()
