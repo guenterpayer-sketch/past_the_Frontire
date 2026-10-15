@@ -48,6 +48,8 @@ Der erste Koordinations-Chat wurde wegen Limit-Verbrauch (sehr langer Verlauf) b
 - **Raumkampf:** Nutzer meldet ihn als fertig, aber es gibt in `origin` keinen Raumkampf-Branch und keine Moduldatei. Branchnamen beim Nutzer erfragen; dann `docs/module/raumkampf.md` anlegen und in `docs/module/README.md` eintragen (Muster wie die anderen Moduldateien), danach wie üblich prüfen und zusammenführen.
 - Offene Nutzerentscheidungen: eigene Anzeige für „Rückzug“ im Schiffsbericht; später Bestand/Kauf/Beute, Auswahl von Medikits/Munition, Enzyklopädie, Hangar, Ausbau des Schiffs.
 
+**Branches:** `claude/inspiring-cannon-tbk2pt` ist der Branch des alten Koordinations-Chats (kein Modul, steht auf `main`, kann gelöscht werden). Immer `git fetch origin` ohne Branch-Angabe, sonst fehlen Branches in `git branch -r`.
+
 **Arbeitsweise, die sich bewährt hat:**
 - Pro Fertigmeldung: `git fetch origin`; prüfen, ob der Branch `main` enthält (`git rev-list --count <branch>..main` = 0) und `git merge-tree --write-tree --name-only main <branch>` konfliktfrei ist; `git merge --no-ff`; `test_rules.gd` + `test_hub.gd` (Godot 4.7.2 Linux nach `~/godot/` laden); `test_sim -- 10` nur, wenn der Branch `main` nicht enthielt. Dann Zeile in `docs/Zusammenfuehrung.md` (Verlauf + Branch-Tabelle), ggf. `CLAUDE.md` „Stand“, pushen.
 - Moduldateien nur ändern, wenn der betreffende Branch keine ungemergten Commits hat (sonst Konflikte am Dateiende); sonst Hinweise ins Planungsdokument schreiben.
