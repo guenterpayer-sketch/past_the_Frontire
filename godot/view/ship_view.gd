@@ -14,7 +14,7 @@ const LOW_WALL := 0.1        # Außenwand zur Kamera hin
 const ROOMS := [
 	{"id": &"hangar", "name": "Hangar", "rect": Rect2(0, 0, 16, 8), "ready": false,
 		"text": "Landungsschiff.", "light": Color(1.0, 0.85, 0.6)},
-	{"id": &"armory", "name": "Waffenkammer", "rect": Rect2(0, 8, 16, 8), "ready": false,
+	{"id": &"armory", "name": "Waffenkammer", "rect": Rect2(0, 8, 16, 8), "ready": true,
 		"text": "Ausrüstung ändern: Waffen, Rüstung, Schild (Dialog des Charakter-Moduls).", "light": Color(1.0, 0.75, 0.55)},
 	{"id": &"quarters", "name": "Crewquartiere", "rect": Rect2(16, 0, 12, 8), "ready": true,
 		"text": "Crew ansehen: Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen.", "light": Color(0.75, 0.85, 1.0)},
