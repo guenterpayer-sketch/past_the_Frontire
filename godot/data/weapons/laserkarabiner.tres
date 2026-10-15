@@ -8,7 +8,7 @@
 script = ExtResource("1_ajxnu")
 id = &"laserkarabiner"
 name = "Laserkarabiner"
-skill = &"pistolen"
+skill = &"gewehre"
 table = ExtResource("2_bshaa")
 inc_m = 15
 stages = 4

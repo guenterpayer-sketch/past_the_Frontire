@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_leveling()
 	_test_roster()
 	_test_injury()
+	_test_equipment()
 	_test_deploy()
 	_test_dying()
 	_test_psi()
@@ -487,6 +488,38 @@ func _test_injury() -> void:
 		elif FileAccess.file_exists(p):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
 	Campaign.reload()
+
+
+## Waffenkammer: Waffen ändern, Waffe 2 leer, keine doppelt, Schild nur mit einhändiger Waffe 1, keine Psi-Waffen
+func _test_equipment() -> void:
+	var ch := Roster.start_crew()[0]
+	var by := {}
+	for w in GameData.weapons():
+		by[w.id] = w
+	check(not Equipment.weapons().any(func(w: WeaponData) -> bool: return w.psi), "Psi-Waffen nicht wählbar")
+	check(Equipment.set_weapon(ch, 0, by[&"psi_stoss"]) != "", "Psi-Stoß nicht in einen Platz")
+	check(Equipment.set_weapon(ch, 0, by[&"laserpistole"]) == "" and ch.weapons[0] == by[&"laserpistole"], "Waffe 1 wechseln")
+	check(Equipment.set_weapon(ch, 1, by[&"laserpistole"]) != "", "keine Waffe doppelt")
+	check(Equipment.set_weapon(ch, 1, null) == "" and ch.weapons.size() == 1 and Equipment.weapon(ch, 1) == null, "Waffe 2 leer")
+	check(Equipment.set_weapon(ch, 0, null) != "", "Waffe 1 ist Pflicht")
+	check(Equipment.set_weapon(ch, 1, by[&"vibroklinge"]) == "" and ch.weapons.size() == 2, "Waffe 2 wieder belegen")
+	check(not by[&"vibroklinge"].two_handed and by[&"laserkarabiner"].skill == &"gewehre", "Vibroklinge einhändig, Laserkarabiner = Gewehre")
+	check(Equipment.set_shield(ch, true) == "" and ch.shield, "Schild mit zwei Einhandwaffen (Pistole + Vibroklinge)")
+	check(Equipment.set_weapon(ch, 1, by[&"sturmgewehr"]) == "" and not ch.shield, "zweihändige Waffe 2 legt Schild ab")
+	check(Equipment.set_shield(ch, true) != "" and not ch.shield, "kein Schild mit zweihändiger Waffe")
+	Equipment.set_weapon(ch, 1, by[&"vibroklinge"])
+	Equipment.set_shield(ch, true)
+	check(Equipment.set_weapon(ch, 0, by[&"sturmgewehr"]) == "" and not ch.shield, "zweihändige Waffe 1 legt Schild ab")
+	Equipment.set_weapon(ch, 0, by[&"laserpistole"])
+	Equipment.set_weapon(ch, 1, by[&"faeuste"])
+	check(Equipment.set_shield(ch, true) == "", "Schild mit Fäusten als Waffe 2")
+	Equipment.set_weapon(ch, 1, by[&"vibroklinge"])
+	Equipment.set_weapon(ch, 0, by[&"sturmgewehr"])
+	check(Equipment.shield_bonus(ch) == 10 + maxi(0, Rules.rank_bonus(Rules.skill_rank(ch, &"schild")) / 2), "Schildbonus wie im Kampf")
+	var d := Character.from_dict(ch.to_dict())
+	check(d.weapons.size() == 2 and d.weapons[0] == by[&"sturmgewehr"] and not d.shield, "Ausrüstung gespeichert")
+	var u := Combatant.from_character(Character.from_dict({"id": "x", "attrs": ch.attrs, "weapons": [by[&"laserpistole"].resource_path], "armor": ch.armor.resource_path}), &"crew")
+	check(u.weapons.size() >= 1 and u.weapon == by[&"laserpistole"], "Kampf mit nur einer Waffe")
 
 
 ## Runde 0: Aufstellung nur im Eingangsbereich, Tauschen, danach gesperrt
