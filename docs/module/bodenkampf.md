@@ -100,3 +100,7 @@ Keine eigene Liste der Wirkungstexte anlegen; Daten aus `PsiLists`.
 
 Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausruestungs_Editor.md`). **Warten, bis sein Baustein in `main` ist.** Dann: `GameData.weapons()` liefert auch eigene Waffen; Gegner bekommen eigene Ausrüstung gemäß Einstellung (Abschnitt „Aufteilung“, Punkt 2).
 - **Psi-Übersicht ist in `main` (`0ce7db1`):** `PsiListView.open_for(figur, liste)` (Figur: `Character`, `Combatant` oder `null`), Details in `docs/module/charakter.md` unter „Schnittstellen“. Jetzt `main` holen und den Auftrag „Übersicht Psi-Listen“ umsetzen. Hinweis: Wirkungstexte in `PsiLists` sind kürzer, das Ziel steht in `PsiLists.target()`.
+
+## Aufträge vom Koordinator (15.10.2026): Munition
+
+Grundlage: `docs/Planung_Munition.md` (Entscheidungen des Nutzers). Du baust zuerst (Abschnitt „Aufteilung“, Teil Bodenkampf): `WeaponData` um *Schuss pro Angriff* und *Munitionsart*, Verbrauch je Angriff, Einsatzstart mit übergebenem Vorrat (Schnellkampf voll), Verbrauch je Munitionsart im `MissionResult`, KI bei leeren Waffen prüfen. **Vorher** die offenen Punkte mit dem Nutzer klären; Schnittstelle mit dem Hub abstimmen und unter „Schnittstellen“ eintragen.
