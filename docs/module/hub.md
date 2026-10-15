@@ -162,3 +162,7 @@ Entscheidungen des Nutzers: Musik im **Startmenü, Schiff, Bodenkampf und bei Si
   - Gleicher Anlass zweimal = kein Neustart; leerer Ordner = Stille. Weitere: `Music.stop()`, `Music.volume_rows()` (Regler zum Einbauen, z. B. ins Kampfmenü).
 - Stücke vom Nutzer abgelegt (Commit `abaea11`): start 2, ship 5, briefing 3, battle 3, victory 1, defeat 1 – alle ladbar (geprüft). Herkunft/Lizenz noch nicht in `godot/assets/LICENSES.md`.
 - Tests: `test_rules` OK, `test_hub` OK, `--autotest-hub` durchgelaufen (Anlass start/ship, Busse, Lautstärke 30 % = −10,5 dB, 0 % = stumm). Wiedergabe mit erzeugten Testtönen geprüft (nicht eingecheckt): zwei Stücke → Wechsel nach Ende, ein Stück → Schleife, leerer Anlass → Stille.
+
+## Aufträge vom Koordinator (15.10.2026): Editor für eigene Waffen und Rüstungen
+
+Grundlage: `docs/Planung_Ausruestungs_Editor.md` (Entscheidungen des Nutzers). Editor im Startmenü, globale Speicherung, Baustein für die anderen Module (Abschnitt „Aufteilung“, Punkt 1). Bodenkampf und Charakter binden danach an. **Vorher:** offene Punkte klären und Mockup vom Nutzer bestätigen lassen.
