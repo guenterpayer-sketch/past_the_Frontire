@@ -33,6 +33,7 @@ func _init() -> void:
 	_test_dying()
 	_test_psi()
 	_test_ammo()
+	_test_custom_gear()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -766,3 +767,54 @@ func _test_ammo() -> void:
 		ai.act(c2)
 		steps += 1
 	check(c2.result != &"" or c2.round_no > 60, "KI mit leeren Waffen hängt nicht (Ergebnis %s, Runde %d)" % [c2.result, c2.round_no])
+
+
+## Eigene Waffen/Rüstungen (Gear): in GameData.weapons(); Gegner bekommen freigegebene mit gleicher Fertigkeit/Klasse
+func _test_custom_gear() -> void:
+	var old_dir := Gear.dir
+	Gear.dir = "user://gear_test_rules"
+	for sub in ["weapons", "armor"]:
+		var d := Gear.dir.path_join(sub)
+		if DirAccess.dir_exists_absolute(d):
+			for f in DirAccess.get_files_at(d):
+				DirAccess.remove_absolute(d.path_join(f))
+	var m0 := Mission.generate(4711)
+	var plain: Array = m0.enemies.map(func(d: UnitData) -> String: return d.weapons[0].name if not d.weapons.is_empty() else "")
+	var by_skill := {}
+	var classes := {}
+	for d in m0.enemies:
+		if not d.weapons.is_empty():
+			by_skill[d.weapons[0].skill] = d.weapons[0]
+		if d.armor:
+			classes[d.armor.cls] = d.armor
+	for sk in by_skill:
+		var w := Gear.from_template(by_skill[sk]) as WeaponData
+		w.name = "Eigen-%s" % sk
+		w.set_meta(&"enemy", true)
+		Gear.save(w)
+	for cl in classes:
+		var a := Gear.from_template(classes[cl]) as ArmorData
+		a.name = "Eigen-Rüstung %d" % cl
+		a.set_meta(&"enemy", true)
+		Gear.save(a)
+	check(GameData.weapons().any(func(w: WeaponData) -> bool: return w.name.begins_with("Eigen-")), "eigene Waffen in GameData.weapons()")
+	var swapped := 0
+	var ok := true
+	for seed_v in range(4711, 4741):
+		var m := Mission.generate(seed_v)
+		var base := Mission.generate(seed_v)
+		for i in m.enemies.size():
+			var d: UnitData = m.enemies[i]
+			if d.weapons.is_empty():
+				continue
+			if d.weapons[0].name.begins_with("Eigen-"):
+				swapped += 1
+				ok = ok and d.weapons[0].skill == base.faction.units.filter(func(u: UnitData) -> bool: return u.name == d.name)[0].weapons[0].skill
+			if d.armor and d.armor.name.begins_with("Eigen-") and d.armor.cls != base.faction.units.filter(func(u: UnitData) -> bool: return u.name == d.name)[0].armor.cls:
+				ok = false
+	check(swapped > 0 and ok, "Gegner bekommen eigene Ausrüstung (gleiche Fertigkeit/Klasse), %d Mal in 30 Missionen" % swapped)
+	check(Mission.generate(4711).title == m0.title and Mission.generate(4711).enemies.size() == m0.enemies.size(), "Mission sonst unverändert")
+	for f in Mission.all_factions():
+		for u in f.units:
+			check(not (not u.weapons.is_empty() and u.weapons[0].name.begins_with("Eigen-")), "Vorlagen der Fraktion bleiben unverändert")
+	Gear.dir = old_dir

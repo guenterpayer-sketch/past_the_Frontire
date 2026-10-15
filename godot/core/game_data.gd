@@ -27,6 +27,7 @@ static func weapons() -> Array[WeaponData]:
 	for f in ResourceLoader.list_directory(WEAPON_DIR):
 		if f.ends_with(".tres"):
 			out.append(load(WEAPON_DIR.path_join(f)))
+	out.append_array(Gear.weapons())   # eigene Waffen aus dem Ausrüstungs-Editor (Hub)
 	out.sort_custom(func(a: WeaponData, b: WeaponData) -> bool: return a.name < b.name)
 	return out
 
