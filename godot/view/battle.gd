@@ -717,8 +717,10 @@ func _on_action(name: StringName, arg: Variant) -> void:
 				combat.request_jump(arg)
 		&"grid":
 			_toggle_grid()
-		&"refresh":
+		&"refresh", &"panel":
 			pass
+		&"ui_scale":
+			ui.show_ui_scale()
 		_:
 			if player_turn():
 				_panel_action(u, name, arg)

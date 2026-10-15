@@ -1,6 +1,6 @@
 class_name CombatLog
 extends PanelContainer
-## Kampflog mit farbigen Einträgen. Eingeklappt sind nur die letzten Zeilen zu sehen, aufgeklappt der ganze Verlauf.
+## Kampflog mit farbigen Einträgen. Eingeklappt nur die letzte Meldung in einer Zeile, aufgeklappt der ganze Verlauf darüber.
 
 signal toggled(expanded: bool)
 
@@ -9,8 +9,9 @@ const COLORS := {
 	&"heal": "#8fe39b", &"fumble": "#ff8a8a", &"dmg": "#ff9e9e",
 }
 const MAX_LINES := 400
-const RECENT := 2
-const EXPANDED_H := 380.0
+const RECENT := 1
+const WIDTH := 440.0
+const EXPANDED_H := 300.0
 
 var expanded := false
 var _text: RichTextLabel
@@ -21,46 +22,48 @@ var _lines := 0
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 10))
-	custom_minimum_size.x = 360
+	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 8, 6))
+	custom_minimum_size.x = WIDTH
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	add_child(box)
-	var head := HBoxContainer.new()
-	var title := UiTheme.label("KAMPFLOG", 12, UiTheme.MUTED)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	head.add_child(title)
-	_toggle = UiTheme.button("")
-	_toggle.add_theme_font_size_override("font_size", 12)
-	_toggle.custom_minimum_size = Vector2(110, 30)
-	_toggle.pressed.connect(func() -> void: set_expanded(not expanded))
-	head.add_child(_toggle)
-	box.add_child(head)
 	_text = RichTextLabel.new()
 	_text.bbcode_enabled = true
 	_text.scroll_following = true
 	_text.selection_enabled = true
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_text.add_theme_font_size_override("normal_font_size", 13)
-	_text.add_theme_font_size_override("bold_font_size", 13)
+	_text.add_theme_font_size_override("normal_font_size", 12)
+	_text.add_theme_font_size_override("bold_font_size", 12)
 	box.add_child(_text)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	box.add_child(row)
 	_recent = RichTextLabel.new()
 	_recent.bbcode_enabled = true
-	_recent.fit_content = true
 	_recent.scroll_active = false
-	_recent.add_theme_font_size_override("normal_font_size", 13)
-	_recent.add_theme_font_size_override("bold_font_size", 13)
-	box.add_child(_recent)
+	_recent.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_recent.clip_contents = true
+	_recent.custom_minimum_size.y = 20
+	_recent.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_recent.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_recent.add_theme_font_size_override("normal_font_size", 12)
+	_recent.add_theme_font_size_override("bold_font_size", 12)
+	row.add_child(_recent)
+	_toggle = UiTheme.button("")
+	_toggle.add_theme_font_size_override("font_size", 11)
+	_toggle.custom_minimum_size = Vector2(64, 26)
+	_toggle.tooltip_text = "Kampflog auf-/zuklappen"
+	_toggle.pressed.connect(func() -> void: set_expanded(not expanded))
+	row.add_child(_toggle)
 	set_expanded(false)
 
 
 func set_expanded(on: bool) -> void:
 	expanded = on
-	_toggle.text = "zuklappen ▾" if on else "aufklappen ▴"
+	_toggle.text = "Log ▾" if on else "Log ▴"
 	_text.custom_minimum_size.y = EXPANDED_H
 	_text.visible = on
-	_recent.visible = not on
 	reset_size()
 	toggled.emit(on)
 
