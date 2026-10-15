@@ -286,12 +286,12 @@ func _gallery(ts: Array) -> void:
 		for side in [-1.0, 1.0]:
 			var p: Vector3 = b.c + (Vector3(off, top_y / 2.0, side * (b.sz / 2.0 - 0.3)) if long_x else Vector3(side * (b.sx / 2.0 - 0.3), top_y / 2.0, off))
 			_box(p, Vector3(0.22, top_y, 0.22), Color(0.26, 0.29, 0.34))
-	# Geländer an allen Kanten zu tieferen Feldern (außer Treppenanschluss)
+	# Geländer an allen Kanten zu tieferen Feldern (außer Treppenanschluss und Leiter; nur Grafik, sperrt den Weg nicht)
 	var rail := Color(0.85, 0.68, 0.15)
 	for t in ts:
 		for n in Hex.neighbors(t.pos):
 			var nt := map.tile(n)
-			if nt == null or nt.terrain == &"wand" or nt.terrain == &"galerie" or nt.h >= t.h - 1:
+			if nt == null or nt.terrain in [&"wand", &"galerie", &"leiter"] or nt.h >= t.h - 1:
 				continue
 			var a := Hex.to_world(t.pos)
 			var c := Hex.to_world(n)
