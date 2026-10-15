@@ -37,3 +37,20 @@ Weitere Tests der Module (z. B. `tests/test_hub.gd`, Selbsttests mit `--autotest
 ## Arbeitsweise
 
 Es gelten die Regeln aus `CLAUDE.md` (Deutsch, Wissen und Annahme trennen, erst klären dann handeln, Auswahl-Buttons).
+
+## Übergabe (15.10.2026)
+
+Der erste Koordinations-Chat wurde wegen Limit-Verbrauch (sehr langer Verlauf) beendet. Alles Nötige steht in `main`; ein neuer Koordinations-Chat startet nur von diesen Dateien aus.
+
+**Stand:** `main` = `e94c3c0` + diese Notiz. Bodenkampf (`claude/confident-edison-6mxzke`), Charakter (`claude/elegant-gauss-hq5bus`) und Hub (`claude/happy-lamport-u4fvya`) sind vollständig in `main`; nichts offen. Verlauf: `docs/Zusammenfuehrung.md`. Planungen: `docs/Planung_Roster_Verwundung.md`, `docs/Planung_Waffenkammer.md`, `docs/Planung_UI_Groesse.md`.
+
+**Offen:**
+- **Raumkampf:** Nutzer meldet ihn als fertig, aber es gibt in `origin` keinen Raumkampf-Branch und keine Moduldatei. Branchnamen beim Nutzer erfragen; dann `docs/module/raumkampf.md` anlegen und in `docs/module/README.md` eintragen (Muster wie die anderen Moduldateien), danach wie üblich prüfen und zusammenführen.
+- Offene Nutzerentscheidungen: eigene Anzeige für „Rückzug“ im Schiffsbericht; später Bestand/Kauf/Beute, Auswahl von Medikits/Munition, Enzyklopädie, Hangar, Ausbau des Schiffs.
+
+**Arbeitsweise, die sich bewährt hat:**
+- Pro Fertigmeldung: `git fetch origin`; prüfen, ob der Branch `main` enthält (`git rev-list --count <branch>..main` = 0) und `git merge-tree --write-tree --name-only main <branch>` konfliktfrei ist; `git merge --no-ff`; `test_rules.gd` + `test_hub.gd` (Godot 4.7.2 Linux nach `~/godot/` laden); `test_sim -- 10` nur, wenn der Branch `main` nicht enthielt. Dann Zeile in `docs/Zusammenfuehrung.md` (Verlauf + Branch-Tabelle), ggf. `CLAUDE.md` „Stand“, pushen.
+- Moduldateien nur ändern, wenn der betreffende Branch keine ungemergten Commits hat (sonst Konflikte am Dateiende); sonst Hinweise ins Planungsdokument schreiben.
+- Gemeinsame Funktionen immer genau **einem** Modul zuteilen (beim Roster hatten Hub und Charakter beide gebaut).
+- Nutzer-Rückmeldungen aus dem Spieltest: erst Fakten im Code prüfen, Fragen mit Auswahl-Buttons, dann Planungsdokument + Aufträge in die Moduldateien, dazu kurze Prompts für die Chats.
+- **Antworten kurz halten** (Limit des Nutzers). Lange Chats (Koordination und Module) bei Bedarf durch neue ersetzen; die Moduldateien tragen den Stand.
