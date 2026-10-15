@@ -160,4 +160,5 @@ Entscheidungen des Nutzers: Musik im **Startmenü, Schiff, Bodenkampf und bei Si
   - Ergebnis-Banner: `Music.play(Music.VICTORY)` bzw. `Music.play(Music.DEFEAT)` (auch Rückzug)
   - Zurück ins Schiff/Startmenü: nichts nötig (Schiff und Startmenü rufen selbst `play`). Nach `crew.tscn` läuft die letzte Musik weiter.
   - Gleicher Anlass zweimal = kein Neustart; leerer Ordner = Stille. Weitere: `Music.stop()`, `Music.volume_rows()` (Regler zum Einbauen, z. B. ins Kampfmenü).
+- Stücke vom Nutzer abgelegt (Commit `abaea11`): start 2, ship 5, briefing 3, battle 3, victory 1, defeat 1 – alle ladbar (geprüft). Herkunft/Lizenz noch nicht in `godot/assets/LICENSES.md`.
 - Tests: `test_rules` OK, `test_hub` OK, `--autotest-hub` durchgelaufen (Anlass start/ship, Busse, Lautstärke 30 % = −10,5 dB, 0 % = stumm). Wiedergabe mit erzeugten Testtönen geprüft (nicht eingecheckt): zwei Stücke → Wechsel nach Ende, ein Stück → Schleife, leerer Anlass → Stille.
