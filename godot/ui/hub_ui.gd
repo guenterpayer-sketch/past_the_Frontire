@@ -23,6 +23,9 @@ var help: Modal
 var room_tags := {}           # Raum-ID -> Button über dem Raum
 var room_buttons := {}        # Raum-ID -> Button unten links
 var _status_box: PanelContainer
+var _res_row: HBoxContainer
+var _warn_box: VBoxContainer
+var travel_report: Modal
 var _top_right: VBoxContainer
 var _rooms_box: PanelContainer
 var _hint: PanelContainer
@@ -48,8 +51,17 @@ func _ready() -> void:
 
 	_status_box = PanelContainer.new()
 	_status_box.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 12))
+	var sv := VBoxContainer.new()
+	sv.add_theme_constant_override("separation", 8)
+	_status_box.add_child(sv)
 	status = UiTheme.label("", 15)
-	_status_box.add_child(status)
+	sv.add_child(status)
+	_res_row = HBoxContainer.new()
+	_res_row.add_theme_constant_override("separation", 22)
+	sv.add_child(_res_row)
+	_warn_box = VBoxContainer.new()
+	_warn_box.add_theme_constant_override("separation", 4)
+	sv.add_child(_warn_box)
 	add_child(_status_box)
 
 	_top_right = VBoxContainer.new()
@@ -115,10 +127,12 @@ func _ready() -> void:
 	report = Modal.new()
 	medbay = MedbayDialog.new()
 	armory = ArmoryDialog.new()
+	travel_report = Modal.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report]:
 		add_child(d)
+	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = Vector2(620, 320)
 	report.max_size = Vector2(900, 540)
 	crew.open_sheet.connect(func(c: Array[Character], u: Character) -> void:
@@ -144,6 +158,58 @@ func set_status(g: HubState) -> void:
 	status.text = "%s   ·   Tag %d   ·   %s (%s)   ·   %s   ·   %d %s offen" % [
 		g.slot_name if g.slot_name != "" else "nicht gespeichert", g.day, sys.name, f.name if f else "neutral",
 		g.sector.name, g.offers.size(), "Auftrag" if g.offers.size() == 1 else "Aufträge"]
+	UiTheme.clear(_res_row)
+	_res_row.add_child(_stat("Credits", "%d Cr" % g.credits, UiTheme.BAD if g.credits < 0 else UiTheme.ACCENT))
+	_res_row.add_child(_meter("Treibstoff", g.fuel, Voyage.TANK, UiTheme.CREW))
+	_res_row.add_child(_meter("Hülle", g.hull, Voyage.HULL_MAX, UiTheme.GOOD))
+	_res_row.add_child(_stat("Material", str(g.material), UiTheme.TEXT))
+	UiTheme.clear(_warn_box)
+	for w in warnings(g):
+		_warn_box.add_child(UiTheme.label(w[0], 14, w[1]))
+
+
+## Warnungen unter der Statusleiste: [Text, Farbe]
+static func warnings(g: HubState) -> Array:
+	var out := []
+	var port := g.nearest_harbor()
+	var port_text := ""
+	if port >= 0 and port != g.position:
+		var d: int = g.sector.route(g.position, port).days
+		port_text = " (%s, %d %s)" % [g.sector.systems[port].name, d, "Tag" if d == 1 else "Tage"]
+	if g.fuel <= 0:
+		out.append(["Tank leer: Notsprit – nur Kurs zum nächsten Hafen%s" % port_text, UiTheme.BAD])
+	elif g.fuel < Voyage.FUEL_LOW:
+		out.append(["Treibstoff knapp: reicht für etwa %d Reisetage" % maxi(1, g.fuel / maxi(1, Voyage.estimate_fuel(g, 1))), Color("ff8a3d")])
+	if g.hull <= 0:
+		out.append(["Hülle 0: nur Kurs zum nächsten Hafen%s" % port_text, UiTheme.BAD])
+	if g.credits < 0:
+		out.append(["Notkredit: %d Cr Schulden, der nächste Lohn gleicht aus" % -g.credits, UiTheme.BAD])
+	return out
+
+
+func _stat(title: String, value: String, col: Color) -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	v.add_child(UiTheme.label(title, 12, UiTheme.MUTED))
+	v.add_child(UiTheme.label(value, 16, col))
+	return v
+
+
+func _meter(title: String, value: int, max_value: int, col: Color) -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 2)
+	v.custom_minimum_size.x = 120
+	v.add_child(UiTheme.label(title, 12, UiTheme.MUTED))
+	v.add_child(UiTheme.label("%d / %d" % [value, max_value], 15, UiTheme.TEXT if value > 0 else UiTheme.BAD))
+	var bar := ProgressBar.new()
+	bar.max_value = max_value
+	bar.value = value
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(120, 6)
+	bar.add_theme_stylebox_override("background", UiTheme.box(UiTheme.BG, UiTheme.BG, 3, 0))
+	bar.add_theme_stylebox_override("fill", UiTheme.box(col, col, 3, 0))
+	v.add_child(bar)
+	return v
 
 
 ## Namensschilder über den Räumen (Bildschirmpunkte vom Schiff)
@@ -244,9 +310,7 @@ func show_report(rep: Dictionary) -> void:
 		xl.custom_minimum_size.x = 420
 		g.add_child(xl)
 	report.content.add_child(g)
-	var note := UiTheme.label("Prototyp: Verletzte und Ausgefallene sind beim nächsten Einsatz wieder voll da (Heilung und Tod zwischen Einsätzen sind noch offen).", 12, UiTheme.MUTED)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	report.content.add_child(note)
+	_payout(rep)
 	var go := UiTheme.button("Zu den Crewquartieren")
 	go.add_theme_color_override("font_color", UiTheme.ACCENT)
 	go.pressed.connect(func() -> void:
@@ -254,6 +318,92 @@ func show_report(rep: Dictionary) -> void:
 		action.emit(&"room", &"quarters"))
 	report.footer.add_child(go)
 	report.add_close()
+
+
+## Lohn und Beute im Einsatzbericht (HubState.finish_mission → rep.payout)
+func _payout(rep: Dictionary) -> void:
+	if not rep.has("payout"):
+		return
+	report.content.add_child(UiTheme.label("LOHN UND BEUTE", 13, UiTheme.MUTED))
+	var p: Dictionary = rep.payout
+	if p.is_empty():
+		report.content.add_child(UiTheme.label("Niederlage oder Rückzug: kein Lohn, keine Beute.", 14, UiTheme.MUTED))
+		return
+	var g := GridContainer.new()
+	g.columns = 2
+	g.add_theme_constant_override("h_separation", 40)
+	g.add_child(UiTheme.label("Missionslohn (%s)" % p.difficulty, 15))
+	g.add_child(UiTheme.label("%d Cr" % p.pay, 15))
+	if int(p.bonus) != 0:
+		g.add_child(UiTheme.label("Fraktion: %s ×%s" % [rep.get("faction", ""), str(p.factor).replace(".", ",")], 15))
+		g.add_child(UiTheme.label("%+d Cr" % p.bonus, 15))
+	g.add_child(UiTheme.label("Beute: Schiffsmaterial", 15))
+	g.add_child(UiTheme.label("+%d" % p.loot, 15))
+	g.add_child(UiTheme.label("Credits", 15, UiTheme.ACCENT))
+	g.add_child(UiTheme.label("%d → %d Cr" % [p.credits0, p.credits1], 15, UiTheme.ACCENT))
+	report.content.add_child(g)
+
+
+## Reisebericht nach jeder Reise: Proben je Tag, Treibstoff, Hülle, EP
+func show_travel(rep: Dictionary) -> void:
+	travel_report.open("Reise nach %s" % rep.to)
+	travel_report.content.add_child(UiTheme.label("Tag %d → %d · %d %s" % [rep.day0, rep.day0 + rep.days, rep.days,
+		"Reisetag" if rep.days == 1 else "Reisetage"], 14, UiTheme.MUTED))
+	var g := GridContainer.new()
+	g.columns = 3 + Voyage.POSTS.size()
+	g.add_theme_constant_override("h_separation", 18)
+	g.add_theme_constant_override("v_separation", 6)
+	g.add_child(UiTheme.label("Tag", 12, UiTheme.MUTED))
+	for p in Voyage.POSTS:
+		g.add_child(UiTheme.label(p.name, 12, UiTheme.MUTED))
+	g.add_child(UiTheme.label("Treibstoff", 12, UiTheme.MUTED))
+	g.add_child(UiTheme.label("Hülle", 12, UiTheme.MUTED))
+	var xp := {}
+	for row in rep.rows:
+		g.add_child(UiTheme.label(str(row.day), 14))
+		for c in row.checks:
+			if c.is_empty():
+				g.add_child(UiTheme.label("unbesetzt", 14, UiTheme.MUTED))
+				continue
+			var col := UiTheme.TEXT
+			if c.result in [&"erfolg", &"herausragend"]:
+				col = UiTheme.GOOD
+			elif c.result == &"teilerfolg":
+				col = UiTheme.ACCENT
+			elif c.result == &"patzer":
+				col = UiTheme.BAD
+			var l := UiTheme.label("%s\n%s %s = %s %s" % [c.name, Dice.format_roll(c.roll), Dice.fmt(c.bonus), str(c.total).replace("-", "−"), c.result_name], 13, col)
+			g.add_child(l)
+			var key := "%s %s" % [c.name.split(" ")[0], Rules.skill_name(c.skill)]
+			xp[key] = int(xp.get(key, 0)) + int(c.xp)
+		g.add_child(UiTheme.label(Dice.fmt(row.fuel) if row.fuel != 0 else "±0", 14))
+		g.add_child(UiTheme.label(Dice.fmt(row.hull) if row.hull != 0 else "±0", 14, UiTheme.GOOD if row.hull > 0 else (UiTheme.BAD if row.hull < 0 else UiTheme.TEXT)))
+	travel_report.content.add_child(g)
+	var sum := "Treibstoff %d → %d" % [rep.fuel0, rep.fuel1]
+	if rep.emergency:
+		sum += " (Notsprit)"
+	else:
+		sum += " (%s statt %s)" % [Dice.fmt(rep.fuel1 - rep.fuel0), Dice.fmt(-Voyage.FUEL_PER_DAY * rep.days)]
+	sum += "   ·   Hülle %d → %d" % [rep.hull0, rep.hull1]
+	travel_report.content.add_child(UiTheme.label(sum, 16, UiTheme.ACCENT))
+	if rep.fuel1 <= 0 and not rep.emergency:
+		travel_report.content.add_child(UiTheme.label("Tank leer: Notsprit. Weiter nur zum nächsten Hafen; dort kostet das Tanken das Doppelte.", 14, UiTheme.BAD))
+	travel_report.content.add_child(UiTheme.label("ERFAHRUNG", 13, UiTheme.MUTED))
+	var parts := []
+	for k in xp:
+		parts.append("%s +%d" % [k, xp[k]])
+	var xl := UiTheme.label(" · ".join(parts) if not parts.is_empty() else "–", 14)
+	xl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	travel_report.content.add_child(xl)
+	var rule := UiTheme.label("Grundverbrauch %d je Reisetag. Pilot, Navigation, Computer: Teilerfolg −1, Erfolg −2, Herausragend −4, mindestens %d je Tag. Reparatur: Patzer −10, Fehlschlag −5, Teilerfolg ±0, Erfolg +2, Herausragend +4 Hülle." % [
+		Voyage.FUEL_PER_DAY, Voyage.FUEL_MIN], 12, UiTheme.MUTED)
+	rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	travel_report.content.add_child(rule)
+	var ok := UiTheme.button("Weiter")
+	ok.add_theme_color_override("font_color", UiTheme.ACCENT)
+	ok.pressed.connect(travel_report.close)
+	travel_report.footer.add_child(ok)
+	travel_report.move_to_front()
 
 
 func show_help() -> void:
@@ -268,11 +418,11 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible
 
 
 func close_dialogs() -> bool:
-	for d in [sheet, help, notice, slots, report, medbay, armory]:
+	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report]:
 		if d.visible:
 			d.close()
 			return true

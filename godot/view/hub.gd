@@ -9,6 +9,8 @@ var _hover: StringName = &""
 var _mouse_drag := false
 var _drag_moved := false
 var _drag_accum := Vector2.ZERO
+## nach dem Reisebericht ausführen (Einsatz beginnen), egal wie er geschlossen wird
+var _after_travel := Callable()
 
 @onready var ship: ShipView = $Ship
 @onready var rig: CameraRig = $CameraRig
@@ -28,6 +30,13 @@ func _ready() -> void:
 	ui.armory.done.connect(_refresh)
 	ui.star_map.hired.connect(func(_c: Character) -> void: _refresh())
 	ui.star_map.start.connect(_start_mission)
+	ui.star_map.bought.connect(_refresh)
+	ui.star_map.crew_repair.connect(crew_repair)
+	ui.travel_report.visibility_changed.connect(func() -> void:
+		if not ui.travel_report.visible and _after_travel.is_valid():
+			var next := _after_travel
+			_after_travel = Callable()
+			next.call())
 	ui.star_map.closed.connect(_refresh)
 	ui.crew.next_battle.connect(func() -> void:
 		Campaign.save()
@@ -107,15 +116,36 @@ func _travel(target: int) -> void:
 	var days := game.travel_to(target)
 	if days > 0:
 		Sfx.play(&"schritt")
+		ui.show_travel(game.last_travel)
 	_after_days()
 
 
+## Große Reparatur durch die Crew (1 Tag, 1 Material)
+func crew_repair() -> void:
+	var r := game.crew_repair()
+	if r.is_empty():
+		return
+	Sfx.play(&"klick")
+	_after_days()
+	ui.show_notice("Große Reparatur", "%s: Reparatur %s %+d = %d → %s\nHülle %+d (jetzt %d / %d) · 1 Material verbraucht · +%d EP" % [
+		r.name, Dice.format_roll(r.roll), r.bonus, r.total, r.result_name, r.hull, game.hull, Voyage.HULL_MAX, r.xp])
+	ui.notice.move_to_front()
+
+
+## Zum Auftrag: hinfliegen (Reisebericht), dann in den Bodenkampf
 func _start_mission(offer: Dictionary) -> void:
+	var day0 := game.day
 	if not game.start_mission(offer):
 		_refresh()
 		return
 	Campaign.save()
 	Campaign.last_result = {}
+	if game.day > day0:
+		Sfx.play(&"schritt")
+		_refresh()
+		_after_travel = func() -> void: get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		ui.show_travel(game.last_travel)
+		return
 	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
 
 

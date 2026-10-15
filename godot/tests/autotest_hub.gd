@@ -49,6 +49,19 @@ func _run() -> void:
 	hub.open_room(&"bridge")
 	hub.ui.star_map.select(g.position)
 	await _frames(10)
+	# Raumhafen: Tank halb leer, Volltanken, Material kaufen
+	g.fuel = 70
+	g.hull = 70
+	hub.ui.star_map.refresh()
+	await _frames(5)
+	await _shot("h1a_raumhafen")
+	var cr0 := g.credits
+	await _click_button(hub.ui, "Volltanken")
+	await _click_button(hub.ui, "1 kaufen")
+	await _click_button(hub.ui, "1× reparieren")
+	print("Raumhafen: Credits %d -> %d, Tank %d, Material %d, Hülle %d" % [cr0, g.credits, g.fuel, g.material, g.hull])
+	await _click_button(hub.ui, "Crew anheuern")
+	await _frames(5)
 	await _shot("h1b_hafen")
 	await _click_button(hub.ui, "Anheuern")
 	print("Hafen: %s im Hafen, nach Anheuern an Bord %s, Crew %d / %d" % [gone.name, Campaign.crew().has(gone), Campaign.crew().size(), g.berths])
@@ -114,9 +127,25 @@ func _run() -> void:
 	var day0 := g.day
 	var nb: int = g.sector.neighbors(g.position)[0][0]
 	sm.select(nb)
+	sm.refresh()
+	await _frames(5)
+	await _shot("h4b_kurs_reiseposten")
 	await _click_button(hub.ui, "Kurs setzen")
-	print("Reise: Tag %d -> %d, Position %s" % [day0, g.day, g.sector.systems[g.position].name])
-	await _shot("h5_nach_reise")
+	print("Reise: Tag %d -> %d, Position %s, Reisebericht offen %s, Treibstoff %d -> %d, Hülle %d -> %d" % [day0, g.day,
+		g.sector.systems[g.position].name, hub.ui.travel_report.visible, g.last_travel.get("fuel0", -1), g.fuel,
+		g.last_travel.get("hull0", -1), g.hull])
+	await _shot("h5_reisebericht")
+	await _click_button(hub.ui, "Weiter")
+	print("Reisebericht geschlossen: ", not hub.ui.travel_report.visible)
+	# große Reparatur durch die Crew (1 Tag, 1 Material)
+	g.hull = 60
+	sm.refresh()
+	var d1 := g.day
+	await _click_button(hub.ui, "Große Reparatur")
+	print("Crew-Reparatur: Tag %d -> %d, Hülle 60 -> %d, Material %d" % [d1, g.day, g.hull, g.material])
+	await _shot("h5b_crew_reparatur")
+	hub.ui.notice.hide()
+	await _shot("h5c_status_schiff")
 	await _click_button(hub.ui, "Zurück ins Schiff")
 	# Crewquartiere
 	hub.open_room(&"quarters")
@@ -143,6 +172,10 @@ func _run() -> void:
 	hub.ui.star_map.select(o2.system, o2.id)
 	await _frames(5)
 	await _click_button(hub.ui, "Briefing")
+	await _frames(10)
+	if hub.ui.travel_report.visible:
+		print("Reisebericht vor dem Einsatz offen")
+		await _click_button(hub.ui, "Weiter")
 	await _frames(60)
 	var b := get_tree().current_scene as Battle
 	print("Bodenkampf: %s gegen %s (erwartet %s), Briefing offen %s" % [b.mission.title, b.mission.faction.name,
@@ -164,6 +197,7 @@ func _run() -> void:
 			e.state = Combatant.State.DEAD
 		b.combat.check_end()
 	var done0 := g.missions_done
+	print("vor dem Ergebnis: Credits %d, Material %d" % [g.credits, g.material])
 	var t0_banner := Time.get_ticks_msec()
 	while not b.ui.result_banner.visible and Time.get_ticks_msec() - t0_banner < 10000:
 		await get_tree().process_frame
@@ -175,6 +209,7 @@ func _run() -> void:
 	print("zurück im Schiff: %s, Einsätze %d -> %d, Tag %d, Bericht offen %s" % [hub != null, done0, g.missions_done, g.day,
 		hub.ui.report.visible if hub else false])
 	await _frames(10)
+	print("nach dem Einsatz: Credits %d, Material %d" % [g.credits, g.material])
 	await _shot("h9_bericht")
 	var saved := Roster.load_crew()
 	print("freie EP: im Speicher %d, gespeichert %d (erwartet je Figur %d)" % [Campaign.crew()[0].free_xp, saved[0].free_xp,
