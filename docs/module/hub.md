@@ -127,3 +127,7 @@ Grundlage: `docs/Planung_UI_Groesse.md`. Einstellung „UI-Größe“ (z. B. 75 
   - `UiScale.picker(get_tree()) -> HBoxContainer` – fertige Knopfzeile „UI-Größe 75 % | 90 % | 100 % | 125 %“ zum Einbauen in einen Dialog (so im Startmenü und im Schiff; der Bodenkampf kann sie in sein Kampfmenü setzen).
   - Wirkung: `get_tree().root.content_scale_factor`; alle 2D-Oberflächen aller Szenen werden skaliert, 3D bleibt gleich. Eigener Speicherort `user://ui.cfg` (nicht `settings.cfg`, damit sich `Prefs` und `UiScale` beim Speichern nicht überschreiben).
 - Tests: `test_rules` OK, `test_hub` OK (Stufen, Speichern/Anwenden, ungültige Stufe), `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (UI-Größe im Schiff auf 75 % und zurück).
+
+## Aufträge vom Koordinator (15.10.2026): Reise, Schiff, Credits
+
+Grundlage: `docs/Planung_Reise_Schiff.md` (Entscheidungen des Nutzers). Das Hub-Modul baut alles allein: Reiseproben pro Reisetag (Pilot, Navigation, Computer, Reparatur nach Station, sonst Bester verfügbar) mit EP, Treibstoff, Hülle, Schiffsmaterial, Credits, Lohn und Beute nach Fraktion und Schwierigkeit, Kaufen im Raumhafen, Speichern und Anzeige. **Vorher:** Zahlenvorschlag (Tabelle) und Mockup der Anzeige dem Nutzer vorlegen und bestätigen lassen. Regeln danach in `docs/Skillsystem.md` nachtragen.
