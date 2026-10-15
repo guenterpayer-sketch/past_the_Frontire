@@ -12,6 +12,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 [autoload]
 
 Sfx="*res://audio/sfx.gd"
+Music="*res://audio/music.gd"
 
 [display]
 

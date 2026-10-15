@@ -148,3 +148,16 @@ Entscheidungen des Nutzers: Musik im **Startmenü, Schiff, Bodenkampf und bei Si
 - Lautstärke **Musik** (und ggf. Effekte) in den Einstellungen (Startmenü und Schiffsmenü, wie UI-Größe), gespeichert.
 - Startmenü und Schiff selbst anbinden.
 - Schnittstelle (Aufrufe für den Bodenkampf) unter „Schnittstellen“ vermerken; Bodenkampf baut danach nur die Aufrufe.
+
+### Stand Musik (Hub-Chat, 15.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`a8e9d5e`) geholt, ohne Konflikte.
+- Entscheidungen des Nutzers: MP3s legt er **selbst** ab (GitHub Desktop); **ein Ordner je Anlass**, teils mehrere Stücke (zufälliger Wechsel); Bodenkampf getrennt: **Briefing ruhig, Kampf spannend**; Sieg/Niederlage **in Schleife**, bis man weitergeht; Regler **Musik und Effekte**.
+- Gebaut: Autoload `Music` (`audio/music.gd`, in `project.godot` nach `Sfx`), Ordner `audio/music/{start,ship,briefing,battle,victory,defeat}/` (mit `.gitkeep`, noch ohne Stücke), Regler in den Einstellungen des Startmenüs und im Schiff (Menüpunkt „UI-Größe …“ heißt jetzt „Einstellungen …“: UI-Größe, Musik, Effekte). Startmenü spielt `start`, Schiff `ship`. Die Effekte (`Sfx`) laufen über den Bus „SFX“ (setzt `Music` beim Start, `audio/sfx.gd` unverändert).
+- **Schnittstelle für den Bodenkampf** (nur Aufrufe bauen):
+  - Briefing öffnet / Runde 0: `Music.play(Music.BRIEFING)`
+  - Kampf beginnt (Runde 1): `Music.play(Music.BATTLE)`
+  - Ergebnis-Banner: `Music.play(Music.VICTORY)` bzw. `Music.play(Music.DEFEAT)` (auch Rückzug)
+  - Zurück ins Schiff/Startmenü: nichts nötig (Schiff und Startmenü rufen selbst `play`). Nach `crew.tscn` läuft die letzte Musik weiter.
+  - Gleicher Anlass zweimal = kein Neustart; leerer Ordner = Stille. Weitere: `Music.stop()`, `Music.volume_rows()` (Regler zum Einbauen, z. B. ins Kampfmenü).
+- Tests: `test_rules` OK, `test_hub` OK, `--autotest-hub` durchgelaufen (Anlass start/ship, Busse, Lautstärke 30 % = −10,5 dB, 0 % = stumm). Wiedergabe mit erzeugten Testtönen geprüft (nicht eingecheckt): zwei Stücke → Wechsel nach Ende, ein Stück → Schleife, leerer Anlass → Stille.
