@@ -97,3 +97,7 @@ Vorher **Mockup** zeigen und vom Nutzer bestätigen lassen.
 
 Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausruestungs_Editor.md`). **Warten, bis sein Baustein in `main` ist.** Dann: `Equipment.armors()` liefert auch eigene Rüstungen, die Waffenkammer zeigt eigene Ausrüstung; Verhalten, wenn getragene Ausrüstung gelöscht wird, mit dem Nutzer klären (Abschnitt „Aufteilung“, Punkt 3).
 - **Baustein des Hubs ist in `main` (`52efbe2`):** `Equipment.weapons()/armors()` um `Gear.weapons()/armors()` ergänzen; gelöschte Datei: Waffe 1 → `Gear.FALLBACK_WEAPON` (Fäuste), Waffe 2 leer, Rüstung → `Gear.FALLBACK_ARMOR` (keine) – vom Nutzer so entschieden; Vermerk „frei“ über `Gear.is_free(r)`. Details `docs/module/hub.md`. Jetzt `main` holen und anbinden.
+
+## Aufträge vom Koordinator (15.10.2026): Anzeige Munition in der Waffenkammer
+
+Munition Teil Kampf ist in `main` (`928b0f9`), siehe `docs/module/bodenkampf.md` → Munition. `ui/crew/armory_dialog.gd` zeigt „Feuerstoß“ noch aus `ob_bonus` (beim MG jetzt leer) und „Munition gesamt“ als 3 Magazine. Anpassen an `shots`, `ammo_type`, `ammo_total` (Obergrenze der Mitnahme). Zusammen mit dem Auftrag „eigene Rüstungen“ erledigen.

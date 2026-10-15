@@ -183,3 +183,9 @@ Grundlage: `docs/Planung_Ausruestungs_Editor.md` (Entscheidungen des Nutzers). E
 ## Hinweis vom Koordinator (15.10.2026): Munition
 
 Neue Entscheidungen in `docs/Planung_Munition.md`: Feuerstoß mit *Schuss pro Angriff*, *Munitionsart* je Waffe, Schiffsvorrat je Munitionsart mit Kauf im Raumhafen. Der Bodenkampf baut zuerst die Felder in `WeaponData`; erst danach der Hub-Teil (Vorrat, Kauf, Abzug, Editor-Felder). Für den Ausrüstungs-Editor: die beiden neuen Felder vorsehen, sobald sie in `main` sind.
+
+## Aufträge vom Koordinator (15.10.2026): Munition (Teil Hub)
+
+Munition Teil Kampf ist in `main` (`928b0f9`); Schnittstelle in `docs/module/bodenkampf.md` unter „Schnittstellen“ → Munition. Grundlage `docs/Planung_Munition.md`.
+1. Vorrat im Spielstand: `HubState.game.ammo = {"energie": n, "projektil": n, "raketen": n}`; nach dem Einsatz `ammo_used` aus dem `MissionResult` abziehen; Anzeige im Schiff; Kauf im Raumhafen (Preise mit dem Nutzer).
+2. Ausrüstungs-Editor: Felder `shots` (Schuss pro Angriff) und `ammo_type` (Munitionsart) ergänzen; `ammo_total` ist jetzt die Obergrenze der Mitnahme. `core/gear.gd` führt `ob_bonus` als „Angriffsbonus“ – der Feuerstoß läuft jetzt über `shots`.
