@@ -72,3 +72,4 @@ Das Charakter-Modul baut einen Ausrüstungsdialog, der `WeaponData`/`ArmorData` 
 Grundlage: `docs/Planung_UI_Groesse.md`.
 1. **Sichtlinie prüfen:** möglicher Fehler (Normina hinter Regal, Plünderer zwischen Kisten, „keine Sichtlinie“). Vermutete Ursache: Kistenstapel (Höhe 1) sperren die Sicht im hinteren Teil der Strecke ganz (Befund in `docs/Planung_UI_Groesse.md`). Nachstellen, messen, wie oft das passiert, und dem Nutzer **2–3 Vorschläge** machen, wie Kisten die Sichtlinie behandeln sollen. Erst nach seiner Entscheidung ändern.
 2. **Kampf-UI kompakter:** Aktionsfeld, Kampflog/Figurenkarte, Leisten oben. **Erst Mockup** (Varianten), Nutzer wählt. Die globale Einstellung „UI-Größe“ baut der Hub; ob der Kampf einen eigenen Menüeintrag dafür bekommt, mit dem Nutzer klären.
+- Neu in `main` (`6fb7cec`): Einstellung „UI-Größe“ vom Hub. Für einen Eintrag im Kampfmenü gibt es `UiScale.picker(get_tree())` (fertige Knopfzeile), siehe `hub.md` „Schnittstellen“.
