@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 16.10.2026. Alle Aufträge nach dem Spieltest sind in `main` (zuletzt Bodenkampf `afaccd5` → `b363af0`).
+Stand: 15.10.2026. Zuletzt zusammengeführt: Charakter `14163cc` (Waffenkammer) → `0c251f9`.
 
 ## Arbeitsweise mit Branches
 
@@ -11,7 +11,7 @@ Stand: 16.10.2026. Alle Aufträge nach dem Spieltest sind in `main` (zuletzt Bod
 | Branch | Modul | Stand |
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`afaccd5`) |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | `92f2d5b`, nichts offen; muss `main` holen |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`14163cc`) |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | `036ca7c`, nichts offen; muss `main` holen |
 
 ## Verlauf
@@ -32,6 +32,7 @@ Stand: 16.10.2026. Alle Aufträge nach dem Spieltest sind in `main` (zuletzt Bod
 | 16.10.2026 | `675d17c` | Hub `claude/happy-lamport-u4fvya` (`479e767`) | ohne Konflikte; gebaut auf `d8903d8`, also ohne den Charakter-Stand `d654883` – Kombination nur vom Koordinator geprüft: `test_rules`, `test_hub` OK, `test_sim -- 10` 7 Siege / 0 hängengeblieben; grafische Tests nicht ausgeführt. Startmenü „Roster“, neues Spiel mit `CrewPicker`, Schnellkampf aus dem Roster (ersetzt die Arbeitskopie `user://crew.json`, Spielstände unberührt), Crewquartiere mit `HubState.berths`. |
 | 16.10.2026 | `014eab8` | Hub `claude/happy-lamport-u4fvya` (`036ca7c`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Anheuern auf der Brücke im Hafen, Krankenstation (`core/medbay.gd`, `ui/medbay_dialog.gd`: Arzt/Helfer, Tagesprobe, EP, Protokoll), Tage über `HubState.advance_days()` → `Campaign.pass_days()`, Arzt-Sperre `HubState.blocked_ids()`. Tests laut Modul-Chat alle grün; Koordinator: `test_rules`, `test_hub` OK. |
 | 16.10.2026 | `b363af0` | Bodenkampf `claude/confident-edison-6mxzke` (`afaccd5`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Truppwahl im Briefing (Mockup bestätigt; `Campaign.candidates(HubState.quick_battle, HubState.blocked_ids())`, `suggested_squad()`, `set_squad()`/`quick_squad`; Schnellkampf: 6 Startfiguren vorbelegt), `hub_report()` mit `Campaign.last_fallen`, `--autotest-psi` aus dem Startmenü erreichbar. Tests laut Modul-Chat alle grün; Koordinator: `test_rules`, `test_hub` OK. `CLAUDE.md`: `--autotest-psi` in die Testliste. |
+| 15.10.2026 | `0c251f9` | Charakter `claude/elegant-gauss-hq5bus` (`14163cc`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Waffenkammer-Dialog (`ui/crew/armory_dialog.gd`, Regeln `core/equipment.gd`: Waffe 1 Pflicht, keine doppelt, keine Psi-Waffen, Schild nur mit einhändigen Waffen). Ändert Bodenkampf-Daten auf Anweisung des Nutzers: Vibroklinge einhändig, Laserkarabiner Fertigkeit Gewehre (Ikko/Rhea treffen schlechter, Nutzer: so lassen). Koordinator: `test_rules`, `test_hub` OK. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 

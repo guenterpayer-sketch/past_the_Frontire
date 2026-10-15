@@ -35,17 +35,27 @@
 - `roster.tscn` (`RosterScreen`, „Zurück“ → `res://start.tscn`), `CrewPicker.open_pick(subtitle, seats)` + Signal `picked(chars)`, `CharacterEditor.open_for_roster()`, `FigurePreview`, `CrewWidgets`.
 - `ui/modal.gd`: `closable`.
 
+**Waffenkammer (neu, 15.10.2026)**
+- `ArmoryDialog` (`ui/crew/armory_dialog.gd`, erbt `Modal`): **Aufruf für den Hub** im Raum „Waffenkammer“:
+  ```
+  var armory := ArmoryDialog.new()   # einmal anlegen, z. B. neben crew/editor in hub_ui
+  add_child(armory)
+  armory.open_for(Campaign.crew(), index_der_gewählten_figur := 0)
+  armory.done.connect(...)           # nach „Fertig“; Campaign.save() ist dann schon erfolgt
+  ```
+  Schließen per Klick daneben/Esc wie jedes `Modal` (dann **ohne** Speichern der Datei; die Änderungen bleiben aber an den `Character`-Objekten im Speicher – der nächste `Campaign.save()` schreibt sie).
+- `Equipment` (`core/equipment.gd`): `weapons()` (ohne Psi), `armors()`, `weapon(ch, slot)`, `weapon_block/set_weapon(ch, slot, w)` (Platz 1 = `null` → Waffe 2 leer), `blocks_shield(w)`, `shield_block/set_shield(ch, on)`, `shield_bonus(ch)`, `damage_taken(armor)`.
+- Regeln (Nutzer 15.10.2026): Waffe 1 Pflicht, Waffe 2 darf leer sein; keine Waffe doppelt; Psi-Waffen nicht wählbar; Schild nur mit einhändigen Waffen (Fäuste zählen nicht als zweihändig); eine zweihändige Waffe legt den Schild ab.
+- **In Dateien des Bodenkampfs geändert (auf Anweisung des Nutzers):** `data/weapons/vibroklinge.tres` → `two_handed = false` (einhändig; wirkt auch auf die Haltung des 3D-Modells), `data/weapons/laserkarabiner.tres` → Fertigkeit `gewehre` statt `pistolen`. Folge: Ikko und Rhea (Laserkarabiner, keine Ränge in Gewehre) treffen damit deutlich schlechter (Pistolen +65/+40 → Gewehre −15); Nutzer: „so lassen“, umrüsten in der Waffenkammer.
+
 **Regeln in `Rules`** (wirken auf alle Figuren, auch Gegner): Gruppen „Entwicklung“ und „Psi-Listen“; TP = 15 + KON/3 + 5 × Körperentwicklung; PP = MEN/10 + MEN-Bonus/2 + 2 × Psi-Punkte-Entwicklung; neue Psi-Liste: erster Rang doppelt, eine pro Levelphase (`next_rank_cost`, `rank_block`).
 
 **In Dateien anderer Module geändert:** `view/battle.gd` (eine Zeile: Kampf mit `Campaign.squad()`), `core/combatant.gd` (`from_character`: Malus für Angeschlagene).
 
-## Stand (16.10.2026)
+## Stand (15.10.2026)
 
-- Gültig ist die Klärung in `docs/Planung_Roster_Verwundung.md`, Abschnitt D (ersetzt frühere Einträge dieser Datei). Mockup „Frontire Roster“ ist vom Nutzer freigegeben und gebaut.
-- Umgesetzt: Anheuern aus den Crewquartieren entfernt (nur noch im Hafen über den Hub), Entlassene „im Hafen“ mit Fortschritt (gespeichert), Trupp gespeichert, Verwundung aus dem `MissionResult` (Stufen, Tage, Malus, Tote), `pass_days`, Kandidatenliste mit Sperr-Status für die Truppwahl (auch Schnellkampf), Anzeige von Zustand, Resttagen und „sterbend/stabilisiert“ in der Charakterübersicht.
-- Entscheidungen des Nutzers (16.10.): Kritischer C–E im Stehen = angeschlagen + Zuschlag; stabilisiert = schwer verwundet; angeschlagen = Malus −10; erneut verwundet = schlimmere Stufe, Tage addiert. Annahme: Die Stufe bleibt bis zum letzten Resttag, danach unverletzt.
-- **Für den Hub:** Anheuern auf der Brücke im Hafen mit `Campaign.hire()` (Roster-Einträge und `Campaign.harbor()`), Krankenstation mit `Campaign.patients()` und je Tag `Campaign.pass_days(1, bonus)`; beim Reisen/Warten ohne Krankenstation `pass_days(n)`. Arzt-Sperre über `blocked_ids` in `candidates()`. Einsatzbericht: Gefallene stehen in `Campaign.last_fallen` (sie sind nach `finish_mission` nicht mehr in `crew()`).
-- **Für den Bodenkampf:** Truppwahl im Briefing mit `Campaign.candidates(quick, blocked_ids)` und `suggested_squad()`; Ergebnis `Campaign.set_squad(chars)` bzw. im Schnellkampf `Campaign.quick_squad = chars`. `hub_report()` in `battle.gd` sollte `Campaign.last_fallen` mit aufnehmen.
+- Waffenkammer gebaut nach Mockup „Frontire Waffenkammer“ (vom Nutzer bestätigt): `ArmoryDialog` + `Equipment`, Tests in `test_rules.gd` (`_test_equipment`). Der Hub muss nur noch den Raum „Waffenkammer“ anbinden (Aufruf oben).
+- Davor (16.10.): Klärung D, Verwundung, Kandidaten für die Truppwahl – in `main`.
 
 ## Aufträge vom Koordinator
 
@@ -58,3 +68,4 @@ In `main`, nichts offen. `main` holen (Hub `479e767` ist drin). Schnittstellen u
 ## Aufträge vom Koordinator (15.10.2026): Waffenkammer
 
 Grundlage: `docs/Planung_Waffenkammer.md`. Du baust den **Ausrüstungsdialog** (Waffe 1/2, Rüstung, Schild ändern; Medikits/Munition nur anzeigen; Werte aus `WeaponData`/`ArmorData` inkl. Bonus der Figur in der Waffenfertigkeit). Bestand unbegrenzt, Änderung gilt für die Figur im Spielstand. **Erst Mockup**, vom Nutzer bestätigen lassen, dann bauen. Der Hub öffnet den Dialog aus dem Raum „Waffenkammer“ – Aufruf (Funktion/Signal) in den Schnittstellen vermerken.
+- (15.10.2026) Waffenkammer: Ausrüstungsdialog → gebaut (siehe Stand); Aufruf für den Hub unter „Schnittstellen“.

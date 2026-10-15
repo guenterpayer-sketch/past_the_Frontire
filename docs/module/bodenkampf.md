@@ -65,3 +65,4 @@ Verwundung, aktive Figur und Psi sind in `main` (`6162f58`), ebenso der Roster d
 ## Hinweis vom Koordinator (15.10.2026): Waffenkammer
 
 Das Charakter-Modul baut einen Ausrüstungsdialog, der `WeaponData`/`ArmorData` (deine Dateien) nur liest; der Hub öffnet ihn im Schiff. Für dich nichts zu bauen. Falls das Charakter-Modul Felder für die Anzeige braucht, abstimmen. Details: `docs/Planung_Waffenkammer.md`.
+- Neu in `main` (`0c251f9`): Das Charakter-Modul hat auf Anweisung des Nutzers zwei deiner Dateien geändert: `data/weapons/vibroklinge.tres` (einhändig), `data/weapons/laserkarabiner.tres` (Fertigkeit Gewehre). `main` holen.

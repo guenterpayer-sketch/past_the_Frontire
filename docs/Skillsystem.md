@@ -178,7 +178,7 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 **Verteidigungswert (VW)** =
 - Ausweichen: ½ × Ausweichen-Gesamtbonus (mindestens 0) **plus** ½ × Ausweichen × (zurückgehaltene Aktivität / 100) – siehe Abschnitt 7
 - **Überraschung** (Angreifer außerhalb des Sichtfelds des Ziels, Abschnitt 7.2): kein Ausweichen und kein Schild; eine gelungene Kampfsinn-Probe (Mittel) des Ziels lässt das Ausweichen halb zählen
-- \+ Schild: 10 + ½ Rangbonus Schild (nur mit Schild, nicht bei Überraschung)
+- \+ Schild: 10 + ½ Rangbonus Schild (nur mit Schild, nicht bei Überraschung). Ein Schild geht nur mit **einhändigen Waffen** (Waffe 1 und Waffe 2; Fäuste zählen nicht als zweihändig), Entscheidung 15.10.2026.
 - \+ Rüstung (schwere Rüstung macht unbeweglich: −5 / −10)
 - \+ Deckung / Gelände (siehe 5.4)
 - gegen **Psi**: stattdessen Psi-Verteidigung (voll) + Psi-Schild; Deckung und Ausweichen zählen nicht
@@ -245,7 +245,7 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Waffe | Grundreichweite | Stufen | max. |
 |---|---|---|---|
 | Laserpistole | 10 m | 4 | 40 m |
-| Laserkarabiner (Fertigkeit Pistolen) | 15 m | 4 | 60 m |
+| Laserkarabiner (Fertigkeit Gewehre, seit 15.10.2026) | 15 m | 4 | 60 m |
 | Sturmgewehr | 25 m | 4 | 100 m |
 | Schweres MG | 20 m | 4 | 80 m |
 | Raketenwerfer | 30 m | 3 | 90 m (mind. 6 m Abstand) |
