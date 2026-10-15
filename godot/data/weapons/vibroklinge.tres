@@ -8,6 +8,7 @@ script = ExtResource("1_q7msd")
 id = &"vibroklinge"
 name = "Vibroklinge"
 skill = &"einhand"
+two_handed = false
 table = ExtResource("2_awtdl")
 melee = true
 fumble = 3
