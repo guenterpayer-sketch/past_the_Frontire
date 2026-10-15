@@ -108,17 +108,17 @@ func _try(seed_value: int, sz: Dictionary) -> BattleMap:
 	return _finish(cols, rows, mid)
 
 
-## 1. Galerie an der Rückwand (Reihen 1–2), bei mittel/groß auch an der rechten Wand; Treppen und Leitern
+## 1. Galerie an der Rückwand (Reihen 1–2), bei mittel/groß auch an der rechten Wand; Aufstieg nur über Leitern
+## (Entscheidung Nutzer 15.10.2026: keine Treppen in der Halle; Gelände „treppe“ und seine Darstellung bleiben
+## erhalten, z. B. für Rampen in anderen Karten).
 func _build_gallery(cols: int, rows: int, mid: int) -> void:
 	var gal := _next_obj()
 	for col in range(1, cols - 1):
 		for row in [1, 2]:
 			_put(m.at_offset(col, row), &"galerie", 3, gal)
-	var stairs_at: Array = [int(cols * 0.2), int(cols * 0.5), int(cols * 0.75)] if size.id == "gross" else [int(cols * 0.3), int(cols * 0.65)]
-	for c in stairs_at:
-		for dc in [0, 1]:
-			_put(m.at_offset(c + dc, 3), &"treppe", 2)
-			_put(m.at_offset(c + dc, 4), &"treppe", 1)
+	var climb_at: Array = [int(cols * 0.2), int(cols * 0.5), int(cols * 0.75)] if size.id == "gross" else [int(cols * 0.3), int(cols * 0.65)]
+	for c in climb_at:
+		_put(m.at_offset(c, 3), &"leiter", 0)
 	for c in [_ri(5, cols / 2 - 2), _ri(cols / 2 + 2, cols - 4)]:
 		var t := m.at_offset(c, 3)
 		if _free(t):
@@ -130,12 +130,8 @@ func _build_gallery(cols: int, rows: int, mid: int) -> void:
 		for col in [cols - 3, cols - 2]:
 			_put(m.at_offset(col, row), &"galerie", 3, gal_r)
 	for sr in [_ri(5, rows / 2 - 1), _ri(rows / 2 + 1, rows - 4)]:
-		var st: Array[T] = [m.at_offset(cols - 4, sr), m.at_offset(cols - 4, sr + 1), m.at_offset(cols - 5, sr), m.at_offset(cols - 5, sr + 1)]
-		if _all_free(st):
-			_put(st[0], &"treppe", 2)
-			_put(st[1], &"treppe", 2)
-			_put(st[2], &"treppe", 1)
-			_put(st[3], &"treppe", 1)
+		if _free(m.at_offset(cols - 4, sr)):
+			_put(m.at_offset(cols - 4, sr), &"leiter", 0)
 	var lr := _ri(5, rows / 2 - 1)
 	if _free(m.at_offset(cols - 4, lr)):
 		_put(m.at_offset(cols - 4, lr), &"leiter", 0)
