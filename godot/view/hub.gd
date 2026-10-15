@@ -19,6 +19,7 @@ var _after_travel := Callable()
 
 func _ready() -> void:
 	UiScale.apply(get_tree())
+	Music.play(Music.SHIP)
 	if HubState.game == null:
 		HubState.new_game(randi() % 1000000)
 	game = HubState.game

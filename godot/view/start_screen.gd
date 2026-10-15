@@ -28,6 +28,7 @@ func _ready() -> void:
 		t.name = "HubAutotest"
 		get_tree().root.add_child.call_deferred(t)
 	_build_scene()
+	Music.play(Music.START)
 	_build_ui()
 
 
@@ -199,4 +200,5 @@ func _show_settings() -> void:
 		c.toggled.connect(spec[2])
 		settings.content.add_child(c)
 	settings.content.add_child(UiScale.picker(get_tree()))
+	settings.content.add_child(Music.volume_rows())
 	settings.add_close()

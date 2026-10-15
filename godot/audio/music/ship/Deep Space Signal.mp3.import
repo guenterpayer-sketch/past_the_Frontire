@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://duwk1u3uhqlc8"
+path="res://.godot/imported/Deep Space Signal.mp3-5371812ab7cb47fcf07d9873541987ae.mp3str"
+
+[deps]
+
+source_file="res://audio/music/ship/Deep Space Signal.mp3"
+dest_files=["res://.godot/imported/Deep Space Signal.mp3-5371812ab7cb47fcf07d9873541987ae.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

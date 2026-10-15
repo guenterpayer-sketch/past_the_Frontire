@@ -7,7 +7,7 @@ extends Control
 signal action(name: StringName, arg: Variant)
 
 const MARGIN := 14.0
-const MENU := [[&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "UI-Größe …"], [&"help", "Bedienung"]]
+const MENU := [[&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
 
 var status: Label
 var info: InfoBox
@@ -133,7 +133,7 @@ func _ready() -> void:
 	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
-	notice.max_size = Vector2(620, 320)
+	notice.max_size = Vector2(640, 440)
 	report.max_size = Vector2(900, 540)
 	crew.open_sheet.connect(func(c: Array[Character], u: Character) -> void:
 		var units := Roster.build_crew(c)
@@ -267,11 +267,12 @@ func show_toast(text: String) -> void:
 	tw.tween_callback(p.queue_free)
 
 
-## Einstellung UI-Größe (gilt fürs ganze Spiel, sofort)
+## Einstellungen im Schiff: UI-Größe und Lautstärke Musik/Effekte (gelten fürs ganze Spiel, sofort, gespeichert)
 func show_ui_scale() -> void:
-	notice.open("UI-Größe")
+	notice.open("Einstellungen")
 	notice.content.add_child(UiScale.picker(get_tree()))
-	var l := UiTheme.label("Größe von Schrift und Kästen im ganzen Spiel; die 3D-Ansicht bleibt gleich. Wird gespeichert.", 13, UiTheme.MUTED)
+	notice.content.add_child(Music.volume_rows())
+	var l := UiTheme.label("UI-Größe: Schrift und Kästen im ganzen Spiel, die 3D-Ansicht bleibt gleich. Alles wird gespeichert.", 13, UiTheme.MUTED)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notice.content.add_child(l)
 	notice.add_close()

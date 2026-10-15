@@ -16,3 +16,12 @@ Alle Modelle sind frei nutzbar (auch kommerziell). Quelle, Lizenz und Verwendung
 | `characters/anims/*.res` | aus den KayKit-Animationen auf die Quaternius-Skelette übertragen (`tools/bake_animations.gd`) | CC0 1.0 | – |
 
 Die Quaternius-Dateien stammen aus dem GLB-Archiv https://github.com/trebeljahr/quaternius-showcase (`public/glb/`, Lizenzliste dort in `LICENSES.md`), die KayKit-Datei aus https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0.
+
+## Musik (`godot/audio/music/`)
+
+Vom Nutzer ausgewählt und abgelegt (15.10.2026). Zuordnung zur Quelle nach dem Dateinamen (Pixabay-Dateien enden auf eine Nummer), vom Nutzer nicht einzeln bestätigt.
+
+| Dateien | Quelle | Lizenz |
+|---|---|---|
+| `arpmedia-instrumental-588483.mp3`, `uniquecreativeaudio-ambient-dream-stream-…-258513.mp3`, `ame_atmos-…-487106.mp3`, `ame_atmos-…-534132.mp3`, `foggysunrise-chill-synthwave-1-451092.mp3` | Pixabay (https://pixabay.com/music/) | Pixabay Content License |
+| `Futuristic Combat Pulse.mp3`, `Futuristic Combat Pulse(1).mp3`, `Ominous Battle Pulse.mp3`, `Distant Metallic Pulse.mp3`, `Tactical Silence.mp3`, `Deep Space Signal.mp3`, `Victory Pulse.mp3` | mit Suno erzeugt (https://suno.com) | nach den Suno-Bedingungen des Kontos des Nutzers |

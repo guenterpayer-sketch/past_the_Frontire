@@ -19,6 +19,9 @@ func _ready() -> void:
 
 func _run() -> void:
 	await _frames(30)
+	print("Musik Startmenü: Anlass %s, Stücke %d, Busse Musik/Effekte %d/%d, Sfx auf Effekt-Bus %s" % [Music.theme, Music.tracks(Music.START).size(),
+		AudioServer.get_bus_index(Music.BUS_MUSIC), AudioServer.get_bus_index(Music.BUS_SFX),
+		Sfx.get_children().all(func(c: Node) -> bool: return not c is AudioStreamPlayer or (c as AudioStreamPlayer).bus == Music.BUS_SFX)])
 	await _shot("h0_start")
 	# Roster aus dem Startmenü und zurück
 	await _click_button(get_tree().current_scene, "Roster")
@@ -41,6 +44,7 @@ func _run() -> void:
 	print("Neues Spiel: %d an Bord (gewählt %d), Plätze %d, Slot 1 gespeichert %s" % [Campaign.crew().size(), picked.size(), g.berths,
 		not SaveSlots.info(1).is_empty()])
 	var hub := get_tree().current_scene as Hub
+	print("Musik Schiff: Anlass %s" % Music.theme)
 	print("Schiff: Tag %d, %s, %d Aufträge" % [g.day, g.sector.systems[g.position].name, g.offers.size()])
 	await _shot("h1_schiff")
 	# Hafen (Start im Heimathafen): eine Figur entlassen und auf der Brücke wieder anheuern
@@ -91,6 +95,13 @@ func _run() -> void:
 	hub.ui.show_ui_scale()
 	await _click_button(hub.ui, "75 %")
 	await _frames(5)
+	var v0 := Music.get_volume(Music.BUS_MUSIC)
+	Music.set_volume(Music.BUS_MUSIC, 30)
+	var db := AudioServer.get_bus_volume_db(AudioServer.get_bus_index(Music.BUS_MUSIC))
+	Music.set_volume(Music.BUS_MUSIC, 0)
+	var muted := AudioServer.is_bus_mute(AudioServer.get_bus_index(Music.BUS_MUSIC))
+	Music.set_volume(Music.BUS_MUSIC, v0)
+	print("Lautstärke Musik: %d %% -> 30 %% = %.1f dB, 0 %% stumm %s, zurück %d %%" % [v0, db, muted, Music.get_volume(Music.BUS_MUSIC)])
 	print("UI-Größe: %s -> %s, Fenster %.2f" % [UiScale.label(f0), UiScale.label(UiScale.get_factor()), get_tree().root.content_scale_factor])
 	await _shot("h1e_ui_75")
 	UiScale.set_factor(f0, get_tree())

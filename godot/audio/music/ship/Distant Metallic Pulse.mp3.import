@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cbxp3cvcxfon4"
+path="res://.godot/imported/Distant Metallic Pulse.mp3-abb20b2c8dc60a79bc66f7be6a329a02.mp3str"
+
+[deps]
+
+source_file="res://audio/music/ship/Distant Metallic Pulse.mp3"
+dest_files=["res://.godot/imported/Distant Metallic Pulse.mp3-abb20b2c8dc60a79bc66f7be6a329a02.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
