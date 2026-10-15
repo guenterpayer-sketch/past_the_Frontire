@@ -66,3 +66,9 @@ Verwundung, aktive Figur und Psi sind in `main` (`6162f58`), ebenso der Roster d
 
 Das Charakter-Modul baut einen Ausrüstungsdialog, der `WeaponData`/`ArmorData` (deine Dateien) nur liest; der Hub öffnet ihn im Schiff. Für dich nichts zu bauen. Falls das Charakter-Modul Felder für die Anzeige braucht, abstimmen. Details: `docs/Planung_Waffenkammer.md`.
 - Neu in `main` (`0c251f9`): Das Charakter-Modul hat auf Anweisung des Nutzers zwei deiner Dateien geändert: `data/weapons/vibroklinge.tres` (einhändig), `data/weapons/laserkarabiner.tres` (Fertigkeit Gewehre). `main` holen.
+
+## Aufträge vom Koordinator (15.10.2026): Spieltest UI und Sichtlinie
+
+Grundlage: `docs/Planung_UI_Groesse.md`.
+1. **Sichtlinie prüfen:** möglicher Fehler (Normina hinter Regal, Plünderer zwischen Kisten, „keine Sichtlinie“). Nachstellen, Ursache finden, **dem Nutzer berichten**, bevor geändert wird.
+2. **Kampf-UI kompakter:** Aktionsfeld, Kampflog/Figurenkarte, Leisten oben. **Erst Mockup** (Varianten), Nutzer wählt. Die globale Einstellung „UI-Größe“ baut der Hub; ob der Kampf einen eigenen Menüeintrag dafür bekommt, mit dem Nutzer klären.

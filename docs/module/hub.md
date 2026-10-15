@@ -112,3 +112,7 @@ Grundlage: `docs/Planung_Waffenkammer.md`. Raum „Waffenkammer“ im Schiff nut
 - Entscheidung des Nutzers: Raum **jetzt aufteilen** in **Waffenkammer** (`&"armory"`, Rect 0–16 × 8–16, Regale, Werkbank) und **Hangar** (`&"hangar"`, 0–16 × 0–8, Landungsschiff, Platzhalter), Durchgang zwischen beiden. Gebaut in `view/ship_view.gd`.
 - Waffenkammer steht noch auf „kommt noch“: **wartet auf den Ausrüstungsdialog des Charakter-Moduls** (noch nicht in `main`). Danach: `ready = true` und in `Hub.open_room(&"armory")` den Aufruf aus `charakter.md` einsetzen, Test im `--autotest-hub`.
 - 15.10.2026: `main` (`0174ee5`, mit `ArmoryDialog`) geholt, ohne Konflikte. **Waffenkammer angebunden:** Raum nutzbar, öffnet `ArmoryDialog.open_for(Campaign.crew(), 0)` (angelegt in `ui/hub_ui.gd`), `done` → Schiff aktualisieren. Keine eigene Ausrüstungs-Oberfläche. Tests: `test_rules` OK, `test_hub` OK, `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (Dialog öffnet, „Fertig“ schließt). **Bereit zum Zusammenführen.**
+
+## Aufträge vom Koordinator (15.10.2026): Einstellung UI-Größe
+
+Grundlage: `docs/Planung_UI_Groesse.md`. Einstellung „UI-Größe“ (z. B. 75 / 90 / 100 / 125 %) für das ganze Spiel: speichern, beim Start anwenden (Vorschlag: `get_window().content_scale_factor`), Auswahl im Startmenü. Funktion zum Lesen/Setzen bereitstellen und unter „Schnittstellen“ vermerken (der Bodenkampf nutzt sie evtl. im Kampfmenü). Stufen und Ort im Menü mit dem Nutzer bestätigen.
