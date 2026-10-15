@@ -140,3 +140,11 @@ Grundlage: `docs/Planung_Reise_Schiff.md` (Entscheidungen des Nutzers). Das Hub-
 - Anzeige: Statusleiste im Schiff (Credits, Treibstoff- und Hüllenbalken, Material, Warnungen), Sternenkarte (Treibstoff-Schätzung, Reiseposten, „Große Reparatur (1 Tag)“, Reiter „Raumhafen“/„Crew anheuern“ im Hafen), Reisebericht nach jeder Reise (vor dem Einsatz: „Weiter“ → Briefing), Lohn und Beute im Einsatzbericht. Veralteter Hinweis „Prototyp: Verletzte … wieder voll da“ im Einsatzbericht entfernt.
 - Vom Hub-Chat festgelegt (nicht vom Nutzer): freie Posten nach höchster Wertesumme besetzt; bei Hülle 0 gehen Werft und Material auch auf Notkredit (sonst kann das Spiel im Hafen festsitzen); unbesetzter Posten = keine Probe.
 - Tests: siehe Fertigmeldung im Chat.
+
+## Aufträge vom Koordinator (15.10.2026): Musik
+
+Entscheidungen des Nutzers: Musik im **Startmenü, Schiff, Bodenkampf und bei Sieg/Niederlage**. Quelle: vom Nutzer mit einem KI-Generator erzeugte **MP3-Dateien** (liegen beim Nutzer; Ablage z. B. `godot/audio/music/`, Zuordnung der Stücke mit dem Nutzer klären). Der **Hub baut den Musikspieler**:
+- Autoload `Music` (Muster wie `Sfx` in `audio/sfx.gd`): Stück nach Name abspielen, weich überblenden, Schleife für Hintergrundstücke, kurze Stücke (Sieg/Niederlage) einmalig.
+- Lautstärke **Musik** (und ggf. Effekte) in den Einstellungen (Startmenü und Schiffsmenü, wie UI-Größe), gespeichert.
+- Startmenü und Schiff selbst anbinden.
+- Schnittstelle (Aufrufe für den Bodenkampf) unter „Schnittstellen“ vermerken; Bodenkampf baut danach nur die Aufrufe.
