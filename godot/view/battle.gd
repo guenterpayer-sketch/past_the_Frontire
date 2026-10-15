@@ -274,7 +274,7 @@ func _update_active_tag() -> void:
 		ui.active_tag.hide()
 		return
 	var text := "%s · %s" % [u.name.split(" ")[0], "aufstellen" if combat.deploying else "am Zug"]
-	ui.active_tag.show_at(p, text, not u.is_crew)
+	ui.active_tag.show_at(p, text, u.color, not u.is_crew)
 
 
 ## Runde 0 beenden: Kampf mit Runde 1 starten

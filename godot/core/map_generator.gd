@@ -108,17 +108,17 @@ func _try(seed_value: int, sz: Dictionary) -> BattleMap:
 	return _finish(cols, rows, mid)
 
 
-## 1. Galerie an der Rückwand (Reihen 1–2), bei mittel/groß auch an der rechten Wand; Treppen und Leitern
+## 1. Galerie an der Rückwand (Reihen 1–2), bei mittel/groß auch an der rechten Wand; Aufstieg nur über Leitern
+## (Entscheidung Nutzer 15.10.2026: keine Treppen in der Halle; Gelände „treppe“ und seine Darstellung bleiben
+## erhalten, z. B. für Rampen in anderen Karten).
 func _build_gallery(cols: int, rows: int, mid: int) -> void:
 	var gal := _next_obj()
 	for col in range(1, cols - 1):
 		for row in [1, 2]:
 			_put(m.at_offset(col, row), &"galerie", 3, gal)
-	var stairs_at: Array = [int(cols * 0.2), int(cols * 0.5), int(cols * 0.75)] if size.id == "gross" else [int(cols * 0.3), int(cols * 0.65)]
-	for c in stairs_at:
-		for dc in [0, 1]:
-			_put(m.at_offset(c + dc, 3), &"treppe", 2)
-			_put(m.at_offset(c + dc, 4), &"treppe", 1)
+	var climb_at: Array = [int(cols * 0.2), int(cols * 0.5), int(cols * 0.75)] if size.id == "gross" else [int(cols * 0.3), int(cols * 0.65)]
+	for c in climb_at:
+		_put(m.at_offset(c, 3), &"leiter", 0)
 	for c in [_ri(5, cols / 2 - 2), _ri(cols / 2 + 2, cols - 4)]:
 		var t := m.at_offset(c, 3)
 		if _free(t):
@@ -130,12 +130,8 @@ func _build_gallery(cols: int, rows: int, mid: int) -> void:
 		for col in [cols - 3, cols - 2]:
 			_put(m.at_offset(col, row), &"galerie", 3, gal_r)
 	for sr in [_ri(5, rows / 2 - 1), _ri(rows / 2 + 1, rows - 4)]:
-		var st: Array[T] = [m.at_offset(cols - 4, sr), m.at_offset(cols - 4, sr + 1), m.at_offset(cols - 5, sr), m.at_offset(cols - 5, sr + 1)]
-		if _all_free(st):
-			_put(st[0], &"treppe", 2)
-			_put(st[1], &"treppe", 2)
-			_put(st[2], &"treppe", 1)
-			_put(st[3], &"treppe", 1)
+		if _free(m.at_offset(cols - 4, sr)):
+			_put(m.at_offset(cols - 4, sr), &"leiter", 0)
 	var lr := _ri(5, rows / 2 - 1)
 	if _free(m.at_offset(cols - 4, lr)):
 		_put(m.at_offset(cols - 4, lr), &"leiter", 0)
@@ -146,7 +142,7 @@ func _build_gallery(cols: int, rows: int, mid: int) -> void:
 
 ## 2. Hochregale: parallele Reihen mit Gängen, je eine Leiter am Ende
 func _build_shelves(cols: int, rows: int) -> void:
-	var count: int = {"klein": 1, "mittel": 2, "gross": 4}[size.id]
+	var count: int = {"klein": 1, "mittel": 1, "gross": 3 if rng.randf() < 0.5 else 2}[size.id]
 	var left_half := rng.randf() < 0.5
 	var sx0: int = 6 if left_half else cols / 2 + 1
 	var sx1: int = cols / 2 - 1 if left_half else cols - 7
@@ -183,7 +179,7 @@ func _build_shelves(cols: int, rows: int) -> void:
 
 ## 3. Container (3 Felder lang, 1–2 breit), teils doppelt gestapelt; Aufstieg über Leiter oder Kiste
 func _build_containers(cols: int, rows: int) -> void:
-	var count: int = {"klein": 2, "mittel": 4, "gross": 7}[size.id]
+	var count: int = {"klein": 1, "mittel": 3 if rng.randf() < 0.5 else 2, "gross": 4}[size.id]
 	var placed := 0
 	var tries := 0
 	while placed < count and tries < 200:
@@ -218,8 +214,8 @@ func _build_containers(cols: int, rows: int) -> void:
 
 
 ## 4. Kleinzeug: Kistenstapel, Fässer, Betonbarrieren (eher quer zur Schussrichtung), Säulen.
-## SCATTER_DENSITY regelt die Menge (1.0 = so voll wie in der ersten Fassung).
-const SCATTER_DENSITY := 0.5
+## SCATTER_DENSITY regelt die Menge (1.0 = so voll wie in der ersten Fassung; 0.5 → 0.3 am 15.10.2026, Spieltest: rund −40 %).
+const SCATTER_DENSITY := 0.3
 
 func _build_scatter(cols: int, rows: int) -> void:
 	var area := cols * rows * SCATTER_DENSITY

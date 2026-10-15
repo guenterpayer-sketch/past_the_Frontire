@@ -286,12 +286,12 @@ func _gallery(ts: Array) -> void:
 		for side in [-1.0, 1.0]:
 			var p: Vector3 = b.c + (Vector3(off, top_y / 2.0, side * (b.sz / 2.0 - 0.3)) if long_x else Vector3(side * (b.sx / 2.0 - 0.3), top_y / 2.0, off))
 			_box(p, Vector3(0.22, top_y, 0.22), Color(0.26, 0.29, 0.34))
-	# Geländer an allen Kanten zu tieferen Feldern (außer Treppenanschluss)
+	# Geländer an allen Kanten zu tieferen Feldern (außer Treppenanschluss und Leiter; nur Grafik, sperrt den Weg nicht)
 	var rail := Color(0.85, 0.68, 0.15)
 	for t in ts:
 		for n in Hex.neighbors(t.pos):
 			var nt := map.tile(n)
-			if nt == null or nt.terrain == &"wand" or nt.terrain == &"galerie" or nt.h >= t.h - 1:
+			if nt == null or nt.terrain in [&"wand", &"galerie", &"leiter"] or nt.h >= t.h - 1:
 				continue
 			var a := Hex.to_world(t.pos)
 			var c := Hex.to_world(n)
@@ -393,16 +393,41 @@ func _wall(ts: Array) -> void:
 	_walls.append({"full": full, "low": low, "normal": normal})
 
 
+## Treppe als echte Stufen (vorher ein Block, sah aus wie ein Container; Spieltest 15.10.2026).
+## Jedes Feld trägt 5 Stufen à L/5, die Mitte liegt auf Feldhöhe; Laufrichtung zum höheren Nachbarn,
+## auf die Achse (x oder z) gerundet, damit nebeneinanderliegende Treppenfelder eine Flucht bilden.
 func _stairs(t: BattleMap.Tile) -> void:
-	# Treppenblock je Feld; nebeneinander ergeben die Felder Stufen von 1,5 m und 3 m
 	var top := tile_top(t.pos)
-	var c := Color(0.5, 0.54, 0.6)
-	_box(Vector3(top.x, top.y / 2.0, top.z), Vector3(1.5, top.y, 1.3), c, "", 0.0, _mat(c, 0.7, 0.3))
-	var steps := int(top.y / 0.3)
-	for i in steps:
-		var y := (i + 1) * 0.3
-		_box(Vector3(top.x, y, top.z + 0.66), Vector3(1.5, 0.04, 0.03), c.darkened(0.35))
-	_box(Vector3(top.x, top.y + 0.01, top.z + 0.6), Vector3(1.5, 0.03, 0.1), Color(0.85, 0.68, 0.15))
+	var up := Vector2.ZERO
+	for n in Hex.neighbors(t.pos):
+		var nt := map.tile(n)
+		if nt and map.walkable(nt) and nt.h > t.h:
+			up += (Hex.to_world(n) - Hex.to_world(t.pos)).normalized()
+	var along_x := absf(up.x) > absf(up.y)
+	var sgn := signf(up.x if along_x else up.y)
+	if up == Vector2.ZERO:
+		sgn = -1.0
+	var depth := 1.5 if along_x else 1.3      # Ausdehnung des Felds in Laufrichtung
+	var width := 1.3 if along_x else 1.5
+	var n := 5
+	var rise := L / n
+	var metal := Color(0.56, 0.6, 0.66)
+	var riser := Color(0.32, 0.35, 0.4)
+	var yellow := Color(0.9, 0.72, 0.15)
+	for i in n:
+		var h := top.y + (i - 2) * rise
+		if h <= 0.0:
+			continue
+		var off := (-depth / 2.0 + (i + 0.5) * depth / n) * sgn   # vorn (unten) → hinten (oben)
+		var c := top + (Vector3(off, 0, 0) if along_x else Vector3(0, 0, off))
+		var size := Vector3(depth / n, h, width) if along_x else Vector3(width, h, depth / n)
+		_box(Vector3(c.x, h / 2.0, c.z), size, riser, "", 0.0, _mat(riser, 0.8, 0.2))
+		# Trittfläche hell, gelbe Kante vorn
+		var tread := Vector3(depth / n, 0.05, width) if along_x else Vector3(width, 0.05, depth / n)
+		_box(Vector3(c.x, h - 0.02, c.z), tread, metal, "", 0.0, _mat(metal, 0.5, 0.5))
+		var edge := -depth / n / 2.0 * sgn + 0.04 * sgn
+		var ep := c + (Vector3(edge, 0, 0) if along_x else Vector3(0, 0, edge))
+		_box(Vector3(ep.x, h + 0.005, ep.z), Vector3(0.06, 0.03, width) if along_x else Vector3(width, 0.03, 0.06), yellow)
 
 
 ## Leiter an der Kante zum höchsten Nachbarfeld
