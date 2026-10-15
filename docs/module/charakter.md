@@ -35,6 +35,19 @@
 - `roster.tscn` (`RosterScreen`, „Zurück“ → `res://start.tscn`), `CrewPicker.open_pick(subtitle, seats)` + Signal `picked(chars)`, `CharacterEditor.open_for_roster()`, `FigurePreview`, `CrewWidgets`.
 - `ui/modal.gd`: `closable`.
 
+**Übersicht Psi-Listen (neu, 15.10.2026)** – gemeinsamer Baustein, auch für den Bodenkampf
+- `PsiListView` (`ui/crew/psi_list_view.gd`, erbt `Modal`): einmal anlegen und einhängen, dann
+  ```
+  var psi := PsiListView.new()
+  add_child(psi)
+  psi.open_for(figur, &"lSchutz")   # figur: Character oder Combatant (gelesen: name, skills, attrs, max_pp) oder null = nur die Listen;
+                                    # Liste leer = erste gelernte Liste
+  ```
+  Schließen per Klick daneben oder `close()`; Esc muss der Aufrufer weiterreichen (wie bei jedem `Modal`).
+- Texte für Zeilen: `PsiListView.next_hint(ch, list)` („Rang 5: keine neue Kraft · Rang 6: Psi-Lanze (…)“), `PsiListView.preview_hint(ch, list)` (Editor), `PsiListView.chip(text, color)`.
+- Daten in `PsiLists`: `LISTS` (Wirkungstexte wie im Bodenkampf, ohne Ziel), `kind(list, stufe)` → `ATTACK`/`SUPPORT`/`OFF`, `target(list, stufe)` (Ziel, bei Angriffen Reichweite aus `PsiCombat.weapon(k).max_range_m()`), `next_power(ch, list)`, `power_at(list, stufe)`.
+- Geändert in `core/psi_lists.gd`: die Wirkungstexte enthalten kein Ziel mehr (steht in `target()`). Die Seitenleiste des Bodenkampfs zeigt `p[2]` im Tooltip der Angriffskräfte; dort steht jetzt z. B. „Psi-Nadel: Schaden nach Tabelle Psi, Angriff −20“.
+
 **Waffenkammer (neu, 15.10.2026)**
 - `ArmoryDialog` (`ui/crew/armory_dialog.gd`, erbt `Modal`): **Aufruf für den Hub** im Raum „Waffenkammer“:
   ```
@@ -54,6 +67,7 @@
 
 ## Stand (15.10.2026)
 
+- Übersicht Psi-Listen gebaut nach Mockup „Frontire Psi-Listen“ (vom Nutzer bestätigt; Reichweite aus dem Bodenkampf): `PsiListView`, eingebaut in Charakterübersicht/Aufleveln und Charakter-Editor; Kommentar und Wirkungstexte in `core/psi_lists.gd` an den Bodenkampf angeglichen; Tests `_test_psi_view`, Screenshots `04f`/`04g` im Autotest. Einbau im Bodenkampf: Aufruf oben unter „Schnittstellen“.
 - Waffenkammer gebaut nach Mockup „Frontire Waffenkammer“ (vom Nutzer bestätigt): `ArmoryDialog` + `Equipment`, Tests in `test_rules.gd` (`_test_equipment`). Der Hub muss nur noch den Raum „Waffenkammer“ anbinden (Aufruf oben).
 - Davor (16.10.): Klärung D, Verwundung, Kandidaten für die Truppwahl – in `main`.
 
@@ -77,3 +91,4 @@ Nutzer: Es fehlt eine Übersicht, was die Psi-Listen und ihre Kräfte bewirken. 
 2. Einbauen in **Charakterübersicht/Aufleveln** (was bringt der nächste Rang) und **Charakter-Editor** (bei der Wahl der Listen).
 3. Kommentar oben in `core/psi_lists.gd` („im Kampf bisher nur Psi-Schild und Psi-Stoß“) ist veraltet; Wirkungstexte mit dem Stand im Bodenkampf abgleichen (z. B. „Am Leben halten“ stabilisiert, siehe 6.1).
 Vorher **Mockup** zeigen und vom Nutzer bestätigen lassen.
+- (15.10.2026) Übersicht Psi-Listen → gebaut (siehe Stand); Aufruf für den Bodenkampf unter „Schnittstellen“.
