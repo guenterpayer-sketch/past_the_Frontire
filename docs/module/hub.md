@@ -167,6 +167,19 @@ Entscheidungen des Nutzers: Musik im **Startmenü, Schiff, Bodenkampf und bei Si
 
 Grundlage: `docs/Planung_Ausruestungs_Editor.md` (Entscheidungen des Nutzers). Editor im Startmenü, globale Speicherung, Baustein für die anderen Module (Abschnitt „Aufteilung“, Punkt 1). Bodenkampf und Charakter binden danach an. **Vorher:** offene Punkte klären und Mockup vom Nutzer bestätigen lassen.
 
+### Stand Ausrüstungs-Editor (Hub-Chat, 15.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`0737d29`) geholt; Konflikt nur in dieser Datei (Hinweis Munition), beide Teile behalten.
+- Entscheidungen des Nutzers: **Grenzen** wie vorgeschlagen (Reichweite, Mindestabstand, Magazin, Munition ±50 %; Stufen ±1; Höchstergebnis ±10; Patzer ±2; Schaden ±0,2; Angriffsbonus, Druckwelle ±10; Nah/Fern wie Vorlage; Rüstung: Klasse wie Vorlage, Verteidigung ±5, Bewegung ±1); frei eingetragene tragen den Vermerk **„frei“**; **gelöschte getragene Ausrüstung → Standard** (Waffe 1 → Fäuste, Waffe 2 → leer, Rüstung → keine); **Gegner: an/aus + Fraktionen** (alle vorbelegt); eigene **Nahkampfwaffen ohne Modell**. Mockup „Schiff-Hub Mockup“ Bildschirme 15–17 bestätigt.
+- Gebaut: Startmenü „Ausrüstung“ → `GearEditor` (`ui/gear_editor.gd`), Regeln und Speichern `Gear` (`core/gear.gd`).
+- **Schnittstelle für Bodenkampf und Charakter:**
+  - Gespeichert als Ressourcen-Dateien `user://gear/weapons/<id>.tres` (`WeaponData`) und `user://gear/armor/<id>.tres` (`ArmorData`). `Character.to_dict()`/`from_dict()` speichern sie unverändert über `resource_path`.
+  - `Gear.weapons()`, `Gear.armors()`: alle eigenen. `Gear.enemy_weapons(faction_path)`, `Gear.enemy_armors(faction_path)`: für Gegner dieser Fraktion freigegeben (Pfad der `FactionData`). `Gear.is_custom(r)`, `Gear.is_free(r)` (Vermerk „frei“).
+  - Gelöscht: Datei fehlt, `load()` des Pfads schlägt fehl. **Charakter:** dann `Gear.FALLBACK_WEAPON` (Fäuste) für Waffe 1, Waffe 2 leer, `Gear.FALLBACK_ARMOR` (keine); `Equipment.weapons()/armors()` um `Gear.weapons()/armors()` ergänzen.
+  - **Bodenkampf:** `GameData.weapons()` um `Gear.weapons()` ergänzen; Gegner bekommen `Gear.enemy_weapons/armors(Fraktion)` laut Einstellung.
+- **Offen (Nutzer: „später klären“):** Munition im Editor. Mit den Grenzen (±50 %) bleiben Magazin/Munition bei Vorlagen ohne Munition auf 0; einstellbar nur mit „frei“. Klären, wenn der Bodenkampf die Munition gebaut hat (`docs/Planung_Munition.md`).
+- Tests: `test_rules` OK, `test_hub` OK (Grenzen, Speichern mit Metadaten, Bearbeiten ändert getragenen Eintrag, frei, Gegner nach Fraktion, Charakter speichert per Pfad, Löschen), `--autotest-hub` durchgelaufen (Editor). `test_sim` nicht gelaufen (Bodenkampf unverändert, Testregel).
+
 ## Hinweis vom Koordinator (15.10.2026): Munition
 
 Neue Entscheidungen in `docs/Planung_Munition.md`: Feuerstoß mit *Schuss pro Angriff*, *Munitionsart* je Waffe, Schiffsvorrat je Munitionsart mit Kauf im Raumhafen. Der Bodenkampf baut zuerst die Felder in `WeaponData`; erst danach der Hub-Teil (Vorrat, Kauf, Abzug, Editor-Felder). Für den Ausrüstungs-Editor: die beiden neuen Felder vorsehen, sobald sie in `main` sind.

@@ -23,6 +23,38 @@ func _run() -> void:
 		AudioServer.get_bus_index(Music.BUS_MUSIC), AudioServer.get_bus_index(Music.BUS_SFX),
 		Sfx.get_children().all(func(c: Node) -> bool: return not c is AudioStreamPlayer or (c as AudioStreamPlayer).bus == Music.BUS_SFX)])
 	await _shot("h0_start")
+	# Ausrüstungs-Editor (Testordner): Revolver aus der Laserpistole, speichern, frei, löschen
+	Gear.dir = "user://gear_autotest"
+	var st := get_tree().current_scene as StartScreen
+	await _click_button(st, "Ausrüstung")
+	var ge := st.gear
+	await _click_button(ge, "+ Neu")
+	await _click_button(ge, "Laserpistole")
+	ge.draft.name = "Revolver"
+	ge.refresh()
+	ge.picking = false
+	for i in 2:
+		Gear.set_value(ge.draft, Gear.WEAPON_FIELDS[0], Gear.clamp_value(ge.draft, Gear.WEAPON_FIELDS[0], ge.draft.inc_m + 1))
+	ge.refresh()
+	await _frames(5)
+	await _shot("h0a_editor_waffe")
+	await _click_button(ge, "Speichern")
+	print("Editor: gespeichert %d Waffen, Revolver Reichweite %d (Vorlage 10)" % [Gear.weapons().size(), Gear.weapons()[0].inc_m if not Gear.weapons().is_empty() else -1])
+	await _click_button(ge, "Werte frei")
+	await _frames(5)
+	await _shot("h0a2_editor_frei")
+	await _click_button(ge, "Löschen")
+	await _frames(5)
+	await _shot("h0a3_editor_loeschen")
+	await _click_button(ge._confirm, "Löschen")
+	print("Editor: nach Löschen %d Waffen" % Gear.weapons().size())
+	await _click_button(ge, "Rüstungen")
+	await _click_button(ge, "+ Neu")
+	await _click_button(ge, "Kampfpanzer")
+	await _frames(5)
+	await _shot("h0a4_editor_ruestung")
+	ge.close()
+	Gear.dir = "user://gear"
 	# Roster aus dem Startmenü und zurück
 	await _click_button(get_tree().current_scene, "Roster")
 	await _frames(20)
