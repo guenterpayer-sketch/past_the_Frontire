@@ -54,7 +54,7 @@ Oben links Spielstand, Tag, Position und offene Aufträge, darunter **Credits, T
 
 Die Karte nutzt den ganzen Bildschirm, die Bedienung schwebt darüber:
 - oben links die Initiative-Leiste (Einspringen nach dem Abwarten),
-- oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, UI-Größe, Bedienung),
+- oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen mit Knopf „Psi-Listen …“, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, UI-Größe, Bedienung),
 - darunter rechts die **Seitenleiste** (kompakte Kampf-UI, Variante C): Figurenkarte (TP/PP/Aktivität, AW/VW/INI, Bogen), dann Abschnitte Waffe (mit Psi-Angriffskräften), Gangart, Angriffsaktivität, Psi (Reiter je Liste) und Aktionen (Ducken, Abwarten, Feuerbereit, Nachladen, Erste Hilfe, Ausrichten), jeder per Klick auf die Überschrift ein-/ausklappbar (gespeichert), unten immer „Zug beenden“; in Runde 0 die Aufstellung; ist die KI am Zug, nur deren Figurenkarte. Der Knopf „›“ klappt die ganze Leiste ein (Enter beendet weiter den Zug),
 - links neben der Leiste der Infokasten für das Feld bzw. die Figur unter der Maus (auf Touchgeräten mit „Ausführen“),
 - unten links Würfel und Kampflog (eingeklappt eine Zeile, „Log ▴“ klappt den Verlauf auf).
@@ -78,6 +78,8 @@ Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bil
 
 ## Waffenkammer (Ausrüstung ändern)
 
+**Übersicht der Psi-Listen** `PsiListView` (`ui/crew/psi_list_view.gd`, Mockup „Frontire Psi-Listen“): Reiter je Liste, je Kraft Stufe, Name, Art (Angriff, Unterstützung, nicht im Kampf), Ziel mit Reichweite aus dem Bodenkampf, Wirkung und PP; mit Figur ihr Rang je Liste und der Stand jeder Kraft (verfügbar, nächste, ab Rang N). Geöffnet aus der Charakterübersicht („Alle Psi-Listen ansehen“, ⓘ an jeder Psi-Liste) und dem Charakter-Editor. In der Fertigkeitstabelle steht unter jeder Psi-Liste, was der nächste Rang bringt (Übersicht) bzw. welche Kräfte die Liste bringt (Editor).
+
 `ArmoryDialog` (`ui/crew/armory_dialog.gd`, Regeln `core/equipment.gd`, Mockup „Frontire Waffenkammer“): je Figur Waffe 1 (Pflicht), Waffe 2 (darf leer sein), Rüstung und Schild wählen, mit Werten (Fertigkeit, **Bonus der Figur**, Reichweite, Schadensfaktor, Besonderes; Rüstung mit Klasse, Schadensfaktor, Verteidigungs- und Bewegungsmalus; Schild mit Bonus). Bestand unbegrenzt, keine Waffe doppelt, Psi-Waffen nicht wählbar (Psi-Angriffe kommen aus den Listen), Schild nur mit einhändigen Waffen. Medikits und Munition nur Anzeige. Der Hub öffnet den Dialog im Raum „Waffenkammer“: `open_for(Campaign.crew())`; „Fertig“ speichert.
 
 ## Charakter-Editor (neues Crewmitglied)
@@ -87,7 +89,7 @@ Im Charakter-Modul über „Neues Crewmitglied“. Regeln: `docs/Skillsystem.md`
 - 7 Würfe 20–100, der niedrigste wird 90; „neu würfeln“ beliebig oft (verteilte Ränge verfallen dann).
 - Würfe per Auswahlfeld auf die Eigenschaften legen (die Eigenschaft, die den Wurf hatte, bekommt den bisherigen).
 - Fertigkeitspunkte = Eigenschaftssumme × 1,2; Rang kostet 10 + 2 × Rang; höchstens Rang 5, zwei Fertigkeiten bis 8; höchstens zwei Psi-Listen. Gesperrte „+“ zeigen den Grund als Tooltip.
-- Neu: **Körperentwicklung** (+5 TP je Rang), **Psi-Punkte-Entwicklung** (+2 PP je Rang), **Psi-Listen** (`core/psi_lists.gd`, Kräfte werden angezeigt; im Kampf gibt es bisher nur Psi-Schild und Psi-Stoß).
+- Neu: **Körperentwicklung** (+5 TP je Rang), **Psi-Punkte-Entwicklung** (+2 PP je Rang), **Psi-Listen** (`core/psi_lists.gd`, Kräfte werden angezeigt; im Kampf nutzbar außer Telekinese „Heranziehen“ und „Schweben“).
 - Station (jede einmal, Jäger mehrfach), Aussehen, zwei Waffen, Rüstung, Schild frei wählbar.
 - „Übernehmen“ als neues Mitglied (bis 6) oder als Ersatz für ein vorhandenes; wird sofort gespeichert.
 - Noch nicht gebaut: die Variante zum Aufleveln.

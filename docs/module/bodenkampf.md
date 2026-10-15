@@ -94,7 +94,13 @@ Das Charakter-Modul baut eine gemeinsame Anzeige der Psi-Listen (siehe `docs/mod
 1. Im Kampfmenü **„Tabellen“** (`ui/tables_dialog.gd`) neben den Waffen auch die Psi-Listen (Wunsch des Nutzers).
 2. **Tooltip** im Aktionsfeld beim Auswählen einer Psi-Kraft: Wirkung, Kosten, Probe.
 Keine eigene Liste der Wirkungstexte anlegen; Daten aus `PsiLists`.
+- **Erledigt (15.10.2026):** Im Dialog „Tabellen“ Knopf „Psi-Listen …“ → `PsiListView.open_for(figur)` (Figur am Zug, wenn Crew mit Psi-Listen, sonst nur die Listen; `BattleUI.psi_lists`, `TablesDialog.show_tables(waffe, figur)`, Esc schließt zuerst die Übersicht). Tooltip jeder Psi-Kraft in der Seitenleiste (Abschnitt Psi und Psi-Angriffe im Abschnitt Waffe): `ActionPanel.psi_tip(liste, stufe)` mit Wirkung, Ziel (`PsiLists.target`), Kosten (Stufe PP, Aktivität) und Probe; bei fehlendem Rang „Ab Rang N“. Daten nur aus `PsiLists`/`PsiCombat`. Tests: `test_rules`, `test_hub` OK; gezielter Screenshot Tabellen → Psi-Listen.
 
 ## Aufträge vom Koordinator (15.10.2026): eigene Waffen
 
 Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausruestungs_Editor.md`). **Warten, bis sein Baustein in `main` ist.** Dann: `GameData.weapons()` liefert auch eigene Waffen; Gegner bekommen eigene Ausrüstung gemäß Einstellung (Abschnitt „Aufteilung“, Punkt 2).
+- **Psi-Übersicht ist in `main` (`0ce7db1`):** `PsiListView.open_for(figur, liste)` (Figur: `Character`, `Combatant` oder `null`), Details in `docs/module/charakter.md` unter „Schnittstellen“. Jetzt `main` holen und den Auftrag „Übersicht Psi-Listen“ umsetzen. Hinweis: Wirkungstexte in `PsiLists` sind kürzer, das Ziel steht in `PsiLists.target()`.
+
+## Aufträge vom Koordinator (15.10.2026): Munition
+
+Grundlage: `docs/Planung_Munition.md` (Entscheidungen des Nutzers). Du baust zuerst (Abschnitt „Aufteilung“, Teil Bodenkampf): `WeaponData` um *Schuss pro Angriff* und *Munitionsart*, Verbrauch je Angriff, Einsatzstart mit übergebenem Vorrat (Schnellkampf voll), Verbrauch je Munitionsart im `MissionResult`, KI bei leeren Waffen prüfen. **Vorher** die offenen Punkte mit dem Nutzer klären; Schnittstelle mit dem Hub abstimmen und unter „Schnittstellen“ eintragen.

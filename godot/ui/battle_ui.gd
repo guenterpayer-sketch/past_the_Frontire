@@ -21,6 +21,7 @@ var ai_card: UnitCard        # Seitenleiste: Figur unter KI-Steuerung
 var actions: ActionPanel
 var sheet: SheetDialog
 var tables: TablesDialog
+var psi_lists: PsiListView   # Übersicht der Psi-Listen (Baustein des Charakter-Moduls), aus „Tabellen“ geöffnet
 var briefing: BriefingDialog
 var help: Modal
 var result_banner: ResultBanner
@@ -81,7 +82,9 @@ func _ready() -> void:
 	tables = TablesDialog.new()
 	briefing = BriefingDialog.new()
 	help = Modal.new()
-	for d in [sheet, tables, briefing, help]:
+	psi_lists = PsiListView.new()
+	tables.psi_view = psi_lists
+	for d in [sheet, tables, briefing, help, psi_lists]:
 		add_child(d)
 	active_tag = ActiveTag.new()
 	add_child(active_tag)
@@ -150,14 +153,14 @@ func set_toggle(name: StringName, on: bool, tip := "") -> void:
 
 
 func any_dialog_open() -> bool:
-	return sheet.visible or tables.visible or briefing.visible or help.visible or _confirm.visible
+	return sheet.visible or tables.visible or briefing.visible or help.visible or psi_lists.visible or _confirm.visible
 
 
 func close_dialogs() -> bool:
 	if context_menu.visible:
 		context_menu.hide()
 		return true
-	for d in [sheet, tables, briefing, help]:
+	for d in [psi_lists, sheet, tables, briefing, help]:
 		if d.visible:
 			d.close()
 			return true

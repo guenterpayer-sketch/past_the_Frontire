@@ -669,7 +669,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			var target: Combatant = arg if arg is Combatant else (u if u and u.is_crew else combat.crew()[0])
 			ui.sheet.show_sheet(combat.crew(), target)
 		&"tables":
-			ui.tables.show_tables(player.weapon_of(u) if u else null)
+			ui.tables.show_tables(player.weapon_of(u) if u else null, u if u and u.is_crew else null)
 		&"auto":
 			auto_crew = arg
 		&"sound":

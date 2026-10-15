@@ -309,6 +309,8 @@ Psi funktioniert wie Magie in Rolemaster: Kräfte sind in **Listen** geordnet.
 
 **Angriff** (Psi-Angriffe gegen Psi-Verteidigung)
 
+Reichweiten im Bodenkampf (`core/psi_combat.gd`, so zeigt sie auch die Übersicht der Psi-Listen): Psi-Nadel bis 5 m, Psi-Stoß bis 30 m, Lähmen bis 20 m, Psi-Lanze bis 30 m, Druckwelle 2 Hex um den Psioniker; Telekinese Stoßen und Entwaffnen bis 10 m. Die Meterangaben in der Tabelle unten sind der ursprüngliche Entwurf.
+
 | Stufe | Kraft | Wirkung |
 |---|---|---|
 | 1 | Psi-Nadel | wie Psi-Stoß, 5 m, Angriff −20 |
