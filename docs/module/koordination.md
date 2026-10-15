@@ -31,7 +31,7 @@ godot --headless --path godot --import
 godot --headless --path godot --script res://tests/test_rules.gd      # muss „OK“ ausgeben
 godot --headless --path godot --script res://tests/test_hub.gd       # muss „OK“ ausgeben
 ```
-Bei Branches, die `main` nicht vollständig enthielten (Kombination ungetestet), zusätzlich `test_sim.gd -- 10`. Grafische Tests machen die Modul-Chats (gestaffelt, siehe `CLAUDE.md`).
+**Nur nötig, wenn der Branch `main` nicht vollständig enthielt** (Kombination ungetestet); dann zusätzlich `test_sim.gd -- 10`. Enthielt er `main`, ist das Ergebnis identisch mit dem vom Modul getesteten Stand: keine eigenen Tests (Testregel des Nutzers, `CLAUDE.md`). Grafische Tests machen die Modul-Chats (gestaffelt, siehe `CLAUDE.md`).
 Weitere Tests der Module (z. B. `tests/test_hub.gd`, Selbsttests mit `--autotest…`) stehen in `godot/README.md` bzw. in der Moduldatei. Godot 4.7.2 für Linux muss dazu in der Umgebung heruntergeladen werden (GitHub-Release `godotengine/godot`, Datei `Godot_v4.7.2-stable_linux.x86_64.zip`); grafische Tests mit `xvfb-run` und `--rendering-driver opengl3`.
 
 ## Arbeitsweise
