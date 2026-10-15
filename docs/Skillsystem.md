@@ -505,6 +505,8 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 | Credits | zu Beginn 300 |
 | Lohn bei Sieg | leicht 80, mittel 140, schwer 220; Söldner der Roten Sonne und Vantar-Konzern ×1,2 |
 | Beute bei Sieg | Schiffsmaterial: leicht 0, mittel 1, schwer 2; Schmuggler +1 |
+| Munition (Schiffsvorrat je Art) | zu Beginn Energiezellen 200, Projektil 300, Raketen 6; Kauf im Hafen je Schuss 2 / 2 / 50 Cr (Pakete +30/+100, Raketen +1/+5); Verbrauch aus dem Einsatz wird abgezogen (Mitnahme und Feuerstoß: `core/ammo.gd`, Bodenkampf) |
+| Munitions-Beute bei Sieg | eine zufällige Art: Energiezellen oder Projektil +10 bis +40, Raketen +1 |
 | Niederlage, Rückzug | kein Lohn, keine Beute |
 | Notkredit | Tanken geht immer, die Credits dürfen dabei ins Minus; der nächste Lohn gleicht aus. Material und Werft nur mit genug Credits (Ausnahme Hülle 0, siehe 9.) |
 

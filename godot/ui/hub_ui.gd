@@ -163,9 +163,18 @@ func set_status(g: HubState) -> void:
 	_res_row.add_child(_meter("Treibstoff", g.fuel, Voyage.TANK, UiTheme.CREW))
 	_res_row.add_child(_meter("Hülle", g.hull, Voyage.HULL_MAX, UiTheme.GOOD))
 	_res_row.add_child(_stat("Material", str(g.material), UiTheme.TEXT))
+	_res_row.add_child(_stat("Munition", ammo_text(g), UiTheme.TEXT))
 	UiTheme.clear(_warn_box)
 	for w in warnings(g):
 		_warn_box.add_child(UiTheme.label(w[0], 14, w[1]))
+
+
+## „Energie 200 · Projektil 300 · Raketen 6“
+static func ammo_text(g: HubState) -> String:
+	var parts := []
+	for t in Voyage.AMMO_START:
+		parts.append("%s %d" % [String(Ammo.TYPES.get(StringName(t), t)).split("zellen")[0], int(g.ammo.get(t, 0))])
+	return " · ".join(parts)
 
 
 ## Warnungen unter der Statusleiste: [Text, Farbe]
@@ -325,6 +334,12 @@ func show_report(rep: Dictionary) -> void:
 func _payout(rep: Dictionary) -> void:
 	if not rep.has("payout"):
 		return
+	var used: Dictionary = rep.get("ammo_used", {})
+	if not used.is_empty():
+		var parts := []
+		for t in used:
+			parts.append("%s −%d" % [Ammo.TYPES.get(StringName(t), t), used[t]])
+		report.content.add_child(UiTheme.label("Munitionsverbrauch: " + ", ".join(parts), 14))
 	report.content.add_child(UiTheme.label("LOHN UND BEUTE", 13, UiTheme.MUTED))
 	var p: Dictionary = rep.payout
 	if p.is_empty():
@@ -340,6 +355,9 @@ func _payout(rep: Dictionary) -> void:
 		g.add_child(UiTheme.label("%+d Cr" % p.bonus, 15))
 	g.add_child(UiTheme.label("Beute: Schiffsmaterial", 15))
 	g.add_child(UiTheme.label("+%d" % p.loot, 15))
+	for t in p.get("ammo", {}):
+		g.add_child(UiTheme.label("Beute: %s" % Ammo.TYPES.get(StringName(t), t), 15))
+		g.add_child(UiTheme.label("+%d" % p.ammo[t], 15))
 	g.add_child(UiTheme.label("Credits", 15, UiTheme.ACCENT))
 	g.add_child(UiTheme.label("%d → %d Cr" % [p.credits0, p.credits1], 15, UiTheme.ACCENT))
 	report.content.add_child(g)

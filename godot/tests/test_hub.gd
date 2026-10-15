@@ -20,6 +20,7 @@ func _init() -> void:
 	_test_ui_scale()
 	_test_voyage()
 	_test_gear()
+	_test_ammo()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -326,7 +327,8 @@ func _test_voyage() -> void:
 	check(not r.is_empty() and g.day == d0 + 1 and g.material == 0 and g.hull == clampi(40 + int(Voyage.HULL_CREW[r.result]), 0, 100), "Crew-Reparatur (%s)" % r.get("result_name", ""))
 	check(g.crew_repair().is_empty(), "ohne Material keine Crew-Reparatur")
 	# Lohn und Beute
-	check(Voyage.payout("mittel", "res://data/missions/rote_sonne.tres", true) == {"pay": 140, "bonus": 28, "factor": 1.2, "loot": 1}, "Lohn Rote Sonne mittel")
+	var po := Voyage.payout("mittel", "res://data/missions/rote_sonne.tres", true)
+	check(po.pay == 140 and po.bonus == 28 and is_equal_approx(po.factor, 1.2) and po.loot == 1 and po.ammo.size() == 1, "Lohn Rote Sonne mittel")
 	check(Voyage.payout("schwer", "res://data/missions/schmuggler.tres", true).loot == 3, "Beute Schmuggler schwer")
 	check(Voyage.payout("leicht", "res://data/missions/konzern.tres", false).is_empty(), "Niederlage: nichts")
 	var o: Dictionary = g.offers[0]
@@ -429,3 +431,60 @@ func _test_gear() -> void:
 	check(ResourceLoader.exists(Gear.FALLBACK_WEAPON) and ResourceLoader.exists(Gear.FALLBACK_ARMOR), "Ersatz vorhanden")
 	_rm_tree(Gear.dir)
 	Gear.dir = "user://gear"
+
+
+func _test_ammo() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(55, "Munition", 1)
+	check(g.ammo == {"energie": 200, "projektil": 300, "raketen": 6}, "Startvorrat Munition")
+	check(g.ammo.keys().all(func(t: String) -> bool: return Ammo.TYPES.has(StringName(t))), "Arten wie Ammo.TYPES")
+	# Kaufen nur im Hafen, nur mit Credits
+	g.position = g.nearest_harbor()
+	g.credits = 120
+	check(Voyage.buy_ammo(g, "raketen", 1) and g.ammo.raketen == 7 and g.credits == 70, "Raketen kaufen (50 Cr)")
+	check(not Voyage.buy_ammo(g, "raketen", 5) and g.ammo.raketen == 7, "nicht ohne genug Credits")
+	check(Voyage.buy_ammo(g, "energie", 30) and g.ammo.energie == 230 and g.credits == 10, "Energiezellen kaufen (2 Cr je Schuss)")
+	var other := -1
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			other = i
+			break
+	g.position = other
+	g.credits = 1000
+	check(not Voyage.buy_ammo(g, "energie", 30), "nur im Hafen")
+	# Verbrauch nicht unter 0
+	g.ammo.raketen = 1
+	var used := Voyage.use_ammo(g, {"raketen": 2, "projektil": 5})
+	check(g.ammo.raketen == 0 and g.ammo.projektil == 295 and used == {"raketen": 1, "projektil": 5}, "Verbrauch abziehen, nicht unter 0")
+	# Einsatzende: Verbrauch aus Campaign.last_result, Beute bei Sieg
+	g.ammo = Voyage.AMMO_START.duplicate()
+	g.active = g.offers[0]
+	Campaign.last_result = {"ammo_used": {"projektil": 12}}
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.ammo.projektil == 288 and g.report.ammo_used == {"projektil": 12} and g.report.payout.is_empty(), "Einsatz: Verbrauch abgezogen, Niederlage ohne Beute")
+	var before := g.ammo.duplicate()
+	g.active = g.offers[0]
+	Campaign.last_result = {}
+	g.finish_mission({"outcome": &"sieg"})
+	var loot: Dictionary = g.report.payout.ammo
+	var t: String = loot.keys()[0]
+	check(loot.size() == 1 and g.ammo[t] == before[t] + loot[t] and loot[t] >= Voyage.AMMO_LOOT[t][0] and loot[t] <= Voyage.AMMO_LOOT[t][1], "Sieg: eine zufällige Art als Beute (%s +%d)" % [t, loot[t]])
+	# Speichern, alte Spielstände
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.ammo == g.ammo, "Munition im Spielstand")
+	check(HubState.from_dict({"sector": g.sector.to_dict()}).ammo == Voyage.AMMO_START, "alte Spielstände: Startvorrat")
+	# Editor: Munitionswerte ohne Grenzen
+	var w := Gear.from_template(load("res://data/weapons/laserpistole.tres"))
+	var keys := Gear.fields(w).map(func(f: Dictionary) -> String: return f.key)
+	check("shots" in keys and "magazine" in keys and "ammo_total" in keys, "Editor: Schuss pro Angriff, Magazin, Munition")
+	var fm: Dictionary = Gear.fields(w).filter(func(f: Dictionary) -> bool: return f.key == "magazine")[0]
+	check(Gear.limits(w, fm) == Vector2(0, Gear.FREE_MAX) and not Gear.is_free(w), "Munitionswerte ohne Grenzen, ohne Vermerk frei")
+	var hammer := Gear.from_template(load("res://data/weapons/energiehammer.tres"))
+	check(not Gear.fields(hammer).any(func(f: Dictionary) -> bool: return f.key == "shots"), "Nahkampf ohne Munitionswerte")
+	HubState.game = null
+	Campaign.last_result = {}
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()

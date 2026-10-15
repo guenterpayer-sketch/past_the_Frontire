@@ -5,6 +5,9 @@ extends Modal
 ## „Auch für Gegner“ mit Fraktionen. Regeln und Speichern: Gear.
 
 const ORANGE := Color("ff8a3d")
+## Hinweise zu den Munitionswerten (ohne Grenzen)
+const UNLIMITED_NOTE := {"magazine": "ohne Grenzen · 0 = braucht keine Munition", "ammo_total": "ohne Grenzen · Obergrenze der Mitnahme, 0 = 3 Magazine",
+	"shots": "ohne Grenzen · ab 2: Feuerstoß, +5 je Kugel"}
 
 var tab := 0                  # 0 Waffen, 1 Rüstungen
 var draft: Resource           # Entwurf (Kopie), null = nichts gewählt
@@ -281,6 +284,12 @@ func _weapon_choices(grid: GridContainer, w: WeaponData) -> void:
 				w.grip_offset = from.grip_offset
 				w.grip_rotation_deg = from.grip_rotation_deg))
 		grid.add_child(UiTheme.label("Modell der genannten Waffe", 13, UiTheme.MUTED))
+	if not w.melee:
+		grid.add_child(_cap("Munitionsart"))
+		var types: Array = [&""] + Ammo.TYPES.keys()
+		grid.add_child(_option(types.map(func(t: StringName) -> String: return "keine" if t == &"" else String(Ammo.TYPES[t])),
+			maxi(0, types.find(w.ammo_type)), func(i: int) -> void: w.ammo_type = types[i]))
+		grid.add_child(UiTheme.label("Schiffsvorrat dieser Art", 13, UiTheme.MUTED))
 	grid.add_child(_cap("Hände"))
 	grid.add_child(_option(["einhändig", "zweihändig"], 1 if w.two_handed else 0, func(i: int) -> void: w.two_handed = i == 1))
 	grid.add_child(UiTheme.label("einhändig: Schild möglich", 13, UiTheme.MUTED))
@@ -294,7 +303,7 @@ func _num_row(grid: GridContainer, f: Dictionary) -> void:
 	grid.add_child(_cap(f.name))
 	var v := Gear.get_value(draft, f)
 	var lim := Gear.limits(draft, f)
-	if Gear.is_free(draft):
+	if Gear.is_free(draft) or f.get("unlimited", false):
 		var s := SpinBox.new()
 		s.min_value = lim.x
 		s.max_value = lim.y
@@ -303,7 +312,7 @@ func _num_row(grid: GridContainer, f: Dictionary) -> void:
 		s.custom_minimum_size = Vector2(160, 34)
 		s.value_changed.connect(func(x: float) -> void: Gear.set_value(draft, f, x))
 		grid.add_child(s)
-		grid.add_child(Control.new())
+		grid.add_child(UiTheme.label(String(UNLIMITED_NOTE.get(f.key, "")), 13, UiTheme.MUTED) if f.get("unlimited", false) else Control.new())
 		return
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)

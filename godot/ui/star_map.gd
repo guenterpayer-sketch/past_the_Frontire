@@ -389,6 +389,18 @@ func _render_port() -> void:
 	for n in [1, 3]:
 		mrow.add_child(_buy_button("%d kaufen (%d Cr)" % [n, n * Voyage.MATERIAL_PRICE], not Voyage.can_buy_material(game, n), func() -> void: Voyage.buy_material(game, n)))
 	mat.add_child(mrow)
+	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr" % [
+		Voyage.AMMO_PRICE.energie, Voyage.AMMO_PRICE.projektil, Voyage.AMMO_PRICE.raketen])
+	for t in Voyage.AMMO_START:
+		var arow := HBoxContainer.new()
+		arow.add_theme_constant_override("separation", 6)
+		var nl := UiTheme.label("%s: %d" % [Ammo.TYPES.get(StringName(t), t), int(game.ammo.get(t, 0))], 14)
+		nl.custom_minimum_size.x = 150
+		arow.add_child(nl)
+		for n in Voyage.AMMO_PACKS[t]:
+			var cost: int = n * int(Voyage.AMMO_PRICE[t])
+			arow.add_child(_buy_button("+%d (%d Cr)" % [n, cost], not Voyage.can_buy_ammo(game, t, n), func() -> void: Voyage.buy_ammo(game, t, n)))
+		am.add_child(arow)
 
 
 func _port_box(title: String, value: String, note: String) -> VBoxContainer:
