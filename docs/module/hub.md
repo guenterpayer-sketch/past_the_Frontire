@@ -116,3 +116,14 @@ Grundlage: `docs/Planung_Waffenkammer.md`. Raum „Waffenkammer“ im Schiff nut
 ## Aufträge vom Koordinator (15.10.2026): Einstellung UI-Größe
 
 Grundlage: `docs/Planung_UI_Groesse.md`. Einstellung „UI-Größe“ (z. B. 75 / 90 / 100 / 125 %) für das ganze Spiel: speichern, beim Start anwenden (Vorschlag: `get_window().content_scale_factor`), Auswahl im Startmenü. Funktion zum Lesen/Setzen bereitstellen und unter „Schnittstellen“ vermerken (der Bodenkampf nutzt sie evtl. im Kampfmenü). Stufen und Ort im Menü mit dem Nutzer bestätigen.
+
+### Stand UI-Größe (Hub-Chat, 15.10.2026) – **bereit zum Zusammenführen**
+
+- Entscheidungen des Nutzers: Stufen **75 / 90 / 100 / 125 %** (Standard 100 %); einstellbar im **Startmenü (Einstellungen)**, im **Schiff (Menü oben rechts, „UI-Größe …“)** und im **Kampfmenü** (baut der Bodenkampf mit der Funktion unten).
+- **Schnittstelle (für alle Module):** `UiScale` (`ui/ui_scale.gd`):
+  - `UiScale.get_factor() -> float` – gespeicherter Faktor (eine der `UiScale.STEPS`),
+  - `UiScale.set_factor(f, get_tree())` – setzen, in `user://ui.cfg` speichern, sofort anwenden,
+  - `UiScale.apply(get_tree())` – gespeicherten Faktor anwenden (Startmenü und Schiff tun das beim Laden; der Faktor bleibt am Fenster auch über Szenenwechsel),
+  - `UiScale.picker(get_tree()) -> HBoxContainer` – fertige Knopfzeile „UI-Größe 75 % | 90 % | 100 % | 125 %“ zum Einbauen in einen Dialog (so im Startmenü und im Schiff; der Bodenkampf kann sie in sein Kampfmenü setzen).
+  - Wirkung: `get_tree().root.content_scale_factor`; alle 2D-Oberflächen aller Szenen werden skaliert, 3D bleibt gleich. Eigener Speicherort `user://ui.cfg` (nicht `settings.cfg`, damit sich `Prefs` und `UiScale` beim Speichern nicht überschreiben).
+- Tests: `test_rules` OK, `test_hub` OK (Stufen, Speichern/Anwenden, ungültige Stufe), `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (UI-Größe im Schiff auf 75 % und zurück).

@@ -73,6 +73,15 @@ func _run() -> void:
 	await _frames(10)
 	print("Waffenkammer: Dialog offen ", hub.ui.armory.visible)
 	await _shot("h1d_waffenkammer")
+	# UI-Größe über das Menü im Schiff: 75 % und zurück
+	var f0 := UiScale.get_factor()
+	hub.ui.show_ui_scale()
+	await _click_button(hub.ui, "75 %")
+	await _frames(5)
+	print("UI-Größe: %s -> %s, Fenster %.2f" % [UiScale.label(f0), UiScale.label(UiScale.get_factor()), get_tree().root.content_scale_factor])
+	await _shot("h1e_ui_75")
+	UiScale.set_factor(f0, get_tree())
+	hub.ui.notice.hide()
 	await _click_button(hub.ui, "Fertig")
 	print("Waffenkammer: nach „Fertig“ geschlossen ", not hub.ui.armory.visible)
 	pat.injury = ""
