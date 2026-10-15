@@ -1,6 +1,6 @@
 # Zusammenführung der Module – Verlauf und offene Punkte
 
-Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `4069823` (UI-Größe) → `6fb7cec`.
+Stand: 15.10.2026. Zuletzt zusammengeführt: Bodenkampf `13a468e` → `3e9a42c`. Alle Branches in `main`.
 
 ## Arbeitsweise mit Branches
 
@@ -10,8 +10,8 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `4069823` (UI-Größe) → `6fb
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | `1d9a325`; arbeitet an Sichtlinie und kompakter Kampf-UI |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`14163cc`) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`13a468e`) |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | `b457a96`, nichts offen; muss `main` holen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`4069823`) |
 
 ## Verlauf
@@ -35,6 +35,7 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Hub `4069823` (UI-Größe) → `6fb
 | 15.10.2026 | `0c251f9` | Charakter `claude/elegant-gauss-hq5bus` (`14163cc`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Waffenkammer-Dialog (`ui/crew/armory_dialog.gd`, Regeln `core/equipment.gd`: Waffe 1 Pflicht, keine doppelt, keine Psi-Waffen, Schild nur mit einhändigen Waffen). Ändert Bodenkampf-Daten auf Anweisung des Nutzers: Vibroklinge einhändig, Laserkarabiner Fertigkeit Gewehre (Ikko/Rhea treffen schlechter, Nutzer: so lassen). Koordinator: `test_rules`, `test_hub` OK. |
 | 15.10.2026 | `7a9e704` | Hub `claude/happy-lamport-u4fvya` (`d6478f3`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Waffenkammer und Hangar als getrennte Räume; Waffenkammer öffnet `ArmoryDialog` (`open_for(Campaign.crew(), 0)`), Hangar bleibt Platzhalter. Koordinator: `test_rules`, `test_hub` OK; `CLAUDE.md` „Stand“ nachgezogen. |
 | 15.10.2026 | `6fb7cec` | Hub `claude/happy-lamport-u4fvya` (`4069823`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Einstellung „UI-Größe“ 75/90/100/125 % (`UiScale`, `user://ui.cfg`, `content_scale_factor` des Hauptfensters), im Startmenü „Einstellungen“ und im Schiffsmenü. Koordinator: `test_rules`, `test_hub` OK. |
+| 15.10.2026 | `3e9a42c` | Bodenkampf `claude/confident-edison-6mxzke` (`13a468e`) | ohne Konflikte, enthielt `main`; Ergebnis identisch mit dem getesteten Stand. Sichtlinie Variante C (ein einzelner Kistenstapel sperrt nicht, erst zwei oder mehr), Kampf-UI Variante C (Seitenleiste rechts, einklappbare Abschnitte, Log eine Zeile, Kampfmenü „UI-Größe …“ mit `UiScale.picker()`). Koordinator: `test_rules`, `test_hub` OK. |
 
 ## Erledigte Punkte aus der ersten Probe (14.10.2026)
 

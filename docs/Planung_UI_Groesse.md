@@ -28,3 +28,5 @@
 **Entschieden (Nutzer):** Der Bodenkampf stellt den Fall nach, misst, wie oft Kisten die Sicht sperren, und macht **2–3 Vorschläge**, wie Kisten die Sichtlinie behandeln sollen (z. B. nur Deckung ohne Sichtsperre; Sperre nur nah am Ziel). Nutzer entscheidet, dann bauen.
 
 **Stand 15.10.2026:** Einstellung „UI-Größe“ vom Hub erledigt (`4069823`, in `main` `6fb7cec`): Stufen 75/90/100/125 %, Standard 100 %, `user://ui.cfg`, Startmenü „Einstellungen“ und Schiffsmenü „UI-Größe …“. Schnittstelle `UiScale.get_factor()`, `set_factor(f, tree)`, `apply(tree)`, `picker(tree)` (fertige Knopfzeile, für das Kampfmenü des Bodenkampfs). Offen: Bodenkampf (kompaktere Kampf-UI, Sichtlinie, evtl. Eintrag im Kampfmenü).
+
+**Abschluss 15.10.2026:** Bodenkampf `13a468e` in `main` (`3e9a42c`): Sichtlinie Variante C, Kampf-UI Variante C, Kampfmenü „UI-Größe …“. Nichts offen.
