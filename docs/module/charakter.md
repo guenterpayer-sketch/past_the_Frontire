@@ -92,3 +92,7 @@ Nutzer: Es fehlt eine Übersicht, was die Psi-Listen und ihre Kräfte bewirken. 
 3. Kommentar oben in `core/psi_lists.gd` („im Kampf bisher nur Psi-Schild und Psi-Stoß“) ist veraltet; Wirkungstexte mit dem Stand im Bodenkampf abgleichen (z. B. „Am Leben halten“ stabilisiert, siehe 6.1).
 Vorher **Mockup** zeigen und vom Nutzer bestätigen lassen.
 - (15.10.2026) Übersicht Psi-Listen → gebaut (siehe Stand); Aufruf für den Bodenkampf unter „Schnittstellen“.
+
+## Aufträge vom Koordinator (15.10.2026): eigene Rüstungen
+
+Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausruestungs_Editor.md`). **Warten, bis sein Baustein in `main` ist.** Dann: `Equipment.armors()` liefert auch eigene Rüstungen, die Waffenkammer zeigt eigene Ausrüstung; Verhalten, wenn getragene Ausrüstung gelöscht wird, mit dem Nutzer klären (Abschnitt „Aufteilung“, Punkt 3).
