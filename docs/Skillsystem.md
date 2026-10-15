@@ -481,6 +481,35 @@ Stufe am Kampfende (Charakter-Modul, `core/injury.gd`):
 - **Erneut verwundet:** die schlimmere Stufe, die Tage werden addiert.
 - **Heilung:** jeder vergangene Spieltag (Reisen, Warten, Einsatz) zieht einen Tag ab; die Krankenstation (Hub) bringt je Tag mit einer Zweite-Hilfe-Probe +1 oder +2 Tage. Die Stufe bleibt bis zum letzten Resttag, danach unverletzt.
 
+## 8b. Reise, Schiff, Credits
+
+Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd`, Werte im `HubState`).
+
+**Reiseproben:** Je **Reisetag** vier Proben, Schwierigkeit **Mittel** (±0): **Pilot**, **Navigation**, **Computer**, **Reparatur** (`rsReparatur`). EP wie bei jeder Probe (Erfolg 2, Teilerfolg/Fehlschlag 1, Patzer 0) in der benutzten Fertigkeit.
+- **Wer würfelt:** zuerst die **Station** (Steuer → Pilot, Navigation, Computer, Technik → Reparatur). Freie Posten übernehmen die Übrigen so, dass die Summe ihrer Werte am höchsten ist; jede Person höchstens einen Posten.
+- **Nicht verfügbar:** Gesperrte (kampfunfähig, schwer verwundet) und wer in der **Krankenstation eingeteilt** ist (Arzt und Helfer, auch an Tagen ohne Patienten).
+
+| Wert | Regel |
+|---|---|
+| Tank | 100, zu Beginn voll |
+| Verbrauch je Reisetag | 10; je Probe in Pilot, Navigation, Computer: Teilerfolg −1, Erfolg −2, Herausragend −4; mindestens 3. Warten und Einsatz verbrauchen nichts |
+| Leerer Tank | Die laufende Reise endet trotzdem am Ziel (**Notsprit**, kein Verbrauch); danach nur Kurs zum nächsten Hafen; das nächste Tanken kostet das Doppelte |
+| Hülle | 100, zu Beginn voll. Reparaturprobe je Reisetag: Patzer −10, Fehlschlag −5, Teilerfolg ±0, Erfolg +2, Herausragend +4 (höchstens 100) |
+| Hülle 0 | nur Kurs zum nächsten Hafen |
+| Große Reparatur, Werft (Hafen) | +25 Hülle für 1 Schiffsmaterial + 40 Cr |
+| Große Reparatur, Crew (überall) | 1 Tag, 1 Material, Reparaturprobe (Station Technik, sonst der Beste): Patzer −5, Fehlschlag ±0, Teilerfolg +10, Erfolg +20, Herausragend +40; das Material ist immer verbraucht |
+| Schiffsmaterial | zu Beginn 2; 60 Cr im Hafen |
+| Treibstoff | 5 Cr je Einheit, nach Notsprit 10 Cr |
+| Credits | zu Beginn 300 |
+| Lohn bei Sieg | leicht 80, mittel 140, schwer 220; Söldner der Roten Sonne und Vantar-Konzern ×1,2 |
+| Beute bei Sieg | Schiffsmaterial: leicht 0, mittel 1, schwer 2; Schmuggler +1 |
+| Niederlage, Rückzug | kein Lohn, keine Beute |
+| Notkredit | Tanken geht immer, die Credits dürfen dabei ins Minus; der nächste Lohn gleicht aus. Material und Werft nur mit genug Credits (Ausnahme Hülle 0, siehe 9.) |
+
+Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
+
+Durchschnitt je Reisetag (simuliert, 200 000 Würfe): schwache Crew (alle Werte um −15) 9,6 Treibstoff, Hülle −4,6; Roster-Startcrew (Pilot +75, Navigation +0, Computer +20, Reparatur +55) 7,2 und +0,1; starke Crew (+90/+60/+60/+80) 4,9 und +1,5.
+
 ## 9. Annahmen und offene Punkte
 
 Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leicht zu ändern:
@@ -500,3 +529,5 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 12. **Psi-Punkte:** Die neue Formel ergibt mehr PP als die alte (MEN 98: 19 statt 13 ohne Entwicklungsränge). Ob das mit „Kosten = Stufe“ passt, ist im Kampf zu prüfen.
 13. **Psi-Listen (6.1)** sind ein Vorschlag. Im Spiel gibt es bisher nur Psi-Schild und Psi-Stoß, und sie sind noch nicht an Listen gebunden. Gedanken orten, Schwachstelle, Heranziehen und Schweben brauchen neue Mechanik im Bodenkampf.
 14. **Startcrew** hat in Körperentwicklung, Psi-Punkte-Entwicklung und den Psi-Listen noch keine Ränge.
+15. **Hülle 0 im Hafen ohne Credits** (8b): damit das Spiel nicht festsitzt, gehen Werft und Materialkauf bei Hülle 0 auch auf Notkredit. Vom Hub-Chat festgelegt, nicht vom Nutzer entschieden.
+16. **Unbesetzter Reiseposten** (8b; zu wenig verfügbare Crew): keine Probe, keine Ersparnis beim Treibstoff, Hülle unverändert.
