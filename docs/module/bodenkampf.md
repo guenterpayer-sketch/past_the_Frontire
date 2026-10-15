@@ -94,3 +94,7 @@ Das Charakter-Modul baut eine gemeinsame Anzeige der Psi-Listen (siehe `docs/mod
 1. Im Kampfmenü **„Tabellen“** (`ui/tables_dialog.gd`) neben den Waffen auch die Psi-Listen (Wunsch des Nutzers).
 2. **Tooltip** im Aktionsfeld beim Auswählen einer Psi-Kraft: Wirkung, Kosten, Probe.
 Keine eigene Liste der Wirkungstexte anlegen; Daten aus `PsiLists`.
+
+## Aufträge vom Koordinator (15.10.2026): eigene Waffen
+
+Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausruestungs_Editor.md`). **Warten, bis sein Baustein in `main` ist.** Dann: `GameData.weapons()` liefert auch eigene Waffen; Gegner bekommen eigene Ausrüstung gemäß Einstellung (Abschnitt „Aufteilung“, Punkt 2).
