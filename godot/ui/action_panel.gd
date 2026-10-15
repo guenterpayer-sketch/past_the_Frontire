@@ -66,6 +66,7 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 			(" · Reserve %d" % u.ammo.get(wd.id, 0)) if wd.magazine else ""]
 		if wd.power != "":
 			_psi_border(b)
+			b.tooltip_text = psi_tip(PsiCombat.list_of(wd.power), PsiCombat.level_of(wd.power))
 		wflow.add_child(b)
 	_section(&"weapon", "WAFFE  (Wechsel beim Angriff −%d %%)" % Combat.COST.swap, wflow)
 
@@ -239,18 +240,20 @@ func _psi_box(c: Combat, pc: PlayerController, u: Combatant, w: WeaponData, play
 		var b: Button
 		if lvl > rank:
 			b = _btn("%s\nSt. %d · fehlt Rang" % [p[1], lvl], &"", null, false, true)
+			b.tooltip_text = psi_tip(pc.psi_tab, lvl) + "\nAb Rang %d in %s (jetzt %d)." % [lvl, PsiLists.LISTS[pc.psi_tab].name, rank]
 		elif PsiCombat.is_attack(k):
 			var pw := PsiCombat.weapon(k)
 			var ok := c.usable_weapons(u).has(pw)
 			b = _btn("%s\nSt. %d · %d PP · Angriff" % [p[1], lvl, lvl], &"weapon", pw, pw == w, not player_turn or not ok)
-			b.tooltip_text = "%s: %s. Wählen, dann Gegner anklicken (Aktivität wie beim Angriff)." % [p[1], p[2]]
+			b.tooltip_text = psi_tip(pc.psi_tab, lvl) + "\nWählen, dann Gegner anklicken."
 		elif PsiCombat.SUPPORT.has(k):
 			var spec: Dictionary = PsiCombat.SUPPORT[k]
 			b = _btn("%s\nSt. %d · %d PP · %d %%" % [p[1], lvl, lvl, Combat.COST.psi], &"power", k,
 				pc.mode == PlayerController.Mode.PSI and pc.power == k, not player_turn or not c.can_power(u, k))
-			b.tooltip_text = "%s: %s (Probe Psi wirken, Mittel)." % [p[1], spec.hint]
+			b.tooltip_text = psi_tip(pc.psi_tab, lvl)
 		else:
 			b = _btn("%s\nSt. %d · nicht im Kampf" % [p[1], lvl], &"", null, false, true)
+			b.tooltip_text = psi_tip(pc.psi_tab, lvl)
 		b.add_theme_font_size_override("font_size", 11)
 		b.custom_minimum_size = Vector2(0, 40)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -269,6 +272,29 @@ func _hint(pc: PlayerController) -> String:
 		PlayerController.Mode.FACE:
 			return "Feld anklicken, in dessen Richtung die Figur schauen soll."
 	return ""
+
+
+## Tooltip einer Psi-Kraft: Wirkung, Ziel, Kosten, Probe (Daten aus PsiLists/PsiCombat, Auftrag „Übersicht Psi-Listen“)
+static func psi_tip(list: StringName, level: int) -> String:
+	var p := PsiLists.power_at(list, level)
+	if p.is_empty():
+		return ""
+	var kind := PsiLists.kind(list, level)
+	var lines := PackedStringArray()
+	lines.append("%s (%s, Stufe %d)" % [p[1], PsiLists.LISTS[list].name, level])
+	lines.append("Wirkung: %s" % p[2])
+	var tgt := PsiLists.target(list, level)
+	if tgt != "":
+		lines.append("Ziel: %s" % tgt)
+	if kind == PsiLists.ATTACK:
+		lines.append("Kosten: %d PP, Aktivität wie beim Angriff" % level)
+		lines.append("Probe: Psi-Angriffe gegen Psi-VW des Ziels")
+	elif kind == PsiLists.SUPPORT:
+		lines.append("Kosten: %d PP, %d %% Aktivität" % [level, Combat.COST.psi])
+		lines.append("Probe: Psi wirken (Mittel)")
+	else:
+		lines.append("Im Kampf nicht einsetzbar.")
+	return "\n".join(lines)
 
 
 func _psi_border(b: Button) -> void:

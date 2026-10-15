@@ -1,11 +1,16 @@
 class_name TablesDialog
 extends Modal
-## Tabellen: Angriffstabelle der gewählten Waffe, Kritische Treffer, Patzer.
+## Tabellen: Angriffstabelle der gewählten Waffe, Kritische Treffer, Patzer; Knopf „Psi-Listen …“ öffnet die
+## Übersicht der Psi-Listen (PsiListView des Charakter-Moduls) für die Figur am Zug.
 
+var psi_view: PsiListView      # von BattleUI gesetzt
 var _weapons: Array[WeaponData] = []
+var _unit: Combatant
 
 
-func show_tables(selected: WeaponData = null) -> void:
+## selected: Waffe für die Angriffstabelle; unit: Figur für die Psi-Übersicht (null = nur die Listen)
+func show_tables(selected: WeaponData = null, unit: Combatant = null) -> void:
+	_unit = unit
 	_weapons = GameData.weapons()
 	if selected == null:
 		selected = _weapons[0]
@@ -17,8 +22,16 @@ func show_tables(selected: WeaponData = null) -> void:
 		ob.add_item(_weapons[i].name, i)
 		if _weapons[i] == selected:
 			ob.select(i)
-	ob.item_selected.connect(func(i: int) -> void: show_tables(_weapons[i]))
+	ob.item_selected.connect(func(i: int) -> void: show_tables(_weapons[i], _unit))
 	row.add_child(ob)
+	if psi_view:
+		var gap := Control.new()
+		gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(gap)
+		var pb := UiTheme.button("Psi-Listen …")
+		pb.tooltip_text = "Alle Psi-Listen mit Kräften, Stufe (= PP), Ziel und Wirkung" + ("; Stand von %s" % _unit.name if _unit else "")
+		pb.pressed.connect(func() -> void: psi_view.open_for(_unit if _unit and not PsiLists.learned(_unit).is_empty() else null))
+		row.add_child(pb)
 	content.add_child(row)
 	content.add_child(Modal.rich(_attack_table(selected)))
 	content.add_child(Modal.rich("[b]Kritische Treffer[/b]\n[color=#8291ad]W100 (geschlossen) + Grad: A −20, B −10, C ±0, D +10, E +20[/color]"))

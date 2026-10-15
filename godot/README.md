@@ -52,7 +52,7 @@ Oben links Spielstand, Tag, Position und offene Aufträge, darunter **Credits, T
 
 Die Karte nutzt den ganzen Bildschirm, die Bedienung schwebt darüber:
 - oben links die Initiative-Leiste (Einspringen nach dem Abwarten),
-- oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, UI-Größe, Bedienung),
+- oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen mit Knopf „Psi-Listen …“, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, UI-Größe, Bedienung),
 - darunter rechts die **Seitenleiste** (kompakte Kampf-UI, Variante C): Figurenkarte (TP/PP/Aktivität, AW/VW/INI, Bogen), dann Abschnitte Waffe (mit Psi-Angriffskräften), Gangart, Angriffsaktivität, Psi (Reiter je Liste) und Aktionen (Ducken, Abwarten, Feuerbereit, Nachladen, Erste Hilfe, Ausrichten), jeder per Klick auf die Überschrift ein-/ausklappbar (gespeichert), unten immer „Zug beenden“; in Runde 0 die Aufstellung; ist die KI am Zug, nur deren Figurenkarte. Der Knopf „›“ klappt die ganze Leiste ein (Enter beendet weiter den Zug),
 - links neben der Leiste der Infokasten für das Feld bzw. die Figur unter der Maus (auf Touchgeräten mit „Ausführen“),
 - unten links Würfel und Kampflog (eingeklappt eine Zeile, „Log ▴“ klappt den Verlauf auf).
