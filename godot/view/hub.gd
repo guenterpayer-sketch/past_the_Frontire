@@ -24,6 +24,7 @@ func _ready() -> void:
 	ui.star_map.travel.connect(_travel)
 	ui.star_map.wait_day.connect(wait_day)
 	ui.medbay.wait_day.connect(wait_day)
+	ui.armory.done.connect(_refresh)
 	ui.star_map.hired.connect(func(_c: Character) -> void: _refresh())
 	ui.star_map.start.connect(_start_mission)
 	ui.star_map.closed.connect(_refresh)
@@ -77,6 +78,9 @@ func open_room(id: StringName) -> void:
 			ui.star_map.open(game)
 		&"medbay":
 			ui.medbay.show_medbay(game)
+		&"armory":
+			# Ausrüstungsdialog des Charakter-Moduls; „Fertig“ speichert selbst (Campaign.save())
+			ui.armory.open_for(Campaign.crew(), 0)
 		&"quarters":
 			ui.show_crew()
 		_:

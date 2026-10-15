@@ -12,8 +12,10 @@ const LOW_WALL := 0.1        # Außenwand zur Kamera hin
 
 ## Räume (Meter: x entlang des Schiffs, z quer). ready = schon nutzbar, sonst „kommt noch“.
 const ROOMS := [
-	{"id": &"hangar", "name": "Waffenkammer / Hangar", "rect": Rect2(0, 0, 16, 16), "ready": false,
-		"text": "Ausrüstung und Landungsschiff.", "light": Color(1.0, 0.85, 0.6)},
+	{"id": &"hangar", "name": "Hangar", "rect": Rect2(0, 0, 16, 8), "ready": false,
+		"text": "Landungsschiff.", "light": Color(1.0, 0.85, 0.6)},
+	{"id": &"armory", "name": "Waffenkammer", "rect": Rect2(0, 8, 16, 8), "ready": true,
+		"text": "Ausrüstung ändern: Waffen, Rüstung, Schild (Dialog des Charakter-Moduls).", "light": Color(1.0, 0.75, 0.55)},
 	{"id": &"quarters", "name": "Crewquartiere", "rect": Rect2(16, 0, 12, 8), "ready": true,
 		"text": "Crew ansehen: Ränge kaufen, Eigenschaften steigern, freie EP einzahlen, Charakterbögen.", "light": Color(0.75, 0.85, 1.0)},
 	{"id": &"medbay", "name": "Krankenstation", "rect": Rect2(16, 8, 12, 8), "ready": true,
@@ -23,7 +25,7 @@ const ROOMS := [
 ]
 
 ## Durchgänge in Zwischenwänden: Mittelpunkt der 4-m-Kante
-const DOORS := [Vector2(16, 6), Vector2(16, 10), Vector2(28, 6), Vector2(22, 8)]
+const DOORS := [Vector2(16, 6), Vector2(16, 10), Vector2(28, 6), Vector2(22, 8), Vector2(10, 8)]
 ## Außenwände mit Fenstern (Mittelpunkt der Kante -> Modell)
 const WINDOWS := {Vector2(40, 6): "threewindows_wall_sidea", Vector2(40, 10): "threewindows_wall_sidea",
 	Vector2(30, 4): "longwindow_wall_sidea", Vector2(34, 4): "longwindow_wall_sidea", Vector2(38, 4): "smallwindows_wall_sidea",
@@ -47,13 +49,14 @@ const PROPS := [
 	["props_base", 24.5, 13.0, 0.0, 1.0], ["props_pod", 24.5, 13.0, 0.0, 0.8],
 	["props_vessel_tall", 17.0, 9.2, 0.0, 1.0], ["props_vessel", 17.6, 9.2, 0.0, 1.0], ["props_vessel_tall", 18.2, 9.2, 0.0, 1.0],
 	["props_computersmall", 27.0, 10.0, -90.0, 1.0],
-	# Hangar: Landungsschiff, Waffenregale, Kisten
-	["dropship_insurgent", 6.5, 8.0, 90.0, 1.0],
-	["props_shelf_tall", 14.4, 1.0, 0.0, 1.0], ["props_shelf_tall", 14.4, 15.0, 180.0, 1.0],
-	["props_laser", 13.0, 5.0, -90.0, 0.8],
+	# Hangar: Landungsschiff, Kisten
+	["dropship_insurgent", 7.0, 4.0, 90.0, 0.9],
 	["props_crate", 1.2, 1.2, 0.0, 1.0], ["props_crate", 2.2, 1.2, 15.0, 1.0], ["props_crate", 1.4, 2.2, -10.0, 1.0],
-	["props_cratelong", 1.2, 14.6, 90.0, 1.0], ["props_containerfull", 3.2, 14.8, 0.0, 1.0],
-	["props_chest", 12.8, 13.0, 90.0, 1.0],
+	["props_containerfull", 14.6, 1.2, 0.0, 1.0],
+	# Waffenkammer: Waffenregale, Werkbank, Kisten
+	["props_shelf_tall", 3.0, 15.0, 180.0, 1.0], ["props_shelf_tall", 6.0, 15.0, 180.0, 1.0], ["props_shelf_tall", 14.4, 15.0, 180.0, 1.0],
+	["props_laser", 11.0, 12.0, -90.0, 0.8],
+	["props_cratelong", 1.2, 10.0, 90.0, 1.0], ["props_chest", 14.6, 10.0, 90.0, 1.0],
 ]
 
 var _walls: Array[Dictionary] = []     # {full, low, normal}

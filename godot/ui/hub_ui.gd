@@ -17,6 +17,7 @@ var sheet: SheetDialog
 var slots: SlotsDialog
 var report: Modal
 var medbay: MedbayDialog
+var armory: ArmoryDialog
 var notice: Modal
 var help: Modal
 var room_tags := {}           # Raum-ID -> Button über dem Raum
@@ -113,9 +114,10 @@ func _ready() -> void:
 	slots = SlotsDialog.new()
 	report = Modal.new()
 	medbay = MedbayDialog.new()
+	armory = ArmoryDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory]:
 		add_child(d)
 	notice.max_size = Vector2(620, 320)
 	report.max_size = Vector2(900, 540)
@@ -255,11 +257,11 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible
 
 
 func close_dialogs() -> bool:
-	for d in [sheet, help, notice, slots, report, medbay]:
+	for d in [sheet, help, notice, slots, report, medbay, armory]:
 		if d.visible:
 			d.close()
 			return true

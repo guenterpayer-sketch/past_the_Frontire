@@ -68,6 +68,13 @@ func _run() -> void:
 		pat.injury_days, g.medlog[0] if not g.medlog.is_empty() else "-"])
 	await _shot("h1c_krankenstation")
 	hub.ui.medbay.hide()
+	# Waffenkammer: Raum öffnet den Ausrüstungsdialog des Charakter-Moduls
+	hub.open_room(&"armory")
+	await _frames(10)
+	print("Waffenkammer: Dialog offen ", hub.ui.armory.visible)
+	await _shot("h1d_waffenkammer")
+	await _click_button(hub.ui, "Fertig")
+	print("Waffenkammer: nach „Fertig“ geschlossen ", not hub.ui.armory.visible)
 	pat.injury = ""
 	pat.injury_days = 0
 	# Maus über die Brücke: Hervorhebung und Infokasten
