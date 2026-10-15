@@ -85,3 +85,4 @@ Grundlage: `docs/Planung_UI_Groesse.md`.
 ## Aufträge vom Koordinator (15.10.2026): Musik
 
 Der Hub baut einen Musikspieler (Autoload `Music`, siehe `docs/module/hub.md`, Auftrag „Musik“). **Warten, bis er in `main` ist.** Dann nur Aufrufe einbauen: Kampfmusik im Bodenkampf (ob ruhiger in Runde 0, mit dem Nutzer klären), Sieg/Niederlage beim Ergebnis-Banner. Keinen eigenen Spieler bauen.
+- **Musikspieler ist in `main` (`b9f6c33`).** Aufrufe: Briefing und Runde 0 `Music.play(Music.BRIEFING)`, ab Runde 1 `Music.play(Music.BATTLE)`, Ergebnis-Banner `Music.play(Music.VICTORY)` bzw. `Music.play(Music.DEFEAT)`. Details `docs/module/hub.md`. Jetzt `main` holen und einbauen.
