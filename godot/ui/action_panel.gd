@@ -57,7 +57,7 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 	var usable := c.usable_weapons(u)
 	for wd in u.weapons:
 		var extra := (" ×%d" % wd.shots) if wd.shots > 1 else ""   # Feuerstoß
-		var empty := wd.magazine > 0 and u.loaded.get(wd.id, 0) <= 0 and u.ammo.get(wd.id, 0) <= 0
+		var empty: bool = wd.magazine > 0 and u.loaded.get(wd.id, 0) <= 0 and u.ammo.get(wd.id, 0) <= 0
 		if wd.magazine:
 			extra += " · %d/%d" % [u.loaded.get(wd.id, 0), wd.magazine] if not empty else " · ohne Munition"
 		elif wd.pp_cost:
