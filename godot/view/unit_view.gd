@@ -1,18 +1,20 @@
 class_name UnitView
 extends Node3D
 ## Eine Figur auf der Karte: Darstellung (3D-Modell oder Grundkörper, siehe Figure), Teamring,
-## Sichtfeld der Figur am Zug, Namensschild mit Trefferpunkten und Zustandssymbolen.
+## Sichtfeld der Figur am Zug, Namensschild mit Trefferpunkten, Zustandssymbole (StatusRow) und -effekte (StatusFx).
 
 const STEP_TIME := 0.16
 
 var unit: Combatant
 var figure: Figure
 var current := false
-var dimmed := false             # eine andere Figur ist am Zug: Namensschild abgedunkelt
+var dimmed := false             # eine andere Figur ist am Zug: Namensschild leicht abgedunkelt
+const DIM_ALPHA := 0.7          # vorher 0.4: Trefferpunkte der Gegner waren kaum lesbar (Spieltest 15.10.2026)
 var _ring: MeshInstance3D
 var _ring_mat: StandardMaterial3D
 var _label: Label3D
-var _icon: Label3D
+var _status: StatusRow
+var _fx: StatusFx
 var _fov: MeshInstance3D
 var _pulse := 0.0
 var _step_id := 0
@@ -25,10 +27,13 @@ func setup(u: Combatant) -> void:
 	add_child(figure)
 	figure.setup(u)
 	_build_ring(u)
-	_label = _make_label(26, u.color.lightened(0.35))
+	_label = _make_label(26, u.color.lightened(0.5))   # Farbe der Figur, stark aufgehellt (lesbar auch bei Dunkelrot)
 	_label.position = Vector3(0, figure.head_height() + 0.45, 0)
-	_icon = _make_label(30, Color(1, 0.85, 0.3))
-	_icon.position = Vector3(0, figure.head_height() + 0.9, 0)
+	_status = StatusRow.new()
+	add_child(_status)
+	_fx = StatusFx.new()
+	add_child(_fx)
+	_fx.setup(figure.head_height())
 	set_facing(u.facing, false)
 	_apply_pose()
 	sync()
@@ -44,21 +49,25 @@ func _process(delta: float) -> void:
 func sync() -> void:
 	var u := unit
 	_label.text = "%s  %d/%d" % [u.letter, maxi(u.hp, 0), u.max_hp]
-	var icons := ""
-	if u.has_overwatch():
-		icons += "◎"
-	if u.waiting:
-		icons += "⏸"
-	if u.psi_shield > 0:
-		icons += "✦"
-	if u.bleed > 0:
-		icons += "•"
-	_icon.text = icons
 	_ring.visible = not u.is_dead()
 	# die Figur am Zug zeigt statt des Namensschilds das ActiveTag der Oberfläche
 	_label.visible = not u.is_dead() and not current
-	_label.modulate.a = 0.4 if dimmed and not current else 1.0
-	_icon.modulate.a = _label.modulate.a
+	_label.modulate.a = DIM_ALPHA if dimmed and not current else 1.0
+	# Symbole über dem Namensschild; bei der Figur am Zug (Schild ausgeblendet) knapp unter dem Schild „am Zug“
+	if current:
+		_status.position = tag_point() - position
+		_status.lift = -20.0
+	else:
+		_status.position = _label.position
+		_status.lift = 34.0
+	_status.visible = not u.is_dead()
+	if _status.visible:
+		_status.show_for(u, _label.modulate.a)
+	_fx.sync(u)
+	# niedergeworfen: Figur kippt zur Seite
+	var tilt := 0.5 if u.prone and u.is_ok() else 0.0
+	if not is_equal_approx(figure.rotation.z, tilt):
+		create_tween().tween_property(figure, "rotation:z", tilt, 0.25)
 	_fov.visible = current and u.is_ok()
 	figure.set_ghost(not u.is_dead())
 	if not current:
@@ -156,7 +165,8 @@ func _make_label(size: int, color: Color) -> Label3D:
 	l.fixed_size = true
 	l.pixel_size = 0.0011
 	l.font_size = size
-	l.outline_size = 8
+	l.outline_size = 10
+	l.outline_modulate = Color(0, 0, 0, 0.9)
 	l.modulate = color
 	l.render_priority = 2
 	add_child(l)

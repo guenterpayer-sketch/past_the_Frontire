@@ -275,8 +275,38 @@ func _run_player() -> void:
 		print("nach Angriff: ", target.name, " TP ", target.hp, ", Aktivität ", u.act)
 	else:
 		print("kein Gegner angreifbar")
+	await _status_shot(out, u)
 	print("AUTOTEST FERTIG")
 	get_tree().quit()
+
+
+## Zustandssymbole und -effekte: Zustände setzen (nur für das Bild), Symbole zählen, Screenshot
+func _status_shot(out: String, u: Combatant) -> void:
+	var foes := b.combat.opponents(u).filter(func(o: Combatant) -> bool: return o.is_ok())
+	var mates := b.combat.units.filter(func(o: Combatant) -> bool: return o.team == u.team and o != u and o.is_ok())
+	if foes.is_empty() or mates.is_empty():
+		print("Status: keine Figuren für das Bild")
+		return
+	var f: Combatant = foes[0]
+	f.bleed = 3
+	f.stun = 2
+	f.malus = -20
+	f.prone = true
+	f.disarmed = true
+	f.buffs["geortet"] = {"rounds": 3, "team": u.team}
+	u.psi_shield = 2
+	u.buffs["abschirmen"] = {"rounds": 3, "val": 10}
+	var m: Combatant = mates[0]
+	m.state = Combatant.State.DYING
+	m.hp = -4
+	for o in [f, u, m]:
+		b.views[o].sync()
+	b.rig.focus(b.views[f].position.lerp(b.views[u].position, 0.5), false)
+	await get_tree().create_timer(0.8).timeout
+	var shown := func(o: Combatant) -> int:
+		return b.views[o]._status._icons.filter(func(s: Sprite3D) -> bool: return s.visible).size()
+	print("Status: Gegner %d Symbole (+%s), am Zug %d, sterbend %d" % [shown.call(f), b.views[f]._status._more.text, shown.call(u), shown.call(m)])
+	await _screenshot(out + "/p5_status.png")
 
 
 ## Psi-Bedienung: Nyx an den Zug setzen, Psi-Zeile, Reiter Schutz, Rechtsklick auf Verbündete (Kontextmenü), Psi-Schild wirken

@@ -146,7 +146,7 @@ func _build_gallery(cols: int, rows: int, mid: int) -> void:
 
 ## 2. Hochregale: parallele Reihen mit Gängen, je eine Leiter am Ende
 func _build_shelves(cols: int, rows: int) -> void:
-	var count: int = {"klein": 1, "mittel": 2, "gross": 4}[size.id]
+	var count: int = {"klein": 1, "mittel": 2 if rng.randf() < 0.5 else 1, "gross": 3}[size.id]
 	var left_half := rng.randf() < 0.5
 	var sx0: int = 6 if left_half else cols / 2 + 1
 	var sx1: int = cols / 2 - 1 if left_half else cols - 7
@@ -183,7 +183,7 @@ func _build_shelves(cols: int, rows: int) -> void:
 
 ## 3. Container (3 Felder lang, 1–2 breit), teils doppelt gestapelt; Aufstieg über Leiter oder Kiste
 func _build_containers(cols: int, rows: int) -> void:
-	var count: int = {"klein": 2, "mittel": 4, "gross": 7}[size.id]
+	var count: int = {"klein": 2 if rng.randf() < 0.5 else 1, "mittel": 3, "gross": 5}[size.id]
 	var placed := 0
 	var tries := 0
 	while placed < count and tries < 200:
@@ -218,8 +218,8 @@ func _build_containers(cols: int, rows: int) -> void:
 
 
 ## 4. Kleinzeug: Kistenstapel, Fässer, Betonbarrieren (eher quer zur Schussrichtung), Säulen.
-## SCATTER_DENSITY regelt die Menge (1.0 = so voll wie in der ersten Fassung).
-const SCATTER_DENSITY := 0.5
+## SCATTER_DENSITY regelt die Menge (1.0 = so voll wie in der ersten Fassung; 0.5 → 0.375 am 15.10.2026).
+const SCATTER_DENSITY := 0.375
 
 func _build_scatter(cols: int, rows: int) -> void:
 	var area := cols * rows * SCATTER_DENSITY
