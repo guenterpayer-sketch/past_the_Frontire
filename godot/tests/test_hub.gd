@@ -19,6 +19,7 @@ func _init() -> void:
 	_test_medbay_and_harbor()
 	_test_ui_scale()
 	_test_voyage()
+	_test_gear()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -351,3 +352,80 @@ func _test_voyage() -> void:
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)
 	Campaign.reload()
+
+
+func _rm_tree(d: String) -> void:
+	if not DirAccess.dir_exists_absolute(d):
+		return
+	for sub in DirAccess.get_directories_at(d):
+		_rm_tree(d.path_join(sub))
+	for f in DirAccess.get_files_at(d):
+		DirAccess.remove_absolute(d.path_join(f))
+	DirAccess.remove_absolute(d)
+
+
+func _test_gear() -> void:
+	Gear.dir = "user://gear_test"
+	_rm_tree(Gear.dir)
+	check(Gear.weapons().is_empty() and Gear.armors().is_empty(), "Editor: leer am Anfang")
+	var pistol: WeaponData = load("res://data/weapons/laserpistole.tres")
+	var w := Gear.from_template(pistol) as WeaponData
+	check(w.name == "Laserpistole (eigen)" and not Gear.is_free(w) and Gear.template_of(w) == pistol, "Entwurf aus Vorlage")
+	check(pistol.name == "Laserpistole", "Vorlage bleibt unverändert")
+	var f_inc: Dictionary = Gear.WEAPON_FIELDS[0]
+	var f_dmg: Dictionary = Gear.WEAPON_FIELDS[5]
+	var f_fum: Dictionary = Gear.WEAPON_FIELDS[4]
+	check(Gear.limits(w, f_inc) == Vector2(5, 15), "Reichweite ±50 %")
+	check(Gear.limits(w, f_dmg).is_equal_approx(Vector2(0.6, 1.0)), "Schaden ±0,2")
+	check(Gear.limits(w, f_fum) == Vector2(1, 4), "Patzer ±2, mindestens 1")
+	check(Gear.clamp_value(w, f_inc, 99) == 15 and Gear.clamp_value(w, f_inc, 0) == 5, "Werte bleiben in Grenzen")
+	check(not Gear.fields(w).any(func(f: Dictionary) -> bool: return f.has("splash")), "Druckwelle nur mit Vorlage mit Druckwelle")
+	var hammer := Gear.from_template(load("res://data/weapons/energiehammer.tres"))
+	check(not Gear.fields(hammer).any(func(f: Dictionary) -> bool: return f.get("ranged", false)), "Nahkampf ohne Reichweite")
+	var rak := Gear.from_template(load("res://data/weapons/raketenwerfer.tres"))
+	check(Gear.fields(rak).filter(func(f: Dictionary) -> bool: return f.has("splash")).size() == 2, "Raketenwerfer: zwei Druckwellen-Ringe")
+	# Revolver speichern
+	w.name = "Revolver"
+	w.skill = &"pistolen"
+	w.table = load("res://data/tables/attack_projektil.tres")
+	Gear.set_value(w, f_inc, 12)
+	Gear.set_value(w, f_dmg, 0.9)
+	w.set_meta(&"enemy", true)
+	var konzern := "res://data/missions/konzern.tres"
+	w.set_meta(&"factions", [konzern])
+	var saved := Gear.save(w) as WeaponData
+	check(saved != null and Gear.is_custom(saved) and saved.resource_path.begins_with("user://gear_test/weapons/"), "gespeichert im Gear-Ordner")
+	var path := saved.resource_path
+	var again: WeaponData = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	check(again.name == "Revolver" and again.inc_m == 12 and is_equal_approx(again.damage, 0.9) and again.table.resource_path.ends_with("attack_projektil.tres"), "Werte gespeichert")
+	check(String(again.get_meta(&"template", "")) == pistol.resource_path and again.get_meta(&"enemy", false) and again.get_meta(&"factions", []) == [konzern], "Metadaten gespeichert")
+	check(Gear.weapons().size() == 1 and Gear.enemy_weapons(konzern).size() == 1 and Gear.enemy_weapons("res://data/missions/kult.tres").is_empty(), "Gegner nach Fraktion")
+	# Bearbeiten ändert den getragenen Eintrag mit
+	var edit := saved.duplicate()
+	for m in saved.get_meta_list():
+		edit.set_meta(m, saved.get_meta(m))
+	edit.name = "Revolver Mk II"
+	edit.set_meta(&"free", true)
+	check(Gear.limits(edit, f_dmg).y == Gear.FREE_MAX, "frei: ohne Grenzen")
+	Gear.set_value(edit, f_dmg, 2.5)
+	var s2 := Gear.save(edit, saved)
+	check(s2 == saved and saved.name == "Revolver Mk II" and Gear.is_free(saved) and saved.resource_path == path, "Bearbeiten: derselbe Eintrag, frei markiert")
+	edit.set_meta(&"free", false)
+	Gear.clamp_all(edit)
+	check(is_equal_approx(edit.damage, 1.0), "frei aus: zurück in die Grenzen")
+	# Charakter speichert die eigene Waffe über den Pfad
+	var c: Character = GlobalRoster.entries()[0]
+	c.weapons = [saved]
+	var d := c.to_dict()
+	check(path in d.weapons, "Charakter speichert eigene Waffe per Pfad")
+	# Rüstung
+	var vest := Gear.from_template(load("res://data/armor/mittel.tres")) as ArmorData
+	check(Gear.limits(vest, Gear.ARMOR_FIELDS[0]) == Vector2(-10, 0) and Gear.limits(vest, Gear.ARMOR_FIELDS[1]) == Vector2(-1, 1), "Rüstung: Verteidigung ±5, Bewegung ±1")
+	vest.name = "Plattenweste"
+	check(Gear.save(vest) != null and Gear.armors().size() == 1 and Gear.armors()[0].cls == 2, "Rüstung gespeichert, Klasse wie Vorlage")
+	# Löschen
+	check(Gear.delete(saved) and Gear.weapons().is_empty() and not FileAccess.file_exists(path), "Löschen")
+	check(not Gear.delete(pistol), "Mitgelieferte nicht löschbar")
+	check(ResourceLoader.exists(Gear.FALLBACK_WEAPON) and ResourceLoader.exists(Gear.FALLBACK_ARMOR), "Ersatz vorhanden")
+	_rm_tree(Gear.dir)
+	Gear.dir = "user://gear"
