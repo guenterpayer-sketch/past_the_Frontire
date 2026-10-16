@@ -278,3 +278,11 @@ Entscheidungen des Nutzers. Die Fertigkeiten gibt es (`core/rules.gd`, Gruppe �
 - **Verhandeln** (`verhandeln`): beeinflusst die Preise für alles, was das Schiff betrifft (Treibstoff, Werft/Reparatur, Schiffsmaterial, Schiffsausbau in der Werft).
 
 Regeln: Wer würfelt, wird im Handelsdialog **ausgewählt**. Probe **pro Tag im Hafen** (Ergebnis gilt bis zum nächsten Tag; Warten kann ein neues bringen). **EP** wie bei den Reiseproben. Misserfolg = Normalpreis/-sortiment; **nur ein Patzer** verschlechtert (schlechtere Preise bzw. kleineres Sortiment). Zahlen (Rabatt je Ergebnisstufe, Sortimentsgröße) vorher dem Nutzer vorschlagen. Regeln in `docs/Skillsystem.md` 8b nachtragen. Kann parallel zu Schritt 3/4 der anderen Module gebaut werden.
+
+### Stand Handelsfertigkeiten (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`2b40a18`) geholt, ohne Konflikte.
+- Entscheidungen des Nutzers (Abweichung vom Auftrag): Staffel Patzer +20 %, **Fehlschlag +5 % (schlechter)**, Teilerfolg normal, Erfolg −10 %, Herausragend −20 % – gleich für Handeln und Verhandeln; Verkauf 30/45/50/60/70 %; Gassenwissen 30/50/60/75/90 %. **Ohne Probe gilt Fehlschlag** (sonst lässt man das Würfeln). Mockup Bildschirm 26. Regeln in `docs/Skillsystem.md` 8b.
+- Gebaut: `TradeSkills` (`core/trade_skills.gd`), Proben im Handelsdialog (Figur wählen, „Würfeln“, Ergebnis), `HubState.trade_rolls` im Spielstand; alle Preise über Faktoren (`Stock.buy_price`, `sell_price(key, g)`, `Voyage.fuel_price/material_price/yard_cost/ammo_price/ammo_sell`, `ShipUpgrades.yard_cost`); Sortiment nach Gassenwissen (größer ergänzt nur).
+- Keine Schnittstellenänderung für andere Module; `Stock.sell_price(key)` ohne Spiel = 50 %.
+- Tests: `test_rules` OK, `test_hub` OK (alle fünf Stufen für Preise, Verkauf und Sortiment, ohne Probe = Fehlschlag, eine Probe pro Tag, EP, Verhandeln, Spielstand), `--autotest-hub` durchgelaufen (Probe Gassenwissen, Kauf/Verkauf mit +5 %, Screenshot).

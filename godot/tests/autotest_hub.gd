@@ -132,6 +132,8 @@ func _run() -> void:
 	g.credits += 1000
 	await _click_button(hub.ui, "Handel")
 	await _frames(5)
+	await _click_button(hub.ui.trade, "Würfeln")
+	print("Handelsprobe: %s" % g.trade_rolls)
 	await _click_button(hub.ui.trade, "Kaufen")
 	await _frames(5)
 	print("Handel: offen %s, Lager %s, Credits %d" % [hub.ui.trade.visible, g.stock, g.credits])
@@ -166,7 +168,7 @@ func _run() -> void:
 	g.material = 8
 	hub.open_room(&"hangar")
 	await _frames(5)
-	await _click_button(hub.ui.engine, "Werft 600")
+	await _click_button(hub.ui.engine, "Werft ")
 	await _click_button(hub.ui.engine, "Crew: 3 Material")
 	await _frames(5)
 	print("Maschinenraum: offen %s, Stufen %s, Projekt %s, Credits %d, Material %d" % [hub.ui.engine.visible, g.upgrades, g.project, g.credits, g.material])
