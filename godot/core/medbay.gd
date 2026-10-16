@@ -32,10 +32,10 @@ static func helper(g: HubState) -> Character:
 	return s[1] if s.size() > 1 else null
 
 
-## Probenbonus: Arzt voll + Helfer halb
+## Probenbonus: Arzt voll + Helfer halb + Ausbau der Krankenstation
 static func bonus(g: HubState) -> int:
 	var s := staff(g)
-	var b := 0
+	var b := g.heal_bonus() if not s.is_empty() else 0
 	if s.size() > 0:
 		b += Rules.skill_total(s[0], SKILL)
 	if s.size() > 1:

@@ -42,6 +42,11 @@ var medlog: Array = []
 var last_healed: Array[Character] = []
 ## beim letzten Tageswechsel vergebene freie EP je Figur durch Training (0 = kein Trainingstag dabei)
 var last_training := 0
+## Schiffsausbau: Stufen {Bereich: Stufe} und laufender Crew-Ausbau {id, days} (ShipUpgrades)
+var upgrades := {}
+var project := {}
+## Meldungen des Crew-Ausbaus beim letzten Tageswechsel
+var last_upgrade: Array[String] = []
 ## laufender Einsatz (Auftrag) oder leer
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
@@ -92,13 +97,43 @@ func mission_of(offer: Dictionary) -> Mission:
 func advance_days(n: int) -> void:
 	if n <= 0:
 		return
-	last_training = TRAINING_XP * training_days(day, day + n)
+	last_training = training_xp() * training_days(day, day + n)
+	last_upgrade = []
+	for i in n:
+		var msg := ShipUpgrades.work_day(self)
+		if msg != "":
+			last_upgrade.append(msg)
 	day += n
 	last_healed = Medbay.pass_days(self, n)
 	if last_training > 0:
 		for c in Campaign.crew():
 			c.free_xp += last_training
 	refill_offers()
+
+
+## Werte mit Schiffsausbau
+func tank_max() -> int:
+	return ShipUpgrades.value(self, &"tank")
+
+
+func hull_max() -> int:
+	return ShipUpgrades.value(self, &"hull")
+
+
+func fuel_per_day() -> int:
+	return ShipUpgrades.value(self, &"engine")
+
+
+func travel_bonus() -> int:
+	return ShipUpgrades.value(self, &"systems")
+
+
+func heal_bonus() -> int:
+	return ShipUpgrades.value(self, &"medbay")
+
+
+func training_xp() -> int:
+	return ShipUpgrades.value(self, &"training")
 
 
 ## Anzahl der Trainingstage (Vielfache von TRAINING_DAYS) nach Tag von bis einschließlich Tag bis
@@ -163,7 +198,7 @@ func travel_to(target: int) -> int:
 	if r.days < 0 or not can_travel(target):
 		return -1
 	var rep := {"from": sector.systems[position].name, "to": sector.systems[target].name, "days": r.days,
-		"day0": day, "fuel0": fuel, "hull0": hull, "rows": [], "emergency": fuel <= 0}
+		"day0": day, "fuel0": fuel, "hull0": hull, "rows": [], "emergency": fuel <= 0, "per_day": fuel_per_day()}
 	for i in r.days:
 		rep.rows.append(Voyage.travel_day(self, day + i + 1))
 	rep.fuel1 = fuel
@@ -172,6 +207,7 @@ func travel_to(target: int) -> int:
 	position = target
 	advance_days(r.days)
 	rep.training = last_training
+	rep.upgrade = last_upgrade.duplicate()
 	return r.days
 
 
@@ -232,6 +268,7 @@ func finish_mission(rep: Dictionary) -> void:
 	missions_done += 1
 	advance_days(MISSION_DAYS)
 	rep.training = last_training
+	rep.upgrade = last_upgrade.duplicate()
 	rep.day = day
 	report = rep
 
@@ -269,7 +306,8 @@ func to_dict() -> Dictionary:
 	return {"day": day, "sector": sector.to_dict(), "position": position, "offers": offers.duplicate(true),
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
-		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate()}
+		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
+		"upgrades": upgrades.duplicate(), "project": project.duplicate()}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -290,6 +328,11 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.hull = int(d.get("hull", Voyage.HULL_MAX))
 	g.material = int(d.get("material", Voyage.START_MATERIAL))
 	g.emergency = bool(d.get("emergency", false))
+	for k in d.get("upgrades", {}):
+		g.upgrades[String(k)] = int(d.upgrades[k])
+	var pr: Dictionary = d.get("project", {})
+	if not pr.is_empty():
+		g.project = {"id": String(pr.id), "days": int(pr.days)}
 	var am: Dictionary = d.get("ammo", Voyage.AMMO_START)
 	g.ammo = {}
 	for t in Voyage.AMMO_START:

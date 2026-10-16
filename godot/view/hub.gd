@@ -32,6 +32,7 @@ func _ready() -> void:
 	ui.star_map.hired.connect(func(_c: Character) -> void: _refresh())
 	ui.star_map.start.connect(_start_mission)
 	ui.star_map.bought.connect(_refresh)
+	ui.engine.changed.connect(_refresh)
 	ui.star_map.crew_repair.connect(crew_repair)
 	ui.travel_report.visibility_changed.connect(func() -> void:
 		if not ui.travel_report.visible and _after_travel.is_valid():
@@ -89,6 +90,8 @@ func open_room(id: StringName) -> void:
 			ui.star_map.open(game)
 		&"medbay":
 			ui.medbay.show_medbay(game)
+		&"hangar":
+			ui.engine.show_engine(game)
 		&"armory":
 			# Ausrüstungsdialog des Charakter-Moduls; „Fertig“ speichert selbst (Campaign.save())
 			ui.armory.open_for(Campaign.crew(), 0)
@@ -109,6 +112,8 @@ func wait_day() -> void:
 func _training_toast() -> void:
 	if game.last_training > 0:
 		ui.show_toast("Training: +%d freie EP für alle an Bord" % game.last_training)
+	for m in game.last_upgrade:
+		ui.show_notice("Schiffsausbau", m)
 
 
 ## Nach vergangenen Tagen: offene Fenster neu zeichnen, Geheilte melden
@@ -137,7 +142,7 @@ func crew_repair() -> void:
 	_after_days()
 	_training_toast()
 	ui.show_notice("Große Reparatur", "%s: Reparatur %s %+d = %d → %s\nHülle %+d (jetzt %d / %d) · 1 Material verbraucht · +%d EP" % [
-		r.name, Dice.format_roll(r.roll), r.bonus, r.total, r.result_name, r.hull, game.hull, Voyage.HULL_MAX, r.xp])
+		r.name, Dice.format_roll(r.roll), r.bonus, r.total, r.result_name, r.hull, game.hull, game.hull_max(), r.xp])
 	ui.notice.move_to_front()
 
 

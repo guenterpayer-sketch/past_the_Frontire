@@ -24,6 +24,7 @@ func _init() -> void:
 	_test_encyclopedia()
 	_test_gear_models()
 	_test_training()
+	_test_upgrades()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -564,6 +565,67 @@ func _test_training() -> void:
 	check(g.report.training == 3, "Einsatzbericht mit Training (Tag 15)")
 	HubState.game = null
 	Campaign.last_result = {}
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+func _test_upgrades() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(41, "Ausbau", 1)
+	check(g.tank_max() == 100 and g.hull_max() == 100 and g.fuel_per_day() == 10 and g.travel_bonus() == 0 and g.training_xp() == 3, "Ausbau Stufe 0 = bisherige Werte")
+	# Werft: nur im Hafen, nur mit Credits
+	g.position = g.nearest_harbor()
+	g.credits = 500
+	check(not ShipUpgrades.buy_yard(g, &"tank"), "Werft nicht ohne genug Credits (600)")
+	g.credits = 5000
+	check(ShipUpgrades.buy_yard(g, &"tank") and g.tank_max() == 130 and g.credits == 4400, "Werft: Tank Stufe 1")
+	check(ShipUpgrades.buy_yard(g, &"berths") and g.berths == 9 and g.free_berths() == 9 - Campaign.crew().size(), "Werft: Plätze an Bord 9")
+	g.fuel = 100
+	check(Voyage.buy_fuel(g, 100) == 30 and g.fuel == 130, "größerer Tank wird voll getankt")
+	ShipUpgrades.buy_yard(g, &"engine")
+	ShipUpgrades.buy_yard(g, &"systems")
+	ShipUpgrades.buy_yard(g, &"training")
+	ShipUpgrades.buy_yard(g, &"medbay")
+	check(g.fuel_per_day() == 9 and g.travel_bonus() == 5 and g.training_xp() == 4 and g.heal_bonus() == 10, "Antrieb, Systeme, Training, Krankenstation Stufe 1")
+	var other := -1
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			other = i
+	g.position = other
+	check(not ShipUpgrades.can_yard(g, &"hull"), "Werft nur im Hafen")
+	# Systeme wirken auf die Reiseprobe, Krankenstation auf den Heilbonus (nur mit Personal)
+	var c: Character = Campaign.crew()[0]
+	Dice.set_seed(3)
+	var a := Voyage.check(c, &"pilot", g.travel_bonus())
+	check(a.bonus == Rules.skill_total(c, &"pilot") + 5, "Systeme +5 auf Reiseprobe")
+	check(Medbay.bonus(g) == 0, "Krankenstation-Bonus nur mit Personal")
+	Medbay.toggle(g, c)
+	check(Medbay.bonus(g) == Rules.skill_total(c, Medbay.SKILL) + 10, "Krankenstation +10 auf die Heilprobe")
+	g.medics = []
+	# Crew-Ausbau: Material sofort, Tage, Probe am Ende, nur einer zur Zeit
+	g.material = 2
+	check(not ShipUpgrades.can_crew(g, &"hull"), "Crew-Ausbau braucht 3 Material")
+	g.material = 10
+	check(ShipUpgrades.start_crew(g, &"hull") and g.material == 7 and g.project == {"id": "hull", "days": 3}, "Crew-Ausbau Hülle beginnt (3 Material, 3 Tage)")
+	check(not ShipUpgrades.can_crew(g, &"tank"), "nur ein Crew-Ausbau zur Zeit")
+	g.wait_days(2)
+	check(ShipUpgrades.level(g, &"hull") == 0 and int(g.project.days) == 1 and g.last_upgrade.is_empty(), "nach 2 Tagen noch im Bau")
+	var guard := 0
+	while ShipUpgrades.busy(g) and guard < 30:
+		g.wait_days(1)
+		guard += 1
+	check(ShipUpgrades.level(g, &"hull") == 1 and g.hull_max() == 125 and g.material >= 7 - guard, "Crew-Ausbau fertig (nach %d Zusatztagen)" % (guard - 1))
+	# Speichern
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.upgrades == g.upgrades and h.tank_max() == 130 and h.berths == 9, "Ausbau im Spielstand")
+	ShipUpgrades.start_crew(g, &"tank")
+	var h2 := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h2.project == g.project, "laufender Crew-Ausbau im Spielstand")
+	check(HubState.from_dict({"sector": g.sector.to_dict()}).upgrades.is_empty(), "alte Spielstände ohne Ausbau")
+	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)

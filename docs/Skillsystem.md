@@ -512,6 +512,22 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 | Niederlage, Rückzug | kein Lohn, keine Beute |
 | Notkredit | Tanken geht immer, die Credits dürfen dabei ins Minus; der nächste Lohn gleicht aus. Material und Werft nur mit genug Credits (Ausnahme Hülle 0, siehe 9.) |
 
+**Schiffsausbau** (Maschinenraum, `core/ship_upgrades.gd`, Entscheidungen des Nutzers 16.10.2026):
+
+| Bereich | heute | Stufe 1 | Stufe 2 | Stufe 3 |
+|---|---|---|---|---|
+| Plätze an Bord | 8 | 9 | 10 | 12 |
+| Tank | 100 | 130 | 160 | 200 |
+| Hülle | 100 | 125 | 150 | 200 |
+| Antrieb (Grundverbrauch je Reisetag) | 10 | 9 | 8 | 7 |
+| Systeme (Bonus auf alle Reiseproben) | ±0 | +5 | +10 | +15 |
+| Krankenstation (Bonus auf die Heilprobe, nur mit Personal) | ±0 | +10 | +20 | +30 |
+| Trainingsraum (freie EP alle 5 Tage) | 3 | 4 | 5 | 6 |
+
+- **Werft** (nur im Hafen, sofort, nur mit genug Credits): 600 / 1200 / 2200 Cr für Stufe 1 / 2 / 3.
+- **Crew** (überall): 3 / 6 / 9 Schiffsmaterial (sofort verbraucht) und 3 / 5 / 8 Spieltage; am Ende eine Reparaturprobe (Mittel, Station Technik, sonst der Beste): Erfolg = fertig, Teilerfolg = 1 Tag länger, Fehlschlag oder Patzer = 1 Material verloren und 1 Tag länger. Nur ein Crew-Ausbau zur Zeit; wer baut, darf in Einsätze.
+- Werkstatt-Ausbau folgt mit dem Handwerk.
+
 Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
 
 Durchschnitt je Reisetag (simuliert, 200 000 Würfe): schwache Crew (alle Werte um −15) 9,6 Treibstoff, Hülle −4,6; Roster-Startcrew (Pilot +75, Navigation +0, Computer +20, Reparatur +55) 7,2 und +0,1; starke Crew (+90/+60/+60/+80) 4,9 und +1,5.

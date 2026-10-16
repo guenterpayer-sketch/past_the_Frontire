@@ -4,6 +4,7 @@ extends RefCounted
 ## Reparatur), Treibstoff, Hülle, Schiffsmaterial, Credits, Lohn und Beute, Kaufen im Raumhafen, große Reparatur.
 ## Die Werte liegen im HubState (credits, fuel, hull, material, emergency); hier nur die Regeln.
 
+## Grundwerte ohne Schiffsausbau (mit Ausbau: HubState.tank_max(), hull_max(), fuel_per_day())
 const TANK := 100
 const HULL_MAX := 100
 const START_CREDITS := 300
@@ -99,10 +100,10 @@ static func _best_fill(open: Array[Dictionary], free: Array[Character], i: int, 
 
 
 ## Probe ohne Kampf-Protokoll: offener W100 + Fertigkeit + Schwierigkeit; EP wie Rules.maneuver (Erfolg voll, sonst halb, Patzer 0)
-static func check(c: Character, skill: StringName) -> Dictionary:
+static func check(c: Character, skill: StringName, extra := 0) -> Dictionary:
 	var diff: Dictionary = Rules.DIFFICULTY[DIFF]
 	var roll := Dice.open_d100()
-	var bonus := Rules.skill_total(c, skill) + int(diff.mod)
+	var bonus := Rules.skill_total(c, skill) + int(diff.mod) + extra
 	var total: int = roll.total + bonus
 	var res := Rules.maneuver_result(total)
 	var xp := 0
@@ -123,13 +124,13 @@ static func travel_day(g: HubState, day_no: int) -> Dictionary:
 		if e.ch == null:
 			row.checks.append({})
 			continue
-		var r := check(e.ch, e.post.skill)
+		var r := check(e.ch, e.post.skill, g.travel_bonus())
 		row.checks.append(r)
 		if e.post.skill == &"rsReparatur":
 			row.hull = HULL_TRAVEL[r.result]
 		else:
 			save += FUEL_SAVE.get(r.result, 0)
-	var use := maxi(FUEL_MIN, FUEL_PER_DAY - save)
+	var use := maxi(FUEL_MIN, g.fuel_per_day() - save)
 	if g.fuel <= 0:
 		use = 0          # Notsprit
 	elif use >= g.fuel:
@@ -138,7 +139,7 @@ static func travel_day(g: HubState, day_no: int) -> Dictionary:
 	row.fuel = -use
 	g.fuel -= use
 	var h0 := g.hull
-	g.hull = clampi(g.hull + int(row.hull), 0, HULL_MAX)
+	g.hull = clampi(g.hull + int(row.hull), 0, g.hull_max())
 	row.hull = g.hull - h0
 	return row
 
@@ -164,8 +165,8 @@ static func estimate_fuel(g: HubState, days: int) -> int:
 	var save := 0.0
 	for e in assign(g):
 		if e.ch != null and e.post.skill != &"rsReparatur":
-			save += expected_save(Rules.skill_total(e.ch, e.post.skill) + int(Rules.DIFFICULTY[DIFF].mod))
-	return roundi(maxf(FUEL_MIN, FUEL_PER_DAY - save) * days)
+			save += expected_save(Rules.skill_total(e.ch, e.post.skill) + int(Rules.DIFFICULTY[DIFF].mod) + g.travel_bonus())
+	return roundi(maxf(FUEL_MIN, g.fuel_per_day() - save) * days)
 
 
 ## Treibstoffpreis je Einheit (nach Notsprit doppelt)
@@ -177,7 +178,7 @@ static func fuel_price(g: HubState) -> int:
 static func buy_fuel(g: HubState, amount: int) -> int:
 	if not g.is_harbor(g.position):
 		return 0
-	amount = mini(amount, TANK - g.fuel)
+	amount = mini(amount, g.tank_max() - g.fuel)
 	if amount <= 0:
 		return 0
 	g.credits -= amount * fuel_price(g)
@@ -204,7 +205,7 @@ static func buy_material(g: HubState, n := 1) -> bool:
 
 
 static func can_yard_repair(g: HubState) -> bool:
-	return g.is_harbor(g.position) and g.hull < HULL_MAX and g.material >= 1 and (g.credits >= YARD_COST or hull_emergency(g))
+	return g.is_harbor(g.position) and g.hull < g.hull_max() and g.material >= 1 and (g.credits >= YARD_COST or hull_emergency(g))
 
 
 ## Werft: große Reparatur (+25 Hülle für 1 Material + 40 Cr)
@@ -213,7 +214,7 @@ static func yard_repair(g: HubState) -> bool:
 		return false
 	g.material -= 1
 	g.credits -= YARD_COST
-	g.hull = mini(HULL_MAX, g.hull + YARD_HULL)
+	g.hull = mini(g.hull_max(), g.hull + YARD_HULL)
 	return true
 
 
@@ -231,7 +232,7 @@ static func repairer(g: HubState) -> Character:
 
 
 static func can_crew_repair(g: HubState) -> bool:
-	return g.hull < HULL_MAX and g.material >= 1 and repairer(g) != null
+	return g.hull < g.hull_max() and g.material >= 1 and repairer(g) != null
 
 
 ## Große Reparatur durch die Crew (überall): 1 Material, Reparaturprobe; der Tag vergeht im HubState (crew_repair)
@@ -241,7 +242,7 @@ static func crew_repair(g: HubState) -> Dictionary:
 	var r := check(repairer(g), &"rsReparatur")
 	g.material -= 1
 	var h0 := g.hull
-	g.hull = clampi(g.hull + int(HULL_CREW[r.result]), 0, HULL_MAX)
+	g.hull = clampi(g.hull + int(HULL_CREW[r.result]), 0, g.hull_max())
 	r.hull = g.hull - h0
 	return r
 
