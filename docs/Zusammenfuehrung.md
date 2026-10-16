@@ -11,8 +11,8 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`2bd5ced`) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`6dd6178`); muss Raumkampf-Branch holen und Tests anpassen |
-| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | `93b12b0` fertig, **nicht** in `main`: `test_hub` mit Raumkampf 4 Fehler (Preise `ShipWeapons` ≠ Hub-Übergangstabelle), wartet auf Hub |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | `0bb6c64`: **Konflikt** mit `main` in `docs/module/hub.md`; muss `main` und `origin/claude/raumkampf-modul` holen, Tests anpassen |
+| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | `f0334fd` fertig, enthält `main`, konfliktfrei; **wartet**: `test_hub` mit Raumkampf 4 Fehler, kommt mit dem Hub zusammen nach `main` |
 
 ## Verlauf
 

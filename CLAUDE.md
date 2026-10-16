@@ -22,7 +22,7 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 
 - Antworten auf **Deutsch**.
 - **Wissen und Annahme immer ausdrücklich trennen** („das weiß ich nicht“ / „das nehme ich an“). Keine plausiblen Abläufe als Tatsache darstellen; Lücken bleiben Lücken.
-- **Erst klären, dann bauen**: keine fertigen Inhalte (Texte, Listen, Entwürfe, größere Umbauten), solange relevante Fragen offen sind. Klärungsfragen mit mehreren Antworten als **Auswahl-Buttons** (AskUserQuestion) stellen.
+- **Erst klären, dann bauen**: keine fertigen Inhalte (Texte, Listen, Entwürfe, größere Umbauten), solange relevante Fragen offen sind. Klärungsfragen mit mehreren Antworten als **Auswahl-Buttons** (AskUserQuestion) stellen. **Am Ende jeder Fragerunde eine Abschlussfrage mit Freitext** (z. B. „Willst du noch etwas sagen?“), Wunsch des Nutzers 16.10.2026.
 - Eigenes Verhalten ohne Formulierungen mit unterstelltem innerem Erleben beschreiben.
 - Größere UI-Änderungen erst als Mockup zeigen, dann in Godot bauen.
 - **Branches und Module:** `main` ist der gemeinsame Hauptbranch, gepflegt vom Koordinations-Chat. Jedes Modul (Bodenkampf, Charakter, Hub, …) arbeitet in einem eigenen Chat auf einem eigenen Branch. **Zu Beginn die eigene Moduldatei in `main` lesen** (`docs/module/`, Übersicht und Ablauf in `docs/module/README.md`); vor der Fertigmeldung `main` in den eigenen Branch holen und Konflikte dort lösen. Der Koordinator führt nur konfliktfreie Branches zusammen. Verlauf: `docs/Zusammenfuehrung.md`. Moduldateien enthalten nur Offenes und Gültiges; Erledigtes liegt in `docs/module/archiv/` (nur bei Bedarf lesen).
