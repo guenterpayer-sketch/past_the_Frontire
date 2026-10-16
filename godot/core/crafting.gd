@@ -3,7 +3,7 @@ extends RefCounted
 ## Handwerk (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026, Mockup „Schiff-Hub Mockup“
 ## Bildschirme 29–31): Bauen, Zerlegen und Reparieren in der Werkstatt (Waffenkammer), Medikits in der Krankenstation.
 ## Eine Arbeit je Figur (HubState.jobs {Figur-ID: Arbeit}), der Handwerker ist nicht gesperrt. Probe „mittel“ am Ende
-## der Arbeit (Voyage.check, EP für die Fertigkeit). Handwerksmaterial HubState.craft_material, 1 Einheit = 10 Cr.
+## der Arbeit (Voyage.check, EP für die Fertigkeit); Bauen und Reparieren von Waffen/Rüstungen schwerer nach Kaufpreis. Handwerksmaterial HubState.craft_material, 1 Einheit = 10 Cr.
 ## Material: Bauen/Reparieren aufgerundet und sofort verbraucht, Zerlegen abgerundet am Ende.
 
 ## Wert einer Einheit Handwerksmaterial (Kauf/Verkauf im Raumhafen nach Handeln)
@@ -25,6 +25,10 @@ const WORKSHOP_LIMIT := [200, 400, -1, -1]
 ## Munition je Auftrag (Schuss) und Lagerschlüssel-Präfix
 const AMMO_BATCH := {"energie": 30, "projektil": 30, "raketen": 1}
 const AMMO_PREFIX := "ammo:"
+## Schwierigkeit fürs Bauen und Reparieren von Waffen/Rüstungen nach Kaufpreis (Entscheidung 16.10.2026):
+## bis 200 mittel, bis 400 schwer, bis 600 sehr schwer, darüber extrem; Zerlegen, Munition, Medikits immer „mittel“
+const DIFF_STEPS := [[200, "mittel"], [400, "schwer"], [600, "sehrSchwer"]]
+const DIFF_TOP := "extrem"
 const SKILL_WEAPON := &"hwWaffen"
 const SKILL_ARMOR := &"hwRuestung"
 const SKILL_MEDS := &"medikamente"
@@ -121,9 +125,24 @@ static func build_days(g: HubState, key: String) -> int:
 	return maxi(1, d)
 
 
-## Probenwert ohne Wurf (Fertigkeit + Schwierigkeit „mittel“ + Bonus) für die Anzeige
-static func check_bonus(g: HubState, c: Character, key: String) -> int:
-	return Rules.skill_total(c, skill_of(key)) + int(Rules.DIFFICULTY[Voyage.DIFF].mod) + bonus(g, key)
+## Schwierigkeit der Probe: kind "build"/"repair" nach Kaufpreis (Waffen, Rüstungen), sonst „mittel“
+static func difficulty(key: String, kind := "build") -> String:
+	if kind == "take" or key == Stock.MEDKIT or is_ammo(key):
+		return Voyage.DIFF
+	var p := Stock.price(key)
+	for st in DIFF_STEPS:
+		if p <= int(st[0]):
+			return String(st[1])
+	return DIFF_TOP
+
+
+static func difficulty_name(key: String, kind := "build") -> String:
+	return String(Rules.DIFFICULTY[difficulty(key, kind)].name).to_lower()
+
+
+## Probenwert ohne Wurf (Fertigkeit + Schwierigkeit + Bonus) für die Anzeige
+static func check_bonus(g: HubState, c: Character, key: String, kind := "build") -> int:
+	return Rules.skill_total(c, skill_of(key)) + int(Rules.DIFFICULTY[difficulty(key, kind)].mod) + bonus(g, key)
 
 
 # ---------------------------------------------------------------- Arbeiten
@@ -216,7 +235,7 @@ static func _finish(g: HubState, c: Character, job: Dictionary) -> String:
 		if String(job.kind) != "build":
 			Stock.add(g, key)
 		return "%s: %s abgebrochen (nicht mehr an Bord), Material und Stück zurück" % [job.get("name", "?"), name_of(key)]
-	var r := Voyage.check(c, skill_of(key), bonus(g, key))
+	var r := Voyage.check(c, skill_of(key), bonus(g, key), difficulty(key, String(job.kind)))
 	var res := StringName(r.result)
 	var head := "%s %s: %s (%d)" % [c.name, {"build": "baut " + name_of(key), "take": "zerlegt " + name_of(key),
 		"repair": "repariert " + name_of(key)}[String(job.kind)], r.result_name, int(r.total)]

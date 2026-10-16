@@ -854,6 +854,9 @@ func _test_crafting() -> void:
 	check(Crafting.take_material(kp, &"teilerfolg") == 7 and Crafting.take_material(sg, &"herausragend") == 11 and Crafting.take_material(sg, &"patzer") == 0, "Zerlegen 7/11/0")
 	check(Crafting.build_days(g, sg) == 2 and Crafting.build_days(g, mg) == 3 and Crafting.build_days(g, lp) == 1, "Dauer 2/3/1")
 	check(Crafting.skill_of(sg) == &"hwWaffen" and Crafting.skill_of(kp) == &"hwRuestung" and Crafting.skill_of(Stock.MEDKIT) == &"medikamente" and Crafting.skill_of(Crafting.ammo_key("projektil")) == &"hwWaffen", "Fertigkeiten")
+	check(Crafting.difficulty(lp) == "mittel" and Crafting.difficulty(sg) == "schwer" and Crafting.difficulty(mg) == "sehrSchwer" and Crafting.difficulty("res://data/armor/schwer.tres") == "extrem", "Schwierigkeit nach Kaufpreis 150/280/500/700")
+	check(Crafting.difficulty(Stock.damaged_key(sg, -20), "repair") == "schwer" and Crafting.difficulty(sg, "take") == "mittel" and Crafting.difficulty(Stock.MEDKIT) == "mittel" and Crafting.difficulty(Crafting.ammo_key("raketen")) == "mittel", "Reparieren wie Bauen; Zerlegen, Medikit, Munition mittel")
+	check(Crafting.check_bonus(g, c, sg) == Rules.skill_total(c, &"hwWaffen") - 10 and Crafting.check_bonus(g, c, sg, "take") == Rules.skill_total(c, &"hwWaffen"), "Probenwert mit Schwierigkeit")
 	check(not Equipment.SHIELD in Crafting.buildable() and sg in Crafting.buildable() and Crafting.ammo_key("raketen") in Crafting.buildable(), "baubar: ohne Schild, mit Munition")
 	# Freischalten und Werkstatt-Stufen
 	check(Crafting.unlocked(g, lp) and not Crafting.unlocked(g, sg) and Crafting.unlock_level(sg) == 1 and Crafting.unlock_level(mg) == 2, "Stufe 0: bis 200 Cr")

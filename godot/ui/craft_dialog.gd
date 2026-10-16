@@ -95,9 +95,10 @@ func _action(grid: GridContainer, text: String, ok: bool, act: Callable) -> void
 	grid.add_child(b)
 
 
-func _probe(key: String) -> String:
+func _probe(key: String, kind := "build") -> String:
 	var c := _pick()
-	return "%+d" % Crafting.check_bonus(game, c, key) if c else "–"
+	var d := Crafting.difficulty_name(key, kind)
+	return "%+d (%s)" % [Crafting.check_bonus(game, c, key, kind), d] if c else d
 
 
 func _build_list() -> void:
@@ -118,7 +119,7 @@ func _build_list() -> void:
 			_action(grid, "Bauen", Crafting.can_build(game, c, key), func() -> void: Crafting.build(game, c, key))
 		else:
 			grid.add_child(UiTheme.label("ab Stufe %d" % Crafting.unlock_level(key), 13, UiTheme.MUTED))
-	_note("Material 50 %% vom Kaufpreis (1 Material = %d Cr, aufgerundet), sofort verbraucht. Dauer 1 Tag je angefangene %d Cr. Probe „mittel“ am Ende der Arbeit: Patzer = Material weg · Fehlschlag −20 · Teilerfolg −10 · Erfolg heil · Herausragend +5. Munition: Patzer = Material weg, sonst die Menge. Fertiges kommt ins Lager." % [Crafting.MATERIAL_VALUE, Crafting.DAY_PRICE])
+	_note("Material 50 %% vom Kaufpreis (1 Material = %d Cr, aufgerundet), sofort verbraucht. Dauer 1 Tag je angefangene %d Cr. Probe am Ende der Arbeit, Schwierigkeit nach Kaufpreis (bis 200 Cr mittel, bis 400 schwer −10, bis 600 sehr schwer −20, darüber extrem −30; Munition mittel): Patzer = Material weg · Fehlschlag −20 · Teilerfolg −10 · Erfolg heil · Herausragend +5. Munition: Patzer = Material weg, sonst die Menge. Fertiges kommt ins Lager." % [Crafting.MATERIAL_VALUE, Crafting.DAY_PRICE])
 
 
 func _take_list() -> void:
@@ -133,11 +134,11 @@ func _take_list() -> void:
 		grid.add_child(UiTheme.label(it.name, 15))
 		grid.add_child(UiTheme.label("×%d" % it.count, 15))
 		grid.add_child(UiTheme.label(" / ".join(Crafting.TAKE_SHARE.keys().map(func(r: StringName) -> String: return str(Crafting.take_material(key, r)))), 15))
-		grid.add_child(UiTheme.label(_probe(key), 15))
+		grid.add_child(UiTheme.label(_probe(key, "take"), 15))
 		_action(grid, "Zerlegen", Crafting.can_take_apart(game, c, key), func() -> void: Crafting.take_apart(game, c, key))
 	if not any:
 		content.add_child(UiTheme.label("Keine Waffen oder Rüstungen im Lager.", 14, UiTheme.MUTED))
-	_note("Stück sofort aus dem Lager; 1 Tag; Material am Ende nach Ergebnis 0 / 10 / 20 / 30 / 40 % vom Kaufpreis (abgerundet). Getragenes vorher in der Ausrüstung ablegen.")
+	_note("Stück sofort aus dem Lager; 1 Tag; Probe immer „mittel“; Material am Ende nach Ergebnis 0 / 10 / 20 / 30 / 40 % vom Kaufpreis (abgerundet). Getragenes vorher in der Ausrüstung ablegen.")
 
 
 func _repair_list() -> void:
@@ -154,11 +155,11 @@ func _repair_list() -> void:
 		var m := Crafting.repair_material(key)
 		grid.add_child(UiTheme.label(str(m), 15, UiTheme.BAD if m > game.craft_material else UiTheme.TEXT))
 		grid.add_child(UiTheme.label("%d Cr" % roundi(Stock.price(key) * Stock.REPAIR_SHARE * Stock.damage_steps(key)), 15, UiTheme.MUTED))
-		grid.add_child(UiTheme.label(_probe(key), 15))
+		grid.add_child(UiTheme.label(_probe(key, "repair"), 15))
 		_action(grid, "Reparieren", Crafting.can_repair(game, c, key), func() -> void: Crafting.repair(game, c, key))
 	if not any:
 		content.add_child(UiTheme.label("Keine beschädigten Stücke im Lager.", 14, UiTheme.MUTED))
-	_note("Material 5 % vom Kaufpreis je −10 (aufgerundet), sofort verbraucht; 1 Tag; das Stück bleibt während der Arbeit in der Werkstatt. Ergebnis: Patzer −10 mehr · Fehlschlag nichts · Teilerfolg −10 weg · Erfolg heil · Herausragend heil und Material zurück. Nur Stücke im Lager.")
+	_note("Material 5 % vom Kaufpreis je −10 (aufgerundet), sofort verbraucht; 1 Tag; Schwierigkeit nach Kaufpreis wie beim Bauen; das Stück bleibt während der Arbeit in der Werkstatt. Ergebnis: Patzer −10 mehr · Fehlschlag nichts · Teilerfolg −10 weg · Erfolg heil · Herausragend heil und Material zurück. Nur Stücke im Lager.")
 
 
 func _note(text: String) -> void:
