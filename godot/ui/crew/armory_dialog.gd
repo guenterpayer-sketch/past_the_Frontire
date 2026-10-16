@@ -135,7 +135,7 @@ func _render_left(u: Character) -> void:
 		var w := Equipment.weapon(u, slot)
 		if w:
 			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), Equipment.label(w),
-				"%s · %s" % [Rules.skill_name(w.skill), "Nahkampf" if w.melee else "Fernkampf"], Rules.skill_total(u, w.skill),
+				"%s · %s" % [Rules.skill_name(w.skill), "Nahkampf" if w.melee else "Fernkampf"], Rules.skill_total(u, w.skill) + u.wear_of("w%d" % slot),
 				Equipment.wear_text(u, "w%d" % slot)))
 		else:
 			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), "leer", "keine zweite Waffe", null))
@@ -192,10 +192,29 @@ func _medkit_row(u: Character) -> Control:
 
 
 ## Stückzahl im Lager als Text („immer“ für Fäuste/keine Rüstung, leer ohne Spiel)
-func _stock_text(r: Resource) -> String:
+func _stock_text(r: Resource, damage := 0) -> String:
 	if Equipment.is_free_item(r):
 		return "immer"
-	return str(Equipment.in_stock(_g(), r)) if _g() else "–"
+	return str(Equipment.in_stock(_g(), r, damage)) if _g() else "–"
+
+
+## Zeilen der Auswahl [Teil, Schaden]: je Teil jede Schadensstufe im Lager, dazu getragene Stücke (Plätze slots)
+func _variants(u: Character, items: Array, slots: Array) -> Array:
+	var out := []
+	for r in items:
+		var ds := Equipment.stock_damages(_g(), r)
+		for sl in slots:
+			if Equipment.gear_at(u, sl) == r and not u.wear_of(sl) in ds:
+				ds.append(u.wear_of(sl))
+		ds.sort()
+		ds.reverse()
+		for d in ds:
+			out.append([r, d])
+	return out
+
+
+func _wear_col(d: int) -> Color:
+	return UiTheme.BAD if d <= Combatant.WEAR_BROKEN else Color("ffb04d")
 
 
 ## wear = Beschädigung des Platzes als Text ("" = heil, sonst orange bzw. rot bei „unbrauchbar“ neben dem Namen)
@@ -273,23 +292,27 @@ func _weapon_list(u: Character, slot: int) -> void:
 	for h in ["Waffe", "Lager", "Fertigkeit", "Bonus " + u.letter, "Reichweite", "Schaden", "Besonderes"]:
 		g.add_child(UiTheme.label(h, 11, UiTheme.MUTED))
 	var cur := Equipment.weapon(u, slot)
-	for w in _weapons:
-		if not Equipment.listed(_g(), w, w in u.weapons):
-			continue
-		var why := Equipment.weapon_block(u, slot, w, _g())
-		var b := UiTheme.button(("▸ " if w == cur else "") + Equipment.label(w), why if why != "" else "%s als Waffe %d nehmen" % [w.name, slot + 1])
-		b.disabled = why != "" and w != cur
-		if w == cur:
+	var key := "w%d" % slot
+	for row in _variants(u, _weapons, ["w0", "w1"]):
+		var w: WeaponData = row[0]
+		var d: int = row[1]
+		var on := w == cur and d == u.wear_of(key)
+		var why := Equipment.weapon_block(u, slot, w, _g(), d)
+		var b := UiTheme.button(("▸ " if on else "") + Equipment.label(w) + Stock.damage_text(d), why if why != "" else "%s als Waffe %d nehmen" % [w.name, slot + 1])
+		b.disabled = why != "" and not on
+		if on:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
+		elif d < 0 and not b.disabled:
+			b.add_theme_color_override("font_color", _wear_col(d))
 		b.custom_minimum_size.x = 190
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.pressed.connect(func() -> void:
-			Equipment.set_weapon(u, slot, w, _g())
+			Equipment.set_weapon(u, slot, w, _g(), d)
 			_render())
 		g.add_child(b)
-		g.add_child(UiTheme.label(_stock_text(w), 12, UiTheme.MUTED))
+		g.add_child(UiTheme.label(_stock_text(w, d), 12, UiTheme.MUTED))
 		g.add_child(UiTheme.label(Rules.skill_name(w.skill), 12, UiTheme.MUTED))
-		var tot := Rules.skill_total(u, w.skill)
+		var tot := Rules.skill_total(u, w.skill) + d
 		g.add_child(UiTheme.label(Dice.fmt(tot), 13, _col(tot)))
 		g.add_child(UiTheme.label(_range(w), 12, UiTheme.MUTED))
 		g.add_child(UiTheme.label("×" + _num(w.damage, 1), 13))
@@ -304,7 +327,7 @@ func _weapon_list(u: Character, slot: int) -> void:
 			Equipment.set_weapon(u, 1, null, _g())
 			_render())
 		_right.add_child(none)
-	var note := UiTheme.label("Bonus = Gesamtbonus der Figur in der Fertigkeit der Waffe (Rang + Eigenschaften), ohne Lage und Ziel. Schaden = Faktor auf das Tabellenergebnis. Keine Waffe doppelt; Schild nur mit einhändigen Waffen (eine zweihändige Waffe legt ihn ab). Angezeigt wird nur, was im Lager liegt oder getragen wird; Nachschub über den Handel im Raumhafen.", 11, UiTheme.MUTED)
+	var note := UiTheme.label("Bonus = Gesamtbonus der Figur in der Fertigkeit der Waffe (Rang + Eigenschaften, abzüglich Beschädigung), ohne Lage und Ziel. Beschädigte Stücke (−10 je Schaden, ab −30 unbrauchbar) stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Schaden = Faktor auf das Tabellenergebnis. Keine Waffe doppelt; Schild nur mit einhändigen Waffen (eine zweihändige Waffe legt ihn ab). Angezeigt wird nur, was im Lager liegt oder getragen wird; Nachschub über den Handel im Raumhafen.", 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_right.add_child(note)
 
@@ -317,25 +340,29 @@ func _armor_list(u: Character) -> void:
 	g.add_theme_constant_override("v_separation", 6)
 	for h in ["Rüstung", "Lager", "Klasse", "Schaden erhalten", "Verteidigung", "Bewegung"]:
 		g.add_child(UiTheme.label(h, 11, UiTheme.MUTED))
-	for a in _armors:
-		if not Equipment.listed(_g(), a, a == u.armor):
-			continue
-		var b := UiTheme.button(("▸ " if a == u.armor else "") + Equipment.label(a))
-		if a == u.armor:
+	for row in _variants(u, _armors, ["armor"]):
+		var a: ArmorData = row[0]
+		var d: int = row[1]
+		var on := a == u.armor and d == u.wear_of("armor")
+		var b := UiTheme.button(("▸ " if on else "") + Equipment.label(a) + Stock.damage_text(d))
+		if on:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
+		elif d < 0:
+			b.add_theme_color_override("font_color", _wear_col(d))
 		b.custom_minimum_size.x = 220
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.pressed.connect(func() -> void:
-			Equipment.set_armor(u, a, _g())
+			Equipment.set_armor(u, a, _g(), d)
 			_render())
 		g.add_child(b)
-		g.add_child(UiTheme.label(_stock_text(a), 12, UiTheme.MUTED))
+		g.add_child(UiTheme.label(_stock_text(a, d), 12, UiTheme.MUTED))
 		g.add_child(UiTheme.label(str(a.cls), 13))
 		g.add_child(UiTheme.label("×" + _num(Equipment.damage_taken(a), 2), 13))
-		g.add_child(UiTheme.label(Dice.fmt(a.db) if a.db else "–", 13, _col(a.db)))
+		var db := a.db + d
+		g.add_child(UiTheme.label(Dice.fmt(db) if db else "–", 13, _col(db)))
 		g.add_child(UiTheme.label(("%d Gratis-Feld" % a.move) if a.move else "–", 13, _col(a.move)))
 	_right.add_child(g)
-	var note := UiTheme.label("Die Klasse bestimmt die Spalte der Angriffstabelle. „Schaden erhalten“ gilt nicht gegen Psi. Angezeigt wird nur, was im Lager liegt oder getragen wird.", 11, UiTheme.MUTED)
+	var note := UiTheme.label("Die Klasse bestimmt die Spalte der Angriffstabelle. „Schaden erhalten“ gilt nicht gegen Psi. Verteidigung abzüglich Beschädigung (−10 je Schaden; ab −30 unbrauchbar, dann wie keine Rüstung); beschädigte Stücke stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Angezeigt wird nur, was im Lager liegt oder getragen wird.", 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_right.add_child(note)
 

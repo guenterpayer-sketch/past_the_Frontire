@@ -189,6 +189,8 @@ func _run() -> void:
 	hub.ui.engine.hide()
 	# Waffenkammer: Raum öffnet den Ausrüstungsdialog des Charakter-Moduls (erste Figur mit beschädigter Ausrüstung)
 	Campaign.crew()[0].wear = {"w0": -10, "armor": -30}
+	Stock.add(HubState.game, Stock.damaged_key(Stock.key_of(Campaign.crew()[0].weapons[0]), -20))
+	Stock.add(HubState.game, Stock.damaged_key("res://data/weapons/laserpistole.tres", -30))
 	hub.open_room(&"armory")
 	await _frames(10)
 	print("Waffenkammer: Dialog offen ", hub.ui.armory.visible)
