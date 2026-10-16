@@ -35,6 +35,7 @@ func _init() -> void:
 	_test_psi()
 	_test_ammo()
 	_test_custom_gear()
+	_test_models_sounds()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -856,3 +857,39 @@ func _test_custom_gear() -> void:
 		for u in f.units:
 			check(not (not u.weapons.is_empty() and u.weapons[0].name.begins_with("Eigen-")), "Vorlagen der Fraktion bleiben unverändert")
 	Gear.dir = old_dir
+
+
+## Modell-Katalog (alle laden, lange Achse x) und Klänge (Dateien vorhanden, MG wieder mit MG-Klang)
+func _test_models_sounds() -> void:
+	var all := WeaponModels.all()
+	check(all.size() == WeaponModels.LIST.size() and all.size() >= 29, "Modell-Katalog: alle %d Modelle laden" % all.size())
+	var along_x := true
+	for e in all:
+		var n: Node3D = (e.scene as PackedScene).instantiate()
+		var acc := [null]
+		_aabb(n, Transform3D.IDENTITY, acc)
+		var a: AABB = acc[0]
+		if a.size.x < a.size.y or a.size.x < a.size.z:
+			along_x = false
+			print("  nicht entlang x: ", e.model, " ", a.size)
+		n.free()
+	check(along_x, "Modelle liegen entlang x (wie die Figur sie erwartet)")
+	var w := WeaponData.new()
+	WeaponModels.apply(w, WeaponModels.find("res://assets/weapons/melee/sword.tscn"))
+	check(w.model != null and is_equal_approx(w.length_m, 0.95) and not w.two_handed, "Katalog-Eintrag auf Waffe übertragen")
+	for k in [&"pistole", &"revolver", &"mp", &"sturmgewehr", &"minigun", &"schrotflinte", &"gewehr_schwer"]:
+		check(ResourceLoader.exists("res://audio/sfx/%s.ogg" % k) and WeaponData.SOUNDS.has(k), "Klangdatei %s" % k)
+	var mg: WeaponData = load("res://data/weapons/mg.tres")
+	check(mg.sound() == &"mg", "MG spielt wieder den MG-Klang")
+	var lp: WeaponData = load("res://data/weapons/laserpistole.tres").duplicate()
+	lp.sound_id = &"revolver"
+	check(lp.sound() == &"revolver", "Klang je Waffe wählbar")
+
+
+func _aabb(n: Node, xf: Transform3D, acc: Array) -> void:
+	var t := xf * (n as Node3D).transform if n is Node3D else xf
+	if n is MeshInstance3D:
+		var a: AABB = t * (n as MeshInstance3D).get_aabb()
+		acc[0] = a if acc[0] == null else (acc[0] as AABB).merge(a)
+	for c in n.get_children():
+		_aabb(c, t, acc)
