@@ -21,7 +21,7 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 |---|---|---|
 | Steuer | Pilot | Bewegen/Drehen; der halbe Pilot-Gesamtbonus ist der VW des Schiffs |
 | Navigation | Navigation | Initiative, Kurs plotten (+1 Geschwindigkeit ohne Malus), Sprung vorbereiten |
-| Geschütze | Strahl- / Ballistische Geschütze / Raketen | Angriff mit einer Waffengruppe |
+| Geschütze | Strahl- / Ballistische / Raketen-Geschütze | Angriff mit einer Waffengruppe |
 | Schilde | Schutzschild | Schildpunkte zwischen Bug/Heck/Seiten verschieben, regenerieren |
 | Technik | Panzerung / Not-Reparatur / Reparatur | Systemschaden beheben, Hüllentreffer umleiten |
 | Computer | Computer | Zielerfassung (+AW für eine Station), Störsender (−AW für Gegner) |
@@ -30,7 +30,7 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 
 ## 3. Jäger
 
-- Eine Person pro Jäger: **Pilot** für Bewegung und VW, Waffenfertigkeit (meist Strahl-Geschütze oder Raketen) für den Angriff.
+- Eine Person pro Jäger: **Pilot** für Bewegung und VW, Waffenfertigkeit (meist Strahl-Geschütze oder Raketen-Geschütze) für den Angriff.
 - Aktivitätssystem wie am Boden (100 % pro Runde für Bewegen, Angriff, Ausweichmanöver; übrige Aktivität = Ausweichreserve).
 - Jäger haben wenig Struktur und keinen Schild, aber einen hohen VW.
 

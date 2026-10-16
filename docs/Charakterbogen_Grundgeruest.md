@@ -38,7 +38,7 @@ Fähigkeiten
 - Raumschiff Kampf  
   - Strahl Geschütze  
   - Ballistische Geschütze  
-  - Raketen  
+  - Raketen-Geschütze  
   - Schutzschild  
   - Panzerung  
   - Not Reparatur  
