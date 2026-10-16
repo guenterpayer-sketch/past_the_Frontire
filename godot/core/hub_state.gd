@@ -16,6 +16,9 @@ const MISSION_DAYS := 1
 const OFFER_DAYS := [4, 10]
 ## Plätze an Bord zu Beginn (6 im Einsatz + 2 Reserve)
 const BERTHS_START := 8
+## Training: alle TRAINING_DAYS Spieltage (Tag 5, 10, 15 …) bekommt die ganze Crew an Bord TRAINING_XP freie EP
+const TRAINING_DAYS := 5
+const TRAINING_XP := 3
 const DIFFICULTY_ROLL := ["leicht", "mittel", "mittel", "mittel", "schwer"]
 
 static var game: HubState = null
@@ -37,6 +40,8 @@ var medics: Array = []
 var medlog: Array = []
 ## beim letzten Tageswechsel wieder einsatzbereit geworden (für die Anzeige im Schiff)
 var last_healed: Array[Character] = []
+## beim letzten Tageswechsel vergebene freie EP je Figur durch Training (0 = kein Trainingstag dabei)
+var last_training := 0
 ## laufender Einsatz (Auftrag) oder leer
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
@@ -87,9 +92,18 @@ func mission_of(offer: Dictionary) -> Mission:
 func advance_days(n: int) -> void:
 	if n <= 0:
 		return
+	last_training = TRAINING_XP * training_days(day, day + n)
 	day += n
 	last_healed = Medbay.pass_days(self, n)
+	if last_training > 0:
+		for c in Campaign.crew():
+			c.free_xp += last_training
 	refill_offers()
+
+
+## Anzahl der Trainingstage (Vielfache von TRAINING_DAYS) nach Tag von bis einschließlich Tag bis
+static func training_days(from: int, to: int) -> int:
+	return to / TRAINING_DAYS - from / TRAINING_DAYS
 
 
 ## Im Schiff warten
@@ -157,6 +171,7 @@ func travel_to(target: int) -> int:
 	last_travel = rep
 	position = target
 	advance_days(r.days)
+	rep.training = last_training
 	return r.days
 
 
@@ -216,6 +231,7 @@ func finish_mission(rep: Dictionary) -> void:
 	active = {}
 	missions_done += 1
 	advance_days(MISSION_DAYS)
+	rep.training = last_training
 	rep.day = day
 	report = rep
 

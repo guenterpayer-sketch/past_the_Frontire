@@ -102,6 +102,13 @@ func open_room(id: StringName) -> void:
 func wait_day() -> void:
 	game.wait_days(1)
 	_after_days()
+	_training_toast()
+
+
+## Trainingstag beim Warten oder bei der großen Reparatur melden (Reise und Einsatz zeigen es im Bericht)
+func _training_toast() -> void:
+	if game.last_training > 0:
+		ui.show_toast("Training: +%d freie EP für alle an Bord" % game.last_training)
 
 
 ## Nach vergangenen Tagen: offene Fenster neu zeichnen, Geheilte melden
@@ -128,6 +135,7 @@ func crew_repair() -> void:
 		return
 	Sfx.play(&"klick")
 	_after_days()
+	_training_toast()
 	ui.show_notice("Große Reparatur", "%s: Reparatur %s %+d = %d → %s\nHülle %+d (jetzt %d / %d) · 1 Material verbraucht · +%d EP" % [
 		r.name, Dice.format_roll(r.roll), r.bonus, r.total, r.result_name, r.hull, game.hull, Voyage.HULL_MAX, r.xp])
 	ui.notice.move_to_front()

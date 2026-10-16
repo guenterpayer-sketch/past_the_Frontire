@@ -23,6 +23,7 @@ func _init() -> void:
 	_test_ammo()
 	_test_encyclopedia()
 	_test_gear_models()
+	_test_training()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -531,3 +532,39 @@ func _test_gear_models() -> void:
 		check(WeaponData.SOUNDS[k] != "", "Klangname %s" % k)
 	_rm_tree(Gear.dir)
 	Gear.dir = "user://gear"
+
+
+func _test_training() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	check(HubState.training_days(4, 5) == 1 and HubState.training_days(1, 4) == 0 and HubState.training_days(5, 9) == 0 and HubState.training_days(1, 10) == 2, "Trainingstage zählen")
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(31, "Training", 1)
+	var crew := Campaign.crew()
+	var hurt: Character = crew[0]
+	hurt.injury = Injury.SEVERE
+	hurt.injury_days = 20
+	var xp0 := crew.map(func(c: Character) -> int: return c.free_xp)
+	g.wait_days(3)
+	check(g.day == 4 and g.last_training == 0 and crew[1].free_xp == xp0[1], "vor Tag 5 kein Training")
+	g.wait_days(1)
+	check(g.day == 5 and g.last_training == 3, "Tag 5: Training")
+	var ok := true
+	for i in crew.size():
+		ok = ok and crew[i].free_xp == xp0[i] + 3
+	check(ok, "ganze Crew +3 freie EP, auch Verwundete")
+	g.wait_days(11)
+	check(g.day == 16 and g.last_training == 6 and crew[1].free_xp == xp0[1] + 9, "zwei Trainingstage auf einmal (+6)")
+	var nb: int = g.sector.neighbors(g.position)[0][0]
+	g.day = 9
+	var d := g.travel_to(nb)
+	check(g.last_travel.training == (3 if d >= 1 else 0), "Reisebericht mit Training")
+	g.day = 14
+	g.active = g.offers[0]
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.report.training == 3, "Einsatzbericht mit Training (Tag 15)")
+	HubState.game = null
+	Campaign.last_result = {}
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()

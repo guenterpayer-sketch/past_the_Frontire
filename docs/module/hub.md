@@ -239,3 +239,10 @@ Hinweis: Der in `bodenkampf.md` erneut genannte Wunsch „mitgelieferte Waffen e
 ## Aufträge vom Koordinator (16.10.2026): freie EP alle 5 Tage
 
 Entscheidungen des Nutzers: **alle 5 Spieltage** (Tag 5, 10, 15 …) bekommt **die ganze Crew an Bord** (auch Verletzte und Arzt) **3 freie EP**, damit auch Mitglieder ohne Einsätze steigern können. Zählung nach Spieltag (Neue ab dem nächsten 5er-Tag). Anzeige als **Zeile im Reisebericht** (z. B. „Training: +3 freie EP für alle“); beim „1 Tag warten“ bzw. Einsatz entsprechend sichtbar machen. Umsetzung in `HubState.advance_days()`; freie EP über das `Character`-Feld des Charakter-Moduls (keine Schnittstellenänderung erwartet, sonst abstimmen). Regel in `docs/Skillsystem.md` 8 nachtragen.
+
+### Stand freie EP alle 5 Tage (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`cde5661`) geholt, ohne Konflikte.
+- `HubState.advance_days()`: für jeden Tag 5, 10, 15 … im vergangenen Zeitraum bekommt jede Figur in `Campaign.crew()` `TRAINING_XP` (3) auf `Character.free_xp` (Feld des Charakter-Moduls, keine Schnittstellenänderung). `HubState.last_training` = vergebene EP je Figur beim letzten Tageswechsel; `HubState.training_days(von, bis)`.
+- Anzeige: Zeile „Training: +3 freie EP für alle an Bord“ im **Reisebericht** und im **Einsatzbericht** (`rep.training`), Meldung oben beim **„1 Tag warten“** und bei der **großen Reparatur**. Regel in `docs/Skillsystem.md` 8.
+- Tests: `test_rules` OK, `test_hub` OK (Zählung, ganze Crew inkl. Verwundete, zwei Trainingstage auf einmal, Reise- und Einsatzbericht), `--autotest-hub` durchgelaufen (Meldung bei der Crew-Reparatur an Tag 5 gesehen).
