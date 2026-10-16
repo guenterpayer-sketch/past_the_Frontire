@@ -18,12 +18,14 @@ func _ready() -> void:
 	hide()
 
 
-## c: beendeter Kampf, result: MissionResult; next_text: Beschriftung des Knopfs (z. B. „Zurück ins Schiff“)
-func show_result(c: Combat, result: Dictionary, next_text: String) -> void:
+## c: beendeter Kampf, result: MissionResult; next_text: Beschriftung des Knopfs (z. B. „Zurück ins Schiff“);
+## from_ship: Einsatz aus dem Schiff (beim Rückzug bleibt der Auftrag dann offen)
+func show_result(c: Combat, result: Dictionary, next_text: String, from_ship := false) -> void:
 	UiTheme.clear(_box)
 	var win := c.result == &"sieg"
-	var title := "Sieg!" if win else ("Rückzug" if c.retreated else "Niederlage")
-	var t := UiTheme.label(title, 34, UiTheme.GOOD if win else UiTheme.BAD)
+	var retreated := bool(result.get("retreated", c.retreated))
+	var title := "Sieg!" if win else ("Rückzug" if retreated else "Niederlage")
+	var t := UiTheme.label(title, 34, UiTheme.GOOD if win else (UiTheme.RETREAT if retreated else UiTheme.BAD))
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_box.add_child(t)
 	if result.get("mission", "") != "":
@@ -48,8 +50,8 @@ func show_result(c: Combat, result: Dictionary, next_text: String) -> void:
 		(", %d schwer verwundet" % dying) if dying else "", (", %d tot" % dead) if dead else ""])
 	lines.append("Jede Figur: +%d freie EP%s" % [MissionResult.FREE_XP + int(result.get("reward_xp", 0)),
 		(" (davon +%d Belohnung)" % result.reward_xp) if int(result.get("reward_xp", 0)) > 0 else ""])
-	if c.retreated:
-		lines.append("Rückzug zählt als Niederlage; die EP aus dem Kampf bleiben.")
+	if retreated:
+		lines.append("Rückzug: kein Lohn, keine Beute%s. Die EP aus dem Kampf bleiben." % ("; der Auftrag bleibt bis zum Ablaufdatum offen" if from_ship else ""))
 	var l := UiTheme.label("\n".join(lines), 15)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

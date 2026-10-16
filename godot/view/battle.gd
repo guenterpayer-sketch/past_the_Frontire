@@ -188,9 +188,9 @@ func ammo_stock() -> Variant:
 ## Schnellkampf aus dem Startmenü (HubState.quick_battle): nichts verbuchen, zurück ins Startmenü.
 func finish_mission() -> void:
 	var c := combat
-	Music.play(Music.VICTORY if c.result == &"sieg" else Music.DEFEAT)   # Niederlage auch bei Rückzug
+	Music.play(Music.VICTORY if c.result == &"sieg" else Music.DEFEAT)   # Musik der Niederlage auch bei Rückzug
 	if HubState.quick_battle:
-		ui.combat_log.add("%s – Schnellkampf, nichts verbucht. Zurück ins Startmenü …" % ("Sieg" if c.result == &"sieg" else "Niederlage"), &"round")
+		ui.combat_log.add("%s – Schnellkampf, nichts verbucht. Zurück ins Startmenü …" % ("Sieg" if c.result == &"sieg" else ("Rückzug" if c.retreated else "Niederlage")), &"round")
 		await get_tree().create_timer(2.5).timeout
 		if combat == c:
 			get_tree().change_scene_to_file(HubState.START_SCENE)
@@ -205,7 +205,7 @@ func finish_mission() -> void:
 		HubState.game.finish_mission(rep)
 	# Ergebnis über der Karte zeigen; die Szene wechselt erst auf „Weiter“
 	await get_tree().create_timer(0.6).timeout
-	ui.result_banner.show_result(c, result, "Zurück ins Schiff" if to_ship else "Zur Crew")
+	ui.result_banner.show_result(c, result, "Zurück ins Schiff" if to_ship else "Zur Crew", to_ship)
 	await ui.result_banner.continued
 	if combat == c:
 		get_tree().change_scene_to_file(HubState.HUB_SCENE if to_ship else Campaign.CREW_SCENE)
@@ -231,14 +231,14 @@ func hub_report(result: Dictionary) -> Dictionary:
 
 
 ## „Einsatz abbrechen“ im Schiffsmodus: vor Runde 1 zurück ins Schiff (Auftrag bleibt offen),
-## danach Rückzug (zählt als Niederlage, EP bleiben); jeweils mit Rückfrage
+## danach Rückzug (kein Lohn, keine Beute, Auftrag bleibt offen, EP bleiben); jeweils mit Rückfrage
 func _ask_leave() -> void:
 	if combat.result != &"":
 		return
 	if combat.deploying:
 		ui.ask("Einsatz abbrechen und zurück ins Schiff?\nDer Auftrag bleibt auf der Sternenkarte offen.", "Zurück ins Schiff", return_to_ship)
 	else:
-		ui.ask("Rückzug antreten?\nDer Einsatz zählt als Niederlage: Der Auftrag ist verloren und die Zeit vergeht.\nDie EP aus diesem Kampf bleiben.", "Rückzug",
+		ui.ask("Rückzug antreten?\nKein Lohn, keine Beute%s.\nDie EP aus diesem Kampf bleiben." % ("; die Zeit vergeht. Der Auftrag bleibt bis zum Ablaufdatum offen" if HubState.in_mission() else ""), "Rückzug",
 			func() -> void: combat.retreat())
 
 
