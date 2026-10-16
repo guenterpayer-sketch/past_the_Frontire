@@ -104,3 +104,7 @@ Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausru
 Munition Teil Kampf ist in `main` (`928b0f9`), siehe `docs/module/bodenkampf.md` → Munition. `ui/crew/armory_dialog.gd` zeigt „Feuerstoß“ noch aus `ob_bonus` (beim MG jetzt leer) und „Munition gesamt“ als 3 Magazine. Anpassen an `shots`, `ammo_type`, `ammo_total` (Obergrenze der Mitnahme). Zusammen mit dem Auftrag „eigene Rüstungen“ erledigen.
 - (15.10.2026) Eigene Rüstungen und Anzeige Munition → gebaut (siehe Stand).
 - **Hinweis an Bodenkampf (Entscheidung des Nutzers 15.10.2026):** Laserpistole, Laserkarabiner, Sturmgewehr und MG haben `magazine = 0` (= keine Munition nötig), obwohl `ammo_type` gesetzt ist; nur der Raketenwerfer hat ein Magazin. Nutzer: Diese Waffen sollen Magazine bekommen, **der Bodenkampf trägt sie ein**. Die Waffenkammer zeigt die Mitnahme dann ohne Änderung an.
+
+## Hinweis vom Koordinator (16.10.2026): Enzyklopädie
+
+Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.

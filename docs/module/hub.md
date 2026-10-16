@@ -205,3 +205,7 @@ Der in `docs/module/bodenkampf.md` notierte Wunsch, die mitgelieferten Waffen im
 ## Hinweis vom Koordinator (16.10.2026): neue Modelle und Klänge im Editor
 
 Siehe `docs/Planung_Waffenmodelle_Klaenge.md`. Der Bodenkampf liefert zuerst einen Modell-Katalog und eine Klangliste; danach bietet der Ausrüstungs-Editor alle Modelle und den Wert *Klang* an. Bis dahin nichts zu bauen.
+
+## Aufträge vom Koordinator (16.10.2026): Enzyklopädie
+
+Grundlage: `docs/Planung_Enzyklopaedie.md` (Entscheidungen des Nutzers). Du baust den gemeinsamen Dialog und bindest ihn im Startmenü und Schiff an (Abschnitt „Aufteilung“, Punkt 1). **Vorher Mockup.** Bodenkampf und Charakter binden danach an.
