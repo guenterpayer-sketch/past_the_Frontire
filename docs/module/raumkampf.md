@@ -3,6 +3,8 @@
 - **Branch:** `claude/raumkampf-modul`
 - **Zuständig für (Vorschlag, mit dem Koordinator abstimmen):** eigene Szene und eigene Dateien, z. B. `godot/space.tscn`, `godot/core/space_*.gd`, `godot/view/space_*.gd`, `godot/ui/space_*.gd`, `godot/data/ships/`. Keine Dateien anderer Module umbauen; nötige Änderungen an Schnittstellen in „Stand“ vermerken.
 
+> Planung, Aufträge 1–2 und alter Stand: `docs/module/archiv/raumkampf_bis_2026-10-16.md` (nur bei Bedarf lesen).
+
 ## Grundlagen (in `main`)
 
 - Regel-Entwurf: `docs/Raumkampf.md` (Hexkarte ohne Höhe, Ausrichtung/Trägheit, Mutterschiff mit Stationen, 2–3 Jäger, Schild je Seite, Struktur, Systemschaden). Nur Entwurf, nicht vom Nutzer bestätigt.
@@ -90,32 +92,12 @@ Alle Felder von `MissionResult` (`outcome`, `retreated`, `mission`, `rounds`, `r
 
 Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Lösegeld, Beute (Waffen ins Lager), Einsatzbericht, Entern bzw. Notfall. Bei `board_enemy` startet er den Bodenkampf (vorerst Lagerhalle) und bucht `board_loot` nur bei Sieg.
 
-## Aufträge vom Koordinator
-
-### Auftrag 1 (16.10.2026): Planung, noch nicht bauen
-
-1. `CLAUDE.md`, `docs/module/README.md`, diese Datei und `docs/Raumkampf.md` in `main` lesen.
-2. **Mit dem Nutzer klären (Auswahl-Buttons)**, was der Raumkampf sein soll, u. a.: Umfang der ersten Version (nur Mutterschiff oder gleich mit Jägern), Darstellung (2D/3D, Hexkarte), Stationen und wer sie besetzt, Schiffswerte und Gegner, Auslöser und Folgen im Hub (Hülle, Beute, Flucht), Verbindung zu Schiffsausbau und Munition.
-3. Ergebnis als Planung `docs/Planung_Raumkampf.md` festhalten (Entscheidungen des Nutzers, offene Punkte, Schnittstellen-Vorschlag) und `docs/Raumkampf.md` angleichen.
-4. Mockup der Oberfläche zeigen, erst nach Bestätigung bauen.
-5. Branchnamen und Planung als Fertigmeldung an den Koordinator (über den Nutzer).
-
 ## Stand
 
-- (16.10.2026) Moduldatei angelegt.
-- (16.10.2026) Auftrag 1: Klärung mit dem Nutzer abgeschlossen, Planung in `docs/Planung_Raumkampf.md` (Entscheidungen, Vorschläge, offene Punkte, Schnittstellen-Vorschlag), `docs/Raumkampf.md` angeglichen. Mockup (Artifact „Raumkampf Mockup“) vom Nutzer bestätigt. Noch kein Code.
-- (16.10.2026) Auftrag 2: offene Punkte mit dem Nutzer geklärt (`docs/Planung_Raumkampf.md` 1a), Schnittstelle als fester Stand oben unter „Schnittstellen“. Noch kein Code.
-- (16.10.2026) Auftrag 2, Regelkern gebaut (ohne Grafik): `core/space_combat.gd`, `space_ship.gd`, `space_ai.gd`, `space_weapons.gd`, `space_templates.gd`, `space_setup.gd`, `space_battle.gd`, Test `tests/test_space.gd`. Gegnervorlagen vorerst als Konstanten in `core/space_templates.gd` statt `data/ships/`. Zusätzlich für den Hub: `SpaceSetup.posts_from_crew()` (Posten aus `Character.station`) und `SpaceSetup.fill_posts()` (freie Stationen mit den Besten besetzen). Alle Zahlen Platzhalter; im Selbstlauf (Schnellkampf-Crew, Piraten) gewinnt die Crew etwa ein Drittel, einige Kämpfe enden an der Rundengrenze (40). Noch keine Szene `space.tscn`.
-- (16.10.2026) Bord-KI +0 (Entscheidung des Nutzers). Szene `space.tscn` gebaut (nach dem bestätigten Mockup): 3D-Hexkarte mit Asteroiden, Schiffe mit Schildring und Hüllenbalken, Schiffskasten Schema/Zahlen, Seitenleiste mit Stationen je Phase (Energie/Schildverteilung, Bewegungsplan mit Vorschau, Ziele, Technik/Computer/Sprung), Briefing (Posten), Ergebnis mit „Weiter“ → `SpaceBattle.finish()`. Ohne `SpaceBattle.setup` startet die Szene einen Schnellkampf (F6 im Editor). Selbsttest `-- --autotest-space`. Der Schnellkampf-Knopf im Startmenü ist Sache des Hubs (`SpaceBattle.start(get_tree(), SpaceSetup.quick())`).
-- (16.10.2026) Nach Testkampf des Nutzers: Ziel-Check im Bewegungsplan und Schatten der geschätzten Gegnerpositionen; Waffenslots-Ausbau auf 5 Stufen (Seiten bis je 2 Geschütze); bis zu 3 Techniker (`technik_2`, `technik_3`), je eine 2. Baustelle mit −20; selbst entern (benachbart, Schiff mit Besatzung, Antrieb E oder Hülle < 25 %, kein anderer Gegner mehr); Schwierigkeit mittel = Korvette mit 1 oder 2 Jägern (Fregatte nur noch schwer); Modelle um 180° gedreht (Bug vorn). **Schnittstelle erweitert:** `levels.slots` 0–5, neue Slot-IDs, Posten `technik_2`/`technik_3`, Ergebnisfelder `board_*`.
-- (16.10.2026) Umbesetzen im Kampf: Knopf „Posten umbesetzen“ nur zu Rundenbeginn, neu besetzte Stationen −10 in dieser Runde (`SpaceCombat.repost()`); Schildverteilung deutlicher beschriftet. Schnittstelle unverändert.
-- (16.10.2026) Schildverteilung mit Schiebereglern je Seite (Wunsch des Nutzers). Schnittstelle unverändert.
+- Bis 16.10.2026 alles in `main` (`f0334fd`, mit dem Hub): Regelkern `core/space_*.gd` (Phasen Schilde → Bewegen → Schießen → Technik/Computer, Bord-KI +0, Doppelbesetzung −30, Energie, Schilde je Seite, Systemschäden A–E, Flucht, Kapitulation, Entern durch Gegner/selbst), Szene `space.tscn` (F6 = Schnellkampf), bis 3 Techniker, Umbesetzen zu Rundenbeginn (−10), Schieberegler je Schildseite, Test `tests/test_space.gd`, Selbsttest `-- --autotest-space`. Entscheidungen: `docs/Planung_Raumkampf.md` 1a/1b.
+- Offen: alle Zahlen Platzhalter (Abstimmung per Simulation), Gegnervorlagen als Konstanten statt `data/ships/`, eigene Jäger erst V2.
+- Neue Fertigmeldungen hier kurz eintragen. Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
-### Auftrag 2 (16.10.2026): Regelkern, Szene, Schnittstelle
+## Aufträge vom Koordinator
 
-Planung V1 (`8bd0e3a`) ist in `main`. **Zuständigkeit (Entscheidung Koordinator, im Auftrag des Nutzers):**
-- **Raumkampf baut** nur eigene Dateien (`space.tscn`, `core/space_*.gd`, `view/space_*.gd`, `ui/space_*.gd`, `data/ships/`, `tests/test_space.gd`): Regelkern, Szene, Kampf-Briefing (Stationen ändern), Gegnervorlagen, Ergebnis. Dazu einen Einstieg, den der Hub nur aufruft, z. B. `SpaceBattle.start(setup)` / Szene mit `SpaceSetup`, und eine Funktion `SpaceSetup` für den Schnellkampf (feste Testwerte, ohne `HubState`). Ergebnis wie in `docs/Planung_Raumkampf.md` 4 (Format `MissionResult` + Schiffsteil).
-- **Hub baut** alles in Hub-Dateien: alle vier Auslöser (Reiseereignis, Auftragsart, vor einem Bodeneinsatz, Schnellkampf-Knopf im Startmenü), `SpaceSetup` aus `HubState` zusammenstellen, Ergebnis auswerten (Hülle, Systemschäden, Schiffsmunition, Lösegeld, Beute, Einsatzbericht, Entern → Bodenkampf mit Lagerhalle, Notfall), `HubState`-Felder (Waffenslots, Schiffsmunition, Systemschäden, Posten „Station“), `ShipUpgrades` „Schilde“/„Panzerung“, Handel mit Schiffswaffen im Hafen, Reparatur der Systemschäden.
-- **Bodenkampf:** in V1 nichts (Entern startet die normale Lagerhalle über den Hub). Karte „Schiffsinneres“ später.
-- **Charakter:** nichts, solange das Ergebnis das `MissionResult`-Format hält.
-- **Reihenfolge:** Raumkampf zuerst Schnittstelle (`SpaceSetup`-Felder, Ergebnis-Felder, Einstiegsfunktion, Daten der Waffen-Keys für Slots) als festen Stand in diese Datei unter „Schnittstellen“ schreiben und pushen (vorab meldbar wie beim Hub +5). Erst dann beginnt der Hub. Offene Zahlen und Punkte (Planung 3, u. a. Energie für Strahlwaffen) vorher mit dem Nutzer klären.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer (z. B. Zahlen per Simulation abstimmen). Schnittstellen nur ergänzen und dem Hub über den Nutzer melden.
