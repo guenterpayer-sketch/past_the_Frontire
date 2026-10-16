@@ -118,3 +118,7 @@ Baustein des Hubs ist in `main` (`52efbe2`): `GameData.weapons()` um `Gear.weapo
 
 Entscheidung des Nutzers (über den Charakter-Chat): Laserpistole, Laserkarabiner, Sturmgewehr und MG haben heute `magazine = 0` (keine Munition nötig), obwohl `ammo_type` gesetzt ist. Sie sollen **Magazine bekommen**; Werte (`magazine`, `ammo_total`, ggf. `shots`) mit dem Nutzer abstimmen und in `data/weapons/*.tres` eintragen. KI und `test_sim` danach prüfen.
 - **Erledigt (16.10.2026), Entscheidungen des Nutzers:** Standardwaffen Vorschlag B: Laserpistole 12, Laserkarabiner 20, Sturmgewehr 30, MG 60 (3 Schuss je Angriff = 20 Feuerstöße); `ammo_total` leer (= 3 Magazine). **Zweitwaffe nimmt nur 1 Magazin mit** (`Ammo.MAGS_SECOND`, `Ammo.carry(w, slot)`). Startvorrat des Hubs bleibt (Energie 200, Projektil 300, Raketen 6); mit B nimmt die volle Startcrew 192 Energie (Karabiner Ikko/Rhea je 60, Pistole Nyx als Hauptwaffe 36, Pistolen Ikko/Rhea/Corvin als Zweitwaffe je 12) und 270 Projektil (Sturmgewehr 90, MG 180) – reicht der Vorrat nicht, bekommen die Letzten im Trupp weniger (Hinweis im Briefing). **Wunsch an den Hub:** Vorlagen (mitgelieferte Waffen) im Ausrüstungs-Editor editierbar machen, damit der Nutzer die Werte selbst ändern kann.
+
+## Aufträge vom Koordinator (16.10.2026): neue Waffenmodelle und Klänge
+
+Grundlage: `docs/Planung_Waffenmodelle_Klaenge.md` (Entscheidungen des Nutzers). Du baust zuerst (Abschnitt „Aufteilung“, Punkt 1), inkl. Reparatur des MG-Klangs (spielt seit den Magazinen den Gewehr-Klang). Offene Punkte vorher mit dem Nutzer klären.

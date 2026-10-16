@@ -201,3 +201,7 @@ Munition Teil Kampf ist in `main` (`928b0f9`); Schnittstelle in `docs/module/bod
 ## Hinweis vom Koordinator (16.10.2026): Vorlagen bleiben fest
 
 Der in `docs/module/bodenkampf.md` notierte Wunsch, die mitgelieferten Waffen im Ausrüstungs-Editor editierbar zu machen, ist **zurückgenommen** (Entscheidung des Nutzers): Die Standardwaffen bleiben unverändert, sie sind die Vorlagen für neue Waffen. Nichts zu bauen.
+
+## Hinweis vom Koordinator (16.10.2026): neue Modelle und Klänge im Editor
+
+Siehe `docs/Planung_Waffenmodelle_Klaenge.md`. Der Bodenkampf liefert zuerst einen Modell-Katalog und eine Klangliste; danach bietet der Ausrüstungs-Editor alle Modelle und den Wert *Klang* an. Bis dahin nichts zu bauen.
