@@ -73,6 +73,7 @@ var worst_crit := ""           # schwerster erlittener Kritischer (A–E), "" = 
 var free_xp := 0              # gesparte freie EP (für Fertigkeiten oder Eigenschaften)
 ## Beschädigung der Ausrüstung (Entscheidungen des Nutzers 16.10.2026): Platz → Abzug (−10 je Schaden),
 ## Plätze "w0" (Waffe 1), "w1" (Waffe 2), "armor"; ab WEAR_BROKEN unbrauchbar. Kommt aus Character.wear (falls vorhanden).
+## Positiver Wert = gutes Stück aus dem Handwerk (+5, Stock.BONUS): Bonus auf Angriff bzw. Verteidigung, der erste Schaden nimmt ihn (+5 → 0).
 const WEAR_STEP := -10
 const WEAR_BROKEN := -30
 var wear := {}
@@ -156,12 +157,18 @@ func armor_db() -> int:
 	return 0 if armor == null or armor_broken() else armor.db
 
 
-## Platz um einen Schaden verschlechtern (höchstens bis WEAR_BROKEN); gibt den neuen Wert zurück
+## Platz um einen Schaden verschlechtern (höchstens bis WEAR_BROKEN; ein Bonus fällt auf 0); gibt den neuen Wert zurück
 func add_wear(slot: String) -> int:
 	if slot == "":
 		return 0
-	wear[slot] = maxi(int(wear.get(slot, 0)) + WEAR_STEP, WEAR_BROKEN)
+	var v := int(wear.get(slot, 0))
+	wear[slot] = 0 if v > 0 else maxi(v + WEAR_STEP, WEAR_BROKEN)
 	return wear[slot]
+
+
+## Text für den Kampfbericht nach add_wear: „beschädigt (−10)“ bzw. „verliert den Bonus“
+static func wear_log(v: int) -> String:
+	return "verliert den Bonus" if v == 0 else "beschädigt (%d)" % v
 
 
 ## Ausrüstung eines Platzes (WeaponData/ArmorData) oder null
