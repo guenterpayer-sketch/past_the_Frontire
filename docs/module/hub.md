@@ -319,3 +319,9 @@ Bodenkampf meldet jetzt im `MissionResult` `loot` = [{key (`Stock.key_of`), name
 - Gebaut: `Stock` (Schlüssel mit Schaden, `sell_price`, `repair_cost/can_repair/repair`, `scrap_value`), `HubState.set_loot/loot_default/take_loot`, `loot_pending` im Spielstand; `finish_mission` legt Medikits ins Lager (`payout.medkits`) und öffnet die Auswahl; offene Auswahl wird vor neuer Beute mit Vorauswahl übernommen. Einsatzbericht mit Abschnitt „Beute auswählen“ (übernommen beim Schließen; nach dem Laden mit offener Beute eigener Dialog). Handelsdialog: Knopf „Reparieren … Cr“ bei beschädigten Stücken.
 - Crew-Reparatur mit Probe: vorgemerkt für das Handwerk (Schritt 5).
 - Tests: `test_rules` OK, `test_hub` OK (neu `_test_loot`: Format, Namen, Verkauf/Schrott/Werkstatt-Preise, Reparatur, nur im Hafen, Auswahl mit Platzgrenze, Spielstand, `finish_mission`), `test_sim -- 10` OK. `--autotest-hub` erweitert (Werkstatt, Beuteauswahl), aber **nicht ausgeführt** (Entscheidung des Nutzers: Grafik prüft er selbst); Hub-Szene lädt headless ohne Fehler.
+
+#### Zwischenaufgabe des Nutzers (16.10.2026): Charakterbogen im Roster
+
+- Im Roster (`ui/crew/roster_screen.gd`, **Datei des Charakter-Moduls**) neuer Knopf **„Charakterbogen“** in der Detailansicht: öffnet den `SheetDialog` für die gewählte Figur (nur diese, die Reiterzeile des Bogens passt nicht für den ganzen Roster); Esc schließt ihn. Bitte vom Charakter-Modul übernehmen.
+- Tests: `test_rules` OK, `test_hub` OK, Knopf und Bogen headless geprüft; `--autotest-hub` um einen Screenshot `h0b2_roster_bogen` erweitert (nicht ausgeführt).
+

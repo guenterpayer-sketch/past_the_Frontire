@@ -8,6 +8,7 @@ const BACK_SCENE := "res://start.tscn"
 
 var editor: CharacterEditor
 var edit_dialog: RosterEditDialog
+var sheet: SheetDialog
 var _entries: Array[Character] = []
 var _sel := 0
 var _left: VBoxContainer
@@ -58,6 +59,8 @@ func _ready() -> void:
 	edit_dialog.saved.connect(func(ch: Character) -> void:
 		GlobalRoster.update(ch)
 		_refresh(ch.id))
+	sheet = SheetDialog.new()
+	add_child(sheet)
 	_refresh()
 
 
@@ -161,6 +164,14 @@ func _render_details() -> void:
 	del.pressed.connect(_confirm_delete.bind(ch))
 	row.add_child(del)
 	_right.add_child(row)
+	var sb := UiTheme.button("Charakterbogen", "Vollständigen Bogen mit allen Werten öffnen")
+	sb.pressed.connect(func() -> void:
+		# nur die gewählte Figur: die Reiter des Bogens passen nicht für den ganzen Roster
+		var one: Array[Character] = [ch]
+		var units := Roster.build_crew(one)
+		sheet.show_sheet(units, units[0])
+		sheet.move_to_front())
+	_right.add_child(sb)
 	var note := UiTheme.label("Startcharakter: schreibgeschützt. Zum Abwandeln „Kopieren“." if prot else "Werte bleiben fest; änderbar sind Name, Kürzel, Farbe und Aussehen.", 12, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_right.add_child(note)
@@ -182,6 +193,7 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE:
 		editor.close()
 		edit_dialog.close()
+		sheet.close()
 
 
 func _exit_tree() -> void:
