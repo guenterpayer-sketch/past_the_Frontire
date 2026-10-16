@@ -79,6 +79,13 @@ var material := Voyage.START_MATERIAL
 var emergency := false
 ## Schiffsvorrat Munition {Art: Schuss} (Arten Ammo.TYPES); der Bodenkampf liest ihn (Battle.ammo_stock())
 var ammo := Voyage.AMMO_START.duplicate()
+## Schiff für den Raumkampf (ShipArms): Waffenslots {Slot-ID: {key, damage}}, Schiffswaffen im Lager {Schlüssel mit
+## Schaden: Anzahl}, Schiffsmunition {Art: Anzahl}, Systemschäden {System-ID: "A"–"E"}, Geschützposten {Slot-ID: Figur-ID/"ki"}
+var ship_slots := ShipArms.start_slots()
+var ship_stock := {}
+var ship_ammo := ShipArms.start_ammo()
+var ship_damage := {}
+var gun_posts := {}
 ## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
 var last_travel := {}
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
@@ -209,9 +216,9 @@ func nearest_harbor() -> int:
 	return best
 
 
-## Darf das Schiff dorthin? Festgesetzt nur zum nächsten Hafen (aus einem Hafen heraus gar nicht)
+## Darf das Schiff dorthin? Festgesetzt nur zum nächsten Hafen (aus einem Hafen heraus gar nicht); Antrieb ausgefallen: nirgends
 func can_travel(target: int) -> bool:
-	if target == position:
+	if target == position or ShipArms.engine_down(self):
 		return false
 	if not stranded():
 		return true
@@ -247,6 +254,15 @@ func travel_to(target: int) -> int:
 ## Große Reparatur durch die Crew: 1 Tag, 1 Material, Reparaturprobe (Voyage.crew_repair). Leer = nicht möglich.
 func crew_repair() -> Dictionary:
 	var r := Voyage.crew_repair(self)
+	if not r.is_empty():
+		advance_days(1)
+	return r
+
+
+## Reparatur durch die Crew am Schiff (ShipArms): System-ID, "slot:<Slot-ID>" oder Lagerschlüssel einer Schiffswaffe.
+## 1 Tag, 1 Material, Probe. Leer = nicht möglich.
+func ship_fix(target: String) -> Dictionary:
+	var r := ShipArms.crew_fix_system(self, target) if ShipArms.SYSTEMS.has(target) or ship_damage.has(target) else ShipArms.crew_fix_weapon(self, target)
 	if not r.is_empty():
 		advance_days(1)
 	return r
@@ -408,7 +424,9 @@ func to_dict() -> Dictionary:
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
 		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
 		"loot_pending": loot_pending.duplicate(true), "craft_material": craft_material, "jobs": jobs.duplicate(true),
-		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true)}
+		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true),
+		"ship_slots": ship_slots.duplicate(true), "ship_stock": ship_stock.duplicate(), "ship_ammo": ship_ammo.duplicate(),
+		"ship_damage": ship_damage.duplicate(), "gun_posts": gun_posts.duplicate()}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -456,6 +474,23 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	for e in d.get("cooklog", []):
 		g.cooklog.append({"day": int(e.day), "cook": String(e.cook), "result": String(e.result), "result_name": String(e.result_name),
 			"total": int(e.total), "xp": int(e.xp), "use": int(e.use), "p0": int(e.p0), "p1": int(e.p1), "empty": bool(e.empty)})
+	# Schiff für den Raumkampf; alte Spielstände bekommen Startschiff und Startvorrat
+	if d.has("ship_slots"):
+		g.ship_slots = {}
+		for k in d.ship_slots:
+			g.ship_slots[String(k)] = {"key": String(d.ship_slots[k].get("key", "")), "damage": int(d.ship_slots[k].get("damage", 0))}
+	for s in ShipArms.slot_ids(g):
+		if not g.ship_slots.has(s):
+			g.ship_slots[s] = {"key": "", "damage": 0}
+	for k in d.get("ship_stock", {}):
+		g.ship_stock[String(k)] = int(d.ship_stock[k])
+	var sa: Dictionary = d.get("ship_ammo", ShipArms.start_ammo())
+	for t in ShipArms.AMMO_NAMES:
+		g.ship_ammo[t] = int(sa.get(t, 0))
+	for k in d.get("ship_damage", {}):
+		g.ship_damage[String(k)] = String(d.ship_damage[k])
+	for k in d.get("gun_posts", {}):
+		g.gun_posts[String(k)] = String(d.gun_posts[k])
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g

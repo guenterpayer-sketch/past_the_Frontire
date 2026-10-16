@@ -529,6 +529,15 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 - **Werft** (nur im Hafen, sofort, nur mit genug Credits): 600 / 1200 / 2200 Cr für Stufe 1 / 2 / 3.
 - **Crew** (überall): 3 / 6 / 9 Schiffsmaterial (sofort verbraucht) und 3 / 5 / 8 Spieltage; am Ende eine Reparaturprobe (Mittel, Station Technik, sonst der Beste): Erfolg = fertig, Teilerfolg = 1 Tag länger, Fehlschlag oder Patzer = 1 Material verloren und 1 Tag länger. Nur ein Crew-Ausbau zur Zeit; wer baut, darf in Einsätze.
 - Werkstatt-Ausbau folgt mit dem Handwerk.
+- **Für den Raumkampf** (Entscheidungen des Nutzers 16.10.2026): Schilde, Panzerung, Reaktor (je Stufe 0–3, Wirkung im Kampf legt der Raumkampf fest) und **Waffenslots** (Start 4: Bug, Backbord, Steuerbord, Turm; Stufe 1 + Heck, 2 + Bug 2, 3 + Turm 2). Preise und Material wie oben.
+
+**Schiff für den Raumkampf** (`core/ship_arms.gd`, Entscheidungen des Nutzers 16.10.2026, Schnittstelle `docs/module/raumkampf.md`):
+- **Schiffswaffen** in Slots; Turm-Slots nur Abwehrwaffen, alle anderen jede andere Waffe. Ein- und Ausbau im Maschinenraum **nur im Hafen**, sofort, kostenlos; Waffen kommen aus dem Lager und gehen mit ihrem Schaden dorthin zurück. Startschiff: Bug Laserbank, Backbord Massebeschleuniger, Steuerbord Raketenwerfer, Turm Abwehrgeschütz.
+- **Preise (Platzhalter, bis der Raumkampf seinen Katalog liefert):** Laserbank 800, Partikelkanone 1400, Massebeschleuniger 900, Schnellfeuerkanone 1100, Raketenwerfer 1000, Raketenbatterie 1600, Abwehrgeschütz 600, Abwehrlaser 700 Cr. Im zufälligen Hafensortiment (Gassenwissen). **Kauf und Verkauf nach Verhandeln** (Staffel wie Handeln: Kauf +20/+5/0/−10/−20 %, Verkauf 30/45/50/60/70 %), beschädigt je −10 um 25 % weniger.
+- **Schiffsmunition** (getrennt vom Bodenvorrat): Schiffsraketen 60 Cr, Geschosse 3 Cr, Kauf und Verkauf nach Verhandeln. Startvorrat 6 / 40. Strahlwaffen brauchen Energie im Kampf.
+- **Posten:** Steuer, Navigation, Schilde, Technik, Computer aus der Station in der Charakterübersicht; Geschützposten je bestücktem Slot im Maschinenraum (Crew ohne andere Station oder mit Station „Geschütze“, sonst Bord-KI). Verwundete ohne Einsatzfreigabe und Personal der Krankenstation: Bord-KI.
+- **Systemschäden A–E** (E = ausgefallen) bleiben nach dem Kampf. Außerhalb des Kampfes: Antrieb → Pilot, Sensoren → Navigation, Reaktor → Computer, **je Stufe −5 auf die Reiseprobe**; **Antrieb E = keine Reise**, **Lebenserhaltung E = Proviant doppelt**. Schilde, Slots und Stationen wirken nur im Kampf.
+- **Reparatur** von Systemen und beschädigten Schiffswaffen (Slot oder Lager): **Crew** überall, 1 Tag, 1 Schiffsmaterial, Reparaturprobe (Mittel, Station Technik, sonst der Beste): Patzer +1 Stufe bzw. −10 mehr, Fehlschlag/Teilerfolg nichts, Erfolg −1 Stufe bzw. −10 weg, Herausragend −2 Stufen bzw. −20 weg. **Werft** (nur im Hafen, sofort, nach Verhandeln): Systeme 50 Cr + 1 Material je Stufe, Waffen 10 % vom Kaufpreis je −10, ganz.
 
 **Lager und Handel** (`core/stock.gd`, Entscheidungen des Nutzers 16.10.2026): Das Schiff hat ein **Lager** mit Stückzahlen (Waffen, Rüstungen, Medikits; Munition bleibt im eigenen Vorrat). Zu Beginn leer – die Crew trägt ihre Ausrüstung. Im Hafen Reiter **„Handel …“**: Kaufen ins Lager, Verkaufen aus dem Lager zum **halben Preis** (auch Munition im Reiter „Raumhafen“).
 
@@ -555,7 +564,7 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 | Erfolg | −10 % | 60 % | −10 % | 75 % |
 | Herausragend | −20 % | 70 % | −20 % | 90 % |
 
-- **Handeln:** Waffen, Rüstungen, Munition, Medikits (Kauf und Verkauf). **Verhandeln:** Treibstoff, Werft-Reparatur, Schiffsmaterial, Ausbau in der Werft. **Gassenwissen:** Größe des Sortiments; mehr ergänzt das bisherige.
+- **Handeln:** Waffen, Rüstungen, Munition, Medikits (Kauf und Verkauf). **Verhandeln:** Treibstoff, Werft-Reparatur, Schiffsmaterial, Ausbau in der Werft, Schiffswaffen und Schiffsmunition (Kauf und Verkauf, Verkaufsanteil wie beim Handeln). **Gassenwissen:** Größe des Sortiments; mehr ergänzt das bisherige.
 
 Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
 

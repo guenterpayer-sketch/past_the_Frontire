@@ -37,6 +37,10 @@ func _ready() -> void:
 	ui.engine.changed.connect(_refresh)
 	ui.trade.changed.connect(_refresh)
 	ui.craft.changed.connect(_refresh)
+	ui.ship_arms.changed.connect(_refresh)
+	ui.ship_arms.day_passed.connect(func() -> void:
+		_after_days()
+		_training_toast())
 	ui.medbay.changed.connect(_refresh)
 	ui.loot_taken.connect(func(r: Dictionary) -> void:
 		_refresh()
@@ -107,7 +111,12 @@ func open_room(id: StringName) -> void:
 		&"galley":
 			ui.galley.show_galley(game)
 		&"hangar":
-			ui.engine.show_engine(game)
+			# Auswahl: Schiffsausbau, Waffenslots und Posten, Systemschäden (Raumkampf, ShipArms)
+			var n := ShipArms.damage_count(game)
+			ui.show_choice(r.name, "Schiff ausbauen, Schiffswaffen ein- und ausbauen, Geschützposten verteilen oder Schäden reparieren.", [
+				["Schiffsausbau", func() -> void: ui.engine.show_engine(game)],
+				["Waffenslots und Posten", func() -> void: ui.ship_arms.show_slots(game)],
+				["Systemschäden" + (" (%d)" % n if n > 0 else ""), func() -> void: ui.ship_arms.show_damage(game)]])
 		&"armory":
 			# Auswahl: Ausrüstungsdialog des Charakter-Moduls („Fertig“ speichert selbst) oder Werkstatt (Handwerk)
 			ui.show_choice(r.name, "Ausrüstung der Crew wechseln oder in der Werkstatt bauen, zerlegen und reparieren.", [
