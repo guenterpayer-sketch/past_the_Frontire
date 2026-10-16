@@ -1,7 +1,7 @@
 class_name TradeDialog
 extends Modal
 ## Raumhafen „Handel“: links das Sortiment des Hafens (kaufen ins Lager), rechts das Lager des Schiffs (verkaufen zum
-## halben Preis). Regeln und Preise: Stock.
+## halben Preis) und die Werkstatt für beschädigte Stücke (Mockup Bildschirm 28). Regeln und Preise: Stock.
 
 signal changed
 
@@ -38,14 +38,18 @@ func show_trade(g: HubState) -> void:
 	sell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sell.add_theme_constant_override("separation", 4)
 	cols.add_child(sell)
-	sell.add_child(UiTheme.label("LAGER DES SCHIFFS (VERKAUFEN %d %%)" % roundi(TradeSkills.sell_factor(g) * 100), 13, UiTheme.MUTED))
+	sell.add_child(UiTheme.label("LAGER DES SCHIFFS (VERKAUFEN %d %%) UND WERKSTATT" % roundi(TradeSkills.sell_factor(g) * 100), 13, UiTheme.MUTED))
 	var items := Stock.items(g)
 	if items.is_empty():
 		sell.add_child(UiTheme.label("Lager leer", 14, UiTheme.MUTED))
 	for it in items:
 		var key: String = it.key
-		sell.add_child(_row(it.name, "×%d" % it.count, _price(Stock.sell_price(key, g), Stock.sell_price(key), true), "Verkaufen", Stock.can_sell(g, key), func() -> void: Stock.sell(g, key)))
-	var note := UiTheme.label("Was die Crew trägt, gehört nicht zum Lager. Munition und Schiffsmaterial: Reiter „Raumhafen“.", 13, UiTheme.MUTED)
+		var row := _row(it.name, "×%d" % it.count, _price(Stock.sell_price(key, g), Stock.sell_price(key), true), "Verkaufen", Stock.can_sell(g, key), func() -> void: Stock.sell(g, key))
+		if int(it.damage) < 0:
+			var rc := Stock.repair_cost(g, key)
+			row.get_child(0).add_child(_button("Reparieren %d Cr" % rc, Stock.can_repair(g, key), func() -> void: Stock.repair(g, key)))
+		sell.add_child(row)
+	var note := UiTheme.label("Was die Crew trägt, gehört nicht zum Lager (erst in der Waffenkammer ablegen). Beschädigt: Verkauf je −10 um %d %% weniger; Werkstatt %d %% vom Kaufpreis je −10, nach Handeln, sofort und ganz. Munition und Schiffsmaterial: Reiter „Raumhafen“." % [roundi(Stock.SELL_DAMAGE_STEP * 100), roundi(Stock.REPAIR_SHARE * 100)], 13, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sell.add_child(note)
 	add_close()
@@ -112,6 +116,12 @@ func _row(name: String, count: String, price: String, action: String, ok: bool, 
 	var pl := UiTheme.label(price, 14, UiTheme.MUTED)
 	pl.custom_minimum_size.x = 70
 	row.add_child(pl)
+	row.add_child(_button(action, ok, act))
+	return p
+
+
+## Knopf, der handelt und den Dialog neu aufbaut
+func _button(action: String, ok: bool, act: Callable) -> Button:
 	var b := UiTheme.button(action)
 	b.disabled = not ok
 	b.custom_minimum_size.x = 100
@@ -120,5 +130,4 @@ func _row(name: String, count: String, price: String, action: String, ok: bool, 
 		Sfx.play(&"klick")
 		changed.emit()
 		show_trade(game))
-	row.add_child(b)
-	return p
+	return b

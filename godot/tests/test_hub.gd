@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_upgrades()
 	_test_stock()
 	_test_trade_skills()
+	_test_loot()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -735,6 +736,93 @@ func _test_trade_skills() -> void:
 	check(h.trade_rolls.has("handeln"), "Handelsproben im Spielstand")
 	TradeSkills.fixed = &"teilerfolg"
 	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+## Beuteauswahl, beschädigte Stücke im Lager, Werkstatt, Verkauf beschädigt (Entscheidungen 16.10.2026)
+func _test_loot() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(62, "Beute", 1)
+	HubState.game = g
+	var sg := "res://data/weapons/sturmgewehr.tres"
+	var lp := "res://data/weapons/laserpistole.tres"
+	var kp := "res://data/armor/mittel.tres"
+	# Lagerformat
+	var k20 := Stock.damaged_key(sg, -20)
+	check(k20 == sg + "|-20" and Stock.base_of(k20) == sg and Stock.damage_of(k20) == -20 and Stock.damage_of(sg) == 0, "Schlüssel mit Schaden")
+	check(Stock.damaged_key(sg, 0) == sg and Stock.damaged_key(k20, -10) == sg + "|-10" and Stock.damaged_key(sg, -50) == sg + "|-30", "intakt = Grundschlüssel, Schaden höchstens −30")
+	check(Stock.name_of(k20) == "Sturmgewehr (−20)" and Stock.name_of(Stock.damaged_key(kp, -30)) == "Kampfpanzer (mittel) (−30, unbrauchbar)", "Name mit Schaden")
+	check(Stock.price(k20) == 280, "Kaufpreis = intaktes Stück")
+	# Verkauf beschädigt: je −10 um 25 % weniger
+	check(Stock.sell_price(sg) == 140 and Stock.sell_price(Stock.damaged_key(sg, -10)) == 105 and Stock.sell_price(k20) == 70 and Stock.sell_price(Stock.damaged_key(sg, -30)) == 35, "Verkauf 140/105/70/35")
+	# Schrottwert: 15 %, −30 = 0
+	check(Stock.scrap_value(sg) == 42 and Stock.scrap_value(k20) == 42 and Stock.scrap_value(Stock.damaged_key(sg, -30)) == 0, "Schrott 42/42/0")
+	# Werkstatt: 10 % je −10, nach Handeln (Mockup: Erfolg)
+	g.position = g.nearest_harbor()
+	TradeSkills.fixed = &"erfolg"
+	check(Stock.repair_cost(g, k20) == 50 and Stock.repair_cost(g, Stock.damaged_key(lp, -10)) == 14 and Stock.repair_cost(g, Stock.damaged_key(kp, -30)) == 95 and Stock.repair_cost(g, sg) == 0, "Werkstatt 50/14/95 bei Erfolg")
+	check(Stock.sell_price(Stock.damaged_key(lp, -10), g) == 67 and Stock.sell_price(Stock.damaged_key(kp, -30), g) == 52, "Verkauf beschädigt nach Handeln 67/52")
+	TradeSkills.fixed = &"teilerfolg"
+	check(Stock.repair_cost(g, k20) == 56, "Werkstatt normal 56")
+	Stock.add(g, k20)
+	Stock.add(g, sg)
+	g.credits = 55
+	check(not Stock.can_repair(g, k20), "Werkstatt: zu wenig Credits")
+	g.credits = 100
+	check(not Stock.can_repair(g, sg), "intakt: nichts zu reparieren")
+	check(Stock.repair(g, k20) and g.credits == 44 and Stock.count(g, k20) == 0 and Stock.count(g, sg) == 2 and not g.stock.has(k20), "Reparieren: ganz, ins intakte Stück")
+	Stock.add(g, k20)
+	var it: Array = Stock.items(g).filter(func(x: Dictionary) -> bool: return x.key == k20)
+	check(it.size() == 1 and int(it[0].damage) == -20 and it[0].name == "Sturmgewehr (−20)", "Lagerliste mit Schaden")
+	var cr := g.credits
+	check(Stock.sell(g, k20) and g.credits == cr + 70, "beschädigt verkaufen")
+	Stock.add(g, k20)
+	var away := -1
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			away = i
+			break
+	g.position = away
+	g.credits = 1000
+	check(not Stock.can_repair(g, k20), "Werkstatt nur im Raumhafen")
+	g.stock = {}
+	# Beute aus dem MissionResult: Medikits sofort, Rest zur Auswahl, 1 Stück je Crewmitglied im Einsatz
+	var res := {"units": {"a": {}, "b": {}}, "loot": [
+		{"key": sg, "name": "Sturmgewehr", "damage": 0},
+		{"key": lp, "name": "Laserpistole", "damage": -10},
+		{"key": kp, "name": "Kampfpanzer (mittel)", "damage": -30},
+		{"key": Stock.MEDKIT, "name": "Medikit", "count": 2},
+		{"key": "res://data/weapons/raketenwerfer.tres", "name": "Raketenwerfer", "damage": -20}]}
+	check(g.set_loot(res) == 2 and Stock.count(g, Stock.MEDKIT) == 2, "Medikits gleich ins Lager")
+	check(g.loot_pending.slots == 2 and g.loot_pending.items.size() == 4 and Stock.damaged_key(lp, -10) in g.loot_pending.items, "offene Beute: 4 Stück, 2 Plätze")
+	check(g.loot_default() == [0, 3], "Vorauswahl: die wertvollsten (Sturmgewehr 140, Raketenwerfer −20 150)")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.loot_pending == g.loot_pending, "offene Beute im Spielstand")
+	cr = g.credits
+	var r := g.take_loot([0, 1, 2])
+	check(r.taken == 2 and r.scrapped == 2 and Stock.count(g, sg) == 1 and Stock.count(g, Stock.damaged_key(lp, -10)) == 1, "Auswahl: höchstens 2 ins Lager")
+	check(r.scrap == 0 + 90 and g.credits == cr + 90, "Rest als Schrott: Kampfpanzer −30 = 0, Raketenwerfer 90")
+	check(g.loot_pending.is_empty(), "Auswahl erledigt")
+	g.set_loot({"units": {"a": {}}, "loot": [{"key": Stock.MEDKIT, "name": "Medikit", "count": 1}]})
+	check(g.loot_pending.is_empty() and Stock.count(g, Stock.MEDKIT) == 3, "nur Medikits: keine Auswahl")
+	# Einsatzende im Schiff: Beute aus Campaign.last_result
+	g.active = g.offers[0]
+	Campaign.last_result = res
+	g.finish_mission({"outcome": &"sieg"})
+	check(g.report.payout.medkits == 2 and g.loot_pending.slots == 2, "finish_mission: Medikits im Bericht, Auswahl offen")
+	g.active = g.offers[0]
+	Campaign.last_result = res
+	cr = g.credits
+	var n := Stock.count(g, sg)
+	g.finish_mission({"outcome": &"sieg"})
+	check(Stock.count(g, sg) == n + 1 and g.loot_pending.items.size() == 4, "offene Auswahl wird vor neuer Beute mit Vorauswahl übernommen")
+	TradeSkills.fixed = &"teilerfolg"
+	HubState.game = null
+	Campaign.last_result = {}
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)

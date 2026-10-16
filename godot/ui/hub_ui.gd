@@ -5,6 +5,8 @@ extends Control
 ## über jedem Raum ein Namensschild. Dialoge: Sternenkarte, Crewquartiere, Charakterbogen, Spielstände, Bericht.
 
 signal action(name: StringName, arg: Variant)
+## Beuteauswahl abgeschlossen (HubState.take_loot), beim Schließen des Einsatzberichts
+signal loot_taken(result: Dictionary)
 
 const MARGIN := 14.0
 const MENU := [[&"encyclopedia", "Enzyklopädie"], [&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
@@ -138,7 +140,8 @@ func _ready() -> void:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = Vector2(640, 440)
-	report.max_size = Vector2(900, 540)
+	report.max_size = Vector2(900, 700)
+	report.visibility_changed.connect(_on_report_visibility)
 	crew.open_sheet.connect(func(c: Array[Character], u: Character) -> void:
 		var units := Roster.build_crew(c)
 		sheet.show_sheet(units, units[c.find(u)])
@@ -329,6 +332,7 @@ func show_report(rep: Dictionary) -> void:
 	for m in rep.get("upgrade", []):
 		report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
 	_payout(rep)
+	_loot(HubState.game)
 	var go := UiTheme.button("Zu den Crewquartieren")
 	go.add_theme_color_override("font_color", UiTheme.ACCENT)
 	go.pressed.connect(func() -> void:
@@ -366,9 +370,92 @@ func _payout(rep: Dictionary) -> void:
 	for t in p.get("ammo", {}):
 		g.add_child(UiTheme.label("Beute: %s" % Ammo.TYPES.get(StringName(t), t), 15))
 		g.add_child(UiTheme.label("+%d" % p.ammo[t], 15))
+	if int(p.get("medkits", 0)) > 0:
+		g.add_child(UiTheme.label("Beute: Medikits (ins Lager)", 15))
+		g.add_child(UiTheme.label("+%d" % p.medkits, 15))
 	g.add_child(UiTheme.label("Credits", 15, UiTheme.ACCENT))
 	g.add_child(UiTheme.label("%d → %d Cr" % [p.credits0, p.credits1], 15, UiTheme.ACCENT))
 	report.content.add_child(g)
+
+
+## Beuteauswahl nur zeigen (z. B. nach dem Laden eines Spielstands mit offener Beute)
+func show_loot(g: HubState) -> void:
+	report.open("Beute auswählen")
+	_loot(g)
+	report.add_close("Beute übernehmen")
+
+
+## gewählte Beute (Indizes in HubState.loot_pending.items); leer und _loot_open = false: keine Auswahl offen
+var _loot_picks: Array[int] = []
+var _loot_open := false
+
+
+## Abschnitt „Beute auswählen“: 1 Stück je Crewmitglied im Einsatz, Rest als Schrott (Mockup Bildschirm 27)
+func _loot(g: HubState) -> void:
+	_loot_open = false
+	if g == null or g.loot_pending.is_empty():
+		return
+	_loot_open = true
+	var items: Array = g.loot_pending.items
+	var slots := int(g.loot_pending.slots)
+	_loot_picks = g.loot_default()
+	var head := HBoxContainer.new()
+	var t := UiTheme.label("BEUTE AUSWÄHLEN", 13, UiTheme.MUTED)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(t)
+	var count := UiTheme.label("", 15)
+	head.add_child(count)
+	report.content.add_child(head)
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 14)
+	for h in ["", "Stück", "Zustand", "Schrottwert"]:
+		grid.add_child(UiTheme.label(h, 12, UiTheme.MUTED))
+	var boxes: Array[CheckBox] = []
+	var scrap := UiTheme.label("", 15, UiTheme.ACCENT)
+	var update := func() -> void:
+		var full := _loot_picks.size() >= slots
+		var sum := 0
+		for i in boxes.size():
+			boxes[i].set_pressed_no_signal(i in _loot_picks)
+			boxes[i].disabled = full and not i in _loot_picks
+			if not i in _loot_picks:
+				sum += Stock.scrap_value(items[i])
+		count.text = "Mitnehmen %d / %d (1 Stück je Crewmitglied im Einsatz)" % [_loot_picks.size(), slots]
+		scrap.text = "Nicht Mitgenommenes als Schrott verkauft (%d Stück): +%d Cr" % [items.size() - _loot_picks.size(), sum]
+	for i in items.size():
+		var key: String = items[i]
+		var d := Stock.damage_of(key)
+		var b := CheckBox.new()
+		b.toggled.connect(func(on: bool) -> void:
+			if on and not i in _loot_picks:
+				_loot_picks.append(i)
+			elif not on:
+				_loot_picks.erase(i)
+			Sfx.play(&"klick")
+			update.call())
+		boxes.append(b)
+		grid.add_child(b)
+		grid.add_child(UiTheme.label(Stock.name_of(Stock.base_of(key)), 15))
+		grid.add_child(UiTheme.label("intakt" if d == 0 else Stock.damage_text(d).strip_edges().trim_prefix("(").trim_suffix(")"), 15,
+			UiTheme.GOOD if d == 0 else (UiTheme.BAD if d <= Combatant.WEAR_BROKEN else Color("ff8a3d"))))
+		grid.add_child(UiTheme.label("%d Cr" % Stock.scrap_value(key), 15, UiTheme.MUTED))
+	report.content.add_child(grid)
+	report.content.add_child(scrap)
+	var note := UiTheme.label("Mitgenommenes kommt mit seinem Schaden ins Lager. Schrottwert %d %% vom Kaufpreis, unbrauchbar (−30) 0 Cr. Die Auswahl gilt beim Schließen des Berichts." % roundi(Stock.SCRAP_SHARE * 100), 13, UiTheme.MUTED)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	report.content.add_child(note)
+	update.call()
+
+
+## Bericht geschlossen (egal wie): offene Beuteauswahl übernehmen
+func _on_report_visibility() -> void:
+	if report.visible or not _loot_open:
+		return
+	_loot_open = false
+	var g := HubState.game
+	if g and not g.loot_pending.is_empty():
+		loot_taken.emit(g.take_loot(_loot_picks))
 
 
 ## Reisebericht nach jeder Reise: Proben je Tag, Treibstoff, Hülle, EP

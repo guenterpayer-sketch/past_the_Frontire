@@ -56,6 +56,9 @@ var last_upgrade: Array[String] = []
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
 var report := {}
+## Beute des letzten Einsatzes, noch nicht ausgewählt (Entscheidungen 16.10.2026): {items: [Lagerschlüssel mit Schaden],
+## slots: Stücke zum Mitnehmen = Crewmitglieder im Einsatz}; leer = nichts offen. Medikits gehen sofort ins Lager.
+var loot_pending := {}
 ## Schiff und Geld (Regeln: Voyage). Credits dürfen durch Notkredit negativ sein.
 var credits := Voyage.START_CREDITS
 var fuel := Voyage.TANK
@@ -267,6 +270,7 @@ func finish_mission(rep: Dictionary) -> void:
 				ammo[t] = int(ammo.get(t, 0)) + int(pay.ammo[t])
 			pay.credits1 = credits
 			pay.difficulty = String(active.difficulty)
+			pay.medkits = set_loot(Campaign.last_result)
 		rep.payout = pay
 	offers = offers.filter(func(o: Dictionary) -> bool: return o.id != active.get("id", -1))
 	active = {}
@@ -276,6 +280,55 @@ func finish_mission(rep: Dictionary) -> void:
 	rep.upgrade = last_upgrade.duplicate()
 	rep.day = day
 	report = rep
+
+
+## Beute aus dem MissionResult übernehmen: Medikits ins Lager (Anzahl zurück), Waffen/Rüstungen als offene Auswahl
+func set_loot(result: Dictionary) -> int:
+	if not loot_pending.is_empty():
+		take_loot(loot_default())
+	var items: Array = []
+	var medkits := 0
+	for l in result.get("loot", []):
+		if String(l.key) == Stock.MEDKIT:
+			medkits += int(l.get("count", 1))
+		elif String(l.key) != "" and String(l.key) != Equipment.SHIELD:
+			items.append(Stock.damaged_key(String(l.key), int(l.get("damage", 0))))
+	Stock.add(self, Stock.MEDKIT, medkits)
+	loot_pending = {} if items.is_empty() else {"items": items, "slots": result.get("units", {}).size()}
+	return medkits
+
+
+## Vorauswahl der Beute: die wertvollsten Stücke (Verkaufswert mit Schaden), höchstens slots
+func loot_default() -> Array[int]:
+	var items: Array = loot_pending.get("items", [])
+	var idx: Array[int] = []
+	for i in items.size():
+		idx.append(i)
+	idx.sort_custom(func(a: int, b: int) -> bool:
+		var va := Stock.sell_price(items[a])
+		var vb := Stock.sell_price(items[b])
+		return va > vb or (va == vb and a < b))
+	idx = idx.slice(0, int(loot_pending.get("slots", 0)))
+	idx.sort()
+	return idx
+
+
+## Beuteauswahl abschließen: gewählte Stücke (Indizes, höchstens slots) ins Lager, den Rest als Schrott verkaufen.
+## Rückgabe {taken, scrapped, scrap (Credits)}
+func take_loot(picks: Array) -> Dictionary:
+	var items: Array = loot_pending.get("items", [])
+	var slots := int(loot_pending.get("slots", 0))
+	var out := {"taken": 0, "scrapped": 0, "scrap": 0}
+	for i in items.size():
+		if i in picks and out.taken < slots:
+			Stock.add(self, items[i])
+			out.taken += 1
+		else:
+			out.scrapped += 1
+			out.scrap += Stock.scrap_value(items[i])
+	credits += int(out.scrap)
+	loot_pending = {}
+	return out
 
 
 ## Abgelaufene Aufträge streichen und auf OFFERS auffüllen (nur in Systemen mit Fraktion)
@@ -313,6 +366,7 @@ func to_dict() -> Dictionary:
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
 		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
+		"loot_pending": loot_pending.duplicate(true),
 		"trade_rolls": trade_rolls.duplicate(true)}
 
 
@@ -339,6 +393,9 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	for k in d.get("stock", {}):
 		g.stock[String(k)] = int(d.stock[k])
 	g.shop = d.get("shop", {}).duplicate(true)
+	var lp: Dictionary = d.get("loot_pending", {})
+	if not lp.is_empty():
+		g.loot_pending = {"items": lp.get("items", []).map(func(x) -> String: return String(x)), "slots": int(lp.get("slots", 0))}
 	g.trade_rolls = d.get("trade_rolls", {}).duplicate(true)
 	var pr: Dictionary = d.get("project", {})
 	if not pr.is_empty():

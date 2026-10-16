@@ -34,6 +34,10 @@ func _ready() -> void:
 	ui.star_map.bought.connect(_refresh)
 	ui.engine.changed.connect(_refresh)
 	ui.trade.changed.connect(_refresh)
+	ui.loot_taken.connect(func(r: Dictionary) -> void:
+		_refresh()
+		if int(r.taken) + int(r.scrapped) > 0:
+			ui.show_toast("Beute: %d Stück ins Lager, %d als Schrott (+%d Cr)" % [r.taken, r.scrapped, r.scrap]))
 	ui.star_map.trade.connect(func() -> void:
 		ui.trade.show_trade(game)
 		ui.trade.move_to_front())
@@ -63,6 +67,8 @@ func _ready() -> void:
 	if not game.report.is_empty():
 		ui.show_report(game.report)
 		game.report = {}
+	elif not game.loot_pending.is_empty():
+		ui.show_loot(game)
 	var args := OS.get_cmdline_user_args()
 	if "--autotest-hub" in args and not get_tree().root.has_node("HubAutotest"):
 		var t: Node = load("res://tests/autotest_hub.gd").new()
