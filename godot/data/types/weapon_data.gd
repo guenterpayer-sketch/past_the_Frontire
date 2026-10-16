@@ -33,6 +33,8 @@ extends Resource
 @export var splash: PackedInt32Array = PackedInt32Array()
 ## Psi-Punkte pro Einsatz
 @export var pp_cost := 0
+## Klang beim Angriff (Schlüssel aus SOUNDS); leer = aus den Werten abgeleitet (sound())
+@export var sound_id: StringName = &""
 ## Psi-Kraft, aus der die Waffe im Kampf erzeugt wurde (PsiCombat, z. B. "lAngriff/2"); leer = echte Waffe
 var power := ""
 ## Sonderwirkung der Kraft: "" Schaden, stun, push, disarm, lance, wave (siehe PsiCombat.ATTACKS)
@@ -54,7 +56,19 @@ func max_range_m() -> int:
 	return inc_m * stages
 
 
+## Wählbare Klänge (Ausrüstungs-Editor): Schlüssel → Name. Synthetisch erzeugt (Sfx) oder als Datei
+## res://audio/sfx/<Schlüssel>.ogg (Free Firearm Sound Library, CC0; siehe assets/LICENSES.md).
+const SOUNDS := {
+	&"laser": "Laser", &"gewehr": "Gewehr (synthetisch)", &"mg": "MG (synthetisch)", &"rakete": "Rakete",
+	&"nahkampf": "Nahkampf", &"psi": "Psi",
+	&"pistole": "Pistole", &"revolver": "Revolver", &"mp": "MP (Salve)", &"sturmgewehr": "Sturmgewehr (Salve)",
+	&"minigun": "Minigun", &"schrotflinte": "Schrotflinte", &"gewehr_schwer": "Schweres Gewehr",
+}
+
+
 func sound() -> StringName:
+	if sound_id != &"":
+		return sound_id
 	if psi:
 		return &"psi"
 	if melee:
@@ -63,6 +77,6 @@ func sound() -> StringName:
 		return &"rakete"
 	if table and table.id == &"strahl":
 		return &"laser"
-	if ob_bonus > 0:
+	if shots > 1:   # Feuerstoß (früher ob_bonus > 0; seit den Magazinen spielte das MG sonst den Gewehr-Klang)
 		return &"mg"
 	return &"gewehr"
