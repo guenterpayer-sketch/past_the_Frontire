@@ -2,7 +2,8 @@ class_name MissionResult
 extends RefCounted
 ## Was ein Kampfmodul (Bodenkampf, später Raumkampf) nach dem Einsatz an das Charakter-Modul zurückgibt.
 ## Reine Daten (Dictionary), damit jedes Kampfmodul dasselbe Format liefern kann:
-## {outcome: &"sieg"/&"niederlage", mission: Titel, rounds, reward_xp,
+## {outcome: &"sieg"/&"niederlage", retreated: true nur bei Rückzug der Crew (outcome bleibt dann &"niederlage"),
+##  mission: Titel, rounds, reward_xp,
 ##  units: {Figur-ID: {xp: {Fertigkeit: EP}, free_xp, kills,
 ##          status: {state: "ok"/"ko"/"sterbend"/"tot", hp, max_hp, bleed, malus},
 ##          worst_crit: ""/"A"–"E" (schwerster erlittener Kritischer),
@@ -43,6 +44,6 @@ static func from_combat(c: Combat, mission: Mission = null) -> Dictionary:
 			"wear": u.wear.duplicate(),
 			"lost": u.lost.duplicate(),
 		}
-	return {"outcome": c.result, "mission": mission.title if mission else "", "rounds": c.round_no,
+	return {"outcome": c.result, "retreated": c.retreated, "mission": mission.title if mission else "", "rounds": c.round_no,
 		"reward_xp": reward, "units": units, "ammo_used": Ammo.used(c.crew()),
 		"loot": c.loot.duplicate(true)}
