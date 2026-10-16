@@ -211,8 +211,8 @@ static func job_text(job: Dictionary) -> String:
 
 
 ## Ein Spieltag: Arbeiten laufen weiter, fertige werden gewürfelt; Meldungen zurück
-static func work_day(g: HubState) -> Array[String]:
-	var out: Array[String] = []
+static func work_day(g: HubState) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
 	for id in g.jobs.keys():
 		var job: Dictionary = g.jobs[id]
 		job.days = int(job.days) - 1
@@ -227,33 +227,40 @@ static func work_day(g: HubState) -> Array[String]:
 	return out
 
 
-static func _finish(g: HubState, c: Character, job: Dictionary) -> String:
+## Ergebnis einer Arbeit: {text, result ("" = keine Probe), name, skill, xp} (Reise-/Einsatzbericht, Meldung beim Warten)
+static func _finish(g: HubState, c: Character, job: Dictionary) -> Dictionary:
 	var key := String(job.key)
 	if c == null:
 		# Handwerker nicht mehr an Bord: Material und Stück zurück
 		g.craft_material += int(job.material)
 		if String(job.kind) != "build":
 			Stock.add(g, key)
-		return "%s: %s abgebrochen (nicht mehr an Bord), Material und Stück zurück" % [job.get("name", "?"), name_of(key)]
+		return {"text": "%s: %s abgebrochen (nicht mehr an Bord), Material und Stück zurück" % [job.get("name", "?"), name_of(key)],
+			"result": "", "name": String(job.get("name", "?")), "skill": "", "xp": 0}
 	var r := Voyage.check(c, skill_of(key), bonus(g, key) + Galley.malus(g), difficulty(key, String(job.kind)))
 	var res := StringName(r.result)
+	var e := {"result": String(res), "name": c.name, "skill": String(skill_of(key)), "xp": int(r.xp)}
 	var head := "%s %s: %s (%d)" % [c.name, {"build": "baut " + name_of(key), "take": "zerlegt " + name_of(key),
 		"repair": "repariert " + name_of(key)}[String(job.kind)], r.result_name, int(r.total)]
 	match String(job.kind):
 		"build":
 			if res == &"patzer":
-				return head + " → Material weg"
+				e.text = head + " → Material weg"
+				return e
 			if is_ammo(key):
 				var t := key.trim_prefix(AMMO_PREFIX)
 				g.ammo[t] = int(g.ammo.get(t, 0)) + int(AMMO_BATCH[t])
-				return head + " → +%d Schuss" % AMMO_BATCH[t]
+				e.text = head + " → +%d Schuss" % AMMO_BATCH[t]
+				return e
 			var out_key := key if key == Stock.MEDKIT else Stock.damaged_key(key, int(BUILD_WEAR[res]))
 			Stock.add(g, out_key)
-			return head + " → %s ins Lager" % Stock.name_of(out_key)
+			e.text = head + " → %s ins Lager" % Stock.name_of(out_key)
+			return e
 		"take":
 			var m := take_material(key, res)
 			g.craft_material += m
-			return head + " → +%d Material" % m
+			e.text = head + " → +%d Material" % m
+			return e
 		_:
 			var d := Stock.damage_of(key)
 			match res:
@@ -267,7 +274,8 @@ static func _finish(g: HubState, c: Character, job: Dictionary) -> String:
 				g.craft_material += int(job.material)
 			var back := Stock.damaged_key(key, d)
 			Stock.add(g, back)
-			return head + " → %s ins Lager%s" % [Stock.name_of(back), " · Material zurück" if res == &"herausragend" else ""]
+			e.text = head + " → %s ins Lager%s" % [Stock.name_of(back), " · Material zurück" if res == &"herausragend" else ""]
+			return e
 
 
 # ---------------------------------------------------------------- Raumhafen

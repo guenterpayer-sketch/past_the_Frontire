@@ -91,33 +91,38 @@ static func start_crew(g: HubState, id: StringName) -> bool:
 	return true
 
 
-## Ein Tag Arbeit am Crew-Ausbau (aus HubState.advance_days). Gibt eine Meldung zurück ("" = nichts zu melden).
+## Ein Tag Arbeit am Crew-Ausbau (aus HubState.advance_days). Gibt eine Meldung zurück ({} = nichts zu melden):
+## {text, result ("" = keine Probe), name, skill, xp} wie Crafting.work_day.
 ## Am letzten Tag Reparaturprobe: Erfolg fertig, Teilerfolg +1 Tag, Fehlschlag/Patzer 1 Material weg und +1 Tag.
-static func work_day(g: HubState) -> String:
+static func work_day(g: HubState) -> Dictionary:
 	if not busy(g):
-		return ""
+		return {}
 	g.project.days = int(g.project.days) - 1
 	if int(g.project.days) > 0:
-		return ""
+		return {}
 	var id := StringName(g.project.id)
 	var who := Voyage.repairer(g)
 	if who == null:
 		g.project.days = 1
-		return "%s: niemand für die Reparaturprobe verfügbar, 1 Tag länger" % AREAS[id].name
+		return {"text": "%s: niemand für die Reparaturprobe verfügbar, 1 Tag länger" % AREAS[id].name, "result": "", "name": "", "skill": "", "xp": 0}
 	var r := Voyage.check(who, SKILL, Galley.malus(g))
+	var e := {"result": String(r.result), "name": who.name, "skill": String(SKILL), "xp": int(r.xp)}
 	var head := "%s Stufe %d: %s, Reparatur %s %s = %d %s" % [AREAS[id].name, level(g, id) + 1, who.name,
 		Dice.format_roll(r.roll), Dice.fmt(r.bonus), r.total, r.result_name]
 	if Rules.is_success(Rules.maneuver_result(r.total)):
 		_raise(g, id)
 		g.project = {}
-		return head + " → fertig"
+		e.text = head + " → fertig"
+		return e
 	g.project.days = 1
 	if r.result == &"teilerfolg":
-		return head + " → 1 Tag länger"
-	if g.material > 0:
+		e.text = head + " → 1 Tag länger"
+	elif g.material > 0:
 		g.material -= 1
-		return head + " → 1 Material verloren, 1 Tag länger"
-	return head + " → 1 Tag länger"
+		e.text = head + " → 1 Material verloren, 1 Tag länger"
+	else:
+		e.text = head + " → 1 Tag länger"
+	return e
 
 
 ## Stufe erhöhen und abhängige Werte nachziehen (Plätze; Tank und Hülle bleiben, Maximum steigt)

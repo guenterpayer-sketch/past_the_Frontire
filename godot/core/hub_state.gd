@@ -51,12 +51,12 @@ var trade_rolls := {}
 var shop := {}
 var project := {}
 ## Meldungen des Crew-Ausbaus beim letzten Tageswechsel
-var last_upgrade: Array[String] = []
+var last_upgrade: Array[Dictionary] = []
 ## Handwerk (Crafting): Handwerksmaterial, laufende Arbeiten {Figur-ID: {kind, key, days, material, name}},
 ## Meldungen fertiger Arbeiten beim letzten Tageswechsel
 var craft_material := 0
 var jobs := {}
-var last_crafts: Array[String] = []
+var last_crafts: Array[Dictionary] = []
 ## Kombüse (Galley): Proviant, Koch (Character-ID, "" = keiner), letzte Kochproben (neueste zuerst),
 ## Kochproben beim letzten Tageswechsel (für Reise- und Einsatzbericht)
 var provisions := Galley.START
@@ -130,7 +130,7 @@ func advance_days(n: int, traveling := false) -> void:
 	last_cook = []
 	for i in n:
 		var msg := ShipUpgrades.work_day(self)
-		if msg != "":
+		if not msg.is_empty():
 			last_upgrade.append(msg)
 		last_crafts.append_array(Crafting.work_day(self))
 		var d := day + i + 1

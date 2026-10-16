@@ -887,6 +887,8 @@ func _test_crafting() -> void:
 		g.advance_days(2)
 		var want := Stock.damaged_key(sg, int(Crafting.BUILD_WEAR[res]))
 		check(Stock.count(g, want) == 1 and g.jobs.is_empty() and g.last_crafts.size() == 1, "Bauen %s → %s" % [res, Stock.name_of(want)])
+		check(g.last_crafts[0].result == String(res) and String(g.last_crafts[0].text) != "" and g.last_crafts[0].has("xp")
+			and g.last_crafts[0].skill != "", "Meldung %s mit Ergebnis, Fertigkeit, EP" % res)
 	g.stock = {}
 	g.craft_material = 100
 	Crafting.build(g, c, sg)
@@ -941,7 +943,7 @@ func _test_crafting() -> void:
 	g.jobs = {"niemand": {"kind": "build", "key": lp, "days": 1, "material": 8, "name": "X"}}
 	m0 = g.craft_material
 	g.advance_days(1)
-	check(g.craft_material == m0 + 8 and g.last_crafts[0].contains("abgebrochen"), "abgebrochen: Material zurück")
+	check(g.craft_material == m0 + 8 and String(g.last_crafts[0].text).contains("abgebrochen"), "abgebrochen: Material zurück")
 	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
