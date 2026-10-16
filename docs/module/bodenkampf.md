@@ -96,7 +96,7 @@ Das Charakter-Modul baut eine gemeinsame Anzeige der Psi-Listen (siehe `docs/mod
 1. Im Kampfmenü **„Tabellen“** (`ui/tables_dialog.gd`) neben den Waffen auch die Psi-Listen (Wunsch des Nutzers).
 2. **Tooltip** im Aktionsfeld beim Auswählen einer Psi-Kraft: Wirkung, Kosten, Probe.
 Keine eigene Liste der Wirkungstexte anlegen; Daten aus `PsiLists`.
-- **Erledigt (15.10.2026):** Im Dialog „Tabellen“ Knopf „Psi-Listen …“ → `PsiListView.open_for(figur)` (Figur am Zug, wenn Crew mit Psi-Listen, sonst nur die Listen; `BattleUI.psi_lists`, `TablesDialog.show_tables(waffe, figur)`, Esc schließt zuerst die Übersicht). Tooltip jeder Psi-Kraft in der Seitenleiste (Abschnitt Psi und Psi-Angriffe im Abschnitt Waffe): `ActionPanel.psi_tip(liste, stufe)` mit Wirkung, Ziel (`PsiLists.target`), Kosten (Stufe PP, Aktivität) und Probe; bei fehlendem Rang „Ab Rang N“. Daten nur aus `PsiLists`/`PsiCombat`. Tests: `test_rules`, `test_hub` OK; gezielter Screenshot Tabellen → Psi-Listen.
+- **Erledigt (15.10.2026, seit 16.10. durch die Enzyklopädie ersetzt):** Im Dialog „Tabellen“ Knopf „Psi-Listen …“ → `PsiListView.open_for(figur)` (Figur am Zug, wenn Crew mit Psi-Listen, sonst nur die Listen; `BattleUI.psi_lists`, `TablesDialog.show_tables(waffe, figur)`, Esc schließt zuerst die Übersicht). Tooltip jeder Psi-Kraft in der Seitenleiste (Abschnitt Psi und Psi-Angriffe im Abschnitt Waffe): `ActionPanel.psi_tip(liste, stufe)` mit Wirkung, Ziel (`PsiLists.target`), Kosten (Stufe PP, Aktivität) und Probe; bei fehlendem Rang „Ab Rang N“. Daten nur aus `PsiLists`/`PsiCombat`. Tests: `test_rules`, `test_hub` OK; gezielter Screenshot Tabellen → Psi-Listen.
 
 ## Aufträge vom Koordinator (15.10.2026): eigene Waffen
 
@@ -131,7 +131,9 @@ Grundlage: `docs/Planung_Waffenmodelle_Klaenge.md` (Entscheidungen des Nutzers).
 ## Hinweis vom Koordinator (16.10.2026): Enzyklopädie
 
 Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.
+- **Erledigt (16.10.2026):** Knopf „Tabellen“ → `BattleUI.show_encyclopedia(gewählte Waffe)` = `Encyclopedia.show_on(ui, &"waffen", w.name)` (Psi-Angriffskraft → `&"psi"` mit ihrer Liste); Kampfmenü neuer Eintrag „Enzyklopädie …“ (`&"encyclopedia"`, Bereich Waffen); Esc/„Schließen“ über `BattleUI.close_dialogs()`. `TablesDialog` (`ui/tables_dialog.gd`) entfernt, damit auch der Knopf „Psi-Listen …“ und `BattleUI.tables`/`psi_lists` (die Psi-Listen stehen jetzt in der Enzyklopädie, ohne Rang der Figur). Autotest: `06_tabellen.png` zeigt jetzt die Enzyklopädie.
 
 ## Aufträge vom Koordinator (16.10.2026): Standardwaffen mit neuen Modellen und Klängen
 
 Wunsch des Nutzers: Die mitgelieferten Waffen (`data/weapons/*.tres`) bekommen passende **Modelle aus `WeaponModels`** und einen **`sound_id`**. Nur Modell, Länge, Griff, Zweihändigkeit und Klang ändern – die **Spielwerte bleiben** (Standardwaffen bleiben feste Vorlagen). Vorschlag je Waffe (Modell + Klang) dem Nutzer vorlegen, nach Bestätigung eintragen. Zusammen mit dem Auftrag Enzyklopädie oder davor, Reihenfolge mit dem Nutzer.
+- **Erledigt (16.10.2026), Entscheidungen des Nutzers:** Laserpistole → Blaster B, Klang Laser; Laserkarabiner → Blaster D, Laser; Sturmgewehr → Sturmgewehr B (`guns/assault_rifle_2`), Klang „Gewehr (synthetisch)“ (Einzelschuss); Schweres MG → Modell wie bisher, Klang **Minigun**; Energiehammer → Kriegshammer, Nahkampf; Vibroklinge und Raketenwerfer bleiben wie bisher. Spielwerte unverändert. Nebenbei behoben: Drehung der Nahkampf-Hüllen (`assets/weapons/melee/*.tscn`) – Klinge zeigte zur Hand statt nach außen.

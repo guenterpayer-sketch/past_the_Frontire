@@ -879,8 +879,14 @@ func _test_models_sounds() -> void:
 	check(w.model != null and is_equal_approx(w.length_m, 0.95) and not w.two_handed, "Katalog-Eintrag auf Waffe übertragen")
 	for k in [&"pistole", &"revolver", &"mp", &"sturmgewehr", &"minigun", &"schrotflinte", &"gewehr_schwer"]:
 		check(ResourceLoader.exists("res://audio/sfx/%s.ogg" % k) and WeaponData.SOUNDS.has(k), "Klangdatei %s" % k)
-	var mg: WeaponData = load("res://data/weapons/mg.tres")
-	check(mg.sound() == &"mg", "MG spielt wieder den MG-Klang")
+	var mg: WeaponData = load("res://data/weapons/mg.tres").duplicate()
+	check(mg.sound() == &"minigun", "MG: Klang Minigun (Entscheidung des Nutzers)")
+	mg.sound_id = &""
+	check(mg.sound() == &"mg", "ohne eigenen Klang: Feuerstoß-Waffe spielt den MG-Klang")
+	var std := {&"laserpistole": "blaster-b", &"laserkarabiner": "blaster-d", &"sturmgewehr": "assault_rifle_2", &"energiehammer": "hammer_double"}
+	for wid in std:
+		var sw: WeaponData = load("res://data/weapons/%s.tres" % wid)
+		check(sw.model != null and std[wid] in sw.model.resource_path and sw.sound_id != &"", "Standardwaffe %s: neues Modell und Klang" % wid)
 	var lp: WeaponData = load("res://data/weapons/laserpistole.tres").duplicate()
 	lp.sound_id = &"revolver"
 	check(lp.sound() == &"revolver", "Klang je Waffe wählbar")

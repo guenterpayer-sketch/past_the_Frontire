@@ -5,7 +5,7 @@ extends PanelContainer
 
 signal action(name: StringName, arg: Variant)
 
-const MENU := [[&"new", "Neue Mission"], [&"grid", "Hexraster ein/aus (G)"], [&"range", "Reichweite zeigen (R)"], [&"ui_scale", "UI-Größe …"], [&"help", "Bedienung"]]
+const MENU := [[&"new", "Neue Mission"], [&"grid", "Hexraster ein/aus (G)"], [&"range", "Reichweite zeigen (R)"], [&"ui_scale", "UI-Größe …"], [&"encyclopedia", "Enzyklopädie …"], [&"help", "Bedienung"]]
 ## Seitenlänge der Symbolknöpfe (kompakte Kampf-UI)
 const ICON := 36.0
 
@@ -32,7 +32,7 @@ func _ready() -> void:
 	col.add_child(round_label)
 	col.add_child(mission_label)
 	row.add_child(col)
-	for spec in [[&"sheet", &"person", "Charakterbogen", false], [&"tables", &"table", "Tabellen", false],
+	for spec in [[&"sheet", &"person", "Charakterbogen", false], [&"tables", &"table", "Tabellen (Enzyklopädie bei der gewählten Waffe)", false],
 			[&"auto", &"chip", "KI für Crew (zuschauen)", true], [&"sound", &"speaker", "Ton an/aus", true],
 			[&"dice", &"dice", "Würfelanimation an/aus (2 W10: rot = Zehner, weiß = Einer)", true]]:
 		var b := IconButton.new(spec[1], spec[2], spec[3], ICON)
