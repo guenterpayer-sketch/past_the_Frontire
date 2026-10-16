@@ -2,10 +2,12 @@ class_name TradeDialog
 extends Modal
 ## Raumhafen „Handel“: links das Sortiment des Hafens (kaufen ins Lager), rechts das Lager des Schiffs (verkaufen zum
 ## halben Preis) und die Werkstatt für beschädigte Stücke (Mockup Bildschirm 28). Regeln und Preise: Stock.
+## Reiter „Schiff“ (Mockup Bildschirm 35): Schiffswaffen im Sortiment und im Lager, Schiffsmunition, nach Verhandeln (ShipArms).
 
 signal changed
 
 var game: HubState
+var _tab := 0                 # 0 = Ausrüstung, 1 = Schiff
 
 
 func show_trade(g: HubState) -> void:
@@ -20,6 +22,20 @@ func show_trade(g: HubState) -> void:
 	line.color = UiTheme.LINE
 	line.custom_minimum_size.y = 1
 	content.add_child(line)
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 8)
+	content.add_child(tabs)
+	for i in 2:
+		var t := UiTheme.button(["Ausrüstung", "Schiff"][i], "", true)
+		t.button_pressed = i == _tab
+		t.pressed.connect(func() -> void:
+			_tab = i
+			show_trade(game))
+		tabs.add_child(t)
+	if _tab == 1:
+		_render_ship(g)
+		add_close()
+		return
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 20)
 	content.add_child(cols)
@@ -69,7 +85,7 @@ func _skill_row(sk: StringName) -> Control:
 	p.add_child(row)
 	var name := UiTheme.label(Rules.skill_name(sk), 15)
 	name.custom_minimum_size.x = 130
-	name.tooltip_text = {&"handeln": "Waffen, Rüstungen, Munition, Medikits: Kauf und Verkauf", &"verhandeln": "Treibstoff, Werft, Schiffsmaterial, Werft-Ausbau",
+	name.tooltip_text = {&"handeln": "Waffen, Rüstungen, Munition, Medikits: Kauf und Verkauf", &"verhandeln": "Treibstoff, Werft, Schiffsmaterial, Werft-Ausbau, Schiffswaffen und Schiffsmunition (Kauf und Verkauf)",
 		&"gassenwissen": "Größe des Sortiments"}[sk]
 	name.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_child(name)
@@ -131,3 +147,57 @@ func _button(action: String, ok: bool, act: Callable) -> Button:
 		changed.emit()
 		show_trade(game))
 	return b
+
+
+# ---------------------------------------------------------------- Reiter „Schiff“
+
+func _render_ship(g: HubState) -> void:
+	var cols := HBoxContainer.new()
+	cols.add_theme_constant_override("separation", 20)
+	content.add_child(cols)
+	var buy := _col(cols)
+	buy.add_child(UiTheme.label("SCHIFFSWAFFEN IM SORTIMENT (%d %%, NACH GASSENWISSEN)" % roundi(TradeSkills.shop_share(g) * 100), 13, UiTheme.MUTED))
+	for key in ShipArms.shop(g, g.position):
+		buy.add_child(_row("%s · %s" % [ShipArms.name(key), ShipArms.kind(key)], "", _price(ShipArms.buy_price(g, key), ShipArms.price(key), false),
+			"Kaufen", ShipArms.can_buy(g, key), func() -> void: ShipArms.buy(g, key)))
+	buy.add_child(UiTheme.label("SCHIFFSMUNITION (KAUF NACH VERHANDELN)", 13, UiTheme.MUTED))
+	for t in ShipArms.AMMO_NAMES:
+		var p := _row("%s · Vorrat %d" % [ShipArms.AMMO_NAMES[t], int(g.ship_ammo.get(t, 0))], "", "%d Cr" % ShipArms.ammo_price(g, t),
+			"+%d" % ShipArms.AMMO_PACKS[t][0], ShipArms.can_buy_ammo(g, t, ShipArms.AMMO_PACKS[t][0]),
+			func() -> void: ShipArms.buy_ammo(g, t, ShipArms.AMMO_PACKS[t][0]))
+		var n2: int = ShipArms.AMMO_PACKS[t][1]
+		p.get_child(0).add_child(_button("+%d" % n2, ShipArms.can_buy_ammo(g, t, n2), func() -> void: ShipArms.buy_ammo(g, t, n2)))
+		buy.add_child(p)
+	var sep := ColorRect.new()
+	sep.color = UiTheme.LINE
+	sep.custom_minimum_size.x = 1
+	cols.add_child(sep)
+	var sell := _col(cols)
+	sell.add_child(UiTheme.label("LAGER: SCHIFFSWAFFEN, NICHT EINGEBAUT (VERKAUFEN %d %%)" % roundi(TradeSkills.ship_sell_factor(g) * 100), 13, UiTheme.MUTED))
+	var items := ShipArms.stock_items(g)
+	if items.is_empty():
+		sell.add_child(UiTheme.label("keine", 14, UiTheme.MUTED))
+	for it in items:
+		var key: String = it.key
+		sell.add_child(_row(it.name, "×%d" % it.count, "%d Cr" % ShipArms.sell_price(g, key), "Verkaufen", ShipArms.can_sell(g, key),
+			func() -> void: ShipArms.sell(g, key)))
+	sell.add_child(UiTheme.label("SCHIFFSMUNITION VERKAUFEN", 13, UiTheme.MUTED))
+	for t in ShipArms.AMMO_NAMES:
+		var n1: int = ShipArms.AMMO_PACKS[t][0]
+		var n2: int = ShipArms.AMMO_PACKS[t][1]
+		var p := _row(ShipArms.AMMO_NAMES[t], "", "%d Cr" % ShipArms.ammo_sell(g, t, n1), "−%d" % n1, ShipArms.can_sell_ammo(g, t, n1),
+			func() -> void: ShipArms.sell_ammo(g, t, n1))
+		p.get_child(0).add_child(_button("−%d" % n2, ShipArms.can_sell_ammo(g, t, n2), func() -> void: ShipArms.sell_ammo(g, t, n2)))
+		sell.add_child(p)
+	var note := UiTheme.label("Preise der Schiffswaffen: Platzhalter, bis der Raumkampf seinen Katalog liefert. Kauf und Verkauf nach Verhandeln, beschädigt je −10 um %d %% weniger. Gekaufte Waffen gehen ins Lager, Einbau im Maschinenraum (nur im Hafen). Schiffsraketen %d Cr, Geschosse %d Cr." % [
+		roundi(ShipArms.SELL_DAMAGE_STEP * 100), ShipArms.AMMO_PRICE.schiffsraketen, ShipArms.AMMO_PRICE.geschosse], 13, UiTheme.MUTED)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(note)
+
+
+func _col(parent: Control) -> VBoxContainer:
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 4)
+	parent.add_child(v)
+	return v

@@ -67,6 +67,11 @@ static func ship_factor(g: HubState) -> float:
 	return BUY[result(g, &"verhandeln")]
 
 
+## Verkauf von Schiffswaffen und Schiffsmunition: Anteil wie beim Handeln, aber nach Verhandeln (Entscheidung 16.10.2026)
+static func ship_sell_factor(g: HubState) -> float:
+	return SELL[result(g, &"verhandeln")]
+
+
 static func shop_share(g: HubState) -> float:
 	return SHARE[result(g, &"gassenwissen")]
 
@@ -81,7 +86,7 @@ static func effect_text(skill: StringName, res: StringName) -> String:
 		&"handeln":
 			return "Kauf %s, Verkauf %d %%" % [_pct(BUY[res]), roundi(SELL[res] * 100)]
 		&"verhandeln":
-			return "Schiffspreise %s" % _pct(BUY[res])
+			return "Schiffspreise %s, Verkauf Schiff %d %%" % [_pct(BUY[res]), roundi(SELL[res] * 100)]
 		_:
 			return "Sortiment %d %%" % roundi(SHARE[res] * 100)
 
