@@ -31,7 +31,7 @@
 
 ## Stand
 
-- Bis 16.10.2026 alles in `main`, zuletzt **Anbindung Raumkampf Teil 1** (`bd2f56f`): `ShipArms` (`core/ship_arms.gd`, Übergangskatalog bis `ShipWeapons` da ist, Waffenslots, Schiffswaffen-Lager `HubState.ship_stock`, Geschützposten `gun_posts`, Systemschäden A–E mit Wirkung auf Reiseproben, Reparatur Crew/Werft, Handel „Schiff“, `ShipArms.setup(g, enemy, source, mission, return_scene)` als Eingang für `SpaceBattle.start()`), `ShipUpgrades` mit `shields`, `armor`, `reactor`, `slots`, `ShipArmsDialog` im Maschinenraum. Entscheidungen und Details im Archiv (Nachtrag am Ende).
+- Bis 16.10.2026 alles in `main`, zuletzt **Anbindung Raumkampf Teil 1** (`bd2f56f`): `ShipArms` (`core/ship_arms.gd`, Übergangskatalog bis `ShipWeapons` da ist, Waffenslots, Schiffswaffen-Lager `HubState.ship_stock`, Geschützposten `gun_posts`, Systemschäden A–E mit Wirkung auf Reiseproben, Reparatur Crew/Werft, Handel „Schiff“, `ShipArms.setup(g, enemy, source, mission, return_scene)` als Eingang für `SpaceBattle.start()`), `ShipUpgrades` mit `shields`, `armor`, `reactor`, `slots`, `ShipArmsDialog` im Maschinenraum. Danach (`6dd6178`): Raumhafen in eigenen Fenstern (Sternenkarte im Hafen: Schiffshändler, Händler, Werft mit Reitern Reparatur/Ausbau/Waffenslots, Crew anheuern; `PortDialog`, `ShipArmsDialog.show_yard()`), Maschinenraum nur Crew-Arbeit, Proviant nach Verhandeln. Entscheidungen und Details im Archiv (Nachträge am Ende).
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator
@@ -42,14 +42,5 @@ Erst beginnen, wenn der Code des Raumkampfs (`SpaceBattle`, `SpaceSetup`, `ShipW
 - Vier Auslöser: Reiseereignis (Häufigkeit klären), eigene Auftragsart, Raumkampf vor einem Bodeneinsatz, Schnellkampf-Knopf im Startmenü (`SpaceSetup.quick()`).
 - Auswertung über `SpaceBattle.take_result()`: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Flucht (Auftrag bleibt offen), Kapitulation/Lösegeld, Beute ins Lager, Einsatzbericht. **Nicht** selbst `Campaign.finish_mission()` aufrufen (macht der Raumkampf).
 - Entern → Bodenkampf in der Lagerhalle; **Notfall-Regel** ist noch nirgends festgelegt (mit dem Nutzer klären).
+- **Zuerst:** `origin/claude/raumkampf-modul` (`93b12b0`) in den Branch holen. Probe des Koordinators: `test_hub` hat mit dem Raumkampf-Code 4 Fehler (Übergangskatalog, Verkauf, Verhandeln, Werft), weil `ShipWeapons` andere Preise hat (z. B. Laserbank 900 statt 800). Gültig sind die Preise aus `ShipWeapons` (gehört dem Raumkampf); Tests anpassen. Der Raumkampf wird erst mit diesem Stand in `main` zusammengeführt.
 - Übergangskatalog in `ShipArms` entfernen bzw. nur noch `ShipWeapons` lesen, sobald es ihn gibt.
-
-## Fertigmeldung Raumhafen in eigenen Fenstern (Hub-Chat, 16.10.2026)
-
-Auslöser: Spieltest des Nutzers (Raumhafen-Spalte in der Sternenkarte schnitt rechts ab). Entscheidungen des Nutzers (Auswahl-Buttons, Mockup „Schiff-Hub Mockup“ Bildschirme 36–39 bestätigt):
-- Im Hafen rechts in der Sternenkarte (= Navigation mit Aufträgen) **vier Knöpfe**, jeder öffnet ein eigenes Fenster: **Schiffshändler** (Treibstoff, Schiffsmaterial, **Proviant**, Schiffsmunition, Schiffswaffen; Proben Verhandeln + Gassenwissen), **Händler** (Ausrüstung der Crew, Lager, Werkstatt, Bodenmunition, Handwerksmaterial; Proben Handeln + Gassenwissen), **Werft** (große Reparatur, Ausbau gegen Credits, Systemschäden und Waffen reparieren, Schiffswaffen einbauen), **Crew anheuern**.
-- **Maschinenraum nur noch Crew-Arbeit** (Crew-Ausbau, Crew-Reparatur, Geschützposten, Anzeige der Slots); alles gegen Credits nur in der Werft.
-- **Proviant nach Verhandeln** (vorher Handeln).
-- Gebaut: `PortDialog` (`ui/port_dialog.gd`: Schiffshändler, Crew anheuern), `TradeDialog` = Händler (`TradeDialog.skill_row()` statisch, auch im Schiffshändler), `ShipArmsDialog.show_yard()` = Werft, `EngineDialog` ohne Werft-Spalte, `StarMap` mit Signal `port(kind)` statt `trade`/`bought`/`hired` (Raumhafen-Reiter und Anheuern-Liste entfernt), `Galley.price` nach Verhandeln. Keine Schnittstellenänderung für andere Module.
-- Tests: `test_rules` OK, `test_hub` OK, `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (neue Screenshots `h1a1_schiffshaendler`, `h1f3_werft`; „Button nicht gefunden: Fertig“ kommt auch in `main` vor, nicht von dieser Änderung).
-- Nachtrag (Wunsch des Nutzers, Mockup Bildschirm 40 bestätigt): **Werft mit drei Reitern** „Reparatur“ (Hülle, Systemschäden, beschädigte Schiffswaffen) | „Ausbau“ | „Waffenslots“; der zuletzt gewählte Reiter bleibt beim nächsten Öffnen. Tests: `test_rules`, `test_hub` OK, `--autotest-hub` durchgelaufen (Screenshots `h1f3_werft`, `h1f4_werft_ausbau`, `h1f5_werft_waffenslots`).
