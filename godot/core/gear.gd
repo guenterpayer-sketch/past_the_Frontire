@@ -125,15 +125,13 @@ static func tables() -> Array[AttackTableData]:
 	return out
 
 
-## Modelle der mitgelieferten Waffen: [{model, name, from (Waffe mit Länge und Griff)}]
-static func models() -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	var seen := {}
-	for w in base_weapons():
-		if w.model and not seen.has(w.model.resource_path):
-			seen[w.model.resource_path] = true
-			out.append({"model": w.model, "name": w.name, "from": w})
-	return out
+## Klang, der ohne Auswahl gilt (WeaponData.sound() mit leerem sound_id)
+static func auto_sound(w: WeaponData) -> StringName:
+	var keep := w.sound_id
+	w.sound_id = &""
+	var s := w.sound()
+	w.sound_id = keep
+	return s
 
 
 ## Neuer Entwurf aus einer Vorlage (noch nicht gespeichert); alle Fraktionen vorbelegt, Gegner aus

@@ -22,6 +22,7 @@ func _init() -> void:
 	_test_gear()
 	_test_ammo()
 	_test_encyclopedia()
+	_test_gear_models()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -509,3 +510,24 @@ func _test_encyclopedia() -> void:
 	check(Encyclopedia.md_to_bb("| a | b |\n|---|---|\n| 1 | 2 |").begins_with("[table=2]"), "Markdown-Tabelle")
 	check(Encyclopedia._plain("[b]Deckung[/b] x").to_lower().contains("deckung"), "Suche im Klartext")
 	e.free()
+
+
+func _test_gear_models() -> void:
+	Gear.dir = "user://gear_test_models"
+	_rm_tree(Gear.dir)
+	var w := Gear.from_template(load("res://data/weapons/laserpistole.tres")) as WeaponData
+	var guns := WeaponModels.all().filter(func(m: Dictionary) -> bool: return not m.melee)
+	var melee := WeaponModels.all().filter(func(m: Dictionary) -> bool: return m.melee)
+	check(guns.size() > 5 and melee.size() > 5, "Katalog: Schusswaffen %d, Nahkampf %d" % [guns.size(), melee.size()])
+	var rev: Dictionary = guns.filter(func(m: Dictionary) -> bool: return m.name == "Revolver A")[0]
+	WeaponModels.apply(w, rev)
+	w.sound_id = rev.sound
+	check(w.model.resource_path == rev.model and not w.two_handed and w.sound() == &"revolver", "Modell und Klang aus dem Katalog")
+	var saved := Gear.save(w) as WeaponData
+	var again: WeaponData = ResourceLoader.load(saved.resource_path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	check(again.sound_id == &"revolver" and again.model.resource_path == rev.model and is_equal_approx(again.length_m, rev.length_m), "Modell und Klang gespeichert")
+	check(Gear.auto_sound(again) == &"laser" and again.sound_id == &"revolver", "automatischer Klang ohne Auswahl")
+	for k in WeaponData.SOUNDS:
+		check(WeaponData.SOUNDS[k] != "", "Klangname %s" % k)
+	_rm_tree(Gear.dir)
+	Gear.dir = "user://gear"
