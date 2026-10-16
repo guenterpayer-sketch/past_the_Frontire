@@ -7,6 +7,8 @@ extends RefCounted
 ## aus dem Lager des Schiffs (Stock), Ablegen legt zurück; Fäuste und „keine Rüstung“ sind immer da; der Schild ist
 ## ein Lagergegenstand (SHIELD); Medikits aus dem Lager, höchstens MAX_MEDKITS je Figur. g = HubState.game;
 ## g == null (Schnellkampf, Tests ohne Spiel) = unbegrenzt.
+## Beschädigung (Character.wear) gehört zum Teil im Platz: Wechselt das Teil, fällt der Abzug des Platzes weg.
+## Vorläufig: beschädigte Stücke gehen noch ohne Schaden ins Lager, bis der Hub das Lagerformat dafür festlegt.
 
 ## Lager-Schlüssel des Schilds (kein Ressourcenpfad; Handel/Preis/Name im Hub)
 const SHIELD := "schild"
@@ -96,6 +98,7 @@ static func set_weapon(ch: Character, slot: int, w: WeaponData, g: HubState = nu
 		return ""
 	_take(g, w)
 	_put_back(g, old)
+	ch.wear.erase("w%d" % slot)
 	if blocks_shield(w) and ch.shield:
 		ch.shield = false
 		Stock.add(g, SHIELD)
@@ -143,6 +146,7 @@ static func set_armor(ch: Character, a: ArmorData, g: HubState = null) -> String
 		return "nicht im Lager"
 	_take(g, a)
 	_put_back(g, ch.armor)
+	ch.wear.erase("armor")
 	ch.armor = a
 	return ""
 
@@ -159,10 +163,10 @@ static func set_medkits(ch: Character, n: int, g: HubState = null) -> int:
 	return n
 
 
-## Ausrüstung auf einen früheren Stand {weapons, armor, shield, medkits} zurücksetzen; tauscht mit dem Lager.
+## Ausrüstung auf einen früheren Stand {weapons, armor, shield, medkits, wear} zurücksetzen; tauscht mit dem Lager.
 ## "" = erledigt, sonst Grund (dann bleibt alles, wie es war).
 static func restore(ch: Character, snap: Dictionary, g: HubState = null) -> String:
-	var now := {"weapons": ch.weapons.duplicate(), "armor": ch.armor, "shield": ch.shield, "medkits": ch.medkits}
+	var now := snapshot(ch)
 	_give_back(ch, g)
 	var need := {}
 	for r in snap.weapons + [snap.armor]:
@@ -180,6 +184,11 @@ static func restore(ch: Character, snap: Dictionary, g: HubState = null) -> Stri
 	return ""
 
 
+## Stand der Ausrüstung für restore
+static func snapshot(ch: Character) -> Dictionary:
+	return {"weapons": ch.weapons.duplicate(), "armor": ch.armor, "shield": ch.shield, "medkits": ch.medkits, "wear": ch.wear.duplicate()}
+
+
 static func _give_back(ch: Character, g: HubState) -> void:
 	for w in ch.weapons:
 		_put_back(g, w)
@@ -194,12 +203,40 @@ static func _equip(ch: Character, st: Dictionary, g: HubState) -> void:
 	ch.armor = st.armor
 	ch.shield = st.shield
 	ch.medkits = int(st.medkits)
+	ch.wear = (st.get("wear", {}) as Dictionary).duplicate()
 	for w in ch.weapons:
 		_take(g, w)
 	_take(g, ch.armor)
 	if ch.shield:
 		Stock.take(g, SHIELD)
 	Stock.take(g, Stock.MEDKIT, ch.medkits)
+
+
+## Beschädigung eines Platzes als Text ("" = heil), z. B. „beschädigt −10“ (Dice.fmt) oder „unbrauchbar“
+static func wear_text(ch: Character, slot: String) -> String:
+	var v := ch.wear_of(slot)
+	if v >= 0:
+		return ""
+	return "unbrauchbar" if v <= Combatant.WEAR_BROKEN else "beschädigt " + Dice.fmt(v)
+
+
+## Teil eines Platzes ("w0"/"w1"/"armor") oder null
+static func gear_at(ch: Character, slot: String) -> Resource:
+	match slot:
+		"w0": return weapon(ch, 0)
+		"w1": return weapon(ch, 1)
+		"armor": return ch.armor
+	return null
+
+
+## alle beschädigten Teile als Text, z. B. „Sturmgewehr beschädigt −10, Leichte Rüstung unbrauchbar“ ("" = alles heil)
+static func wear_summary(ch: Character) -> String:
+	var parts: Array[String] = []
+	for slot in ["w0", "w1", "armor"]:
+		var r := gear_at(ch, slot)
+		if r and wear_text(ch, slot) != "":
+			parts.append("%s %s" % [r.get("name"), wear_text(ch, slot)])
+	return ", ".join(parts)
 
 
 ## Verteidigungsbonus des Schilds für diese Figur (wie im Kampf: +10 + ½ Rangbonus Schild, mindestens +10)

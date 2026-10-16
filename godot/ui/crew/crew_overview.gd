@@ -199,6 +199,12 @@ func _left_column(u: Character) -> Control:
 	var sl := UiTheme.label(sub, 12, UiTheme.MUTED)
 	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	person.add_child(sl)
+	if Equipment.wear_summary(u) != "":
+		var wl := UiTheme.label("Beschädigt: " + Equipment.wear_summary(u), 12, Color("ffb04d"))
+		wl.tooltip_text = "−10 je Schaden auf Angriffe (Waffe) bzw. Verteidigung (Rüstung), ab −30 unbrauchbar; bleibt bis zur Reparatur"
+		wl.mouse_filter = Control.MOUSE_FILTER_PASS
+		wl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		person.add_child(wl)
 	var g := GridContainer.new()
 	g.columns = 2
 	g.add_theme_constant_override("h_separation", 8)
