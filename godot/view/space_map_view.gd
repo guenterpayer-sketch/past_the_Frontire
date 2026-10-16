@@ -9,6 +9,7 @@ const PATH := Color(1.0, 0.83, 0.3, 0.9)
 var _grid: MeshInstance3D
 var _preview: MeshInstance3D
 var _marks: Node3D
+var _ghosts: Node3D
 
 
 static func world(p: Vector2i, y := 0.0) -> Vector3:
@@ -60,6 +61,8 @@ func build(c: SpaceCombat) -> void:
 	add_child(_preview)
 	_marks = Node3D.new()
 	add_child(_marks)
+	_ghosts = Node3D.new()
+	add_child(_ghosts)
 
 
 func _add_stars(c: SpaceCombat) -> void:
@@ -121,6 +124,34 @@ func show_path(from: Vector2i, path: Array[Vector2i], facing: int, blocked: bool
 
 func clear_path() -> void:
 	_preview.mesh = null
+	for ch in _ghosts.get_children():
+		ch.queue_free()
+
+
+## Geschätzte Gegnerpositionen als Schatten mit Pfeil (nur Schätzung der KI)
+func show_ghosts(pred: Dictionary) -> void:
+	for ch in _ghosts.get_children():
+		ch.queue_free()
+	var col := Color(1.0, 0.36, 0.36, 0.55)
+	for id in pred:
+		var p: Vector2i = pred[id].pos
+		var ring := MeshInstance3D.new()
+		var t := TorusMesh.new()
+		t.inner_radius = SCALE * 0.55
+		t.outer_radius = SCALE * 0.65
+		t.material = _line_mat(col)
+		ring.mesh = t
+		ring.position = world(p, 0.1)
+		_ghosts.add_child(ring)
+		var im := ImmediateMesh.new()
+		im.surface_begin(Mesh.PRIMITIVE_LINES, _line_mat(col))
+		var d := Hex.dir_vector(int(pred[id].facing)) * SCALE * 0.9
+		im.surface_add_vertex(world(p, 0.12))
+		im.surface_add_vertex(world(p, 0.12) + Vector3(d.x, 0, d.y))
+		im.surface_end()
+		var arrow := MeshInstance3D.new()
+		arrow.mesh = im
+		_ghosts.add_child(arrow)
 
 
 ## Feld-Markierungen (z. B. mögliche Ziele)

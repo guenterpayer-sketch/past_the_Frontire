@@ -62,14 +62,18 @@ static func crew_orders(c: SpaceCombat, phase: int) -> Dictionary:
 			return {"targets": t}
 		SpaceCombat.Phase.TECH:
 			var o := {}
-			var worst := ""
-			for sys in own.damage:
-				if worst == "" or own.dmg_level(String(sys)) > own.dmg_level(worst):
-					worst = String(sys)
-			if worst != "":
-				o["technik"] = {"repair": worst}
-			elif own.hull < own.hull_max * 7 / 10:
-				o["technik"] = {"patch": true}
+			var todo: Array = own.damage.keys()
+			todo.sort_custom(func(a, b) -> bool: return own.dmg_level(String(a)) > own.dmg_level(String(b)))
+			var tech := {}
+			for st in SpaceSetup.BASE_STATIONS + SpaceSetup.EXTRA_TECH:
+				if not SpaceSetup.is_tech(st) or not c.tech_active(st):
+					continue
+				if not todo.is_empty():
+					tech[st] = [{"repair": String(todo.pop_front())}]
+				elif own.hull < own.hull_max * 7 / 10:
+					tech[st] = [{"patch": true}]
+			if not tech.is_empty():
+				o["technik"] = tech
 			var big: SpaceShip = foes[0]
 			for f in foes:
 				if f.cls > big.cls:

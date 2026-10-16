@@ -59,6 +59,8 @@ const SYSTEM_TABLE := [[20, "antrieb"], [35, "sensoren"], [50, "slot"], [65, "sc
 	[85, "lebenserhaltung"], [999, "station"]]
 const SYSTEM_NAMES := {"antrieb": "Antrieb", "sensoren": "Sensoren", "lebenserhaltung": "Lebenserhaltung",
 	"schilde": "Schildgeneratoren", "reaktor": "Reaktor"}
+## Entern möglich unter diesem Hüllenanteil (oder Antrieb E)
+const BOARD_HULL := 0.25
 const LOCK_BONUS := 15
 const JAM_MALUS := -15
 ## Pilotenprobe → zusätzliche Drehungen und erlaubte Tempoänderung
@@ -96,7 +98,9 @@ var loot := {}
 var faction_id := ""
 var faction := {}
 var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Grund + halber Pilot-Bonus)
-var intercepts := {}               # Schiffs-ID → Abfangversuche in dieser Runde
+var intercepts := {}
+var boarded: SpaceShip = null     # selbst geentertes Gegnerschiff
+var board_loot := {}               # Schiffs-ID → Abfangversuche in dieser Runde
 
 
 func _init(s: Dictionary, seed_value := -1) -> void:
@@ -414,6 +418,9 @@ func run_auto() -> void:
 	var guard := 0
 	while result == &"" and guard < (MAX_ROUNDS + 2) * 4:
 		guard += 1
+		if boardable():
+			board(boardable())
+			break
 		set_orders(SpaceAI.crew_orders(self, phase))
 		resolve()
 
@@ -619,8 +626,8 @@ func in_arc(s: SpaceShip, slot: String, to: Vector2i) -> bool:
 		return true
 	if s != own:
 		return absf(b) <= (60.0 if s.is_fighter() else 120.0) + 0.1
-	match slot:
-		"bug", "bug2":
+	match slot.trim_suffix("2"):
+		"bug":
 			return absf(b) <= 60.1
 		"steuerbord":
 			return b >= 29.9 and b <= 150.1
@@ -629,6 +636,40 @@ func in_arc(s: SpaceShip, slot: String, to: Vector2i) -> bool:
 		"heck":
 			return absf(b) >= 119.9
 	return false
+
+
+## Schätzung, wohin die Gegner in dieser Runde ziehen (KI-Plan vom jetzigen Stand aus): {ID: {pos, facing}}
+func predict_enemies() -> Dictionary:
+	var out := {}
+	for e in active_enemies():
+		var pv := plan_path(e, SpaceAI.enemy_orders(self, e, Phase.MOVE).get("steps", []))
+		out[e.id] = {"pos": pv.end, "facing": pv.facing}
+	return out
+
+
+## Ziel-Check für einen Bewegungsplan: je Waffen-Slot die Gegner mit Grund ("" = feuerbereit) und Abstand,
+## eigene Lage nach dem Plan, Gegner an den geschätzten Positionen (predict)
+func preview_fire(pos: Vector2i, facing: int, predict: Dictionary) -> Dictionary:
+	var keep_pos := own.pos
+	var keep_f := own.facing
+	var keep := {}
+	own.pos = pos
+	own.facing = facing
+	for e in active_enemies():
+		keep[e.id] = e.pos
+		if predict.has(e.id):
+			e.pos = predict[e.id].pos
+	var out := {}
+	for slot in own.weapon_slots():
+		var rows: Array = []
+		for e in active_enemies():
+			rows.append({"ship": e, "why": fire_problem(own, slot, e), "dist": Hex.distance(own.pos, e.pos)})
+		out[slot] = rows
+	own.pos = keep_pos
+	own.facing = keep_f
+	for e in active_enemies():
+		e.pos = keep[e.id]
+	return out
 
 
 ## Sichtlinie: Asteroiden zwischen den Schiffen sperren
@@ -883,7 +924,7 @@ func _hurt(ch: Character, sev: String) -> void:
 func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 	if s != own:
 		var flee := float(faction.get("flee_at", 0.0))
-		if flee > 0.0 and not s.is_fighter() and s.hull < s.hull_max * flee:
+		if flee > 0.0 and not s.is_fighter() and not s.is_out("antrieb") and s.hull < s.hull_max * flee:
 			s.fled = true
 			log_text("%s dreht ab und flieht." % s.name, &"round")
 			ship_changed.emit(s)
@@ -892,27 +933,10 @@ func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 	own.lock = {}
 	for e in enemies():
 		e.jammed = 0
-	var tech: Dictionary = o.get("technik", {})
-	if not tech.is_empty() and station_usable("technik"):
-		if tech.has("repair") and own.damage.has(String(tech.repair)):
-			var sys := String(tech.repair)
-			var r := check("technik", &"notReparatur", "schwer")
-			var steps := 2 if r.result.id == &"herausragend" else (1 if r.result.id == &"erfolg" else 0)
-			if steps > 0:
-				var lv := own.dmg_level(sys) - steps
-				if lv <= 0:
-					own.damage.erase(sys)
-				else:
-					own.damage[sys] = Tables.SEVERITIES[lv - 1]
-			log_text("%s repariert %s (%s)%s." % [who_name("technik"), system_name(sys), r.result.name,
-				"" if steps == 0 else (": jetzt " + String(own.damage.get(sys, "heil")))])
-		elif tech.get("patch", false):
-			var r := check("technik", &"panzerung", DIFF)
-			var plus := 0
-			if Rules.is_success(r.result):
-				plus = mini(own.hull_max - own.hull, Dice.d(6) + Dice.d(6) + (5 if r.result.id == &"herausragend" else 0))
-				own.hull += plus
-			log_text("%s flickt die Hülle (%s): +%d." % [who_name("technik"), r.result.name, plus])
+	for st in tech_tasks(o):
+		var tasks: Array = tech_tasks(o)[st]
+		for n in mini(2, tasks.size()):
+			_tech_task(st, tasks[n], [{"label": "2. Baustelle", "val": SpaceSetup.SECOND_TASK_MALUS}] if n == 1 else [])
 	var comp: Dictionary = o.get("computer", {})
 	var target := ship_by_id(String(comp.get("target", "")))
 	if target and target.is_active() and station_usable("computer"):
@@ -930,6 +954,79 @@ func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 	if o.get("jump", false):
 		_prepare_jump()
 	ship_changed.emit(own)
+
+
+## Technik-Befehle als {Station: [Aufgabe, …]}; Aufgabe {"repair": System} oder {"patch": true}.
+## Altes Format {"technik": {"repair"/"patch"}} gilt als eine Aufgabe der Station „technik“.
+func tech_tasks(o: Dictionary) -> Dictionary:
+	var t: Dictionary = o.get("technik", {})
+	if t.has("repair") or t.has("patch"):
+		t = {"technik": [t]}
+	var out := {}
+	for st in t:
+		if SpaceSetup.is_tech(String(st)) and tech_active(String(st)):
+			out[String(st)] = t[st] if t[st] is Array else [t[st]]
+	return out
+
+
+## Technikstation arbeitet: die Hauptstation auch mit der Bord-KI, weitere Techniker nur mit Crew
+func tech_active(st: String) -> bool:
+	if not station_usable(st):
+		return false
+	return st == "technik" or station_who(st) != null
+
+
+func _tech_task(st: String, task: Dictionary, extra: Array) -> void:
+	if task.has("repair") and own.damage.has(String(task.repair)):
+		var sys := String(task.repair)
+		var r := check(st, &"notReparatur", "schwer", extra)
+		var steps := 2 if r.result.id == &"herausragend" else (1 if r.result.id == &"erfolg" else 0)
+		if steps > 0:
+			var lv := own.dmg_level(sys) - steps
+			if lv <= 0:
+				own.damage.erase(sys)
+			else:
+				own.damage[sys] = Tables.SEVERITIES[lv - 1]
+		log_text("%s repariert %s (%s)%s." % [who_name(st), system_name(sys), r.result.name,
+			"" if steps == 0 else (": jetzt " + String(own.damage.get(sys, "heil")))])
+	elif task.get("patch", false):
+		var r := check(st, &"panzerung", DIFF, extra)
+		var plus := 0
+		if Rules.is_success(r.result):
+			plus = mini(own.hull_max - own.hull, Dice.d(6) + Dice.d(6) + (5 if r.result.id == &"herausragend" else 0))
+			own.hull += plus
+		log_text("%s flickt die Hülle (%s): +%d." % [who_name(st), r.result.name, plus])
+
+
+# ---------------------------------------------------------------- Selbst entern
+
+## Enterbar: Schiff mit Besatzung (kein Jäger), direkt benachbart, Antrieb ausgefallen oder Hülle unter 25 %,
+## und es kämpft kein anderer Gegner mehr (Entscheidungen des Nutzers 16.10.2026)
+func can_board(t: SpaceShip) -> bool:
+	if result != &"" or t == null or not t.is_active() or t.side != &"enemy" or t.is_fighter():
+		return false
+	if Hex.distance(own.pos, t.pos) != 1:
+		return false
+	if not (t.is_out("antrieb") or t.hull < t.hull_max * BOARD_HULL):
+		return false
+	return active_enemies().size() == 1
+
+
+func boardable() -> SpaceShip:
+	for e in active_enemies():
+		if can_board(e):
+			return e
+	return null
+
+
+## Entern: der Raumkampf endet, der Hub startet den Bodenkampf gegen die Besatzung
+func board(t: SpaceShip) -> bool:
+	if not can_board(t):
+		return false
+	boarded = t
+	log_text("Die Frontire geht längsseits und entert %s!" % t.name, &"round")
+	_finish(&"sieg")
+	return true
 
 
 func _prepare_jump() -> void:
@@ -974,6 +1071,16 @@ func _roll_loot() -> void:
 				var key := String(e.slots[tradable[rng.randi_range(0, tradable.size() - 1)]].key)
 				weapons.append({"key": key, "name": ShipWeapons.name(key), "damage": [-10, -20, -30][rng.randi_range(0, 2)]})
 	loot = {"credits": credits, "material": material, "ship_ammo": am, "weapons": weapons}
+	if boarded:
+		# Beute des geenterten Schiffs: gilt erst, wenn die Crew den Bodenkampf gewinnt (bucht der Hub)
+		var t: Dictionary = SpaceTemplates.SHIPS[boarded.template]
+		var bw: Array = []
+		for sl in boarded.weapon_slots():
+			var key := String(boarded.slots[sl].key)
+			if ShipWeapons.data(key).trade:
+				bw.append({"key": key, "name": ShipWeapons.name(key), "damage": maxi(-30, int(boarded.slots[sl].damage))})
+		board_loot = {"credits": roundi(int(t.credits) * 1.5), "material": int(t.material) * 2,
+			"ship_ammo": {"schiffsraketen": rng.randi_range(2, 4), "geschosse": rng.randi_range(10, 20)}, "weapons": bw}
 
 
 ## Ergebnis im Format MissionResult plus Schiffsteil (Schnittstelle docs/module/raumkampf.md)
@@ -1000,4 +1107,6 @@ func to_result() -> Dictionary:
 		"boarding": boarding, "boarding_faction": faction_id if boarding else "", "emergency": emergency,
 		"ship": {"hull": own.hull, "damage": own.damage.duplicate(), "slots": slots},
 		"ship_ammo_used": ammo_used.duplicate(), "fuel_used": fuel_used,
-		"ship_loot": loot.duplicate(true) if result == &"sieg" else {}}
+		"ship_loot": loot.duplicate(true) if result == &"sieg" else {},
+		"board_enemy": boarded != null, "board_faction": faction_id if boarded else "",
+		"board_ship": boarded.name if boarded else "", "board_loot": board_loot.duplicate(true)}

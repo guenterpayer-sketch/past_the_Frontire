@@ -28,7 +28,7 @@ Verbindlich für Hub und Raumkampf. Änderungen nur nach Absprache über den Koo
  "posts": {Station-ID: Figur-ID oder "ki"},   # feste Posten aus dem Hub; im Kampf-Briefing änderbar.
                                          # Dieselbe Figur auf zwei Stationen = Doppelbesetzung (−30), höchstens zwei.
  "ship": {"hull": int, "hull_max": int,
-          "levels": {"shields": 0–3, "armor": 0–3, "reactor": 0–3, "slots": 0–3},   # Stufen aus ShipUpgrades
+          "levels": {"shields": 0–3, "armor": 0–3, "reactor": 0–3, "slots": 0–5},   # Stufen aus ShipUpgrades
           "slots": {Slot-ID: {"key": Waffen-Key oder "", "damage": 0/−10/−20/−30}},
           "damage": {System-ID: "A"–"E"}},        # bleibende Systemschäden (fehlend = heil)
  "ship_ammo": {"schiffsraketen": int, "geschosse": int},
@@ -44,10 +44,10 @@ Gegnerschiffe, Jäger, Verhalten bei Niederlage (`entern`/`abziehen`) und ob Lö
 
 ### IDs
 
-- **Slots:** `bug`, `backbord`, `steuerbord`, `turm` (Start). Ausbau `slots`: Stufe 1 + `heck`, Stufe 2 + `bug2`, Stufe 3 + `turm2`. Turm-Slots nehmen nur Abwehrwaffen, alle anderen Slots jede andere Waffe.
-- **Stationen:** `steuer`, `navigation`, `schilde` (verteilt auch die Energie), `technik`, `computer` und je bestücktem Slot eine Geschützstation `geschuetz_<Slot-ID>` (Turm-Slots = Punktverteidigung).
+- **Slots:** `bug`, `backbord`, `steuerbord`, `turm` (Start). Ausbau `slots` mit **5 Stufen** (geändert 16.10.2026): Stufe 1 + `heck`, 2 + `backbord2`, 3 + `steuerbord2`, 4 + `bug2`, 5 + `turm2` (`SpaceSetup.SLOTS_BY_LEVEL`, `SpaceSetup.slots_for(lv)`). Turm-Slots nehmen nur Abwehrwaffen, alle anderen Slots jede andere Waffe.
+- **Stationen:** `steuer`, `navigation`, `schilde` (verteilt auch die Energie), `technik`, `computer`, je bestücktem Slot eine Geschützstation `geschuetz_<Slot-ID>` (Turm-Slots = Punktverteidigung) und die weiteren Techniker `technik_2`, `technik_3` (neu 16.10.2026; nur mit Crew besetzbar, `"ki"` = frei).
 - **Systeme:** `antrieb`, `sensoren`, `lebenserhaltung`, `schilde`, `reaktor`, `slot_<Slot-ID>`, `station_<Station-ID>`. Schaden in Stufen `A`–`E` (E = ausgefallen).
-- **Neue Ausbau-Bereiche (Hub, `ShipUpgrades`):** `shields`, `armor`, `reactor`, `slots`, je Stufe 0–3. Preise/Material wie die übrigen Bereiche (Sache des Hubs).
+- **Neue Ausbau-Bereiche (Hub, `ShipUpgrades`):** `shields`, `armor`, `reactor` je Stufe 0–3, `slots` Stufe 0–5. Preise/Material wie die übrigen Bereiche (Sache des Hubs).
 - **Schiffsmunition:** `schiffsraketen`, `geschosse`. Strahlwaffen brauchen keine Munition, sondern Energie im Kampf (bleibt nicht über den Kampf hinaus).
 
 ### Waffen-Katalog `ShipWeapons` (`core/space_weapons.gd`, gehört dem Raumkampf)
@@ -82,10 +82,13 @@ Alle Felder von `MissionResult` (`outcome`, `retreated`, `mission`, `rounds`, `r
           "slots": {Slot-ID: {"key", "damage"}}},        # neuer Stand der Slots (beschädigte Waffen)
  "ship_ammo_used": {Art: int}, "fuel_used": int,
  "ship_loot": {"credits": int, "material": int, "ship_ammo": {Art: int},
-               "weapons": [{"key": Waffen-Key, "name": String, "damage": 0/−10/−20/−30}]}}   # nur bei Sieg
+               "weapons": [{"key": Waffen-Key, "name": String, "damage": 0/−10/−20/−30}]},   # nur bei Sieg
+ # neu 16.10.2026 – selbst entern (outcome "sieg"; der Hub startet den Bodenkampf gegen die Besatzung):
+ "board_enemy": bool, "board_faction": Fraktions-ID, "board_ship": Name,
+ "board_loot": {"credits", "material", "ship_ammo", "weapons"}}   # erst verbuchen, wenn die Crew den Bodenkampf gewinnt
 ```
 
-Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Lösegeld, Beute (Waffen ins Lager), Einsatzbericht, Entern bzw. Notfall.
+Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Lösegeld, Beute (Waffen ins Lager), Einsatzbericht, Entern bzw. Notfall. Bei `board_enemy` startet er den Bodenkampf (vorerst Lagerhalle) und bucht `board_loot` nur bei Sieg.
 
 ## Aufträge vom Koordinator
 
@@ -104,6 +107,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 - (16.10.2026) Auftrag 2: offene Punkte mit dem Nutzer geklärt (`docs/Planung_Raumkampf.md` 1a), Schnittstelle als fester Stand oben unter „Schnittstellen“. Noch kein Code.
 - (16.10.2026) Auftrag 2, Regelkern gebaut (ohne Grafik): `core/space_combat.gd`, `space_ship.gd`, `space_ai.gd`, `space_weapons.gd`, `space_templates.gd`, `space_setup.gd`, `space_battle.gd`, Test `tests/test_space.gd`. Gegnervorlagen vorerst als Konstanten in `core/space_templates.gd` statt `data/ships/`. Zusätzlich für den Hub: `SpaceSetup.posts_from_crew()` (Posten aus `Character.station`) und `SpaceSetup.fill_posts()` (freie Stationen mit den Besten besetzen). Alle Zahlen Platzhalter; im Selbstlauf (Schnellkampf-Crew, Piraten) gewinnt die Crew etwa ein Drittel, einige Kämpfe enden an der Rundengrenze (40). Noch keine Szene `space.tscn`.
 - (16.10.2026) Bord-KI +0 (Entscheidung des Nutzers). Szene `space.tscn` gebaut (nach dem bestätigten Mockup): 3D-Hexkarte mit Asteroiden, Schiffe mit Schildring und Hüllenbalken, Schiffskasten Schema/Zahlen, Seitenleiste mit Stationen je Phase (Energie/Schildverteilung, Bewegungsplan mit Vorschau, Ziele, Technik/Computer/Sprung), Briefing (Posten), Ergebnis mit „Weiter“ → `SpaceBattle.finish()`. Ohne `SpaceBattle.setup` startet die Szene einen Schnellkampf (F6 im Editor). Selbsttest `-- --autotest-space`. Der Schnellkampf-Knopf im Startmenü ist Sache des Hubs (`SpaceBattle.start(get_tree(), SpaceSetup.quick())`).
+- (16.10.2026) Nach Testkampf des Nutzers: Ziel-Check im Bewegungsplan und Schatten der geschätzten Gegnerpositionen; Waffenslots-Ausbau auf 5 Stufen (Seiten bis je 2 Geschütze); bis zu 3 Techniker (`technik_2`, `technik_3`), je eine 2. Baustelle mit −20; selbst entern (benachbart, Schiff mit Besatzung, Antrieb E oder Hülle < 25 %, kein anderer Gegner mehr); Schwierigkeit mittel = Korvette mit 1 oder 2 Jägern (Fregatte nur noch schwer); Modelle um 180° gedreht (Bug vorn). **Schnittstelle erweitert:** `levels.slots` 0–5, neue Slot-IDs, Posten `technik_2`/`technik_3`, Ergebnisfelder `board_*`.
 
 ### Auftrag 2 (16.10.2026): Regelkern, Szene, Schnittstelle
 

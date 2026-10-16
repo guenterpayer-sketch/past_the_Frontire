@@ -11,6 +11,8 @@ var combat: SpaceCombat
 var ship_views := {}               # Schiffs-ID → SpaceShipView
 ## Bewegungsplan der Crew in der Phase Bewegen (L/R/F)
 var plan: Array = []
+## geschätzte Gegnerpositionen dieser Runde (Schatten in der Phase Bewegen)
+var predicted := {}
 var _events: Array = []
 var busy := false
 var autotest := false
@@ -71,6 +73,7 @@ func _phase_ready() -> void:
 		_show_result()
 		return
 	if combat.phase == SpaceCombat.Phase.MOVE:
+		predicted = combat.predict_enemies()
 		plan = []
 		for i in combat.own.speed:
 			plan.append("F")
@@ -104,6 +107,14 @@ func surrender() -> void:
 func update_plan_preview() -> void:
 	var pv := combat.plan_path(combat.own, plan)
 	map_view.show_path(combat.own.pos, pv.path, pv.facing, pv.blocked)
+	map_view.show_ghosts(predicted)
+
+
+func board() -> void:
+	var t := combat.boardable()
+	if t and combat.board(t):
+		await play_events()
+		_phase_ready()
 
 
 ## Ereignisse des Regelkerns nacheinander abspielen

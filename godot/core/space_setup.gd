@@ -5,9 +5,11 @@ extends RefCounted
 
 ## Slots des Startschiffs und die, die der Ausbau „slots“ je Stufe dazugibt
 const BASE_SLOTS := ["bug", "backbord", "steuerbord", "turm"]
-const SLOTS_BY_LEVEL := ["", "heck", "bug2", "turm2"]
-const SLOT_NAMES := {"bug": "Bug", "bug2": "Bug 2", "backbord": "Backbord", "steuerbord": "Steuerbord",
-	"turm": "Turm", "turm2": "Turm 2", "heck": "Heck"}
+## Ausbau „slots“ hat 5 Stufen (Entscheidung des Nutzers 16.10.2026)
+const SLOTS_BY_LEVEL := ["", "heck", "backbord2", "steuerbord2", "bug2", "turm2"]
+const SLOTS_MAX_LEVEL := 5
+const SLOT_NAMES := {"bug": "Bug", "bug2": "Bug 2", "backbord": "Backbord", "backbord2": "Backbord 2",
+	"steuerbord": "Steuerbord", "steuerbord2": "Steuerbord 2", "turm": "Turm", "turm2": "Turm 2", "heck": "Heck"}
 ## Startbewaffnung und Startvorrat Schiffsmunition (neuer Spielstand)
 const START_SLOTS := {"bug": "laserbank", "backbord": "massebeschleuniger", "steuerbord": "raketenwerfer",
 	"turm": "abwehrgeschuetz"}
@@ -15,11 +17,14 @@ const START_AMMO := {"schiffsraketen": 6, "geschosse": 40}
 
 ## Stationen ohne Geschütze; Geschützstationen heißen "geschuetz_<Slot-ID>"
 const BASE_STATIONS := ["steuer", "navigation", "schilde", "technik", "computer"]
+## weitere Techniker (nur mit Crew besetzt, nicht mit der Bord-KI); je Techniker 1 Baustelle, eine 2. mit −20
+const EXTRA_TECH := ["technik_2", "technik_3"]
+const SECOND_TASK_MALUS := -20
 const STATION_NAMES := {"steuer": "Steuer", "navigation": "Navigation", "schilde": "Schilde", "technik": "Technik",
-	"computer": "Computer"}
+	"technik_2": "Technik 2", "technik_3": "Technik 3", "computer": "Computer"}
 ## Fertigkeit je Station (Geschütze: je nach Waffe, ShipWeapons.skill)
 const STATION_SKILL := {"steuer": &"pilot", "navigation": &"navigation", "schilde": &"schutzschild",
-	"technik": &"notReparatur", "computer": &"computer"}
+	"technik": &"notReparatur", "technik_2": &"notReparatur", "technik_3": &"notReparatur", "computer": &"computer"}
 ## Posten aus dem Charakter (Character.station, Creation.STATIONS) → Station
 const POST_FROM_CHARACTER := {"Steuer": "steuer", "Navigation": "navigation", "Schilde": "schilde",
 	"Technik": "technik", "Computer": "computer"}
@@ -42,7 +47,7 @@ const OWN_TURNS := 1
 static func slots_for(lv: int) -> Array[String]:
 	var out: Array[String] = []
 	out.assign(BASE_SLOTS)
-	for i in range(1, clampi(lv, 0, 3) + 1):
+	for i in range(1, clampi(lv, 0, SLOTS_MAX_LEVEL) + 1):
 		out.append(SLOTS_BY_LEVEL[i])
 	return out
 
@@ -59,14 +64,19 @@ static func station_name(st: String) -> String:
 	return String(STATION_NAMES.get(st, st))
 
 
-## Alle Stationen eines Schiffs: Grundstationen und je bestücktem Slot eine Geschützstation
+## Alle Stationen eines Schiffs: Grundstationen, je bestücktem Slot eine Geschützstation, weitere Techniker
 static func stations_for(slots: Dictionary) -> Array[String]:
 	var out: Array[String] = []
 	out.assign(BASE_STATIONS)
 	for s in slots:
 		if String(slots[s].get("key", "")) != "":
 			out.append(gun_station(String(s)))
+	out.append_array(EXTRA_TECH)
 	return out
+
+
+static func is_tech(st: String) -> bool:
+	return st == "technik" or st in EXTRA_TECH
 
 
 ## Startslots als {Slot-ID: {key, damage}} (für Hub und Schnellkampf)

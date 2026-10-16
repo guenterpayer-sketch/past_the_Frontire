@@ -46,6 +46,18 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Karte V1 | **Mittel (ca. 20×14) mit Asteroiden** (Deckung, blockieren); Trümmer und Nebel später. |
 | Zuständigkeit | Koordinator, Auftrag 2: Raumkampf nur eigene Dateien, Hub alle Auslöser und Hub-Dateien, Bodenkampf und Charakter in V1 nichts. |
 
+## 1b. Entscheidungen nach dem ersten Testkampf (16.10.2026)
+
+| Thema | Entscheidung |
+|---|---|
+| Bewegung | **Ziel-Check** in der Steuer-Karte (welche Waffe trifft nach dem Plan wen) und **Schatten** der geschätzten Gegnerpositionen (Schätzung der KI). |
+| Waffenslots | Ausbau mit **5 Stufen**: Heck, Backbord 2, Steuerbord 2, Bug 2, Turm 2. |
+| Notreparatur | **Bis zu 3 Techniker** (auch von anderer Station abgezogen = Doppelbesetzung), jeder **eine 2. Baustelle mit −20**. |
+| Selbst entern | **Ja, in V1:** Gegner benachbart, mit Besatzung (kein Jäger/Drohne), Antrieb E oder Hülle < 25 %, **nur wenn kein anderer Gegner mehr kämpft**. Raumkampf endet, Hub startet Bodenkampf; Beute an Bord nur bei Sieg dort. |
+| Schwierigkeit mittel | **Zwei Varianten:** Korvette mit 1 Jäger oder mit 2 Jägern (Annahme: Fregatte nur noch bei schwer). |
+| Modelle | Bug war hinten → um 180° gedreht. |
+| Fragerunden | Am Ende jeder Fragerunde eine **Abschlussfrage mit Freitext** (Wunsch des Nutzers, auch für die anderen Module). |
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).

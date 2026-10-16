@@ -26,6 +26,7 @@ var _collapse: Button
 var _exec: Button
 var _auto: Button
 var _surrender: Button
+var _board: Button
 var _defaults := {}
 var _w := {}                      # Bedienelemente der laufenden Phase
 var _targets := {}                # Geschützstation → Schiffs-ID
@@ -120,6 +121,9 @@ func _build_side() -> void:
 	_surrender = UiTheme.button("Kapitulieren")
 	_surrender.pressed.connect(_on_surrender)
 	v.add_child(_surrender)
+	_board = UiTheme.button("Entern")
+	_board.pressed.connect(func() -> void: view.board())
+	v.add_child(_board)
 	_collapse = UiTheme.button("›", "Seitenleiste ein-/ausklappen")
 	_collapse.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_collapse.offset_left = -SIDE_W - 34
@@ -186,6 +190,10 @@ func refresh() -> void:
 	_surrender.text = "Kapitulieren (%d Credits)" % int(combat.faction.get("ransom", 0)) if combat.can_surrender() \
 		else "Kapitulieren (nicht möglich)"
 	_surrender.disabled = not combat.can_surrender()
+	var b := combat.boardable()
+	_board.visible = b != null
+	if b:
+		_board.text = "Entern: %s (Raumkampf endet, Bodenkampf folgt)" % b.name
 	refresh_ships()
 	_build_cards()
 
@@ -199,7 +207,11 @@ func _active_stations() -> Array:
 		SpaceCombat.Phase.FIRE:
 			return combat.stations().filter(func(s: String) -> bool: return s.begins_with("geschuetz_"))
 		SpaceCombat.Phase.TECH:
-			return ["technik", "computer", "navigation"]
+			var out: Array = ["computer", "navigation"]
+			for st in ["technik"] + SpaceSetup.EXTRA_TECH:
+				if combat.tech_active(st):
+					out.append(st)
+			return out
 	return []
 
 
@@ -266,6 +278,8 @@ func _tag(st: String, on: bool) -> Label:
 	if not combat.station_usable(st):
 		txt = "ausgefallen"
 		col = UiTheme.BAD
+	elif combat.station_who(st) == null and st in SpaceSetup.EXTRA_TECH:
+		txt = "frei"
 	elif combat.station_who(st) == null:
 		txt = "Bord-KI +%d" % SpaceSetup.KI_BONUS
 		col = UiTheme.CREW
@@ -340,6 +354,7 @@ func _move_controls(v: VBoxContainer) -> void:
 		combat.max_speed_of(o)], 12, UiTheme.ACCENT))
 	v.add_child(UiTheme.label("Plan: %s" % (" ".join(PackedStringArray(view.plan.map(_step_name))) if not view.plan.is_empty()
 		else "stehen bleiben"), 12))
+	_target_check(v)
 	var row := HBoxContainer.new()
 	for b in [["⟲ Links", "L"], ["▲ Vor", "F"], ["⟳ Rechts", "R"]]:
 		var btn := UiTheme.button(b[0])
@@ -374,6 +389,28 @@ func _move_controls(v: VBoxContainer) -> void:
 			(l as Label).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
+const WHY_SHORT := {"außerhalb des Feuerbogens": "Bogen", "außer Reichweite": "Reichweite",
+	"keine Sicht (Asteroiden)": "Sicht", "zu wenig Energie": "Energie", "keine Munition": "Munition",
+	"Waffe ausgefallen": "ausgefallen", "Station ausgefallen": "Station aus"}
+
+
+## Ziel-Check: nach dem Plan, Gegner an ihren geschätzten Positionen (Schatten auf der Karte)
+func _target_check(v: VBoxContainer) -> void:
+	var pv := combat.plan_path(combat.own, view.plan)
+	var pf := combat.preview_fire(pv.end, pv.facing, view.predicted)
+	v.add_child(UiTheme.label("Ziel-Check nach dem Plan (Gegner geschätzt):", 12, UiTheme.ACCENT))
+	for slot in pf:
+		var parts := PackedStringArray()
+		for row in pf[slot]:
+			var why: String = row.why
+			parts.append(("%s ✓ %d" % [row.ship.name, row.dist]) if why == "" else
+				"%s ✗ %s" % [row.ship.name, WHY_SHORT.get(why, why)])
+		var key := String(combat.own.slots[slot].key)
+		var ok: bool = pf[slot].any(func(r: Dictionary) -> bool: return r.why == "")
+		v.add_child(UiTheme.label("%s (%s): %s" % [SpaceSetup.SLOT_NAMES.get(slot, slot), ShipWeapons.name(key),
+			" · ".join(parts)], 11, UiTheme.GOOD if ok else UiTheme.MUTED))
+
+
 func _step_name(s: Variant) -> String:
 	return {"F": "vor", "L": "links", "R": "rechts"}.get(String(s), String(s))
 
@@ -405,22 +442,25 @@ func _fire_controls(st: String, v: VBoxContainer) -> void:
 
 func _tech_controls(st: String, v: VBoxContainer) -> void:
 	match st:
-		"technik":
-			var ob := OptionButton.new()
-			ob.focus_mode = Control.FOCUS_NONE
-			ob.add_item("nichts tun")
-			ob.set_item_metadata(0, {})
-			ob.add_item("Hülle flicken (Panzerung)")
-			ob.set_item_metadata(1, {"patch": true})
-			for sys in combat.own.damage:
-				ob.add_item("Reparieren: %s (%s)" % [combat.system_name(String(sys)), combat.own.damage[sys]])
-				ob.set_item_metadata(ob.item_count - 1, {"repair": String(sys)})
-			var d: Dictionary = _defaults.get("technik", {})
-			for i in ob.item_count:
-				if ob.get_item_metadata(i) == d:
-					ob.select(i)
-			v.add_child(ob)
-			_w.technik = ob
+		"technik", "technik_2", "technik_3":
+			var d: Array = _defaults.get("technik", {}).get(st, [])
+			var obs: Array = []
+			for n in 2:
+				var ob := OptionButton.new()
+				ob.focus_mode = Control.FOCUS_NONE
+				ob.add_item("nichts tun" if n == 0 else "2. Baustelle: keine (sonst %d)" % SpaceSetup.SECOND_TASK_MALUS)
+				ob.set_item_metadata(0, {})
+				ob.add_item("Hülle flicken (Panzerung)")
+				ob.set_item_metadata(1, {"patch": true})
+				for sys in combat.own.damage:
+					ob.add_item("Reparieren: %s (%s)" % [combat.system_name(String(sys)), combat.own.damage[sys]])
+					ob.set_item_metadata(ob.item_count - 1, {"repair": String(sys)})
+				for i in ob.item_count:
+					if n < d.size() and ob.get_item_metadata(i) == d[n]:
+						ob.select(i)
+				v.add_child(ob)
+				obs.append(ob)
+			_w["tech_" + st] = obs
 		"computer":
 			var mode := OptionButton.new()
 			mode.focus_mode = Control.FOCUS_NONE
@@ -477,8 +517,18 @@ func collect_orders() -> Dictionary:
 			return {"targets": _targets.duplicate()}
 		SpaceCombat.Phase.TECH:
 			var o := {}
-			if _w.has("technik"):
-				o["technik"] = _w.technik.get_item_metadata(_w.technik.selected)
+			var tech := {}
+			for st in ["technik"] + SpaceSetup.EXTRA_TECH:
+				if not _w.has("tech_" + st):
+					continue
+				var tasks: Array = []
+				for ob in _w["tech_" + st]:
+					var t: Dictionary = ob.get_item_metadata(ob.selected)
+					if not t.is_empty():
+						tasks.append(t)
+				if not tasks.is_empty():
+					tech[st] = tasks
+			o["technik"] = tech
 			if _w.has("comp_target"):
 				o["computer"] = {"mode": "lock" if _w.comp_mode.selected == 0 else "jam",
 					"target": _w.comp_target.get_item_metadata(_w.comp_target.selected)}
@@ -521,10 +571,17 @@ func _on_surrender() -> void:
 
 func show_result(r: Dictionary) -> void:
 	var title := "Sieg" if r.outcome == &"sieg" else ("Gesprungen" if r.retreated else "Niederlage")
+	if r.board_enemy:
+		title = "Entern"
 	if r.surrendered:
 		title = "Kapitulation"
 	result_modal.open(title)
 	var t := ""
+	if r.board_enemy:
+		t += "[color=#ffd34d]Die Crew entert %s – es folgt ein Bodenkampf gegen die Besatzung.[/color]\n" % r.board_ship
+		var bl: Dictionary = r.board_loot
+		t += "Beute bei Sieg an Bord: %d Credits, %d Schiffsmaterial, %d Waffen\n" % [int(bl.get("credits", 0)),
+			int(bl.get("material", 0)), bl.get("weapons", []).size()]
 	if r.boarding:
 		t += "[color=#ffd34d]Die Gegner entern die Frontire – es folgt ein Bodenkampf.[/color]\n"
 	elif r.emergency:

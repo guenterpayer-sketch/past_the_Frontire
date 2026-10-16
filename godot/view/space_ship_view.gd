@@ -121,7 +121,7 @@ func place() -> void:
 ## Drehung um y, damit −Z in Richtung der Hexseite zeigt
 static func facing_yaw(f: int) -> float:
 	var d := Hex.dir_vector(f)
-	return atan2(-d.x, -d.y)
+	return atan2(-d.x, -d.y) + PI   # Modelle zeigen mit dem Bug nach +Z (Rückmeldung des Nutzers)
 
 
 func select(on: bool) -> void:

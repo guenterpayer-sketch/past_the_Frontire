@@ -41,7 +41,7 @@ const FACTIONS := {
 ## Aufstellungen für Seiten ohne eigene groups
 const DEFAULT_GROUPS := {
 	"leicht": [["korvette"], ["jaeger", "jaeger", "jaeger"]],
-	"mittel": [["korvette", "jaeger", "jaeger"], ["fregatte"]],
+	"mittel": [["korvette", "jaeger"], ["korvette", "jaeger", "jaeger"]],
 	"schwer": [["fregatte", "jaeger", "jaeger"], ["kreuzer"], ["korvette", "korvette", "jaeger", "jaeger"]],
 }
 

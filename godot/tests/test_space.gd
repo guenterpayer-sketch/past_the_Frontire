@@ -24,6 +24,9 @@ func _init() -> void:
 	_test_move()
 	_test_end_states()
 	_test_result()
+	_test_tech()
+	_test_board()
+	_test_preview()
 	_test_auto()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails > 0 else 0)
@@ -51,7 +54,9 @@ func _test_catalog() -> void:
 
 func _test_setup() -> void:
 	check(SpaceSetup.slots_for(0) == ["bug", "backbord", "steuerbord", "turm"], "Startslots")
-	check(SpaceSetup.slots_for(3).size() == 7 and SpaceSetup.slots_for(3).has("turm2"), "Slots Stufe 3")
+	check(SpaceSetup.slots_for(1).has("heck") and SpaceSetup.slots_for(3).has("steuerbord2"), "Slots Stufe 1–3")
+	check(SpaceSetup.slots_for(5).size() == 9 and SpaceSetup.slots_for(5).has("turm2"), "Slots Stufe 5")
+	check(SpaceSetup.slots_for(9).size() == 9, "höchstens Stufe 5")
 	for s in SpaceSetup.START_SLOTS:
 		check(ShipWeapons.fits(SpaceSetup.START_SLOTS[s], s), "Startwaffe passt in %s" % s)
 	var q := SpaceSetup.quick()
@@ -59,7 +64,7 @@ func _test_setup() -> void:
 		check(q.has(k), "setup hat %s" % k)
 	check(q.crew.size() > 0, "Schnellkampf hat Crew")
 	var sts := SpaceSetup.stations_for(q.ship.slots)
-	check(sts.size() == 9, "5 Stationen + 4 Geschützstationen")
+	check(sts.size() == 11, "5 Stationen + 4 Geschützstationen + 2 weitere Techniker")
 	for st in sts:
 		check(q.posts.has(st), "Posten für %s" % st)
 	var p := SpaceBattle.prepare(q)
@@ -246,6 +251,79 @@ func _test_result() -> void:
 	check(ch.free_xp >= MissionResult.FREE_XP, "apply_result verbucht freie EP")
 	var js := JSON.stringify(r.ship)
 	check(JSON.parse_string(js) is Dictionary, "Schiffsteil als JSON speicherbar")
+
+
+func _test_tech() -> void:
+	var c := _combat(11)
+	var a: Character = c.crew[0]
+	var b: Character = c.crew[1]
+	c.posts["technik"] = String(a.id)
+	c.posts["technik_2"] = String(b.id)
+	c.posts["technik_3"] = SpaceSetup.KI
+	check(c.tech_active("technik") and c.tech_active("technik_2") and not c.tech_active("technik_3"),
+		"weitere Techniker nur mit Crew")
+	c.own.damage = {"sensoren": "C", "antrieb": "B", "reaktor": "A"}
+	var t := c.tech_tasks({"technik": {"technik": [{"repair": "sensoren"}, {"repair": "reaktor"}],
+		"technik_2": [{"repair": "antrieb"}], "technik_3": [{"patch": true}]}})
+	check(t.size() == 2 and t.technik.size() == 2, "Aufgaben je Techniker, freie Station ohne Aufgabe")
+	check(c.tech_tasks({"technik": {"repair": "sensoren"}}).has("technik"), "altes Format geht weiter")
+	var rolls := []
+	c.rolled.connect(func(r: Dictionary, label: String) -> void: rolls.append(label))
+	c.phase = SpaceCombat.Phase.TECH
+	c._do_tech(c.own, {"technik": {"technik": [{"repair": "sensoren"}, {"repair": "reaktor"}],
+		"technik_2": [{"repair": "antrieb"}]}})
+	check(rolls.filter(func(l: String) -> bool: return l.contains("Technik")).size() == 3, "drei Reparaturproben")
+
+
+func _test_board() -> void:
+	var c := _combat(12, "piraten", "leicht")
+	var e: SpaceShip = null
+	for s in c.enemies():
+		if not s.is_fighter() and e == null:
+			e = s
+		elif s != e:
+			s.destroyed = true
+	if e == null:
+		e = SpaceTemplates.make("korvette", 0)
+		e.id = "gx"
+		c.ships.append(e)
+		for s in c.enemies():
+			if s != e:
+				s.destroyed = true
+	e.pos = c.own.pos + Hex.DIRS[0]
+	check(not c.can_board(e), "heile Schiffe nicht enterbar")
+	e.hull = e.hull_max / 5
+	check(c.can_board(e), "Hülle unter 25 % und benachbart: enterbar")
+	e.pos = c.own.pos + Hex.DIRS[0] * 3
+	check(not c.can_board(e), "nicht benachbart")
+	e.pos = c.own.pos + Hex.DIRS[0]
+	e.hull = e.hull_max
+	e.damage["antrieb"] = "E"
+	check(c.can_board(e), "Antrieb E: enterbar")
+	var j := SpaceTemplates.make("jaeger", 1)
+	j.id = "gj"
+	j.pos = c.own.pos + Hex.DIRS[2] * 4
+	c.ships.append(j)
+	check(not c.can_board(e), "nur wenn kein anderer Gegner mehr kämpft")
+	check(not c.can_board(j), "Jäger nicht enterbar")
+	j.destroyed = true
+	check(c.board(e) and c.result == &"sieg", "Entern beendet den Raumkampf")
+	var r := c.to_result()
+	check(r.board_enemy and r.board_faction == "piraten" and r.board_loot.has("credits"), "Entern im Ergebnis")
+
+
+func _test_preview() -> void:
+	var c := _combat(13)
+	var pred := c.predict_enemies()
+	check(pred.size() == c.active_enemies().size(), "Schätzung für jeden Gegner")
+	var pos := c.own.pos
+	var pf := c.preview_fire(pos + Hex.DIRS[0], 0, pred)
+	check(c.own.pos == pos and pf.size() == c.own.weapon_slots().size(), "Ziel-Check ändert nichts")
+	for d in ["leicht", "mittel", "schwer"]:
+		for i in 6:
+			var g := SpaceTemplates.pick_group("piraten", d, RandomNumberGenerator.new())
+			if d == "mittel":
+				check(g[0] == "korvette" and g.count("jaeger") in [1, 2], "mittel: Korvette mit 1 oder 2 Jägern")
 
 
 func _test_auto() -> void:

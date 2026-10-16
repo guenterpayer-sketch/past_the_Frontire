@@ -67,7 +67,7 @@ func _build_rows() -> void:
 		var ob := OptionButton.new()
 		ob.focus_mode = Control.FOCUS_NONE
 		ob.custom_minimum_size.x = 230
-		ob.add_item("Bord-KI (+%d)" % SpaceSetup.KI_BONUS)
+		ob.add_item("— frei" if st in SpaceSetup.EXTRA_TECH else "Bord-KI (+%d)" % SpaceSetup.KI_BONUS)
 		ob.set_item_metadata(0, SpaceSetup.KI)
 		var skill := _skill_of(st)
 		var sel := 0
