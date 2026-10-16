@@ -12,6 +12,8 @@ signal hired(ch: Character)
 signal start(offer: Dictionary)
 ## im Raumhafen gekauft (Credits, Treibstoff, Hülle oder Material geändert)
 signal bought
+## Reiter „Handel“ im Hafen (Kauf/Verkauf, Lager)
+signal trade
 ## große Reparatur durch die Crew (1 Tag)
 signal crew_repair
 signal closed
@@ -272,6 +274,9 @@ func _render_side() -> void:
 		var tabs := HBoxContainer.new()
 		tabs.add_theme_constant_override("separation", 6)
 		_side.add_child(tabs)
+		var tr := UiTheme.button("Handel …", "Waffen, Rüstungen, Medikits kaufen und aus dem Lager verkaufen")
+		tr.custom_minimum_size.y = 40
+		tr.pressed.connect(func() -> void: trade.emit())
 		for i in 2:
 			var t := UiTheme.button(["Raumhafen", "Crew anheuern"][i], "", true)
 			t.button_pressed = i == _port_tab
@@ -280,6 +285,7 @@ func _render_side() -> void:
 				_port_tab = i
 				refresh())
 			tabs.add_child(t)
+		tabs.add_child(tr)
 		if _port_tab == 0:
 			_render_port()
 		else:
@@ -389,7 +395,7 @@ func _render_port() -> void:
 	for n in [1, 3]:
 		mrow.add_child(_buy_button("%d kaufen (%d Cr)" % [n, n * Voyage.MATERIAL_PRICE], not Voyage.can_buy_material(game, n), func() -> void: Voyage.buy_material(game, n)))
 	mat.add_child(mrow)
-	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr" % [
+	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr; Verkauf zum halben Preis" % [
 		Voyage.AMMO_PRICE.energie, Voyage.AMMO_PRICE.projektil, Voyage.AMMO_PRICE.raketen])
 	for t in Voyage.AMMO_START:
 		var arow := HBoxContainer.new()
@@ -400,6 +406,9 @@ func _render_port() -> void:
 		for n in Voyage.AMMO_PACKS[t]:
 			var cost: int = n * int(Voyage.AMMO_PRICE[t])
 			arow.add_child(_buy_button("+%d (%d Cr)" % [n, cost], not Voyage.can_buy_ammo(game, t, n), func() -> void: Voyage.buy_ammo(game, t, n)))
+		var sn: int = Voyage.AMMO_PACKS[t][0]
+		arow.add_child(_buy_button("−%d (+%d Cr)" % [sn, int(floor(sn * int(Voyage.AMMO_PRICE[t]) * Stock.SELL_FACTOR))], not Voyage.can_sell_ammo(game, t, sn),
+			func() -> void: Voyage.sell_ammo(game, t, sn)))
 		am.add_child(arow)
 
 

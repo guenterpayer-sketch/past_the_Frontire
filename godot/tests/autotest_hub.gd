@@ -128,6 +128,18 @@ func _run() -> void:
 	await _click_button(hub.ui, "1 kaufen")
 	await _click_button(hub.ui, "1× reparieren")
 	print("Raumhafen: Credits %d -> %d, Tank %d, Material %d, Hülle %d" % [cr0, g.credits, g.fuel, g.material, g.hull])
+	# Handel: kaufen und verkaufen
+	g.credits += 1000
+	await _click_button(hub.ui, "Handel")
+	await _frames(5)
+	await _click_button(hub.ui.trade, "Kaufen")
+	await _frames(5)
+	print("Handel: offen %s, Lager %s, Credits %d" % [hub.ui.trade.visible, g.stock, g.credits])
+	await _shot("h1a2_handel")
+	await _click_button(hub.ui.trade, "Verkaufen")
+	print("Handel: nach Verkauf Lager %s, Credits %d" % [g.stock, g.credits])
+	hub.ui.trade.hide()
+	g.credits -= 1000
 	await _click_button(hub.ui, "Crew anheuern")
 	await _frames(5)
 	await _shot("h1b_hafen")

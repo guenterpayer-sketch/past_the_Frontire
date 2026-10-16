@@ -44,6 +44,9 @@ var last_healed: Array[Character] = []
 var last_training := 0
 ## Schiffsausbau: Stufen {Bereich: Stufe} und laufender Crew-Ausbau {id, days} (ShipUpgrades)
 var upgrades := {}
+## Lager {Schlüssel: Anzahl} und Sortiment der Häfen {System: [Schlüssel], "_period": n} (Stock)
+var stock := {}
+var shop := {}
 var project := {}
 ## Meldungen des Crew-Ausbaus beim letzten Tageswechsel
 var last_upgrade: Array[String] = []
@@ -307,7 +310,7 @@ func to_dict() -> Dictionary:
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
-		"upgrades": upgrades.duplicate(), "project": project.duplicate()}
+		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true)}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -330,6 +333,9 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.emergency = bool(d.get("emergency", false))
 	for k in d.get("upgrades", {}):
 		g.upgrades[String(k)] = int(d.upgrades[k])
+	for k in d.get("stock", {}):
+		g.stock[String(k)] = int(d.stock[k])
+	g.shop = d.get("shop", {}).duplicate(true)
 	var pr: Dictionary = d.get("project", {})
 	if not pr.is_empty():
 		g.project = {"id": String(pr.id), "days": int(pr.days)}
