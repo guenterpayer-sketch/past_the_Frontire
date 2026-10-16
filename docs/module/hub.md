@@ -343,3 +343,11 @@ Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md`, Abschnitt „Handwerk – En
 - Tests: `test_rules` OK, `test_hub` OK (neu `_test_crafting`: Zahlen aus dem Mockup, Freischalten, Stufen, alle Ergebnisse für Bauen/Reparieren, Zerlegen, Munition, Medikit, Material kaufen/verkaufen, Spielstand, Abbruch), `test_sim -- 10` OK. Hub-Szene lädt headless ohne Fehler. `--autotest-hub` erweitert (Auswahl beim Raum Waffenkammer, Werkstatt Bauen/Reparieren).
 - Nachtrag (Entscheidung des Nutzers): **Schwierigkeit nach Kaufpreis** beim Bauen und Reparieren von Waffen/Rüstungen: bis 200 Cr mittel, bis 400 schwer, bis 600 sehr schwer, darüber extrem (`Crafting.difficulty`); Zerlegen, Munition, Medikits mittel. `Voyage.check(c, skill, extra, diff_id)` hat dafür einen optionalen Parameter (Standard „mittel“). Werkstatt zeigt „+35 (schwer)“. Tests `test_rules`, `test_hub` OK.
 
+
+### Auftrag (16.10.2026): Rückzug, Proviant, Kochen
+
+Grundlage: `docs/Planung_Rueckzug_Proviant_Kochen.md` (Entscheidungen des Nutzers).
+- **Rückzug:** eigener Ausgang im Einsatzbericht, Auftrag bleibt offen (bis Ablaufdatum). Wartet auf `MissionResult.retreated` vom Bodenkampf.
+- **Proviant:** neue Ressource, Kauf 5 Cr im Raumhafen, 1 je Crewmitglied an Bord und Tag, im Raumhafen kein Verbrauch, ohne Proviant −10 auf alle Proben.
+- **Kochen:** eine Probe je Tag außerhalb des Hafens, Koch wählbar, EP; Verbrauch Patzer +25 / Fehl 0 / Teil −10 / Erfolg −20 / Herausragend −30 %; Herausragend in den 5 Tagen → Training +1 freie EP.
+- Offene Punkte aus der Planung erst mit dem Nutzer klären, dann Mockup, dann bauen. „Kochen“ in `core/skill_texts.gd` nicht mehr als „ohne Wirkung“.
