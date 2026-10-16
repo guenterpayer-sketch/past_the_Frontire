@@ -10,15 +10,17 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Bodenkampf `13a468e` → `3e9a42c`.
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`13a468e`) |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | `b457a96`, nichts offen; muss `main` holen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`4069823`) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`8b5a91f`) |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` |
+| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`8bdb04b`, nur Doku); Planung mit dem Nutzer |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
 | 14.10.2026 | `cf5ad7e` | Charakter `claude/elegant-gauss-hq5bus` (`73a73ed`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Tests laut Modul-Chat: `test_rules` OK, `test_sim -- 30` 22 Siege / 8 Niederlagen / 0 hängengeblieben, `--autotest` und `--autotest-player` laufen durch. Koordinator: `test_rules` OK. |
+| 16.10.2026 | `abac709` | Raumkampf `claude/raumkampf-modul` (`8bdb04b`) | ohne Konflikte, nur Doku, keine Tests nötig. Branchname in `docs/module/README.md` und `docs/module/raumkampf.md` eingetragen. |
 | 16.10.2026 | `50b08f5` | Bodenkampf `claude/confident-edison-6mxzke` (`8b5a91f`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Waffen-Reparatur im Kampf (`Combat.repair_targets/do_repair`, 50 % Aktivität, einmal je Stück und Kampf, Probe Mittel: Herausragend +10, Erfolg +5, Patzer −10; Grenze im Kampf **−5** statt −10 laut Entscheidung des Nutzers; auch KI). |
 | 16.10.2026 | `b00f430` | Charakter `claude/elegant-gauss-hq5bus` (`2c8a590`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Fertigkeit `raketen` heißt angezeigt „Raketen-Geschütze“ (ID unverändert). |
 | 16.10.2026 | `c84fc8c` | Bodenkampf `claude/confident-edison-6mxzke` (`99b4def`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Ergebnis-Banner zeigt „Rückzug“ in Violett, Rückzug-Texte zur neuen Regel (Auftrag bleibt offen). |

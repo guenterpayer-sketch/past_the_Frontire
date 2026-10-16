@@ -45,7 +45,7 @@ Der zweite Koordinations-Chat wurde zum Neustart beendet (langer Verlauf). Alles
 **Stand:** `main` = Zusammenführung Bodenkampf `8b5a91f` (Waffen-Reparatur) + Doku. Bodenkampf (`claude/confident-edison-6mxzke`), Charakter (`claude/elegant-gauss-hq5bus`) und Hub (`claude/happy-lamport-u4fvya`) sind vollständig in `main`; keine offenen Aufträge. Verlauf: `docs/Zusammenfuehrung.md`. Planungen (alle gebaut): `docs/Planung_Ausbau_Lager_Handwerk.md`, `docs/Planung_Rueckzug_Proviant_Kochen.md`, `docs/Planung_Munition.md`, `docs/Planung_Ausruestungs_Editor.md`, `docs/Planung_Waffenmodelle_Klaenge.md`, `docs/Planung_Enzyklopaedie.md`, `docs/Planung_Reise_Schiff.md` u. a.
 
 **Offen:**
-- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch noch offen – Namen beim Nutzer erfragen und in `docs/module/README.md` und der Moduldatei eintragen.
+- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch `claude/raumkampf-modul` (eingetragen und in `main`).
 - Fertigkeiten ohne Wirkung: nur noch Raumschiff-Kampf (für den Raumkampf). „Geschütze“ nur im Ausrüstungs-Editor wählbar.
 - Noch nicht gebaut: Story/Kampagne, Hangar.
 
