@@ -131,3 +131,11 @@ Bodenkampf meldet je Figur im `MissionResult` `wear` {Platz "w0"/"w1"/"armor": A
 - **Danach (wartet auf Hub):** Beschädigte Stücke liegen einzeln mit Schaden im Lager; das `Stock`-Format legt der Hub fest. Dann Waffenkammer: beschädigte Stücke wählbar, beim Ablegen mit Schaden zurück ins Lager (`wear` des Platzes geht mit).
 - (16.10.2026) „Danach“ → gebaut (siehe Stand); Übergangslösung entfällt.
 - **Lagerformat des Hubs ist in `main` (16.10.2026):** Teil „Danach“ kann beginnen. Format und Aufrufe für die Waffenkammer stehen in `docs/module/hub.md` unter den Schnittstellen („Lagerformat für beschädigte Stücke“): Schlüssel `"Grundschlüssel|Schaden"`, `Stock.damaged_key/base_of/damage_of`, Anlegen = `Stock.take` + `ch.wear[platz]`, Ablegen = `Stock.add(g, Stock.damaged_key(...))`. Damit entfällt die Übergangslösung (beschädigt geht nicht mehr heil ins Lager).
+
+### Auftrag (16.10.2026): Reiter „Lager“ in der Waffenkammer
+
+Wunsch des Nutzers: Die Waffenkammer zeigt bisher nur die Plätze der Figur; es fehlt ein Inventar. Entscheidungen:
+- **Eigener Reiter „Lager“** im `ArmoryDialog` (Umschalten zwischen Ausrüstung der Figur und Lagerliste).
+- **Inhalt:** das ganze Schiffslager (`Stock.items(HubState.game)`) – Waffen, Rüstungen, Schilde, Medikits mit Stückzahl, auch was die Figur gerade nicht nutzen kann; **beschädigte Stücke einzeln** („Sturmgewehr (−20)“, `Stock.name_of/damage_of`); **Munition je Art** (`HubState.ammo`); **Material** (Schiffsmaterial, später Handwerksmaterial – nur anzeigen).
+- **Aktionen:** ansehen und **direkt ausrüsten** (Stück wählen → der aktuellen Figur an den passenden Platz anlegen, gleiche Regeln wie über die Plätze, altes Teil zurück ins Lager). Verkaufen/Verschrotten und Zerlegen **nicht jetzt** – wird mit dem Handwerk geklärt.
+- **Erst Mockup** (größere UI-Änderung), vom Nutzer bestätigen lassen, dann bauen. Ohne Spiel (`HubState.game == null`) Reiter ausblenden oder „unbegrenzt“ anzeigen – mit dem Nutzer klären.

@@ -38,6 +38,6 @@ Ziel des Nutzers: Motivation, Credits zu jagen. Entscheidungen des Nutzers (Koor
 2. **Hub – Lager** im Spielstand (Stückzahlen), Kauf/Verkauf im Raumhafen (Sortiment, Preise), Schnittstelle zum Lager für die anderen Module.
 3. **Charakter – Waffenkammer am Lager** (Ausrüsten nimmt/legt zurück, Medikits aus dem Lager); danach.
 4. **Bodenkampf – Beute und Verlust im `MissionResult`** (Gegnerausrüstung der Besiegten; verlorene Gegenstände bei Niederlage ohne Rückzug); **Hub** zeigt danach die Beuteauswahl im Einsatzbericht und bucht ins Lager.
-5. **Hub – Handwerk** (Zerlegen, Bauen, Aufträge über Spieltage, Werkstatt in der Waffenkammer, Medikits in der Krankenstation), sobald Lager steht.
+5. **Hub – Handwerk** (mit dem Nutzer noch klären: Verkaufen/Verschrotten/Zerlegen auch aus dem Reiter „Lager“ der Waffenkammer?) (Zerlegen, Bauen, Aufträge über Spieltage, Werkstatt in der Waffenkammer, Medikits in der Krankenstation), sobald Lager steht.
 
 Jeder Schritt: Zahlen (Preise, Ausbaustufen, Materialmengen, Bauzeiten, N der Beute) und Mockups vorher mit dem Nutzer klären. Regeln danach in `docs/Skillsystem.md`.
