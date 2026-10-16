@@ -102,6 +102,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 - (16.10.2026) Moduldatei angelegt.
 - (16.10.2026) Auftrag 1: Klärung mit dem Nutzer abgeschlossen, Planung in `docs/Planung_Raumkampf.md` (Entscheidungen, Vorschläge, offene Punkte, Schnittstellen-Vorschlag), `docs/Raumkampf.md` angeglichen. Mockup (Artifact „Raumkampf Mockup“) vom Nutzer bestätigt. Noch kein Code.
 - (16.10.2026) Auftrag 2: offene Punkte mit dem Nutzer geklärt (`docs/Planung_Raumkampf.md` 1a), Schnittstelle als fester Stand oben unter „Schnittstellen“. Noch kein Code.
+- (16.10.2026) Auftrag 2, Regelkern gebaut (ohne Grafik): `core/space_combat.gd`, `space_ship.gd`, `space_ai.gd`, `space_weapons.gd`, `space_templates.gd`, `space_setup.gd`, `space_battle.gd`, Test `tests/test_space.gd`. Gegnervorlagen vorerst als Konstanten in `core/space_templates.gd` statt `data/ships/`. Zusätzlich für den Hub: `SpaceSetup.posts_from_crew()` (Posten aus `Character.station`) und `SpaceSetup.fill_posts()` (freie Stationen mit den Besten besetzen). Alle Zahlen Platzhalter; im Selbstlauf (Schnellkampf-Crew, Piraten) gewinnt die Crew etwa ein Drittel, einige Kämpfe enden an der Rundengrenze (40). Noch keine Szene `space.tscn`.
 
 ### Auftrag 2 (16.10.2026): Regelkern, Szene, Schnittstelle
 

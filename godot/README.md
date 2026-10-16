@@ -153,7 +153,8 @@ Das Werkzeug überträgt die 75 KayKit-Animationen (Auswahl von 18) auf jedes Mo
 | `ui/` | Oberfläche: `battle_ui.gd` (schwebendes Layout), `top_menu.gd`, `icon_button.gd`, `info_box.gd`, `unit_card.gd`, `action_panel.gd`, `initiative_bar.gd`, `combat_log.gd`, `dice_panel.gd`, Dialoge (`briefing_dialog.gd`, `sheet_dialog.gd`, `modal.gd`), `crew/` (Charakter-Modul: `crew_screen.gd` = Szene `crew.tscn`, `crew_overview.gd` = Charakterübersicht/Aufleveln, `character_editor.gd` = neue Figur, `figure_preview.gd` = 3D-Vorschau, `roster_screen.gd` = Roster, `roster_edit_dialog.gd` = Name & Aussehen, `crew_picker.gd` = Crew-Auswahl beim neuen Spiel, `crew_widgets.gd` = Figurenkarte und Kurzwerte, `armory_dialog.gd` = Waffenkammer), `ui_theme.gd` |
 | `audio/` | `sfx.gd` (Autoload `Sfx`): Soundeffekte werden synthetisch erzeugt, keine Audiodateien |
 | Schiff (Hub) | `core/sector.gd` (Sternenkarte: Systeme, Fraktionen, Routen, kürzester Weg), `core/hub_state.gd` (Spiel im Schiff: Tag, Position, Aufträge, laufender Einsatz, Bericht, Schiffswerte; statisch in `HubState.game`, übersteht den Szenenwechsel), `core/voyage.gd` (Reiseproben, Treibstoff, Hülle, Credits, Raumhafen), `core/medbay.gd` (Krankenstation), `core/save_slots.gd` (Spielstände), `view/start_screen.gd` (Startmenü), `view/hub.gd` (Schiff: Räume, Kamera, Ablauf), `view/ship_view.gd` (3D-Deck), `ui/hub_ui.gd`, `ui/star_map.gd`, `ui/slots_dialog.gd` |
-| `tests/` | Regeltests, Hub-Tests und KI-gegen-KI-Simulation |
+| Raumkampf | Regelkern ohne Grafik (noch ohne Szene): `core/space_combat.gd` (**SpaceCombat**: Phasen Schilde → Bewegen → Schießen → Technik/Computer, Stationen mit Bord-KI und Doppelbesetzung, Energie, Schilde je Seite, Systemschäden A–E, Flucht, Kapitulation, Ergebnis), `core/space_ship.gd` (Schiff im Kampf), `core/space_ai.gd` (Gegner und Selbstlauf), `core/space_weapons.gd` (**ShipWeapons**, Katalog der Schiffswaffen), `core/space_templates.gd` (Gegnerschiffe und -seiten), `core/space_setup.gd` (**SpaceSetup**: Slots, Stationen, Ausbau-Stufen, Schnellkampf), `core/space_battle.gd` (**SpaceBattle**: Einstieg `start()`, Rückweg `take_result()`). Schnittstelle: `docs/module/raumkampf.md` |
+| `tests/` | Regeltests, Hub-Tests, Raumkampf-Tests und KI-gegen-KI-Simulation |
 
 Grundregel: `core/` kennt keine Grafik. `Combat` meldet Würfe, Schritte, Treffer usw. über Signale; `EventPlayer` spielt sie der Reihe nach ab (Würfel rollen → Schuss → Treffer → Log). Die KI plant in einem eigenen Thread, damit die Halle bedienbar bleibt.
 
@@ -164,6 +165,7 @@ Die Crew (vollständige Charaktere mit Rängen und EP, Eigenschaften, gesparten 
 ```
 godot --headless --path godot --script res://tests/test_rules.gd
 godot --headless --path godot --script res://tests/test_hub.gd       # Sektor, Reisen, Aufträge, Spielstände
+godot --headless --path godot --script res://tests/test_space.gd     # Raumkampf: Regelkern, Selbstlauf
 godot --headless --path godot --script res://tests/test_sim.gd -- 30
 godot --headless --path godot --script res://tests/test_sim.gd -- 45 missionen   # Siege je Schwierigkeit
 ```
