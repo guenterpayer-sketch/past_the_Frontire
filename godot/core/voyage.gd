@@ -99,12 +99,19 @@ static func _best_fill(open: Array[Dictionary], free: Array[Character], i: int, 
 	return best
 
 
-## Probe ohne Kampf-Protokoll: offener W100 + Fertigkeit + Schwierigkeit; EP wie Rules.maneuver (Erfolg voll, sonst halb, Patzer 0)
-static func check(c: Character, skill: StringName, extra := 0) -> Dictionary:
-	var diff: Dictionary = Rules.DIFFICULTY[DIFF]
+## Für Tests: fester Ausgang aller Proben (Ergebnis-ID, leer = normal würfeln)
+static var fixed_result: StringName = &""
+const _FIXED_TOTAL := {&"patzer": -50, &"fehlschlag": 50, &"teilerfolg": 90, &"erfolg": 150, &"herausragend": 200}
+
+
+## Probe ohne Kampf-Protokoll: offener W100 + Fertigkeit + Schwierigkeit (Standard „mittel“); EP wie Rules.maneuver (Erfolg voll, sonst halb, Patzer 0)
+static func check(c: Character, skill: StringName, extra := 0, diff_id := DIFF) -> Dictionary:
+	var diff: Dictionary = Rules.DIFFICULTY[diff_id]
 	var roll := Dice.open_d100()
 	var bonus := Rules.skill_total(c, skill) + int(diff.mod) + extra
 	var total: int = roll.total + bonus
+	if fixed_result != &"":
+		total = int(_FIXED_TOTAL[fixed_result])
 	var res := Rules.maneuver_result(total)
 	var xp := 0
 	if Rules.is_success(res):

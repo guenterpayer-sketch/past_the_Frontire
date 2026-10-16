@@ -52,6 +52,11 @@ var shop := {}
 var project := {}
 ## Meldungen des Crew-Ausbaus beim letzten Tageswechsel
 var last_upgrade: Array[String] = []
+## Handwerk (Crafting): Handwerksmaterial, laufende Arbeiten {Figur-ID: {kind, key, days, material, name}},
+## Meldungen fertiger Arbeiten beim letzten Tageswechsel
+var craft_material := 0
+var jobs := {}
+var last_crafts: Array[String] = []
 ## laufender Einsatz (Auftrag) oder leer
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
@@ -107,10 +112,12 @@ func advance_days(n: int) -> void:
 		return
 	last_training = training_xp() * training_days(day, day + n)
 	last_upgrade = []
+	last_crafts = []
 	for i in n:
 		var msg := ShipUpgrades.work_day(self)
 		if msg != "":
 			last_upgrade.append(msg)
+		last_crafts.append_array(Crafting.work_day(self))
 	day += n
 	last_healed = Medbay.pass_days(self, n)
 	if last_training > 0:
@@ -216,6 +223,7 @@ func travel_to(target: int) -> int:
 	advance_days(r.days)
 	rep.training = last_training
 	rep.upgrade = last_upgrade.duplicate()
+	rep.crafts = last_crafts.duplicate()
 	return r.days
 
 
@@ -278,6 +286,7 @@ func finish_mission(rep: Dictionary) -> void:
 	advance_days(MISSION_DAYS)
 	rep.training = last_training
 	rep.upgrade = last_upgrade.duplicate()
+	rep.crafts = last_crafts.duplicate()
 	rep.day = day
 	report = rep
 
@@ -366,7 +375,7 @@ func to_dict() -> Dictionary:
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
 		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
-		"loot_pending": loot_pending.duplicate(true),
+		"loot_pending": loot_pending.duplicate(true), "craft_material": craft_material, "jobs": jobs.duplicate(true),
 		"trade_rolls": trade_rolls.duplicate(true)}
 
 
@@ -393,6 +402,12 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	for k in d.get("stock", {}):
 		g.stock[String(k)] = int(d.stock[k])
 	g.shop = d.get("shop", {}).duplicate(true)
+	g.craft_material = int(d.get("craft_material", 0))
+	var jb: Dictionary = d.get("jobs", {})
+	for k in jb:
+		var j: Dictionary = jb[k]
+		g.jobs[String(k)] = {"kind": String(j.kind), "key": String(j.key), "days": int(j.days), "material": int(j.get("material", 0)),
+			"name": String(j.get("name", ""))}
 	var lp: Dictionary = d.get("loot_pending", {})
 	if not lp.is_empty():
 		g.loot_pending = {"items": lp.get("items", []).map(func(x) -> String: return String(x)), "slots": int(lp.get("slots", 0))}

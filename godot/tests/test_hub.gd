@@ -29,6 +29,7 @@ func _init() -> void:
 	_test_stock()
 	_test_trade_skills()
 	_test_loot()
+	_test_crafting()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -789,6 +790,11 @@ func _test_loot() -> void:
 	g.position = away
 	g.credits = 1000
 	check(not Stock.can_repair(g, k20), "Werkstatt nur im Raumhafen")
+	# gute Stücke (+5) aus dem Handwerk
+	var k5 := Stock.damaged_key(sg, 5)
+	check(k5 == sg + "|+5" and Stock.damaged_key(sg, 12) == k5 and Stock.damage_of(k5) == Stock.BONUS and Stock.is_fine(k5) and not Stock.is_fine(k20), "Schlüssel +5")
+	check(Stock.base_of(k5) == sg and Stock.name_of(k5) == "Sturmgewehr (+5)" and Stock.damage_steps(k5) == 0, "Name und Stufen +5")
+	check(Stock.sell_price(k5) == 210 and Stock.repair_cost(g, k5) == 0 and not Stock.can_repair(g, k5), "+5: Verkauf +50 %, nichts zu reparieren")
 	g.stock = {}
 	# Beute aus dem MissionResult: Medikits sofort, Rest zur Auswahl, 1 Stück je Crewmitglied im Einsatz
 	var res := {"units": {"a": {}, "b": {}}, "loot": [
@@ -823,6 +829,117 @@ func _test_loot() -> void:
 	TradeSkills.fixed = &"teilerfolg"
 	HubState.game = null
 	Campaign.last_result = {}
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+## Handwerk (Crafting): Material, Freischalten, Dauer, Bauen/Zerlegen/Reparieren nach Ergebnis, Spielstand
+func _test_crafting() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(63, "Handwerk", 1)
+	HubState.game = g
+	var sg := "res://data/weapons/sturmgewehr.tres"
+	var lp := "res://data/weapons/laserpistole.tres"
+	var kp := "res://data/armor/mittel.tres"
+	var mg := "res://data/weapons/mg.tres"
+	var c: Character = Campaign.crew()[0]
+	var c2: Character = Campaign.crew()[1]
+	# Zahlen (Mockup 29–31)
+	check(Crafting.build_material(sg) == 14 and Crafting.build_material(lp) == 8 and Crafting.build_material(kp) == 18 and Crafting.build_material(Stock.MEDKIT) == 2, "Material Bauen 14/8/18/2")
+	check(Crafting.build_material(Crafting.ammo_key("energie")) == 3 and Crafting.build_material(Crafting.ammo_key("raketen")) == 3, "Munition 3/3")
+	check(Crafting.repair_material(Stock.damaged_key(sg, -20)) == 3 and Crafting.repair_material(Stock.damaged_key(lp, -10)) == 1 and Crafting.repair_material(Stock.damaged_key(kp, -30)) == 6, "Material Reparieren 3/1/6")
+	check(Crafting.take_material(kp, &"teilerfolg") == 7 and Crafting.take_material(sg, &"herausragend") == 11 and Crafting.take_material(sg, &"patzer") == 0, "Zerlegen 7/11/0")
+	check(Crafting.build_days(g, sg) == 2 and Crafting.build_days(g, mg) == 3 and Crafting.build_days(g, lp) == 1, "Dauer 2/3/1")
+	check(Crafting.skill_of(sg) == &"hwWaffen" and Crafting.skill_of(kp) == &"hwRuestung" and Crafting.skill_of(Stock.MEDKIT) == &"medikamente" and Crafting.skill_of(Crafting.ammo_key("projektil")) == &"hwWaffen", "Fertigkeiten")
+	check(Crafting.difficulty(lp) == "mittel" and Crafting.difficulty(sg) == "schwer" and Crafting.difficulty(mg) == "sehrSchwer" and Crafting.difficulty("res://data/armor/schwer.tres") == "extrem", "Schwierigkeit nach Kaufpreis 150/280/500/700")
+	check(Crafting.difficulty(Stock.damaged_key(sg, -20), "repair") == "schwer" and Crafting.difficulty(sg, "take") == "mittel" and Crafting.difficulty(Stock.MEDKIT) == "mittel" and Crafting.difficulty(Crafting.ammo_key("raketen")) == "mittel", "Reparieren wie Bauen; Zerlegen, Medikit, Munition mittel")
+	check(Crafting.check_bonus(g, c, sg) == Rules.skill_total(c, &"hwWaffen") - 10 and Crafting.check_bonus(g, c, sg, "take") == Rules.skill_total(c, &"hwWaffen"), "Probenwert mit Schwierigkeit")
+	check(not Equipment.SHIELD in Crafting.buildable() and sg in Crafting.buildable() and Crafting.ammo_key("raketen") in Crafting.buildable(), "baubar: ohne Schild, mit Munition")
+	# Freischalten und Werkstatt-Stufen
+	check(Crafting.unlocked(g, lp) and not Crafting.unlocked(g, sg) and Crafting.unlock_level(sg) == 1 and Crafting.unlock_level(mg) == 2, "Stufe 0: bis 200 Cr")
+	g.upgrades["workshop"] = 1
+	check(Crafting.unlocked(g, sg) and not Crafting.unlocked(g, mg) and Crafting.bonus(g, sg) == 10, "Stufe 1: bis 400, +10")
+	g.upgrades["workshop"] = 2
+	check(Crafting.unlocked(g, mg) and Crafting.build_days(g, sg) == 1 and Crafting.build_days(g, mg) == 2 and Crafting.bonus(g, sg) == 10, "Stufe 2: alles, Dauer −50 %")
+	g.upgrades["workshop"] = 3
+	check(Crafting.bonus(g, sg) == 20 and Crafting.bonus(g, Stock.MEDKIT) == g.heal_bonus(), "Stufe 3: +20; Medikits mit Ausbau Krankenstation")
+	check(ShipUpgrades.AREAS.has(&"workshop") and ShipUpgrades.describe(&"workshop", 1) != "", "Werkstatt im Maschinenraum")
+	g.upgrades["workshop"] = 1
+	# Bauen
+	g.craft_material = 13
+	check(not Crafting.build(g, c, sg), "zu wenig Material")
+	g.craft_material = 30
+	check(Crafting.build(g, c, sg) and g.craft_material == 16 and Crafting.is_busy(g, c), "Bauen: Material sofort")
+	check(not Crafting.build(g, c, lp), "eine Arbeit je Figur")
+	check(not Campaign.candidates(false, HubState.game.blocked_ids()).any(func(x: Dictionary) -> bool: return x.ch == c and x.locked and String(x.reason).contains("Werkstatt")), "Handwerker nicht gesperrt")
+	for res in [&"herausragend", &"erfolg", &"teilerfolg", &"fehlschlag"]:
+		g.stock = {}
+		g.jobs = {}
+		g.craft_material = 100
+		Crafting.build(g, c, sg)
+		Voyage.fixed_result = res
+		g.advance_days(2)
+		var want := Stock.damaged_key(sg, int(Crafting.BUILD_WEAR[res]))
+		check(Stock.count(g, want) == 1 and g.jobs.is_empty() and g.last_crafts.size() == 1, "Bauen %s → %s" % [res, Stock.name_of(want)])
+	g.stock = {}
+	g.craft_material = 100
+	Crafting.build(g, c, sg)
+	Voyage.fixed_result = &"patzer"
+	g.advance_days(2)
+	check(g.stock.is_empty(), "Bauen Patzer: nichts")
+	var am := int(g.ammo.energie)
+	Voyage.fixed_result = &"teilerfolg"
+	Crafting.build(g, c, Crafting.ammo_key("energie"))
+	g.advance_days(1)
+	check(int(g.ammo.energie) == am + 30, "Munition +30")
+	Crafting.build(g, c, Stock.MEDKIT)
+	g.advance_days(1)
+	check(Stock.count(g, Stock.MEDKIT) == 1, "Medikit ins Lager")
+	# Zerlegen
+	Stock.add(g, Stock.damaged_key(kp, -30))
+	var m0 := g.craft_material
+	check(Crafting.take_apart(g, c, Stock.damaged_key(kp, -30)) and Stock.count(g, Stock.damaged_key(kp, -30)) == 0, "Zerlegen: Stück sofort weg")
+	Voyage.fixed_result = &"erfolg"
+	g.advance_days(1)
+	check(g.craft_material == m0 + 10, "Zerlegen Erfolg: +10 Material")
+	# Reparieren
+	var k20 := Stock.damaged_key(sg, -20)
+	for pair in [[&"patzer", -30], [&"fehlschlag", -20], [&"teilerfolg", -10], [&"erfolg", 0]]:
+		g.stock = {}
+		Stock.add(g, k20)
+		m0 = g.craft_material
+		check(Crafting.repair(g, c2, k20) and g.craft_material == m0 - 3 and Stock.count(g, k20) == 0, "Reparieren: Material sofort, Stück in der Werkstatt")
+		Voyage.fixed_result = pair[0]
+		g.advance_days(1)
+		check(Stock.count(g, Stock.damaged_key(sg, pair[1])) == 1, "Reparieren %s → %d" % [pair[0], pair[1]])
+	g.stock = {}
+	Stock.add(g, k20)
+	m0 = g.craft_material
+	Crafting.repair(g, c2, k20)
+	Voyage.fixed_result = &"herausragend"
+	g.advance_days(1)
+	check(Stock.count(g, sg) == 1 and g.craft_material == m0, "Reparieren herausragend: heil, Material zurück")
+	check(not Crafting.can_repair(g, c2, sg), "Intaktes nicht reparieren")
+	# Material im Raumhafen
+	g.position = g.nearest_harbor()
+	g.credits = 100
+	m0 = g.craft_material
+	check(Crafting.buy_material(g, 10) and g.credits == 0 and g.craft_material == m0 + 10, "Material kaufen 10 Cr")
+	check(Crafting.sell_material(g) and g.credits == 5, "Material verkaufen 5 Cr")
+	# Spielstand: laufende Arbeit und Material
+	Voyage.fixed_result = &""
+	Crafting.build(g, c, lp)
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.jobs == g.jobs and h.craft_material == g.craft_material, "Arbeiten und Material im Spielstand")
+	# Handwerker nicht mehr an Bord: abgebrochen, Material zurück
+	g.jobs = {"niemand": {"kind": "build", "key": lp, "days": 1, "material": 8, "name": "X"}}
+	m0 = g.craft_material
+	g.advance_days(1)
+	check(g.craft_material == m0 + 8 and g.last_crafts[0].contains("abgebrochen"), "abgebrochen: Material zurück")
+	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)

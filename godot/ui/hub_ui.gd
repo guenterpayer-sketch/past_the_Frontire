@@ -30,6 +30,7 @@ var _warn_box: VBoxContainer
 var travel_report: Modal
 var engine: EngineDialog
 var trade: TradeDialog
+var craft: CraftDialog
 var _top_right: VBoxContainer
 var _rooms_box: PanelContainer
 var _hint: PanelContainer
@@ -134,9 +135,10 @@ func _ready() -> void:
 	travel_report = Modal.new()
 	engine = EngineDialog.new()
 	trade = TradeDialog.new()
+	craft = CraftDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report, engine, trade]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report, engine, trade, craft]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = Vector2(640, 440)
@@ -295,6 +297,24 @@ func show_ui_scale() -> void:
 	notice.move_to_front()
 
 
+## Kleine Auswahl (z. B. Waffenkammer: Ausrüstung oder Werkstatt): options = [[Knopftext, Callable], …]
+func show_choice(title: String, text: String, options: Array) -> void:
+	notice.open(title)
+	var l := UiTheme.label(text, 15)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	notice.content.add_child(l)
+	for o in options:
+		var b := UiTheme.button(String(o[0]))
+		b.add_theme_color_override("font_color", UiTheme.ACCENT)
+		var act: Callable = o[1]
+		b.pressed.connect(func() -> void:
+			notice.hide()
+			act.call())
+		notice.footer.add_child(b)
+	notice.add_close("Abbrechen")
+	notice.move_to_front()
+
+
 func show_notice(title: String, text: String) -> void:
 	notice.open(title)
 	var l := UiTheme.label(text, 15)
@@ -331,6 +351,8 @@ func show_report(rep: Dictionary) -> void:
 		report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
 	for m in rep.get("upgrade", []):
 		report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
+	for m in rep.get("crafts", []):
+		report.content.add_child(UiTheme.label("Werkstatt: " + m, 15, UiTheme.ACCENT))
 	_payout(rep)
 	_loot(HubState.game)
 	var go := UiTheme.button("Zu den Crewquartieren")
@@ -504,6 +526,8 @@ func show_travel(rep: Dictionary) -> void:
 		travel_report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
 	for m in rep.get("upgrade", []):
 		travel_report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
+	for m in rep.get("crafts", []):
+		travel_report.content.add_child(UiTheme.label("Werkstatt: " + m, 15, UiTheme.ACCENT))
 	if rep.fuel1 <= 0 and not rep.emergency:
 		travel_report.content.add_child(UiTheme.label("Tank leer: Notsprit. Weiter nur zum nächsten Hafen; dort kostet das Tanken das Doppelte.", 14, UiTheme.BAD))
 	travel_report.content.add_child(UiTheme.label("ERFAHRUNG", 13, UiTheme.MUTED))
@@ -536,7 +560,7 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible or engine.visible or trade.visible \
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
 
 
@@ -545,7 +569,7 @@ func close_dialogs() -> bool:
 	if enc and enc.visible:
 		enc.close()
 		return true
-	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report, engine, trade]:
+	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report, engine, trade, craft]:
 		if d.visible:
 			d.close()
 			return true

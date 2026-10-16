@@ -1,6 +1,6 @@
 class_name ShipUpgrades
 extends RefCounted
-## Schiffsausbau (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 7 Bereiche mit je
+## Schiffsausbau (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 8 Bereiche (Werkstatt: Crafting) mit je
 ## 3 Stufen. Werft im Hafen: Credits, sofort. Crew: Schiffsmaterial und Spieltage, am Ende eine Reparaturprobe
 ## (Station Technik, sonst der Beste); nur ein Crew-Ausbau zur Zeit. Stufen liegen in HubState.upgrades {id: Stufe},
 ## der laufende Crew-Ausbau in HubState.project {id, days}.
@@ -14,6 +14,8 @@ const AREAS := {
 	&"systems": {"name": "Systeme", "values": [0, 5, 10, 15], "text": "%+d auf Reiseproben"},
 	&"medbay": {"name": "Krankenstation", "values": [0, 10, 20, 30], "text": "%+d auf die Heilprobe"},
 	&"training": {"name": "Trainingsraum", "values": [3, 4, 5, 6], "text": "%d freie EP alle 5 Tage"},
+	&"workshop": {"name": "Werkstatt", "values": [0, 1, 2, 3], "text": "Stufe %d", "texts": ["Bauen bis 200 Cr",
+		"+10 Handwerk, bis 400 Cr", "+10, Dauer −50 %, alles", "+20, Dauer −50 %, alles"]},
 }
 const MAX_LEVEL := 3
 ## Kosten der Stufe 1, 2, 3 (Index = Zielstufe − 1)
@@ -38,6 +40,8 @@ static func value_at(id: StringName, lv: int) -> int:
 
 
 static func describe(id: StringName, lv: int) -> String:
+	if AREAS[id].has("texts"):
+		return String(AREAS[id].texts[clampi(lv, 0, MAX_LEVEL)])
 	return String(AREAS[id].text) % value_at(id, lv)
 
 
