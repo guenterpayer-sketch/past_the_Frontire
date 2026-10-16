@@ -4,10 +4,13 @@ extends Modal
 ## Kampf änderbar). Je Station Bord-KI oder ein Crewmitglied; zweimal dieselbe Person = Doppelbesetzung (−30).
 
 signal confirmed(posts: Dictionary)
+## Umbesetzen während des Kampfs (zu Rundenbeginn, −10 in dieser Runde)
+signal reposted(posts: Dictionary)
 
 var view: SpaceView
 var posts := {}
 var _rows: VBoxContainer
+var _repost := false
 
 
 func _ready() -> void:
@@ -16,8 +19,29 @@ func _ready() -> void:
 	max_size = Vector2(980, 760)
 
 
+## Posten während des Kampfs ändern (nur zu Rundenbeginn)
+func open_repost(v: SpaceView) -> void:
+	view = v
+	_repost = true
+	closable = true
+	var c := v.combat
+	posts = c.posts.duplicate()
+	open("Posten umbesetzen – Runde %d" % c.round_no)
+	content.add_child(UiTheme.label("Wer an eine Station neu kommt, hat dort in dieser Runde %d. Gilt ab der Schildphase."
+		% SpaceCombat.SWITCH_MALUS, 13, UiTheme.ACCENT))
+	_rows = VBoxContainer.new()
+	content.add_child(_rows)
+	_build_rows()
+	add_close("Abbrechen")
+	var ok := UiTheme.button("Übernehmen")
+	ok.pressed.connect(close_and_start)
+	footer.add_child(ok)
+
+
 func open_for(v: SpaceView) -> void:
 	view = v
+	_repost = false
+	closable = false
 	var c := v.combat
 	posts = c.posts.duplicate()
 	open("Kontakt: %s" % SpaceTemplates.faction_name(c.faction_id))
@@ -87,6 +111,8 @@ func _build_rows() -> void:
 		var pid := String(posts.get(st, SpaceSetup.KI))
 		if pid != SpaceSetup.KI and posts.values().count(pid) > 1:
 			note = "doppelt (−30)"
+		if _repost and pid != SpaceSetup.KI and pid != String(c.posts.get(st, SpaceSetup.KI)):
+			note = ("%s, " % note if note != "" else "") + "Wechsel (%d)" % SpaceCombat.SWITCH_MALUS
 		if posts.values().count(pid) > 2 and pid != SpaceSetup.KI:
 			note = "höchstens zwei Stationen!"
 		grid.add_child(UiTheme.label(note, 12, UiTheme.ACCENT))
@@ -100,8 +126,10 @@ func _skill_of(st: String) -> StringName:
 
 ## Posten prüfen (höchstens zwei Stationen je Person), Kampf beginnen
 func close_and_start() -> void:
-	for pid in posts.values():
-		if pid != SpaceSetup.KI and posts.values().count(pid) > 2:
-			return
+	if SpaceCombat.posts_problem(posts) != "":
+		return
 	hide()
-	confirmed.emit(posts)
+	if _repost:
+		reposted.emit(posts)
+	else:
+		confirmed.emit(posts)

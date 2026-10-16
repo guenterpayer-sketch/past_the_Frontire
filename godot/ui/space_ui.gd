@@ -27,6 +27,7 @@ var _exec: Button
 var _auto: Button
 var _surrender: Button
 var _board: Button
+var _posts: Button
 var _defaults := {}
 var _w := {}                      # Bedienelemente der laufenden Phase
 var _targets := {}                # Geschützstation → Schiffs-ID
@@ -61,6 +62,10 @@ func setup(v: SpaceView) -> void:
 	briefing = SpaceBriefing.new()
 	add_child(briefing)
 	briefing.confirmed.connect(func(p: Dictionary) -> void: view.begin(p))
+	briefing.reposted.connect(func(p: Dictionary) -> void:
+		combat.repost(p)
+		view.play_events()
+		refresh())
 	result_modal = Modal.new()
 	add_child(result_modal)
 	result_modal.closable = false
@@ -118,6 +123,9 @@ func _build_side() -> void:
 	_auto = UiTheme.button("Vorschlag", "Diese Phase mit dem Vorschlag der Bord-KI ausführen")
 	_auto.pressed.connect(func() -> void: view.execute(SpaceAI.crew_orders(combat, combat.phase)))
 	foot.add_child(_auto)
+	_posts = UiTheme.button("Posten umbesetzen", "Nur zu Rundenbeginn (Schildphase); neu besetzte Stationen −10 in dieser Runde")
+	_posts.pressed.connect(func() -> void: briefing.open_repost(view))
+	v.add_child(_posts)
 	_surrender = UiTheme.button("Kapitulieren")
 	_surrender.pressed.connect(_on_surrender)
 	v.add_child(_surrender)
@@ -161,6 +169,7 @@ func set_busy(b: bool) -> void:
 	_exec.disabled = b
 	_auto.disabled = b
 	_surrender.disabled = b or not combat.can_surrender()
+	_posts.disabled = b or not combat.can_repost()
 
 
 func refresh_ships() -> void:
@@ -190,6 +199,8 @@ func refresh() -> void:
 	_surrender.text = "Kapitulieren (%d Credits)" % int(combat.faction.get("ransom", 0)) if combat.can_surrender() \
 		else "Kapitulieren (nicht möglich)"
 	_surrender.disabled = not combat.can_surrender()
+	_posts.disabled = not combat.can_repost()
+	_posts.text = "Posten umbesetzen" if combat.can_repost() else "Posten umbesetzen (nur zu Rundenbeginn)"
 	var b := combat.boardable()
 	_board.visible = b != null
 	if b:
@@ -335,8 +346,9 @@ func _shield_controls(v: VBoxContainer) -> void:
 	_w.e_shields = _spin(v, "Schilde (×%d)" % SpaceCombat.SHIELD_PER_ENERGY, int(e.get("shields", 0)), total)
 	_w.e_engine = _spin(v, "Antrieb", int(e.get("engine", 0)), total)
 	_w.e_jump = _spin(v, "Sprung (%d nötig)" % SpaceCombat.JUMP_ENERGY, int(e.get("jump", 0)), total)
+	v.add_child(UiTheme.label("Schilde verteilen – welche Seite stärker schützen?", 13, UiTheme.ACCENT))
 	var row := HBoxContainer.new()
-	row.add_child(UiTheme.label("Verteilung", 12))
+	row.add_child(UiTheme.label("Schwerpunkt", 12))
 	var ob := OptionButton.new()
 	ob.focus_mode = Control.FOCUS_NONE
 	for p in ALLOC_PRESETS:

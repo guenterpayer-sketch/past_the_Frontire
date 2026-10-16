@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_tech()
 	_test_board()
 	_test_preview()
+	_test_repost()
 	_test_auto()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails > 0 else 0)
@@ -324,6 +325,32 @@ func _test_preview() -> void:
 			var g := SpaceTemplates.pick_group("piraten", d, RandomNumberGenerator.new())
 			if d == "mittel":
 				check(g[0] == "korvette" and g.count("jaeger") in [1, 2], "mittel: Korvette mit 1 oder 2 Jägern")
+
+
+func _test_repost() -> void:
+	var c := _combat(14)
+	var a: Character = c.crew[0]
+	check(c.can_repost(), "Umbesetzen zu Rundenbeginn")
+	var p := c.posts.duplicate()
+	p["geschuetz_bug"] = SpaceSetup.KI
+	p["technik_2"] = String(a.id)
+	var before := String(c.posts.get("technik_2", SpaceSetup.KI))
+	check(c.repost(p), "Umbesetzen übernommen")
+	check(c.posts["geschuetz_bug"] == SpaceSetup.KI and c.posts["technik_2"] == String(a.id), "neue Posten gelten")
+	if before != String(a.id):
+		check(c.station_mods("technik_2").any(func(m: Dictionary) -> bool: return m.val == SpaceCombat.SWITCH_MALUS),
+			"Wechsel −10 in dieser Runde")
+	var bad := c.posts.duplicate()
+	bad["steuer"] = String(a.id)
+	bad["navigation"] = String(a.id)
+	bad["computer"] = String(a.id)
+	check(not c.repost(bad), "höchstens zwei Stationen je Person")
+	c.set_orders({})
+	c.resolve()
+	check(not c.can_repost() and not c.repost(c.posts), "nach der Schildphase kein Umbesetzen")
+	while c.phase != SpaceCombat.Phase.SHIELDS and c.result == &"":
+		c.resolve()
+	check(c.switched.is_empty(), "Wechsel-Malus endet mit der Runde")
 
 
 func _test_auto() -> void:

@@ -61,6 +61,8 @@ const SYSTEM_NAMES := {"antrieb": "Antrieb", "sensoren": "Sensoren", "lebenserha
 	"schilde": "Schildgeneratoren", "reaktor": "Reaktor"}
 ## Entern möglich unter diesem Hüllenanteil (oder Antrieb E)
 const BOARD_HULL := 0.25
+## Umbesetzen während des Kampfs: nur zu Rundenbeginn (Phase Schilde), −10 an der neuen Station in dieser Runde
+const SWITCH_MALUS := -10
 const LOCK_BONUS := 15
 const JAM_MALUS := -15
 ## Pilotenprobe → zusätzliche Drehungen und erlaubte Tempoänderung
@@ -99,6 +101,8 @@ var faction_id := ""
 var faction := {}
 var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Grund + halber Pilot-Bonus)
 var intercepts := {}
+## in dieser Runde umbesetzte Stationen (Malus SWITCH_MALUS bis Rundenende)
+var switched := {}
 var boarded: SpaceShip = null     # selbst geentertes Gegnerschiff
 var board_loot := {}               # Schiffs-ID → Abfangversuche in dieser Runde
 
@@ -260,6 +264,8 @@ func station_usable(st: String) -> bool:
 func station_mods(st: String) -> Array:
 	var mods: Array = []
 	var ch := station_who(st)
+	if ch and switched.has(st):
+		mods.append({"label": "Wechsel", "val": SWITCH_MALUS})
 	if ch:
 		var pid := String(ch.id)
 		var n := 0
@@ -351,6 +357,7 @@ func start() -> void:
 
 func _start_round() -> void:
 	round_no += 1
+	switched = {}
 	if round_no > MAX_ROUNDS:
 		log_text("Die Gegner drehen ab – der Kampf endet ohne Entscheidung.", &"round")
 		retreated = true
@@ -449,6 +456,41 @@ func _check_end() -> void:
 		_finish(&"niederlage")
 	elif active_enemies().is_empty():
 		_finish(&"sieg")
+
+
+## Umbesetzen geht nur zu Rundenbeginn (vor der Schildphase)
+func can_repost() -> bool:
+	return result == &"" and round_no > 0 and phase == Phase.SHIELDS
+
+
+## Fehler einer Postenliste ("" = gültig): höchstens zwei Stationen je Person, weitere Techniker nur mit Crew
+static func posts_problem(p: Dictionary) -> String:
+	var count := {}
+	for st in p:
+		var pid := String(p[st])
+		if pid != SpaceSetup.KI:
+			count[pid] = int(count.get(pid, 0)) + 1
+			if count[pid] > 2:
+				return "Eine Person kann höchstens zwei Stationen bedienen."
+	return ""
+
+
+## Posten zu Rundenbeginn neu besetzen; wer an eine Station neu kommt, hat dort in dieser Runde −10
+func repost(p: Dictionary) -> bool:
+	if not can_repost() or posts_problem(p) != "":
+		return false
+	for st in stations():
+		var old := String(posts.get(st, SpaceSetup.KI))
+		var neu := String(p.get(st, SpaceSetup.KI))
+		if neu != SpaceSetup.KI and not people.has(neu):
+			neu = SpaceSetup.KI
+		if neu != old:
+			if neu != SpaceSetup.KI:
+				switched[st] = true
+			log_text("Umbesetzt: %s → %s." % [SpaceSetup.station_name(st),
+				people[neu].ch.name if neu != SpaceSetup.KI else "Bord-KI"])
+		posts[st] = neu
+	return true
 
 
 ## Kapitulation: Lösegeld zahlen, Kampf endet
