@@ -25,6 +25,8 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Munition | **Eigene Schiffsmunition**, getrennt vom Bodenvorrat `HubState.ammo`. |
 | Beute bei Sieg | **Credits, Schiffsmaterial, Schiffsmunition, Schiffswaffen** (ggf. beschädigt, ins Lager). |
 | Umfang V1 bei Ausbau/Handel | **Alles in V1**: Slots, Kauf im Hafen, Beute ins Lager, Munitionskauf. |
+| Schiffsanzeige | **Schildring (6 Segmente) und Hüllenbalken immer in 3D an jedem Schiff** auf der Karte; dazu ein **Kasten links oben** für das eigene Schiff, per Klick zwischen **Schema** (Umriss mit Schildbögen und Systemsymbolen) und **Zahlen** (Hüllenbalken, Schild je Seite, Systemschäden) umschaltbar. |
+| Stationen auf dem Bildschirm | **Einklappbare Seitenleiste rechts**, wie im Bodenkampf. |
 | Hub-Anbindung | **Koordinator entscheidet**, wer Auslöser und Sprung zur Szene im Hub baut (siehe 4). |
 
 ## 2. Vorschläge (noch zu bestätigen)
@@ -48,7 +50,7 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 - Zuständigkeit für Dateien anderer Module: `ShipUpgrades`, `HubState` (Hub), `Stock`/Raumhafen-Handel (Hub), Lagerhalle als Enter-Karte (Bodenkampf), Posten „Station“ im Hub, Startmenü-Schnellkampf.
 - Wer baut die Auslöser im Hub (Koordinator).
 - Treibstoff/Energie für Strahlwaffen: ja oder nein.
-- Mockup der Oberfläche steht noch aus (Schritt 4 von Auftrag 1).
+- Mockup der Oberfläche gezeigt (Artifact „Raumkampf Mockup“); Bestätigung des Gesamtbilds steht aus.
 
 ## 4. Schnittstellen-Vorschlag
 
