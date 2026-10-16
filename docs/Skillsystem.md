@@ -536,12 +536,12 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 | Energiehammer | 250 Cr | | Kampfpanzer (mittel) | 350 Cr |
 | Laserpistole | 150 Cr | | Servo-Rüstung (schwer) | 700 Cr |
 | Laserkarabiner | 300 Cr | | Medikit | 30 Cr |
-| Sturmgewehr | 280 Cr | | | |
+| Sturmgewehr | 280 Cr | | Schild | 150 Cr |
 | Schweres MG | 500 Cr | | | |
 | Raketenwerfer | 600 Cr | | | |
 
 - Eigene Waffen/Rüstungen aus dem Editor: Preis der Vorlage, mit Vermerk „frei“ doppelt. Fäuste und „Keine“ sind kein Handelsgut.
-- **Sortiment:** je Hafen ein zufälliger Anteil der Waffen/Rüstungen (Gassenwissen, ohne Probe 50 %), neu gemischt alle 10 Spieltage; Medikits immer.
+- **Sortiment:** je Hafen ein zufälliger Anteil der Waffen/Rüstungen/Schilde (Gassenwissen, ohne Probe 50 %), neu gemischt alle 10 Spieltage; Medikits immer.
 
 **Handelsfertigkeiten im Raumhafen** (`core/trade_skills.gd`, Entscheidungen des Nutzers 16.10.2026): Im Handelsdialog wählt man je Fertigkeit, wer würfelt; Probe Mittel, **eine pro Tag und Hafen**, das Ergebnis gilt bis zum nächsten Tag. EP wie bei den Reiseproben. **Ohne Probe gilt das Ergebnis wie ein Fehlschlag.**
 

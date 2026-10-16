@@ -667,6 +667,19 @@ func _test_stock() -> void:
 	g.ammo.projektil = 40
 	cr = g.credits
 	check(Voyage.sell_ammo(g, "projektil", 30) and g.ammo.projektil == 10 and g.credits == cr + 30, "Munition verkaufen (halber Preis)")
+	# Schild als Handelsgut (150 Cr, Verkauf nach Handeln)
+	var sh := Equipment.SHIELD
+	check(Stock.price(sh) == 150 and Stock.name_of(sh) == "Schild" and sh in Stock.goods(), "Schild: 150 Cr, Name, Handelsgut")
+	check(Stock.sell_price(sh, g) == 75, "Schild verkaufen: halber Preis bei Teilerfolg")
+	TradeSkills.fixed = &"herausragend"
+	check(Stock.buy_price(g, sh) == 120 and Stock.sell_price(sh, g) == 105, "Schild nach Handeln herausragend: 120 / 105")
+	TradeSkills.fixed = &"teilerfolg"
+	var old_shop: Dictionary = g.shop.duplicate(true)
+	g.shop[str(g.position)] = [sh]
+	cr = g.credits
+	check(sh in Stock.shop(g, g.position) and Stock.buy(g, sh) and Stock.count(g, sh) == 1 and g.credits == cr - 150, "Schild im Sortiment kaufen")
+	check(Stock.sell(g, sh) and Stock.count(g, sh) == 0 and g.credits == cr - 75, "Schild verkaufen")
+	g.shop = old_shop
 	# eigene Ausrüstung: Preis der Vorlage, frei doppelt
 	Gear.dir = "user://gear_test_stock"
 	_rm_tree(Gear.dir)
