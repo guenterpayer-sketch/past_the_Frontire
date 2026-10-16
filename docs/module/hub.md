@@ -32,15 +32,14 @@
 ## Stand
 
 - Bis 16.10.2026 alles in `main`, zuletzt **Anbindung Raumkampf Teil 1** (`bd2f56f`): `ShipArms` (`core/ship_arms.gd`, Übergangskatalog bis `ShipWeapons` da ist, Waffenslots, Schiffswaffen-Lager `HubState.ship_stock`, Geschützposten `gun_posts`, Systemschäden A–E mit Wirkung auf Reiseproben, Reparatur Crew/Werft, Handel „Schiff“, `ShipArms.setup(g, enemy, source, mission, return_scene)` als Eingang für `SpaceBattle.start()`), `ShipUpgrades` mit `shields`, `armor`, `reactor`, `slots`, `ShipArmsDialog` im Maschinenraum. Danach (`6dd6178`): Raumhafen in eigenen Fenstern (Sternenkarte im Hafen: Schiffshändler, Händler, Werft mit Reitern Reparatur/Ausbau/Waffenslots, Crew anheuern; `PortDialog`, `ShipArmsDialog.show_yard()`), Maschinenraum nur Crew-Arbeit, Proviant nach Verhandeln. Danach (`0bb6c64`): Startmenü-Block links oben, ein Farbschema für alle Probenergebnisse (`HubUI.result_color`), Erfahrung je Figur eine Zeile (`HubUI.xp_list`, auch EP aus Handwerk/Ausbau; `Crafting.work_day`/`ShipUpgrades.work_day` liefern Einträge `{text, result, name, skill, xp}`). Entscheidungen und Details im Archiv (Nachträge am Ende).
+- Danach (`5772000`, mit Raumkampf `f0334fd` in `main`): Übergangskatalog entfernt, `ShipArms` liest nur `ShipWeapons`/`SpaceSetup`; Waffenslots 0–5 (+`backbord2`/`steuerbord2`, `ShipUpgrades.max_level(id)`), Posten `technik_2`/`technik_3`, selbst entern (`HubState.book_board`, `board_pending`, `start_boarding()`, `board_loot` nur bei Sieg), Startmenü-Knopf „Schnellkampf im All“. Details im Archiv.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator
 
 ### Anbindung Raumkampf, Teil 2 (offen)
 
-Erst beginnen, wenn der Code des Raumkampfs (`SpaceBattle`, `SpaceSetup`, `ShipWeapons`) in `main` ist. Schnittstelle: `docs/module/raumkampf.md` „Schnittstellen“. Zuständigkeit: Raumkampf eigene Dateien, Hub alles in Hub-Dateien.
-- Vier Auslöser: Reiseereignis (Häufigkeit klären), eigene Auftragsart, Raumkampf vor einem Bodeneinsatz, Schnellkampf-Knopf im Startmenü (`SpaceSetup.quick()`).
+Raumkampf-Code ist in `main`. Schnittstelle: `docs/module/raumkampf.md` „Schnittstellen“. Zuständigkeit: Raumkampf eigene Dateien, Hub alles in Hub-Dateien.
+- Drei Auslöser im Spiel: Reiseereignis (Häufigkeit klären), eigene Auftragsart, Raumkampf vor einem Bodeneinsatz (Schnellkampf-Knopf ist gebaut).
 - Auswertung über `SpaceBattle.take_result()`: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Flucht (Auftrag bleibt offen), Kapitulation/Lösegeld, Beute ins Lager, Einsatzbericht. **Nicht** selbst `Campaign.finish_mission()` aufrufen (macht der Raumkampf).
-- Entern → Bodenkampf in der Lagerhalle; **Notfall-Regel** ist noch nirgends festgelegt (mit dem Nutzer klären).
-- **Zuerst:** `origin/claude/raumkampf-modul` (`93b12b0`) in den Branch holen. Probe des Koordinators: `test_hub` hat mit dem Raumkampf-Code 4 Fehler (Übergangskatalog, Verkauf, Verhandeln, Werft), weil `ShipWeapons` andere Preise hat (z. B. Laserbank 900 statt 800). Gültig sind die Preise aus `ShipWeapons` (gehört dem Raumkampf); Tests anpassen. Der Raumkampf wird erst mit diesem Stand in `main` zusammengeführt.
-- Übergangskatalog in `ShipArms` entfernen bzw. nur noch `ShipWeapons` lesen, sobald es ihn gibt.
+- Entern durch Gegner → Bodenkampf in der Lagerhalle (selbst entern ist gebaut, `book_board` dann aus der Auswertung aufrufen); **Notfall-Regel** ist noch nirgends festgelegt (mit dem Nutzer klären).

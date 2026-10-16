@@ -28,9 +28,9 @@ func show_engine(g: HubState) -> void:
 
 func _row(grid: GridContainer, id: StringName) -> void:
 	var lv := ShipUpgrades.level(game, id)
-	var maxed := lv >= ShipUpgrades.MAX_LEVEL
+	var maxed := lv >= ShipUpgrades.max_level(id)
 	grid.add_child(UiTheme.label(ShipUpgrades.AREAS[id].name, 15))
-	grid.add_child(UiTheme.label("●".repeat(lv) + "○".repeat(ShipUpgrades.MAX_LEVEL - lv), 16, UiTheme.ACCENT))
+	grid.add_child(UiTheme.label("●".repeat(lv) + "○".repeat(ShipUpgrades.max_level(id) - lv), 16, UiTheme.ACCENT))
 	grid.add_child(UiTheme.label("ausgebaut: " + ShipUpgrades.describe(id, lv) if maxed else
 		"%s → %s" % [ShipUpgrades.describe(id, lv), ShipUpgrades.describe(id, lv + 1)], 14, UiTheme.MUTED if maxed else UiTheme.TEXT))
 	if maxed:

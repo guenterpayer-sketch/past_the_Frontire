@@ -389,6 +389,8 @@ func show_report(rep: Dictionary) -> void:
 		var ck: Array = rep.get("cook", [])
 		var kt := ("   ·   Kochen: " + ", ".join(ck.map(func(e: Dictionary) -> String: return cook_text(e)))) if not ck.is_empty() else ""
 		report.content.add_child(UiTheme.label("Proviant %d → %d%s" % [rep.prov0, rep.prov1, kt], 15, UiTheme.BAD if int(rep.prov1) <= 0 else UiTheme.TEXT))
+	if rep.has("board"):
+		report.content.add_child(_board_label(rep))
 	_payout(rep)
 	_loot(HubState.game)
 	var go := UiTheme.button("Zu den Crewquartieren")
@@ -580,6 +582,25 @@ func show_travel(rep: Dictionary) -> void:
 	ok.pressed.connect(travel_report.close)
 	travel_report.footer.add_child(ok)
 	travel_report.move_to_front()
+
+
+## Entern: Beute des geenterten Schiffs (nur bei Sieg verbucht)
+func _board_label(rep: Dictionary) -> Label:
+	var loot: Dictionary = rep.get("board_loot", {})
+	var t := "Entern der %s: " % String(rep.board) if String(rep.board) != "" else "Entern: "
+	if loot.is_empty():
+		t += "Besatzung nicht besiegt, keine Beute aus dem Schiff."
+	else:
+		var parts := ["+%d Cr" % int(loot.get("credits", 0)), "+%d Schiffsmaterial" % int(loot.get("material", 0))]
+		var am: Dictionary = loot.get("ship_ammo", {})
+		for k in am:
+			parts.append("+%d %s" % [int(am[k]), ShipArms.AMMO_NAMES.get(k, k)])
+		for w in loot.get("weapons", []):
+			parts.append(ShipArms.label(Stock.damaged_key(String(w.key), int(w.get("damage", 0)))) + " ins Schiffslager")
+		t += "Beute " + ", ".join(parts)
+	var l := UiTheme.label(t, 15, UiTheme.GOOD if not loot.is_empty() else UiTheme.BAD)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return l
 
 
 ## Kochprobe eines Tages kurz: „Ikko: Erfolg (5)“ / „ohne Koch (6)“

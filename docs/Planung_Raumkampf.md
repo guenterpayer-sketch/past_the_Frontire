@@ -38,7 +38,7 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Schiffsmunition | **2 Arten**: Schiffsraketen, Geschosse. |
 | Slots | Start **Bug, Backbord, Steuerbord, Turm**; neuer Ausbau-Bereich **„Waffenslots“**: Stufe 1 Heck, Stufe 2 Bug 2, Stufe 3 Turm 2. |
 | Slotgrößen | **Nur der Turm ist besonders** (nur Abwehrwaffen); sonst passt jede Waffe überall, der Feuerbogen hängt am Slot. |
-| Bestätigt | Bord-KI +20, Doppelbesetzung −30, Flucht: Sprung nach 2 Runden Vorbereitung (Probe Navigation mittel), kostet Energie und Treibstoff, Ende ohne Beute, Auftrag bleibt offen. |
+| Bestätigt | Bord-KI **+0** (Änderung des Nutzers 16.10.2026, vorher +20), Doppelbesetzung −30, Flucht: Sprung nach 2 Runden Vorbereitung (Probe Navigation mittel), kostet Energie und Treibstoff, Ende ohne Beute, Auftrag bleibt offen. |
 | Systemschäden | **Stufen A–E** (E = ausgefallen); betroffen: Antrieb, Sensoren, Lebenserhaltung, Schilde, Reaktor, einzelne Waffenslots, Stationen (Person dort verletzt). |
 | Zahlen | **Erst nach dem Bau**: Platzhalter, Feinschliff per Simulation. Ebenso die **Gegnerzahl je Schwierigkeit**. |
 | Beute, Lösegeld | **Raumkampf würfelt aus**, der Hub bucht nur. |
@@ -46,9 +46,23 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Karte V1 | **Mittel (ca. 20×14) mit Asteroiden** (Deckung, blockieren); Trümmer und Nebel später. |
 | Zuständigkeit | Koordinator, Auftrag 2: Raumkampf nur eigene Dateien, Hub alle Auslöser und Hub-Dateien, Bodenkampf und Charakter in V1 nichts. |
 
+## 1b. Entscheidungen nach dem ersten Testkampf (16.10.2026)
+
+| Thema | Entscheidung |
+|---|---|
+| Bewegung | **Ziel-Check** in der Steuer-Karte (welche Waffe trifft nach dem Plan wen) und **Schatten** der geschätzten Gegnerpositionen (Schätzung der KI). |
+| Waffenslots | Ausbau mit **5 Stufen**: Heck, Backbord 2, Steuerbord 2, Bug 2, Turm 2. |
+| Notreparatur | **Bis zu 3 Techniker** (auch von anderer Station abgezogen = Doppelbesetzung), jeder **eine 2. Baustelle mit −20**. |
+| Selbst entern | **Ja, in V1:** Gegner benachbart, mit Besatzung (kein Jäger/Drohne), Antrieb E oder Hülle < 25 %, **nur wenn kein anderer Gegner mehr kämpft**. Raumkampf endet, Hub startet Bodenkampf; Beute an Bord nur bei Sieg dort. |
+| Schwierigkeit mittel | **Zwei Varianten:** Korvette mit 1 Jäger oder mit 2 Jägern (Annahme: Fregatte nur noch bei schwer). |
+| Modelle | Bug war hinten → um 180° gedreht. |
+| Fragerunden | Am Ende jeder Fragerunde eine **Abschlussfrage mit Freitext** (Wunsch des Nutzers, auch für die anderen Module). |
+| Umbesetzen im Kampf | **Nur zu Rundenbeginn** (Schildphase) über den Knopf **„Posten umbesetzen“**; wer an eine Station neu kommt, hat dort in dieser Runde **−10**. |
+| Schildverteilung | Gab es schon (Auswahl in der Schilde-Karte), war aber leicht zu übersehen → deutlicher beschriftet, dazu **Schieberegler je Seite** (Schwerpunkt setzt sie vor; zu viel wird gekürzt, Rest geht auf die schwächsten Seiten). |
+
 ## 2. Vorschläge (noch zu bestätigen)
 
-- **Bord-KI:** fester Gesamtbonus +20. **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
+- **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
 - **Phasen im Detail:** 0 Initiative (Navigation) → 1 Schilde (Schutzschild) → 2 Bewegen (Pilot; gegnerische Jäger ziehen hier ebenfalls) → 3 Schießen (Geschützstationen, Punktverteidigung) → 4 Technik/Computer (Not-Reparatur, Panzerung, Zielerfassung/Störsender wirken ab der nächsten Runde).
 - **Slots des Startschiffs:** 2 Bug, 1 je Seite, 1 Turm (Punktverteidigung). Startbewaffnung: 2× Laserbank (Strahl), 1× Massebeschleuniger (Ballistik), 1× Raketenwerfer, 1× Abwehrgeschütz.
 - **Neue Ausbau-Bereiche:** „Schilde“ (Schildpunkte je Seite) und „Panzerung“ (Abzug je Treffer), je Stufe 0–3 wie die übrigen Bereiche in `ShipUpgrades`.

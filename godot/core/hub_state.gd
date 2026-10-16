@@ -86,6 +86,9 @@ var ship_stock := {}
 var ship_ammo := ShipArms.start_ammo()
 var ship_damage := {}
 var gun_posts := {}
+## Selbst geentertes Gegnerschiff aus dem Raumkampf (board_*), bis der Bodenkampf gegen die Besatzung vorbei ist:
+## {faction, ship, difficulty, loot: {credits, material, ship_ammo, weapons}}; leer = nichts offen
+var board_pending := {}
 ## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
 var last_travel := {}
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
@@ -116,7 +119,48 @@ static func active_mission() -> Mission:
 
 
 func mission_of(offer: Dictionary) -> Mission:
+	if offer.get("board", false):
+		return Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
 	return Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
+
+
+## Bodenfraktion zur Raumkampf-Fraktion: Missionsfraktion (data/missions/<id>.tres) oder "" = zufällig
+## (Piraten, Militär, Drohnen haben noch keine eigene; Entscheidung des Nutzers 16.10.2026)
+static func board_faction_path(faction_id: String) -> String:
+	var p := "res://data/missions/%s.tres" % faction_id
+	return p if faction_id != "" and ResourceLoader.exists(p) else ""
+
+
+## Ergebnis des Raumkampfs: selbst geentert (board_enemy) → Entern vormerken; difficulty = Schwierigkeit des
+## Raumkampfs (gilt auch für den Bodenkampf). true = der Hub startet danach den Bodenkampf (start_boarding).
+func book_board(result: Dictionary, difficulty: String) -> bool:
+	if not bool(result.get("board_enemy", false)):
+		return false
+	board_pending = {"faction": String(result.get("board_faction", "")), "ship": String(result.get("board_ship", "")),
+		"difficulty": difficulty, "loot": result.get("board_loot", {}).duplicate(true)}
+	return true
+
+
+## Bodenkampf gegen die Besatzung des geenterten Schiffs vorbereiten (Lagerhalle); danach in den Bodenkampf wechseln
+func start_boarding() -> bool:
+	if board_pending.is_empty():
+		return false
+	active = {"id": -1, "system": position, "seed": randi() % 1000000, "difficulty": String(board_pending.difficulty),
+		"expires": day, "retry": false, "board": true, "faction": String(board_pending.faction)}
+	return true
+
+
+## Beute des geenterten Schiffs verbuchen (nur nach gewonnenem Bodenkampf): Credits, Schiffsmaterial,
+## Schiffsmunition, Schiffswaffen ins Schiffslager (mit Schaden)
+func _book_board_loot(loot: Dictionary) -> Dictionary:
+	credits += int(loot.get("credits", 0))
+	material += int(loot.get("material", 0))
+	var am: Dictionary = loot.get("ship_ammo", {})
+	for t in am:
+		ship_ammo[String(t)] = int(ship_ammo.get(String(t), 0)) + int(am[t])
+	for w in loot.get("weapons", []):
+		ShipArms.stock_add(self, Stock.damaged_key(String(w.key), int(w.get("damage", 0))))
+	return loot.duplicate(true)
 
 
 ## Tage vergehen (Reisen, Einsatz, Warten): Kombüse (Galley: Kochprobe und Proviant, nicht im Hafen; traveling =
@@ -306,7 +350,14 @@ func finish_mission(rep: Dictionary) -> void:
 	if retreated:
 		rep.outcome = &"rueckzug"
 		rep.expires = int(active.get("expires", day))
-	if not active.is_empty():
+	if active.get("board", false):
+		# Entern: kein Lohn; Beute des Schiffs nur bei Sieg, sonst verloren
+		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
+		rep.board = String(board_pending.get("ship", ""))
+		rep.board_loot = _book_board_loot(board_pending.get("loot", {})) if rep.get("outcome", &"") == &"sieg" else {}
+		rep.payout = {}
+		board_pending = {}
+	elif not active.is_empty():
 		# Munitionsverbrauch aus dem Einsatz abziehen (Campaign.finish_mission() lief vorher mit dem MissionResult)
 		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
 		var pay := Voyage.payout(String(active.difficulty), String(sector.systems[active.system].faction), rep.get("outcome", &"") == &"sieg")
@@ -320,7 +371,9 @@ func finish_mission(rep: Dictionary) -> void:
 			pay.difficulty = String(active.difficulty)
 			pay.medkits = set_loot(Campaign.last_result)
 		rep.payout = pay
-	if retreated:
+	if active.get("board", false):
+		pass
+	elif retreated:
 		for o in offers:
 			if o.id == active.get("id", -1):
 				o.retry = true
@@ -426,7 +479,7 @@ func to_dict() -> Dictionary:
 		"loot_pending": loot_pending.duplicate(true), "craft_material": craft_material, "jobs": jobs.duplicate(true),
 		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true),
 		"ship_slots": ship_slots.duplicate(true), "ship_stock": ship_stock.duplicate(), "ship_ammo": ship_ammo.duplicate(),
-		"ship_damage": ship_damage.duplicate(), "gun_posts": gun_posts.duplicate()}
+		"ship_damage": ship_damage.duplicate(), "gun_posts": gun_posts.duplicate(), "board_pending": board_pending.duplicate(true)}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -491,6 +544,7 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 		g.ship_damage[String(k)] = String(d.ship_damage[k])
 	for k in d.get("gun_posts", {}):
 		g.gun_posts[String(k)] = String(d.gun_posts[k])
+	g.board_pending = d.get("board_pending", {}).duplicate(true)
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g
