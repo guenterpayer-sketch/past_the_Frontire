@@ -352,3 +352,4 @@ Grundlage: `docs/Planung_Rueckzug_Proviant_Kochen.md` (Entscheidungen des Nutzer
 - **Kochen:** eine Probe je Tag außerhalb des Hafens, Koch wählbar, EP; Verbrauch Patzer +25 / Fehl 0 / Teil −10 / Erfolg −20 / Herausragend −30 %; Herausragend in den 5 Tagen → Training +1 freie EP.
 - Offene Punkte aus der Planung erst mit dem Nutzer klären, dann Mockup, dann bauen. „Kochen“ in `core/skill_texts.gd` nicht mehr als „ohne Wirkung“.
 - (16.10.2026) `MissionResult.retreated` ist in `main` – der Rückzug-Teil kann beginnen.
+- (16.10.2026) **Hinweis:** Dieser Auftrag (Rückzug, Proviant, Kochen) wird ausnahmsweise vom **Charakter-Chat** gebaut (Entscheidung des Nutzers). Hub-Chat: nicht parallel daran arbeiten.
