@@ -28,4 +28,5 @@
 
 ## Stand
 
-- (16.10.2026) Moduldatei angelegt, noch kein Branch, noch kein Code.
+- (16.10.2026) Moduldatei angelegt.
+- (16.10.2026) Auftrag 1: Klärung mit dem Nutzer abgeschlossen, Planung in `docs/Planung_Raumkampf.md` (Entscheidungen, Vorschläge, offene Punkte, Schnittstellen-Vorschlag), `docs/Raumkampf.md` angeglichen. Mockup (Artifact „Raumkampf Mockup“) vom Nutzer bestätigt. Noch kein Code.
