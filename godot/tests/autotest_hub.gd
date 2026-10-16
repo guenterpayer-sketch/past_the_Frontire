@@ -140,6 +140,14 @@ func _run() -> void:
 	await _shot("h1a2_handel")
 	await _click_button(hub.ui.trade, "Verkaufen")
 	print("Handel: nach Verkauf Lager %s, Credits %d" % [g.stock, g.credits])
+	# Werkstatt: beschädigtes Stück im Lager reparieren
+	Stock.add(g, Stock.damaged_key("res://data/weapons/sturmgewehr.tres", -20))
+	Stock.add(g, Stock.damaged_key("res://data/armor/mittel.tres", -30))
+	hub.ui.trade.show_trade(g)
+	await _frames(5)
+	await _shot("h1a3_werkstatt")
+	await _click_button(hub.ui.trade, "Reparieren")
+	print("Werkstatt: Lager %s, Credits %d" % [g.stock, g.credits])
 	hub.ui.trade.hide()
 	g.credits -= 1000
 	await _click_button(hub.ui, "Crew anheuern")
@@ -312,11 +320,19 @@ func _run() -> void:
 	await _frames(10)
 	print("nach dem Einsatz: Credits %d, Material %d" % [g.credits, g.material])
 	await _shot("h9_bericht")
+	print("Beute offen: %s" % g.loot_pending)
+	var sc := hub.ui.report.content.get_parent() as ScrollContainer
+	sc.scroll_vertical = 100000
+	await _frames(5)
+	await _shot("h9a_beuteauswahl")
 	var saved := Roster.load_crew()
 	print("freie EP: im Speicher %d, gespeichert %d (erwartet je Figur %d)" % [Campaign.crew()[0].free_xp, saved[0].free_xp,
 		MissionResult.FREE_XP + int(Campaign.last_result.get("reward_xp", 0))])
 	# Crewquartiere nach dem Einsatz: Übersicht mit dem Ergebnis
+	var stock0 := g.stock.duplicate()
 	hub.ui.report.hide()
+	await _frames(2)
+	print("Beute übernommen: offen %s, Lager %s -> %s" % [g.loot_pending, stock0, g.stock])
 	hub.open_room(&"quarters")
 	await _frames(10)
 	await _shot("h9b_crewquartiere_nach_einsatz")
