@@ -1,41 +1,28 @@
 class_name TradeDialog
 extends Modal
-## Raumhafen „Handel“: links das Sortiment des Hafens (kaufen ins Lager), rechts das Lager des Schiffs (verkaufen zum
-## halben Preis) und die Werkstatt für beschädigte Stücke (Mockup Bildschirm 28). Regeln und Preise: Stock.
-## Reiter „Schiff“ (Mockup Bildschirm 35): Schiffswaffen im Sortiment und im Lager, Schiffsmunition, nach Verhandeln (ShipArms).
+## Raumhafen „Händler“ (Ausrüstung der Crew, Mockup Bildschirm 38): links das Sortiment des Hafens (kaufen ins Lager),
+## Munition und Handwerksmaterial, rechts das Lager des Schiffs (verkaufen) und die Werkstatt für beschädigte Stücke.
+## Alles nach Handeln; Regeln und Preise: Stock, Voyage, Crafting. Schiffsbedarf: PortDialog (Schiffshändler).
 
 signal changed
 
 var game: HubState
-var _tab := 0                 # 0 = Ausrüstung, 1 = Schiff
 
 
 func show_trade(g: HubState) -> void:
 	game = g
 	max_size = Vector2(1300, 820)
-	open("Raumhafen %s: Handel" % g.sector.systems[g.position].name)
+	open("Raumhafen %s: Händler" % g.sector.systems[g.position].name)
 	content.add_child(UiTheme.label("Credits: %d Cr · Tag %d · Sortiment wechselt alle %d Tage" % [g.credits, g.day, Stock.SHOP_DAYS], 16, UiTheme.ACCENT))
 	content.add_child(UiTheme.label("PROBEN HEUTE (je Fertigkeit eine pro Tag; ohne Probe wie Fehlschlag: 5 % schlechter)", 13, UiTheme.MUTED))
-	for sk in TradeSkills.SKILLS:
-		content.add_child(_skill_row(sk))
+	for sk in [&"handeln", &"gassenwissen"]:
+		content.add_child(skill_row(g, sk, func() -> void:
+			changed.emit()
+			show_trade(game)))
 	var line := ColorRect.new()
 	line.color = UiTheme.LINE
 	line.custom_minimum_size.y = 1
 	content.add_child(line)
-	var tabs := HBoxContainer.new()
-	tabs.add_theme_constant_override("separation", 8)
-	content.add_child(tabs)
-	for i in 2:
-		var t := UiTheme.button(["Ausrüstung", "Schiff"][i], "", true)
-		t.button_pressed = i == _tab
-		t.pressed.connect(func() -> void:
-			_tab = i
-			show_trade(game))
-		tabs.add_child(t)
-	if _tab == 1:
-		_render_ship(g)
-		add_close()
-		return
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 20)
 	content.add_child(cols)
@@ -46,6 +33,21 @@ func show_trade(g: HubState) -> void:
 	buy.add_child(UiTheme.label("KAUFEN (SORTIMENT %d %%)" % roundi(TradeSkills.shop_share(g) * 100), 13, UiTheme.MUTED))
 	for key in Stock.shop(g, g.position):
 		buy.add_child(_row(Stock.name_of(key), "", _price(Stock.buy_price(g, key), Stock.price(key), false), "Kaufen", Stock.can_buy(g, key), func() -> void: Stock.buy(g, key)))
+	buy.add_child(UiTheme.label("MUNITION UND HANDWERKSMATERIAL", 13, UiTheme.MUTED))
+	for t in Voyage.AMMO_START:
+		var packs: Array = Voyage.AMMO_PACKS[t]
+		var n1: int = packs[0]
+		var n2: int = packs[1]
+		var ar := _row("%s · Vorrat %d" % [Ammo.TYPES.get(StringName(t), t), int(g.ammo.get(t, 0))], "", "%d Cr" % Voyage.ammo_price(g, t),
+			"+%d" % n1, Voyage.can_buy_ammo(g, t, n1), func() -> void: Voyage.buy_ammo(g, t, n1))
+		ar.get_child(0).add_child(_button("+%d" % n2, Voyage.can_buy_ammo(g, t, n2), func() -> void: Voyage.buy_ammo(g, t, n2)))
+		ar.get_child(0).add_child(_button("−%d (+%d)" % [n1, Voyage.ammo_sell(g, t, n1)], Voyage.can_sell_ammo(g, t, n1), func() -> void: Voyage.sell_ammo(g, t, n1)))
+		buy.add_child(ar)
+	var cm := _row("Handwerksmaterial · an Bord %d" % g.craft_material, "", "%d Cr" % Crafting.material_price(g), "+1",
+		Crafting.can_buy_material(g, 1), func() -> void: Crafting.buy_material(g, 1))
+	cm.get_child(0).add_child(_button("+10", Crafting.can_buy_material(g, 10), func() -> void: Crafting.buy_material(g, 10)))
+	cm.get_child(0).add_child(_button("−1 (+%d)" % Crafting.material_sell(g), Crafting.can_sell_material(g), func() -> void: Crafting.sell_material(g)))
+	buy.add_child(cm)
 	var sep := ColorRect.new()
 	sep.color = UiTheme.LINE
 	sep.custom_minimum_size.x = 1
@@ -65,7 +67,7 @@ func show_trade(g: HubState) -> void:
 			var rc := Stock.repair_cost(g, key)
 			row.get_child(0).add_child(_button("Reparieren %d Cr" % rc, Stock.can_repair(g, key), func() -> void: Stock.repair(g, key)))
 		sell.add_child(row)
-	var note := UiTheme.label("Was die Crew trägt, gehört nicht zum Lager (erst in der Waffenkammer ablegen). Beschädigt: Verkauf je −10 um %d %% weniger; Werkstatt %d %% vom Kaufpreis je −10, nach Handeln, sofort und ganz. Munition und Schiffsmaterial: Reiter „Raumhafen“." % [roundi(Stock.SELL_DAMAGE_STEP * 100), roundi(Stock.REPAIR_SHARE * 100)], 13, UiTheme.MUTED)
+	var note := UiTheme.label("Was die Crew trägt, gehört nicht zum Lager (erst in der Waffenkammer ablegen). Beschädigt: Verkauf je −10 um %d %% weniger; Werkstatt %d %% vom Kaufpreis je −10, nach Handeln, sofort und ganz. Treibstoff, Proviant, Schiffsmaterial und Schiffswaffen: Schiffshändler." % [roundi(Stock.SELL_DAMAGE_STEP * 100), roundi(Stock.REPAIR_SHARE * 100)], 13, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sell.add_child(note)
 	add_close()
@@ -76,8 +78,8 @@ func _price(now: int, normal: int, good_up: bool) -> String:
 	return "%d Cr" % now if now == normal else "%d Cr (%d)" % [now, normal]
 
 
-## Zeile je Handelsfertigkeit: Figur wählen, würfeln, Ergebnis
-func _skill_row(sk: StringName) -> Control:
+## Zeile je Handelsfertigkeit: Figur wählen, würfeln, Ergebnis (auch im Schiffshändler); after = neu zeichnen
+static func skill_row(game: HubState, sk: StringName, after: Callable) -> Control:
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.LINE, 8, 8))
 	var row := HBoxContainer.new()
@@ -85,7 +87,7 @@ func _skill_row(sk: StringName) -> Control:
 	p.add_child(row)
 	var name := UiTheme.label(Rules.skill_name(sk), 15)
 	name.custom_minimum_size.x = 130
-	name.tooltip_text = {&"handeln": "Waffen, Rüstungen, Munition, Medikits: Kauf und Verkauf", &"verhandeln": "Treibstoff, Werft, Schiffsmaterial, Werft-Ausbau, Schiffswaffen und Schiffsmunition (Kauf und Verkauf)",
+	name.tooltip_text = {&"handeln": "Waffen, Rüstungen, Schilde, Medikits, Munition, Handwerksmaterial: Kauf und Verkauf", &"verhandeln": "Treibstoff, Proviant, Werft, Schiffsmaterial, Werft-Ausbau, Schiffswaffen und Schiffsmunition (Kauf und Verkauf)",
 		&"gassenwissen": "Größe des Sortiments"}[sk]
 	name.mouse_filter = Control.MOUSE_FILTER_STOP
 	row.add_child(name)
@@ -107,8 +109,7 @@ func _skill_row(sk: StringName) -> Control:
 		b.pressed.connect(func() -> void:
 			TradeSkills.roll(game, sk, crew[pick.selected])
 			Sfx.play(&"wuerfel")
-			changed.emit()
-			show_trade(game))
+			after.call())
 		row.add_child(b)
 		row.add_child(UiTheme.label("noch nicht gewürfelt – " + TradeSkills.effect_text(sk, TradeSkills.NONE), 14, UiTheme.MUTED))
 	else:
@@ -147,57 +148,3 @@ func _button(action: String, ok: bool, act: Callable) -> Button:
 		changed.emit()
 		show_trade(game))
 	return b
-
-
-# ---------------------------------------------------------------- Reiter „Schiff“
-
-func _render_ship(g: HubState) -> void:
-	var cols := HBoxContainer.new()
-	cols.add_theme_constant_override("separation", 20)
-	content.add_child(cols)
-	var buy := _col(cols)
-	buy.add_child(UiTheme.label("SCHIFFSWAFFEN IM SORTIMENT (%d %%, NACH GASSENWISSEN)" % roundi(TradeSkills.shop_share(g) * 100), 13, UiTheme.MUTED))
-	for key in ShipArms.shop(g, g.position):
-		buy.add_child(_row("%s · %s" % [ShipArms.name(key), ShipArms.kind(key)], "", _price(ShipArms.buy_price(g, key), ShipArms.price(key), false),
-			"Kaufen", ShipArms.can_buy(g, key), func() -> void: ShipArms.buy(g, key)))
-	buy.add_child(UiTheme.label("SCHIFFSMUNITION (KAUF NACH VERHANDELN)", 13, UiTheme.MUTED))
-	for t in ShipArms.AMMO_NAMES:
-		var p := _row("%s · Vorrat %d" % [ShipArms.AMMO_NAMES[t], int(g.ship_ammo.get(t, 0))], "", "%d Cr" % ShipArms.ammo_price(g, t),
-			"+%d" % ShipArms.AMMO_PACKS[t][0], ShipArms.can_buy_ammo(g, t, ShipArms.AMMO_PACKS[t][0]),
-			func() -> void: ShipArms.buy_ammo(g, t, ShipArms.AMMO_PACKS[t][0]))
-		var n2: int = ShipArms.AMMO_PACKS[t][1]
-		p.get_child(0).add_child(_button("+%d" % n2, ShipArms.can_buy_ammo(g, t, n2), func() -> void: ShipArms.buy_ammo(g, t, n2)))
-		buy.add_child(p)
-	var sep := ColorRect.new()
-	sep.color = UiTheme.LINE
-	sep.custom_minimum_size.x = 1
-	cols.add_child(sep)
-	var sell := _col(cols)
-	sell.add_child(UiTheme.label("LAGER: SCHIFFSWAFFEN, NICHT EINGEBAUT (VERKAUFEN %d %%)" % roundi(TradeSkills.ship_sell_factor(g) * 100), 13, UiTheme.MUTED))
-	var items := ShipArms.stock_items(g)
-	if items.is_empty():
-		sell.add_child(UiTheme.label("keine", 14, UiTheme.MUTED))
-	for it in items:
-		var key: String = it.key
-		sell.add_child(_row(it.name, "×%d" % it.count, "%d Cr" % ShipArms.sell_price(g, key), "Verkaufen", ShipArms.can_sell(g, key),
-			func() -> void: ShipArms.sell(g, key)))
-	sell.add_child(UiTheme.label("SCHIFFSMUNITION VERKAUFEN", 13, UiTheme.MUTED))
-	for t in ShipArms.AMMO_NAMES:
-		var n1: int = ShipArms.AMMO_PACKS[t][0]
-		var n2: int = ShipArms.AMMO_PACKS[t][1]
-		var p := _row(ShipArms.AMMO_NAMES[t], "", "%d Cr" % ShipArms.ammo_sell(g, t, n1), "−%d" % n1, ShipArms.can_sell_ammo(g, t, n1),
-			func() -> void: ShipArms.sell_ammo(g, t, n1))
-		p.get_child(0).add_child(_button("−%d" % n2, ShipArms.can_sell_ammo(g, t, n2), func() -> void: ShipArms.sell_ammo(g, t, n2)))
-		sell.add_child(p)
-	var note := UiTheme.label("Preise der Schiffswaffen: Platzhalter, bis der Raumkampf seinen Katalog liefert. Kauf und Verkauf nach Verhandeln, beschädigt je −10 um %d %% weniger. Gekaufte Waffen gehen ins Lager, Einbau im Maschinenraum (nur im Hafen). Schiffsraketen %d Cr, Geschosse %d Cr." % [
-		roundi(ShipArms.SELL_DAMAGE_STEP * 100), ShipArms.AMMO_PRICE.schiffsraketen, ShipArms.AMMO_PRICE.geschosse], 13, UiTheme.MUTED)
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(note)
-
-
-func _col(parent: Control) -> VBoxContainer:
-	var v := VBoxContainer.new()
-	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v.add_theme_constant_override("separation", 4)
-	parent.add_child(v)
-	return v

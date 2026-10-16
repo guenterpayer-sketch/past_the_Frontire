@@ -33,6 +33,7 @@ var engine: EngineDialog
 var trade: TradeDialog
 var craft: CraftDialog
 var ship_arms: ShipArmsDialog
+var port: PortDialog
 var _top_right: VBoxContainer
 var _rooms_box: PanelContainer
 var _hint: PanelContainer
@@ -140,9 +141,10 @@ func _ready() -> void:
 	trade = TradeDialog.new()
 	craft = CraftDialog.new()
 	ship_arms = ShipArmsDialog.new()
+	port = PortDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = Vector2(640, 440)
@@ -628,7 +630,7 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible \
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
 
 
@@ -637,7 +639,7 @@ func close_dialogs() -> bool:
 	if enc and enc.visible:
 		enc.close()
 		return true
-	for d in [sheet, help, notice, slots, report, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms]:
+	for d in [sheet, help, notice, slots, report, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port]:
 		if d.visible:
 			d.close()
 			return true

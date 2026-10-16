@@ -1,7 +1,7 @@
 class_name Galley
 extends RefCounted
 ## Kombüse: Proviant und Kochen (docs/Planung_Rueckzug_Proviant_Kochen.md, Entscheidungen des Nutzers 16.10.2026).
-## - Proviant (HubState.provisions): Startvorrat START, Kauf im Raumhafen PRICE Cr je Einheit nach Handeln.
+## - Proviant (HubState.provisions): Startvorrat START, Kauf beim Schiffshändler PRICE Cr je Einheit nach Verhandeln (Entscheidung 16.10.2026).
 ## - Verbrauch je Tag außerhalb des Hafens: Crew an Bord × Faktor der Kochprobe (FACTOR), kaufmännisch gerundet,
 ##   mindestens 1. Im Raumhafen kein Verbrauch und keine Kochprobe. Reicht der Vorrat nicht, wird der Rest verbraucht.
 ## - Koch (HubState.cook = Character-ID, "" = keiner) würfelt jeden Tag automatisch (Voyage.check, EP für Kochen);
@@ -59,9 +59,9 @@ static func days_left(g: HubState) -> int:
 	return g.provisions / n if n > 0 else 1 << 20
 
 
-## Kaufpreis je Einheit nach Handeln
+## Kaufpreis je Einheit nach Verhandeln
 static func price(g: HubState) -> int:
-	return TradeSkills.adj(PRICE, TradeSkills.buy_factor(g))
+	return TradeSkills.adj(PRICE, TradeSkills.ship_factor(g))
 
 
 static func can_buy(g: HubState, n: int) -> bool:

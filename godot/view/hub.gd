@@ -31,9 +31,9 @@ func _ready() -> void:
 	ui.galley.wait_day.connect(wait_day)
 	ui.galley.changed.connect(_refresh)
 	ui.armory.done.connect(_refresh)
-	ui.star_map.hired.connect(func(_c: Character) -> void: _refresh())
+	ui.port.hired.connect(func(_c: Character) -> void: _refresh())
+	ui.port.changed.connect(_refresh)
 	ui.star_map.start.connect(_start_mission)
-	ui.star_map.bought.connect(_refresh)
 	ui.engine.changed.connect(_refresh)
 	ui.trade.changed.connect(_refresh)
 	ui.craft.changed.connect(_refresh)
@@ -46,9 +46,7 @@ func _ready() -> void:
 		_refresh()
 		if int(r.taken) + int(r.scrapped) > 0:
 			ui.show_toast("Beute: %d Stück ins Lager, %d als Schrott (+%d Cr)" % [r.taken, r.scrapped, r.scrap]))
-	ui.star_map.trade.connect(func() -> void:
-		ui.trade.show_trade(game)
-		ui.trade.move_to_front())
+	ui.star_map.port.connect(_open_port)
 	ui.star_map.crew_repair.connect(crew_repair)
 	ui.travel_report.visibility_changed.connect(func() -> void:
 		if not ui.travel_report.visible and _after_travel.is_valid():
@@ -126,6 +124,24 @@ func open_room(id: StringName) -> void:
 			ui.show_crew()
 		_:
 			ui.show_notice(r.name, "%s\n\nDieser Bereich kommt noch." % r.text)
+
+
+## Raumhafen: eigenes Fenster über der Sternenkarte (Schiffshändler, Händler, Werft, Crew anheuern)
+func _open_port(kind: StringName) -> void:
+	Sfx.play(&"klick")
+	var d: Modal = ui.port
+	match kind:
+		&"ship":
+			ui.port.show_ship(game)
+		&"trade":
+			ui.trade.show_trade(game)
+			d = ui.trade
+		&"yard":
+			ui.ship_arms.show_yard(game)
+			d = ui.ship_arms
+		&"hire":
+			ui.port.show_hire(game)
+	d.move_to_front()
 
 
 ## Einen Tag warten (Brücke oder Krankenstation)

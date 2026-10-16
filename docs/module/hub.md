@@ -43,3 +43,13 @@ Erst beginnen, wenn der Code des Raumkampfs (`SpaceBattle`, `SpaceSetup`, `ShipW
 - Auswertung über `SpaceBattle.take_result()`: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Flucht (Auftrag bleibt offen), Kapitulation/Lösegeld, Beute ins Lager, Einsatzbericht. **Nicht** selbst `Campaign.finish_mission()` aufrufen (macht der Raumkampf).
 - Entern → Bodenkampf in der Lagerhalle; **Notfall-Regel** ist noch nirgends festgelegt (mit dem Nutzer klären).
 - Übergangskatalog in `ShipArms` entfernen bzw. nur noch `ShipWeapons` lesen, sobald es ihn gibt.
+
+## Fertigmeldung Raumhafen in eigenen Fenstern (Hub-Chat, 16.10.2026)
+
+Auslöser: Spieltest des Nutzers (Raumhafen-Spalte in der Sternenkarte schnitt rechts ab). Entscheidungen des Nutzers (Auswahl-Buttons, Mockup „Schiff-Hub Mockup“ Bildschirme 36–39 bestätigt):
+- Im Hafen rechts in der Sternenkarte (= Navigation mit Aufträgen) **vier Knöpfe**, jeder öffnet ein eigenes Fenster: **Schiffshändler** (Treibstoff, Schiffsmaterial, **Proviant**, Schiffsmunition, Schiffswaffen; Proben Verhandeln + Gassenwissen), **Händler** (Ausrüstung der Crew, Lager, Werkstatt, Bodenmunition, Handwerksmaterial; Proben Handeln + Gassenwissen), **Werft** (große Reparatur, Ausbau gegen Credits, Systemschäden und Waffen reparieren, Schiffswaffen einbauen), **Crew anheuern**.
+- **Maschinenraum nur noch Crew-Arbeit** (Crew-Ausbau, Crew-Reparatur, Geschützposten, Anzeige der Slots); alles gegen Credits nur in der Werft.
+- **Proviant nach Verhandeln** (vorher Handeln).
+- Gebaut: `PortDialog` (`ui/port_dialog.gd`: Schiffshändler, Crew anheuern), `TradeDialog` = Händler (`TradeDialog.skill_row()` statisch, auch im Schiffshändler), `ShipArmsDialog.show_yard()` = Werft, `EngineDialog` ohne Werft-Spalte, `StarMap` mit Signal `port(kind)` statt `trade`/`bought`/`hired` (Raumhafen-Reiter und Anheuern-Liste entfernt), `Galley.price` nach Verhandeln. Keine Schnittstellenänderung für andere Module.
+- Tests: `test_rules` OK, `test_hub` OK, `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (neue Screenshots `h1a1_schiffshaendler`, `h1f3_werft`; „Button nicht gefunden: Fertig“ kommt auch in `main` vor, nicht von dieser Änderung).
+- Nachtrag (Wunsch des Nutzers, Mockup Bildschirm 40 bestätigt): **Werft mit drei Reitern** „Reparatur“ (Hülle, Systemschäden, beschädigte Schiffswaffen) | „Ausbau“ | „Waffenslots“; der zuletzt gewählte Reiter bleibt beim nächsten Öffnen. Tests: `test_rules`, `test_hub` OK, `--autotest-hub` durchgelaufen (Screenshots `h1f3_werft`, `h1f4_werft_ausbau`, `h1f5_werft_waffenslots`).
