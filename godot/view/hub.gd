@@ -155,10 +155,8 @@ func wait_day() -> void:
 func _training_toast() -> void:
 	if game.last_training > 0:
 		ui.show_toast("Training: +%d freie EP für alle an Bord" % game.last_training)
-	for m in game.last_upgrade:
-		ui.show_notice("Schiffsausbau", m)
-	if not game.last_crafts.is_empty():
-		ui.show_notice("Werkstatt", "\n".join(game.last_crafts))
+	if not game.last_upgrade.is_empty() or not game.last_crafts.is_empty():
+		ui.show_events(game.last_upgrade, game.last_crafts)
 
 
 ## Nach vergangenen Tagen: offene Fenster neu zeichnen, Geheilte melden

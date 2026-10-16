@@ -11,6 +11,9 @@ signal loot_taken(result: Dictionary)
 const MARGIN := 14.0
 const MENU := [[&"encyclopedia", "Enzyklopädie"], [&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
 
+## Größe des Hinweisfensters (Meldungen, Auswahl)
+const NOTICE_SIZE := Vector2(640, 440)
+
 var status: Label
 var info: InfoBox
 var star_map: StarMap
@@ -147,7 +150,7 @@ func _ready() -> void:
 	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
-	notice.max_size = Vector2(640, 440)
+	notice.max_size = NOTICE_SIZE
 	report.max_size = Vector2(900, 700)
 	report.visibility_changed.connect(_on_report_visibility)
 	crew.open_sheet.connect(func(c: Array[Character], u: Character) -> void:
@@ -317,6 +320,7 @@ func show_ui_scale() -> void:
 
 ## Kleine Auswahl (z. B. Waffenkammer: Ausrüstung oder Werkstatt): options = [[Knopftext, Callable], …]
 func show_choice(title: String, text: String, options: Array) -> void:
+	notice.max_size = NOTICE_SIZE
 	notice.open(title)
 	var l := UiTheme.label(text, 15)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -334,6 +338,7 @@ func show_choice(title: String, text: String, options: Array) -> void:
 
 
 func show_notice(title: String, text: String) -> void:
+	notice.max_size = NOTICE_SIZE
 	notice.open(title)
 	var l := UiTheme.label(text, 15)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -373,10 +378,13 @@ func show_report(rep: Dictionary) -> void:
 	report.content.add_child(g)
 	if int(rep.get("training", 0)) > 0:
 		report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
-	for m in rep.get("upgrade", []):
-		report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
-	for m in rep.get("crafts", []):
-		report.content.add_child(UiTheme.label("Werkstatt: " + m, 15, UiTheme.ACCENT))
+	var board_xp := {}
+	for e in rep.get("cook", []):
+		add_xp(board_xp, String(e.get("cook", "")), Galley.SKILL, int(e.get("xp", 0)))
+	add_events(report.content, rep, board_xp)
+	if not board_xp.is_empty():
+		report.content.add_child(UiTheme.label("ERFAHRUNG AN BORD (KOCHEN, WERKSTATT, AUSBAU)", 13, UiTheme.MUTED))
+		report.content.add_child(xp_list(board_xp))
 	if rep.has("prov0"):
 		var ck: Array = rep.get("cook", [])
 		var kt := ("   ·   Kochen: " + ", ".join(ck.map(func(e: Dictionary) -> String: return cook_text(e)))) if not ck.is_empty() else ""
@@ -533,25 +541,16 @@ func show_travel(rep: Dictionary) -> void:
 			if c.is_empty():
 				g.add_child(UiTheme.label("unbesetzt", 14, UiTheme.MUTED))
 				continue
-			var col := UiTheme.TEXT
-			if c.result in [&"erfolg", &"herausragend"]:
-				col = UiTheme.GOOD
-			elif c.result == &"teilerfolg":
-				col = UiTheme.ACCENT
-			elif c.result == &"patzer":
-				col = UiTheme.BAD
-			var l := UiTheme.label("%s\n%s %s = %s %s" % [c.name, Dice.format_roll(c.roll), Dice.fmt(c.bonus), str(c.total).replace("-", "−"), c.result_name], 13, col)
+			var l := UiTheme.label("%s\n%s %s = %s %s" % [c.name, Dice.format_roll(c.roll), Dice.fmt(c.bonus), str(c.total).replace("-", "−"), c.result_name], 13, result_color(c.result))
 			g.add_child(l)
-			var key := "%s %s" % [c.name.split(" ")[0], Rules.skill_name(c.skill)]
-			xp[key] = int(xp.get(key, 0)) + int(c.xp)
+			add_xp(xp, c.name, c.skill, int(c.xp))
 		g.add_child(UiTheme.label(Dice.fmt(row.fuel) if row.fuel != 0 else "±0", 14))
 		g.add_child(UiTheme.label(Dice.fmt(row.hull) if row.hull != 0 else "±0", 14, UiTheme.GOOD if row.hull > 0 else (UiTheme.BAD if row.hull < 0 else UiTheme.TEXT)))
 		if not cook.is_empty():
 			var e: Dictionary = cook[ri] if ri < cook.size() else {}
 			g.add_child(UiTheme.label(cook_text(e), 13, cook_color(e)))
-			if not e.is_empty() and int(e.xp) > 0:
-				var ck := "%s %s" % [String(e.cook).split(" ")[0], Rules.skill_name(Galley.SKILL)]
-				xp[ck] = int(xp.get(ck, 0)) + int(e.xp)
+			if not e.is_empty():
+				add_xp(xp, String(e.cook), Galley.SKILL, int(e.xp))
 	travel_report.content.add_child(g)
 	var sum := "Treibstoff %d → %d" % [rep.fuel0, rep.fuel1]
 	if rep.emergency:
@@ -567,19 +566,11 @@ func show_travel(rep: Dictionary) -> void:
 		travel_report.content.add_child(UiTheme.label("Proviant aufgebraucht an Tag %d – ab jetzt %d auf Proben im Schiff, bis wieder Proviant gekauft ist." % [out_day, Galley.MALUS], 14, UiTheme.BAD))
 	if int(rep.get("training", 0)) > 0:
 		travel_report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
-	for m in rep.get("upgrade", []):
-		travel_report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
-	for m in rep.get("crafts", []):
-		travel_report.content.add_child(UiTheme.label("Werkstatt: " + m, 15, UiTheme.ACCENT))
+	add_events(travel_report.content, rep, xp)
 	if rep.fuel1 <= 0 and not rep.emergency:
 		travel_report.content.add_child(UiTheme.label("Tank leer: Notsprit. Weiter nur zum nächsten Hafen; dort kostet das Tanken das Doppelte.", 14, UiTheme.BAD))
 	travel_report.content.add_child(UiTheme.label("ERFAHRUNG", 13, UiTheme.MUTED))
-	var parts := []
-	for k in xp:
-		parts.append("%s +%d" % [k, xp[k]])
-	var xl := UiTheme.label(" · ".join(parts) if not parts.is_empty() else "–", 14)
-	xl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	travel_report.content.add_child(xl)
+	travel_report.content.add_child(xp_list(xp))
 	var rule := UiTheme.label("Grundverbrauch %d je Reisetag. Pilot, Navigation, Computer: Teilerfolg −1, Erfolg −2, Herausragend −4, mindestens %d je Tag. Reparatur: Patzer −10, Fehlschlag −5, Teilerfolg ±0, Erfolg +2, Herausragend +4 Hülle." % [
 		int(rep.get("per_day", Voyage.FUEL_PER_DAY)), Voyage.FUEL_MIN], 12, UiTheme.MUTED)
 	rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -600,14 +591,73 @@ static func cook_text(e: Dictionary) -> String:
 
 
 static func cook_color(e: Dictionary) -> Color:
-	match StringName(e.get("result", "")):
-		&"herausragend":
-			return UiTheme.ACCENT
-		&"erfolg", &"teilerfolg":
+	return result_color(StringName(e.get("result", "")))
+
+
+## Farbe eines Probenergebnisses, überall gleich (Entscheidung des Nutzers 16.10.2026, wie die Reisetabelle):
+## Patzer rot, Fehlschlag weiß, Teilerfolg gelb, Erfolg und Herausragend grün
+static func result_color(res: StringName) -> Color:
+	match res:
+		&"erfolg", &"herausragend":
 			return UiTheme.GOOD
+		&"teilerfolg":
+			return UiTheme.ACCENT
 		&"patzer":
 			return UiTheme.BAD
 	return UiTheme.TEXT
+
+
+## EP sammeln je Figur (Vorname) und Fertigkeit: {Figur: {Fertigkeitsname: EP}}
+static func add_xp(xp: Dictionary, who: String, skill: StringName, n: int) -> void:
+	if n <= 0 or who == "":
+		return
+	var k := who.split(" ")[0]
+	if not xp.has(k):
+		xp[k] = {}
+	var sk := Rules.skill_name(skill)
+	xp[k][sk] = int(xp[k].get(sk, 0)) + n
+
+
+## Erfahrung je Figur eine Zeile („Tulin: Pilot +2 · Kochen +1“), ab 5 Figuren in 2 Spalten
+static func xp_list(xp: Dictionary) -> Control:
+	var grid := GridContainer.new()
+	grid.columns = 2 if xp.size() > 4 else 1
+	grid.add_theme_constant_override("h_separation", 30)
+	grid.add_theme_constant_override("v_separation", 2)
+	if xp.is_empty():
+		grid.add_child(UiTheme.label("–", 14))
+	for who in xp:
+		var parts := []
+		for sk in xp[who]:
+			parts.append("%s +%d" % [sk, xp[who][sk]])
+		var l := UiTheme.label("%s: %s" % [who, " · ".join(parts)], 14)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size.x = 520
+		grid.add_child(l)
+	return grid
+
+
+## Meldungen von Schiffsausbau und Werkstatt farbig nach Ergebnis; ihre EP kommen in xp
+static func add_events(parent: Control, rep: Dictionary, xp: Dictionary) -> void:
+	for spec in [["upgrade", "Schiffsausbau"], ["crafts", "Werkstatt"]]:
+		for e in rep.get(spec[0], []):
+			var l := UiTheme.label("%s: %s" % [spec[1], e.get("text", "")], 15, result_color(StringName(e.get("result", ""))))
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			parent.add_child(l)
+			add_xp(xp, String(e.get("name", "")), StringName(e.get("skill", "")), int(e.get("xp", 0)))
+
+
+## Meldung nach „1 Tag warten“ oder Crew-Reparatur: Schiffsausbau und Werkstatt farbig, mit Erfahrung
+func show_events(upgrade: Array, crafts: Array) -> void:
+	notice.max_size = Vector2(1180, 640)
+	notice.open("Werkstatt und Schiffsausbau" if not upgrade.is_empty() and not crafts.is_empty() else ("Schiffsausbau" if crafts.is_empty() else "Werkstatt"))
+	var xp := {}
+	add_events(notice.content, {"upgrade": upgrade, "crafts": crafts}, xp)
+	if not xp.is_empty():
+		notice.content.add_child(UiTheme.label("ERFAHRUNG", 13, UiTheme.MUTED))
+		notice.content.add_child(xp_list(xp))
+	notice.add_close()
+	notice.move_to_front()
 
 
 ## erster Tag, an dem der Proviant ausging (0 = nicht ausgegangen)
