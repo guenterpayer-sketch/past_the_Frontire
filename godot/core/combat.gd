@@ -361,8 +361,7 @@ func _end_gear() -> void:
 				u.lost.append(slot)
 				log_text("  %s verliert %s." % [u.name, g.get("name")], &"")
 			elif Dice.d(100) <= END_WEAR_CHANCE:
-				u.add_wear(slot)
-				log_text("  %s: %s beschädigt (%d)." % [u.name, g.get("name"), u.wear[slot]], &"")
+				log_text("  %s: %s %s." % [u.name, g.get("name"), Combatant.wear_log(u.add_wear(slot))], &"")
 	loot.clear()
 	if result != &"sieg":
 		return
@@ -378,7 +377,7 @@ func _end_gear() -> void:
 			var key := Stock.key_of(r)
 			if key == "" or Stock.EXCLUDE.has(key):
 				continue
-			var dmg := int(e.wear.get(g[1], 0)) if g[1] != "" else 0
+			var dmg := mini(0, int(e.wear.get(g[1], 0))) if g[1] != "" else 0   # Beute ist nie +5
 			if Dice.d(100) <= LOOT_DAMAGE[g[2]]:
 				dmg += Combatant.WEAR_STEP * Dice.d(3)
 			loot.append({"key": key, "name": r.get("name"), "damage": maxi(dmg, Combatant.WEAR_BROKEN)})
@@ -522,7 +521,7 @@ func reserve_of(u: Combatant) -> int:
 ## Verteidigungswert gegen einen Angriff (wie im Panel angezeigt)
 func dodge_value(u: Combatant) -> int:
 	var dodge := maxi(0, Rules.skill_total(u, &"ausweichen"))
-	return dodge / 2 + int(dodge / 2.0 * maxi(0, u.act) / 100.0) + u.armor_db() + (0 if u.armor_broken() else mini(0, int(u.wear.get("armor", 0))))
+	return dodge / 2 + int(dodge / 2.0 * maxi(0, u.act) / 100.0) + u.armor_db() + (0 if u.armor == null or u.armor_broken() else int(u.wear.get("armor", 0)))
 
 
 func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: BattleMap.Tile, sense: bool, facing: int) -> Array:
@@ -549,8 +548,8 @@ func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: Batt
 	if def.armor_db():
 		mods.append({"label": def.armor.name, "val": def.armor_db()})
 	var aw := int(def.wear.get("armor", 0))
-	if aw < 0 and not def.armor_broken():
-		mods.append({"label": "%s beschädigt" % def.armor.name, "val": aw})
+	if aw != 0 and def.armor and not def.armor_broken():
+		mods.append({"label": "%s %s" % [def.armor.name, "gutes Stück" if aw > 0 else "beschädigt"], "val": aw})
 	if def.shield and not surprised:
 		mods.append({"label": "Schild", "val": 10 + maxi(0, Rules.rank_bonus(Rules.skill_rank(def, &"schild")) / 2)})
 	var located: bool = def.buffs.has("geortet") and def.team != def.buffs.geortet.team
@@ -630,8 +629,8 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 		ob.append({"label": "Ziel geduckt", "val": CROUCH_MELEE_OB})
 	if w.ob_bonus:
 		ob.append({"label": w.name if w.power != "" else "Bonus", "val": w.ob_bonus})
-	if att.weapon_wear(w) < 0:
-		ob.append({"label": "Waffe beschädigt", "val": att.weapon_wear(w)})
+	if att.weapon_wear(w) != 0:
+		ob.append({"label": "Waffe gutes Stück" if att.weapon_wear(w) > 0 else "Waffe beschädigt", "val": att.weapon_wear(w)})
 	var burst := Ammo.shots_next(w, att.loaded.get(w.id, 0))
 	if Ammo.burst_bonus(burst):
 		ob.append({"label": "Feuerstoß ×%d" % burst, "val": Ammo.burst_bonus(burst)})
@@ -899,7 +898,7 @@ func _apply_crit(u: Combatant, crit: Dictionary, sev: String) -> void:
 		u.prone = true
 	if (sev == "D" or sev == "E") and u.armor_cls() > 0:   # schwerer Kritischer beschädigt die Rüstung
 		var v := u.add_wear("armor")
-		log_text("  %s beschädigt (%d)%s." % [u.armor.name, v, " – schützt nicht mehr" if v <= Combatant.WEAR_BROKEN else ""], &"crit")
+		log_text("  %s %s%s." % [u.armor.name, Combatant.wear_log(v), " – schützt nicht mehr" if v <= Combatant.WEAR_BROKEN else ""], &"crit")
 	if r.ko and u.is_ok():
 		u.state = Combatant.State.KO
 		u.overwatch = {}
@@ -951,7 +950,7 @@ func _resolve_fumble(u: Combatant, roll: Dictionary, w: WeaponData) -> void:
 		var slot := u.slot_of(w)
 		if slot != "":
 			var v := u.add_wear(slot)
-			log_text("  %s beschädigt (%d)%s." % [w.name, v, " – unbrauchbar" if v <= Combatant.WEAR_BROKEN else ""], &"fumble")
+			log_text("  %s %s%s." % [w.name, Combatant.wear_log(v), " – unbrauchbar" if v <= Combatant.WEAR_BROKEN else ""], &"fumble")
 	if row.prone:
 		u.prone = true
 	if row.self_damage:

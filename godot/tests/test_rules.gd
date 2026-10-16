@@ -920,7 +920,20 @@ func _test_loot_wear() -> void:
 			break
 	var info := c.attack_info(u, foe, w, {"pct": 60})
 	check(info.get("ob", []).any(func(m: Dictionary) -> bool: return m.label == "Waffe beschädigt" and m.val == -10), "beschädigte Waffe: −10 auf den Angriff")
-	u.add_wear("w0")
+	# gutes Stück aus dem Handwerk (+5): Bonus auf Angriff/Verteidigung, der erste Schaden nimmt ihn
+	u.wear["w0"] = Stock.BONUS
+	info = c.attack_info(u, foe, w, {"pct": 60})
+	check(info.get("ob", []).any(func(m: Dictionary) -> bool: return m.label == "Waffe gutes Stück" and m.val == 5), "gute Waffe: +5 auf den Angriff")
+	check(u.add_wear("w0") == 0 and u.add_wear("w0") == -10, "+5 → 0 → −10")
+	if foe.armor and foe.armor.cls > 0:
+		var dv := c.dodge_value(foe)
+		foe.wear["armor"] = Stock.BONUS
+		check(c.dodge_value(foe) == dv + 5, "gute Rüstung: +5 auf die Verteidigung")
+		var di := c.attack_info(u, foe, w, {"pct": 60})
+		check(di.get("db", []).any(func(m: Dictionary) -> bool: return m.val == 5 and String(m.label).ends_with("gutes Stück")), "gute Rüstung im Verteidigungswert")
+		foe.wear.erase("armor")
+	else:
+		check(false, "Gegner ohne Rüstung für den +5-Test")
 	u.add_wear("w0")
 	u.add_wear("w0")
 	check(u.weapon_wear(w) == -30 and u.weapon_broken(w) and not c.usable_weapons(u).has(w), "ab −30 unbrauchbar (nicht tiefer)")
