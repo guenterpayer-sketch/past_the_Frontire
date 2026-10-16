@@ -160,3 +160,7 @@ Das Handwerk (Hub) baut bei „Herausragend“ ein **besonders gutes Stück +5**
 
 Der Hub zeigt den Rückzug künftig als eigenen Ausgang und lässt den Auftrag offen (`docs/Planung_Rueckzug_Proviant_Kochen.md`). Bitte im `MissionResult` ein Merkmal ergänzen, Vorschlag **`retreated: bool`** (true nur bei Rückzug der Crew; `outcome` bleibt `niederlage`, damit nichts anderes bricht). In der Schnittstelle vermerken. Klein, kann sofort beginnen.
 - **Erledigt (16.10.2026):** `main` (`e6ad83b`) ohne Konflikte geholt. `MissionResult.from_combat()` liefert `retreated` (aus `Combat.retreated`), `outcome` unverändert; vermerkt oben unter „Schnittstellen“. Kein Umbau am Hub nötig, der Hub liest das Feld für den eigenen Ausgang. Tests: `test_rules` (neu: Rückzug → `retreated` true und `outcome` niederlage; Sieg und Niederlage ohne Rückzug → false), `test_hub` OK, `test_sim -- 10` OK (0 hängengeblieben). Keine Oberfläche geändert, daher keine Grafiktests.
+
+### Auftrag (16.10.2026): Ergebnis-Banner „Rückzug“
+
+Der Hub zeigt den Rückzug jetzt als eigenen Ausgang (Violett, `UiTheme.RETREAT`). Das **Ergebnis-Banner im Bodenkampf** zeigt bei Rückzug noch „Niederlage“ – bitte bei `retreated` „Rückzug“ in derselben Farbe anzeigen. Klein, kann sofort beginnen.
