@@ -137,3 +137,7 @@ Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis
 
 Wunsch des Nutzers: Die mitgelieferten Waffen (`data/weapons/*.tres`) bekommen passende **Modelle aus `WeaponModels`** und einen **`sound_id`**. Nur Modell, Länge, Griff, Zweihändigkeit und Klang ändern – die **Spielwerte bleiben** (Standardwaffen bleiben feste Vorlagen). Vorschlag je Waffe (Modell + Klang) dem Nutzer vorlegen, nach Bestätigung eintragen. Zusammen mit dem Auftrag Enzyklopädie oder davor, Reihenfolge mit dem Nutzer.
 - **Erledigt (16.10.2026), Entscheidungen des Nutzers:** Laserpistole → Blaster B, Klang Laser; Laserkarabiner → Blaster D, Laser; Sturmgewehr → Sturmgewehr B (`guns/assault_rifle_2`), Klang „Gewehr (synthetisch)“ (Einzelschuss); Schweres MG → Modell wie bisher, Klang **Minigun**; Energiehammer → Kriegshammer, Nahkampf; Vibroklinge und Raketenwerfer bleiben wie bisher. Spielwerte unverändert. Nebenbei behoben: Drehung der Nahkampf-Hüllen (`assets/weapons/melee/*.tscn`) – Klinge zeigte zur Hand statt nach außen.
+
+## Hinweis vom Koordinator (16.10.2026): Beute und Verlust
+
+Geplant (`docs/Planung_Ausbau_Lager_Handwerk.md`, Schritt 4): `MissionResult` meldet nach dem Kampf die Ausrüstung der besiegten Gegner (für die Beuteauswahl) und bei Niederlage **ohne Rückzug** verlorene Gegenstände von zurückgebliebenen Kampfunfähigen/Sterbenden (Chance mit dem Nutzer klären). **Warten, bis das Lager des Hubs in `main` ist**; Format mit dem Hub abstimmen.

@@ -246,3 +246,7 @@ Entscheidungen des Nutzers: **alle 5 Spieltage** (Tag 5, 10, 15 …) bekommt **d
 - `HubState.advance_days()`: für jeden Tag 5, 10, 15 … im vergangenen Zeitraum bekommt jede Figur in `Campaign.crew()` `TRAINING_XP` (3) auf `Character.free_xp` (Feld des Charakter-Moduls, keine Schnittstellenänderung). `HubState.last_training` = vergebene EP je Figur beim letzten Tageswechsel; `HubState.training_days(von, bis)`.
 - Anzeige: Zeile „Training: +3 freie EP für alle an Bord“ im **Reisebericht** und im **Einsatzbericht** (`rep.training`), Meldung oben beim **„1 Tag warten“** und bei der **großen Reparatur**. Regel in `docs/Skillsystem.md` 8.
 - Tests: `test_rules` OK, `test_hub` OK (Zählung, ganze Crew inkl. Verwundete, zwei Trainingstage auf einmal, Reise- und Einsatzbericht), `--autotest-hub` durchgelaufen (Meldung bei der Crew-Reparatur an Tag 5 gesehen).
+
+## Aufträge vom Koordinator (16.10.2026): Schiffsausbau, Lager, Handwerk
+
+Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md` (Entscheidungen des Nutzers). Deine Schritte: **1. Schiffsausbau** (sofort), **2. Lager + Kauf/Verkauf** (Schnittstelle für Charakter und Bodenkampf unter „Schnittstellen“), danach **Beuteauswahl im Einsatzbericht** (wenn Bodenkampf geliefert hat) und **5. Handwerk**. Jeweils vorher Zahlen und Mockup mit dem Nutzer klären. Einzeln fertig melden (kleine Schritte).

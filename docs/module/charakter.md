@@ -111,3 +111,7 @@ Munition Teil Kampf ist in `main` (`928b0f9`), siehe `docs/module/bodenkampf.md`
 Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.
 - **Enzyklopädie ist in `main` (`04091c2`):** `Encyclopedia.show_on(control, &"psi", name)` für das ⓘ bei den Psi-Listen (Eintrag = Name der Liste, z. B. „Angriff“); Zugang in Übersicht/Editor mit dem Nutzer klären. Details `docs/module/hub.md`. Jetzt `main` holen und anbinden.
 - (16.10.2026) Angebunden → siehe Stand.
+
+## Hinweis vom Koordinator (16.10.2026): Waffenkammer am Lager
+
+Geplant (`docs/Planung_Ausbau_Lager_Handwerk.md`, Schritt 3): Der Hub baut ein Lager mit Stückzahlen. **Warten, bis seine Schnittstelle in `main` ist.** Dann: Ausrüsten nimmt aus dem Lager, Ablegen legt zurück, Medikits aus dem Lager.
