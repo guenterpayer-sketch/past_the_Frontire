@@ -108,3 +108,4 @@ Munition Teil Kampf ist in `main` (`928b0f9`), siehe `docs/module/bodenkampf.md`
 ## Hinweis vom Koordinator (16.10.2026): Enzyklopädie
 
 Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.
+- **Enzyklopädie ist in `main` (`04091c2`):** `Encyclopedia.show_on(control, &"psi", name)` für das ⓘ bei den Psi-Listen (Eintrag = Name der Liste, z. B. „Angriff“); Zugang in Übersicht/Editor mit dem Nutzer klären. Details `docs/module/hub.md`. Jetzt `main` holen und anbinden.
