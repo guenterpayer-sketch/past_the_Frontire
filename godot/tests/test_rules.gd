@@ -862,7 +862,7 @@ func _test_custom_gear() -> void:
 ## Modell-Katalog (alle laden, lange Achse x) und Klänge (Dateien vorhanden, MG wieder mit MG-Klang)
 func _test_models_sounds() -> void:
 	var all := WeaponModels.all()
-	check(all.size() == WeaponModels.LIST.size() and all.size() >= 29, "Modell-Katalog: alle %d Modelle laden" % all.size())
+	check(all.size() == WeaponModels.LIST.size() and all.size() >= 68, "Modell-Katalog: alle %d Modelle laden" % all.size())
 	var along_x := true
 	for e in all:
 		var n: Node3D = (e.scene as PackedScene).instantiate()
