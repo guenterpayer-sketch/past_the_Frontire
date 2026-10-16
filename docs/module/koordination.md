@@ -45,7 +45,7 @@ Der erste Koordinations-Chat wurde wegen Limit-Verbrauch (sehr langer Verlauf) b
 **Stand:** `main` = `e94c3c0` + diese Notiz. Bodenkampf (`claude/confident-edison-6mxzke`), Charakter (`claude/elegant-gauss-hq5bus`) und Hub (`claude/happy-lamport-u4fvya`) sind vollständig in `main`; nichts offen. Verlauf: `docs/Zusammenfuehrung.md`. Planungen: `docs/Planung_Roster_Verwundung.md`, `docs/Planung_Waffenkammer.md`, `docs/Planung_UI_Groesse.md`.
 
 **Offen:**
-- **Raumkampf:** Nutzer meldet ihn als fertig, aber es gibt in `origin` keinen Raumkampf-Branch und keine Moduldatei. Branchnamen beim Nutzer erfragen; dann `docs/module/raumkampf.md` anlegen und in `docs/module/README.md` eintragen (Muster wie die anderen Moduldateien), danach wie üblich prüfen und zusammenführen.
+- **Raumkampf:** noch nicht begonnen, es gibt noch keinen Branch (Klarstellung des Nutzers 16.10.2026). Beim Start: `docs/module/raumkampf.md` anlegen und in `docs/module/README.md` eintragen.
 - Offene Nutzerentscheidungen: eigene Anzeige für „Rückzug“ im Schiffsbericht; später Bestand/Kauf/Beute, Auswahl von Medikits/Munition, Enzyklopädie, Hangar, Ausbau des Schiffs.
 
 **Branches:** `claude/inspiring-cannon-tbk2pt` ist der Branch des alten Koordinations-Chats (kein Modul, steht auf `main`, kann gelöscht werden). Immer `git fetch origin` ohne Branch-Angabe, sonst fehlen Branches in `git branch -r`.
