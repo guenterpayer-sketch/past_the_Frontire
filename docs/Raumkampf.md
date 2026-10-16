@@ -28,7 +28,7 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 | Technik | Panzerung / Not-Reparatur / Reparatur | Systemschaden beheben, Hüllentreffer umleiten |
 | Computer | Computer | Zielerfassung (+AW für eine Station), Störsender (−AW für Gegner) |
 
-- Freie Stationen: je Station wählbar (Entscheidung des Nutzers) – **Doppelbesetzung** durch eine Person (beide Würfe −30, Vorschlag) oder **Bord-KI** mit festem Bonus (+20, Vorschlag).
+- Freie Stationen: je Station wählbar (Entscheidung des Nutzers) – **Doppelbesetzung** durch eine Person (beide Würfe −30) oder **Bord-KI** mit festem Bonus +0 (Entscheidungen des Nutzers).
 
 ## 3. Jäger (eigene ab Version 2, gegnerische ab Version 1)
 
