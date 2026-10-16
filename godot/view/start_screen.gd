@@ -132,6 +132,24 @@ func _build_ui() -> void:
 	quit.pressed.connect(func() -> void: get_tree().quit())
 	if last > 0:
 		_menu.add_child(UiTheme.label("„Fortsetzen“ lädt den zuletzt gespeicherten Spielstand.", 13, UiTheme.MUTED))
+	# Burgermenü oben rechts: Enzyklopädie, Einstellungen
+	var burger := MenuButton.new()
+	burger.text = "☰"
+	burger.tooltip_text = "Menü"
+	burger.flat = false
+	burger.add_theme_font_size_override("font_size", 22)
+	burger.custom_minimum_size = Vector2(48, 44)
+	burger.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	burger.position = Vector2(-64, 16)
+	root.add_child(burger)
+	var pop := burger.get_popup()
+	pop.add_item("Enzyklopädie", 0)
+	pop.add_item("Einstellungen …", 1)
+	pop.id_pressed.connect(func(id: int) -> void:
+		if id == 0:
+			Encyclopedia.show_on(root)
+		else:
+			_show_settings())
 	slots = SlotsDialog.new()
 	root.add_child(slots)
 	gear = GearEditor.new()

@@ -7,7 +7,7 @@ extends Control
 signal action(name: StringName, arg: Variant)
 
 const MARGIN := 14.0
-const MENU := [[&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
+const MENU := [[&"encyclopedia", "Enzyklopädie"], [&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
 
 var status: Label
 var info: InfoBox
@@ -437,10 +437,15 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible \
+		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
 
 
 func close_dialogs() -> bool:
+	var enc := get_node_or_null(Encyclopedia.NAME)
+	if enc and enc.visible:
+		enc.close()
+		return true
 	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report]:
 		if d.visible:
 			d.close()
