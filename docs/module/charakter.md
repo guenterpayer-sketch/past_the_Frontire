@@ -57,7 +57,7 @@
   armory.done.connect(...)           # nach „Fertig“; Campaign.save() ist dann schon erfolgt
   ```
   Schließen per Klick daneben/Esc wie jedes `Modal` (dann **ohne** Speichern der Datei; die Änderungen bleiben aber an den `Character`-Objekten im Speicher – der nächste `Campaign.save()` schreibt sie).
-- `Equipment` (`core/equipment.gd`): `weapons()` (ohne Psi), `armors()`, `weapon(ch, slot)`, `weapon_block/set_weapon(ch, slot, w)` (Platz 1 = `null` → Waffe 2 leer), `blocks_shield(w)`, `shield_block/set_shield(ch, on)`, `shield_bonus(ch)`, `damage_taken(armor)`.
+- `Equipment` (`core/equipment.gd`): `weapons()` (ohne Psi, dazu eigene aus `Gear.weapons()`), `armors()` (dazu `Gear.armors()`), `label(r)` (Name, „(frei)“ bei `Gear.is_free`), `weapon(ch, slot)`, `weapon_block/set_weapon(ch, slot, w)` (Platz 1 = `null` → Waffe 2 leer), `blocks_shield(w)`, `shield_block/set_shield(ch, on)`, `shield_bonus(ch)`, `damage_taken(armor)`.
 - Regeln (Nutzer 15.10.2026): Waffe 1 Pflicht, Waffe 2 darf leer sein; keine Waffe doppelt; Psi-Waffen nicht wählbar; Schild nur mit einhändigen Waffen (Fäuste zählen nicht als zweihändig); eine zweihändige Waffe legt den Schild ab.
 - **In Dateien des Bodenkampfs geändert (auf Anweisung des Nutzers):** `data/weapons/vibroklinge.tres` → `two_handed = false` (einhändig; wirkt auch auf die Haltung des 3D-Modells), `data/weapons/laserkarabiner.tres` → Fertigkeit `gewehre` statt `pistolen`. Folge: Ikko und Rhea (Laserkarabiner, keine Ränge in Gewehre) treffen damit deutlich schlechter (Pistolen +65/+40 → Gewehre −15); Nutzer: „so lassen“, umrüsten in der Waffenkammer.
 
@@ -67,6 +67,7 @@
 
 ## Stand (15.10.2026)
 
+- Eigene Rüstungen/Waffen und Munitionsanzeige in der Waffenkammer: `Equipment.weapons()/armors()` liefern auch `Gear`-Einträge (Vermerk „(frei)“); `Character.from_dict()`: gelöschte eigene Ausrüstung → Waffe 1 `Gear.FALLBACK_WEAPON`, Waffe 2 leer, Rüstung `Gear.FALLBACK_ARMOR` (prüft `user://`-Dateien mit `FileAccess`, weil Gelöschtes im Cache liegen kann). Anzeige „Besonderes“ und Vorrat nach `shots`, `ammo_type`, `ammo_total`, `Ammo.carry()`. Tests `_test_own_gear`.
 - Übersicht Psi-Listen gebaut nach Mockup „Frontire Psi-Listen“ (vom Nutzer bestätigt; Reichweite aus dem Bodenkampf): `PsiListView`, eingebaut in Charakterübersicht/Aufleveln und Charakter-Editor; Kommentar und Wirkungstexte in `core/psi_lists.gd` an den Bodenkampf angeglichen; Tests `_test_psi_view`, Screenshots `04f`/`04g` im Autotest. Einbau im Bodenkampf: Aufruf oben unter „Schnittstellen“.
 - Waffenkammer gebaut nach Mockup „Frontire Waffenkammer“ (vom Nutzer bestätigt): `ArmoryDialog` + `Equipment`, Tests in `test_rules.gd` (`_test_equipment`). Der Hub muss nur noch den Raum „Waffenkammer“ anbinden (Aufruf oben).
 - Davor (16.10.): Klärung D, Verwundung, Kandidaten für die Truppwahl – in `main`.
@@ -101,3 +102,5 @@ Der Hub baut einen Editor für eigene Waffen und Rüstungen (`docs/Planung_Ausru
 ## Aufträge vom Koordinator (15.10.2026): Anzeige Munition in der Waffenkammer
 
 Munition Teil Kampf ist in `main` (`928b0f9`), siehe `docs/module/bodenkampf.md` → Munition. `ui/crew/armory_dialog.gd` zeigt „Feuerstoß“ noch aus `ob_bonus` (beim MG jetzt leer) und „Munition gesamt“ als 3 Magazine. Anpassen an `shots`, `ammo_type`, `ammo_total` (Obergrenze der Mitnahme). Zusammen mit dem Auftrag „eigene Rüstungen“ erledigen.
+- (15.10.2026) Eigene Rüstungen und Anzeige Munition → gebaut (siehe Stand).
+- **Hinweis an Bodenkampf (Entscheidung des Nutzers 15.10.2026):** Laserpistole, Laserkarabiner, Sturmgewehr und MG haben `magazine = 0` (= keine Munition nötig), obwohl `ammo_type` gesetzt ist; nur der Raketenwerfer hat ein Magazin. Nutzer: Diese Waffen sollen Magazine bekommen, **der Bodenkampf trägt sie ein**. Die Waffenkammer zeigt die Mitnahme dann ohne Änderung an.
