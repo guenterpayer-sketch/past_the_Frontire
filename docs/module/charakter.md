@@ -147,3 +147,7 @@ Wunsch des Nutzers: Die Waffenkammer zeigt bisher nur die Plätze der Figur; es 
 
 Das Handwerk (Hub) baut bei „Herausragend“ Stücke mit **+5** (Waffe auf Angriffe, Rüstung auf Verteidigung). Geplant: Lagerschlüssel `"Grundschlüssel|+5"`, an der Figur `Character.wear[platz] = 5`. Waffenkammer, Reiter „Lager“ und Übersicht sollen „+5“ anzeigen; Anlegen/Ablegen wie bei beschädigten Stücken. **Warten, bis der Hub die Schnittstelle vermerkt hat** (`docs/module/hub.md`).
 - (16.10.2026) → gebaut (siehe Stand).
+
+### Auftrag (16.10.2026): Fertigkeit „Raketen“ umbenennen
+
+Entscheidung des Nutzers: Die Fertigkeit **„Raketen“** (Gruppe Raumschiff-Kampf, ID `raketen`) heißt künftig **„Raketen-Geschütze“** – **nur der angezeigte Name**, die ID `raketen` bleibt (alte Spielstände gültig). Ändern in `core/rules.gd`, ggf. `core/skill_texts.gd`, `docs/Skillsystem.md`, `docs/Charakterbogen_Grundgeruest.md`. Klein, kann sofort beginnen.

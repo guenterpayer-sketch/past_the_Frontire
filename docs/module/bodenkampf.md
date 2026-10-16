@@ -165,3 +165,11 @@ Der Hub zeigt den Rückzug künftig als eigenen Ausgang und lässt den Auftrag o
 
 Der Hub zeigt den Rückzug jetzt als eigenen Ausgang (Violett, `UiTheme.RETREAT`). Das **Ergebnis-Banner im Bodenkampf** zeigt bei Rückzug noch „Niederlage“ – bitte bei `retreated` „Rückzug“ in derselben Farbe anzeigen. Klein, kann sofort beginnen.
 - **Erledigt (16.10.2026):** `main` (`ae11b88`) ohne Konflikte geholt. `ResultBanner.show_result()` liest `retreated` aus dem `MissionResult` (sonst `Combat.retreated`): Titel „Rückzug“ in Violett (`UiTheme.RETREAT`), Hinweiszeile „kein Lohn, keine Beute; der Auftrag bleibt bis zum Ablaufdatum offen“ (den Auftrags-Teil nur beim Einsatz aus dem Schiff, neuer Parameter `from_ship`). Angepasst, weil sie der neuen Regel widersprachen: die Rückfrage „Rückzug antreten?“ (früher „Auftrag ist verloren“; Auftrags-Teil nur bei `HubState.in_mission()`) und die Kampfbericht-Zeile im Schnellkampf („Rückzug“ statt „Niederlage“). Musik bleibt bei Rückzug die der Niederlage. Tests: `test_rules`, `test_hub` OK, `test_sim -- 10` OK (0 hängengeblieben), `--autotest` und `--autotest-player` durchgelaufen, Screenshot des Rückzug-Banners geprüft (Titel violett).
+
+### Auftrag (16.10.2026): Waffen-Reparatur im Kampf
+
+Die Fertigkeit **Waffen-Reparatur** (`waffenReparatur`, INT + KOO) hatte bisher keine Wirkung. Entscheidungen des Nutzers („Erste Hilfe für Waffen“):
+- **Ziel:** eigene Waffe oder die Waffe einer Figur im **Nachbarfeld** (wie Erste Hilfe).
+- **Kosten:** **1 Aktion**, **einmal je Stück und Kampf**.
+- **Wirkung:** erfolgreiche Probe → Malus der Waffe **um 5 Punkte geringer** (`wear` +5), **höchstens bis −10** (Rest nur im Schiff). Auch bei unbrauchbaren Waffen (−30 → −25 = wieder nutzbar). Ein +5-Bonus kommt nie zurück.
+- Mit dem Nutzer klären: Schwierigkeit der Probe, Folgen bei Patzer, ob die KI es benutzt. EP für die Fertigkeit wie üblich. Regeln in `docs/Skillsystem.md`, Kampfbericht-Zeile.
