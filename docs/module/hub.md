@@ -333,3 +333,12 @@ Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md`, Abschnitt „Handwerk – En
 - **Erst** die offenen Punkte dort mit dem Nutzer klären (Werkstattstufen, Freischalten, Preis eines +5-Stücks), **dann Mockup**, dann bauen.
 - **Schnittstelle +5 zuerst festlegen und vermerken:** Vorschlag Koordinator: Lagerschlüssel `"Grundschlüssel|+5"` (über `Stock.damaged_key` erweitert), an der Figur `Character.wear[platz] = 5` (positiver Wert = Bonus). Bodenkampf und Charakter warten darauf (siehe deren Moduldateien).
 - Handwerksmaterial im Spielstand (`HubState`), Kauf im Raumhafen (1 = 10 Cr nach Handeln).
+
+#### Stand Handwerk (Schritt 5, Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`de18ce8`) geholt, ohne Konflikte. Schnittstelle +5 vorab gepusht (`8fdc92b`, oben unter „Schnittstellen“).
+- Entscheidungen des Nutzers: Werkstatt-Ausbau „je Stufe eins“ (1: +10, 2: Dauer −50 %, 3: +20) mit Freischalten nach Kaufpreis (0: bis 200, 1: bis 400, 2: alles); +5-Stück Verkauf +50 %; Medikits mit dem Ausbau Krankenstation; Mockup „Schiff-Hub Mockup“ Bildschirme 29–31 bestätigt (Probe „mittel“, Material bei Bauen/Reparieren aufgerundet, beim Zerlegen abgerundet, Munition 30/30/1 je Auftrag); Zugang über eine Auswahl beim Raum Waffenkammer („Ausrüstung“ / „Werkstatt“), ohne Eingriff in den `ArmoryDialog`.
+- Gebaut: `Crafting` (`core/crafting.gd`), `CraftDialog` (`ui/craft_dialog.gd`), Medikits in `MedbayDialog`, Handwerksmaterial im Raumhafen (`StarMap`), Bereich `&"workshop"` in `ShipUpgrades` (8 Bereiche), `HubState.craft_material`, `jobs`, `last_crafts` (Spielstand), Meldungen beim Warten und in Reise-/Einsatzbericht. Handwerker, der nicht mehr an Bord ist: Arbeit abgebrochen, Material und Stück zurück. Schild ist nicht baubar.
+- Test-Hilfe: `Voyage.fixed_result` (fester Probenausgang, nur Tests). `core/skill_texts.gd`: Handwerksfertigkeiten nicht mehr „ohne Wirkung“.
+- Tests: `test_rules` OK, `test_hub` OK (neu `_test_crafting`: Zahlen aus dem Mockup, Freischalten, Stufen, alle Ergebnisse für Bauen/Reparieren, Zerlegen, Munition, Medikit, Material kaufen/verkaufen, Spielstand, Abbruch), `test_sim -- 10` OK. Hub-Szene lädt headless ohne Fehler. `--autotest-hub` erweitert (Auswahl beim Raum Waffenkammer, Werkstatt Bauen/Reparieren).
+

@@ -4,6 +4,8 @@ extends Modal
 ## Zuweisen/Abziehen, letzte Proben, „1 Tag warten“.
 
 signal wait_day
+## Handwerk begonnen (Medikits herstellen)
+signal changed
 
 var game: HubState
 
@@ -20,6 +22,7 @@ func show_medbay(g: HubState) -> void:
 	content.add_child(cols)
 	cols.add_child(_patients())
 	cols.add_child(_staff())
+	content.add_child(_medkits())
 	var wait := UiTheme.button("1 Tag warten")
 	wait.add_theme_color_override("font_color", UiTheme.ACCENT)
 	wait.pressed.connect(func() -> void: wait_day.emit())
@@ -87,4 +90,49 @@ func _staff() -> Control:
 			show_medbay(game))
 		row.add_child(b)
 		v.add_child(row)
+	return v
+
+
+## Medikits herstellen (Crafting, Mockup Bildschirm 31): Figur wählen, 1 Medikit, Probe Medikamente herstellen „mittel“
+## mit dem Bonus des Ausbaus Krankenstation
+var _maker: StringName = &""
+
+
+func _medkits() -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	var key := Stock.MEDKIT
+	v.add_child(UiTheme.label("MEDIKITS HERSTELLEN · Handwerksmaterial %d · im Lager %d" % [game.craft_material, Stock.count(game, key)], 13, UiTheme.MUTED))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var pick := OptionButton.new()
+	var crew := Campaign.crew()
+	var sel: Character = null
+	for c in crew:
+		var job := Crafting.job_of(game, c)
+		pick.add_item("%s (%+d)%s" % [c.name, Crafting.check_bonus(game, c, key), "" if job.is_empty() else " – " + Crafting.job_text(job)])
+		if c.id == _maker or (sel == null and _maker == &"" and job.is_empty()):
+			sel = c
+	if sel == null and not crew.is_empty():
+		sel = crew[0]
+	if sel:
+		pick.select(crew.find(sel))
+	pick.item_selected.connect(func(i: int) -> void:
+		_maker = crew[i].id
+		show_medbay(game))
+	row.add_child(pick)
+	var m := Crafting.build_material(key)
+	row.add_child(UiTheme.label("Medikit ×1 (%d Cr) · %d Material · %d Tag" % [Stock.price(key), m, Crafting.build_days(game, key)], 15))
+	var b := UiTheme.button("Herstellen")
+	b.disabled = not Crafting.can_build(game, sel, key)
+	b.pressed.connect(func() -> void:
+		Crafting.build(game, sel, key)
+		Sfx.play(&"klick")
+		changed.emit()
+		show_medbay(game))
+	row.add_child(b)
+	v.add_child(row)
+	var l := UiTheme.label("Patzer = Material weg, sonst 1 Medikit ins Lager. Eine Arbeit je Figur wie in der Werkstatt; Bonus des Ausbaus Krankenstation.", 12, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(l)
 	return v

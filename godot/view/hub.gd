@@ -34,6 +34,8 @@ func _ready() -> void:
 	ui.star_map.bought.connect(_refresh)
 	ui.engine.changed.connect(_refresh)
 	ui.trade.changed.connect(_refresh)
+	ui.craft.changed.connect(_refresh)
+	ui.medbay.changed.connect(_refresh)
 	ui.loot_taken.connect(func(r: Dictionary) -> void:
 		_refresh()
 		if int(r.taken) + int(r.scrapped) > 0:
@@ -103,8 +105,10 @@ func open_room(id: StringName) -> void:
 		&"hangar":
 			ui.engine.show_engine(game)
 		&"armory":
-			# Ausrüstungsdialog des Charakter-Moduls; „Fertig“ speichert selbst (Campaign.save())
-			ui.armory.open_for(Campaign.crew(), 0)
+			# Auswahl: Ausrüstungsdialog des Charakter-Moduls („Fertig“ speichert selbst) oder Werkstatt (Handwerk)
+			ui.show_choice(r.name, "Ausrüstung der Crew wechseln oder in der Werkstatt bauen, zerlegen und reparieren.", [
+				["Ausrüstung", func() -> void: ui.armory.open_for(Campaign.crew(), 0)],
+				["Werkstatt", func() -> void: ui.craft.show_craft(game)]])
 		&"quarters":
 			ui.show_crew()
 		_:
@@ -124,6 +128,8 @@ func _training_toast() -> void:
 		ui.show_toast("Training: +%d freie EP für alle an Bord" % game.last_training)
 	for m in game.last_upgrade:
 		ui.show_notice("Schiffsausbau", m)
+	if not game.last_crafts.is_empty():
+		ui.show_notice("Werkstatt", "\n".join(game.last_crafts))
 
 
 ## Nach vergangenen Tagen: offene Fenster neu zeichnen, Geheilte melden
@@ -131,6 +137,8 @@ func _after_days() -> void:
 	_refresh()
 	if ui.medbay.visible:
 		ui.medbay.show_medbay(game)
+	if ui.craft.visible:
+		ui.craft.refresh()
 	if not game.last_healed.is_empty():
 		ui.show_toast("Wieder einsatzbereit: " + ", ".join(game.last_healed.map(func(c: Character) -> String: return c.name)))
 
