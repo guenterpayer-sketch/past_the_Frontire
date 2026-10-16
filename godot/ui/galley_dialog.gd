@@ -76,9 +76,9 @@ func _stock() -> Control:
 	v.add_child(UiTheme.label("VORRAT", 13, UiTheme.MUTED))
 	v.add_child(UiTheme.label("%d Proviant" % game.provisions, 20, UiTheme.BAD if game.provisions <= 0 else UiTheme.TEXT))
 	if game.provisions <= 0:
-		v.add_child(UiTheme.label("Leer: %d auf Proben im Schiff, bis wieder Proviant gekauft ist (Raumhafen, Handel)." % Galley.MALUS, 13, UiTheme.BAD))
+		v.add_child(UiTheme.label("Leer: %d auf Proben im Schiff, bis wieder Proviant gekauft ist (Sternenkarte, Reiter „Raumhafen“)." % Galley.MALUS, 13, UiTheme.BAD))
 	elif game.is_harbor(game.position):
-		v.add_child(UiTheme.label("Im Hafen: kein Verbrauch. Kaufen im Raumhafen (Handel).", 13, UiTheme.MUTED))
+		v.add_child(UiTheme.label("Im Hafen: kein Verbrauch. Kaufen auf der Brücke, Sternenkarte, Reiter „Raumhafen“.", 13, UiTheme.MUTED))
 	else:
 		v.add_child(UiTheme.label("reicht etwa %d Tage bei normalem Verbrauch" % Galley.days_left(game), 13, UiTheme.MUTED))
 	var n := Campaign.crew().size()

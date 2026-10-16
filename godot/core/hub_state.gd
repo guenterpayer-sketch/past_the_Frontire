@@ -28,7 +28,7 @@ static var quick_battle := false
 var day := 1
 var sector: Sector
 var position := 0
-## je Auftrag: {id, system, seed, difficulty, expires}
+## je Auftrag: {id, system, seed, difficulty, expires, retry (nach Rückzug erneut offen)}
 var offers: Array[Dictionary] = []
 var next_id := 1
 var missions_done := 0
@@ -281,8 +281,15 @@ func abort_mission() -> void:
 	active = {}
 
 
-## Einsatz abgeschlossen: Auftrag erledigt (auch bei Niederlage), Lohn und Beute bei Sieg, Zeit vergeht, Bericht fürs Schiff
+## Einsatz abgeschlossen: Auftrag erledigt (auch bei Niederlage), Lohn und Beute bei Sieg, Zeit vergeht, Bericht fürs Schiff.
+## Rückzug (MissionResult.retreated, Entscheidung des Nutzers 16.10.2026): eigener Ausgang, kein Lohn, keine Beute,
+## der Auftrag bleibt offen (Vermerk retry) bis zum Ablaufdatum; zählt nicht als erledigter Einsatz.
 func finish_mission(rep: Dictionary) -> void:
+	var retreated := bool(rep.get("retreated", Campaign.last_result.get("retreated", false)))
+	rep.retreated = retreated
+	if retreated:
+		rep.outcome = &"rueckzug"
+		rep.expires = int(active.get("expires", day))
 	if not active.is_empty():
 		# Munitionsverbrauch aus dem Einsatz abziehen (Campaign.finish_mission() lief vorher mit dem MissionResult)
 		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
@@ -297,9 +304,14 @@ func finish_mission(rep: Dictionary) -> void:
 			pay.difficulty = String(active.difficulty)
 			pay.medkits = set_loot(Campaign.last_result)
 		rep.payout = pay
-	offers = offers.filter(func(o: Dictionary) -> bool: return o.id != active.get("id", -1))
+	if retreated:
+		for o in offers:
+			if o.id == active.get("id", -1):
+				o.retry = true
+	else:
+		offers = offers.filter(func(o: Dictionary) -> bool: return o.id != active.get("id", -1))
+		missions_done += 1
 	active = {}
-	missions_done += 1
 	rep.prov0 = provisions
 	advance_days(MISSION_DAYS)
 	rep.prov1 = provisions
@@ -377,7 +389,7 @@ func refill_offers() -> void:
 			continue
 		offers.append({"id": next_id, "system": sys, "seed": randi() % 1000000,
 			"difficulty": DIFFICULTY_ROLL[randi() % DIFFICULTY_ROLL.size()],
-			"expires": day + randi_range(OFFER_DAYS[0], OFFER_DAYS[1])})
+			"expires": day + randi_range(OFFER_DAYS[0], OFFER_DAYS[1]), "retry": false})
 		next_id += 1
 
 
@@ -406,7 +418,7 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.position = int(d.get("position", g.sector.home))
 	for o in d.get("offers", []):
 		g.offers.append({"id": int(o.id), "system": int(o.system), "seed": int(o.seed), "difficulty": String(o.difficulty),
-			"expires": int(o.expires)})
+			"expires": int(o.expires), "retry": bool(o.get("retry", false))})
 	g.next_id = int(d.get("next_id", 1))
 	g.missions_done = int(d.get("missions_done", 0))
 	g.berths = int(d.get("berths", BERTHS_START))

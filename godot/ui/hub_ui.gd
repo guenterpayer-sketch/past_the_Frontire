@@ -340,7 +340,13 @@ func show_notice(title: String, text: String) -> void:
 ## Einsatzbericht nach der Rückkehr aus dem Bodenkampf
 func show_report(rep: Dictionary) -> void:
 	var win: bool = rep.get("outcome", &"") == &"sieg"
-	report.open("Einsatzbericht: %s – %s" % ["Sieg" if win else "Niederlage", rep.get("title", "")])
+	var retreat := bool(rep.get("retreated", false))
+	var title := String(rep.get("title", "")).trim_suffix(" (Rückzug)")
+	report.open("Einsatzbericht: %s – %s" % ["Rückzug" if retreat else ("Sieg" if win else "Niederlage"), title])
+	if retreat:
+		var rb := UiTheme.label("Rückzug · der Auftrag bleibt offen bis Tag %d (auf der Brücke als „erneuter Versuch“). Kein Lohn, keine Beute; Ausrüstung: kein Verlust, Kampfunfähige können Schaden bekommen." % int(rep.get("expires", 0)), 15, UiTheme.RETREAT)
+		rb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		report.content.add_child(rb)
 	var rounds: int = rep.get("rounds", 0)
 	var head := UiTheme.label("%s · %s · %d %s · zurück an Bord an Tag %d" % [rep.get("system", ""), rep.get("faction", ""),
 		rounds, "Runde" if rounds == 1 else "Runden", rep.get("day", 0)], 14, UiTheme.MUTED)

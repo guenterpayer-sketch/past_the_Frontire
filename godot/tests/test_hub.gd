@@ -31,6 +31,7 @@ func _init() -> void:
 	_test_loot()
 	_test_crafting()
 	_test_galley()
+	_test_retreat()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1013,6 +1014,37 @@ func _test_galley() -> void:
 	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
 	check(h.provisions == g.provisions and h.cook == g.cook and h.cooklog == g.cooklog, "Kombüse im Spielstand")
 	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+## Rückzug: eigener Ausgang, Auftrag bleibt offen (retry), kein Lohn, zählt nicht als erledigt
+func _test_retreat() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(88, "Rückzug", 1)
+	var o: Dictionary = g.offers[0]
+	o.expires = g.day + 20
+	check(g.start_mission(o), "Auftrag angenommen")
+	var cr := g.credits
+	var done := g.missions_done
+	Campaign.last_result = {"outcome": &"niederlage", "retreated": true}
+	g.finish_mission({"outcome": &"niederlage", "title": "Test (Rückzug)"})
+	var still := g.offers.filter(func(x: Dictionary) -> bool: return x.id == o.id)
+	check(g.report.retreated and g.report.outcome == &"rueckzug" and g.report.expires == o.expires, "Bericht: Ausgang Rückzug mit Ablaufdatum")
+	check(still.size() == 1 and still[0].retry, "Auftrag bleibt offen, Vermerk erneuter Versuch")
+	check(g.credits == cr and g.report.payout.is_empty() and g.missions_done == done and not HubState.in_mission(), "kein Lohn, nicht erledigt")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(h.offers.filter(func(x: Dictionary) -> bool: return x.id == o.id)[0].retry, "Vermerk im Spielstand")
+	# erneuter Versuch, diesmal Niederlage ohne Rückzug: Auftrag weg
+	check(g.start_mission(still[0]), "erneut angenommen")
+	Campaign.last_result = {"outcome": &"niederlage", "retreated": false}
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.offers.filter(func(x: Dictionary) -> bool: return x.id == o.id).is_empty() and not g.report.retreated, "Niederlage ohne Rückzug: Auftrag erledigt")
+	HubState.game = null
+	Campaign.last_result = {}
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)

@@ -187,6 +187,20 @@ func _run() -> void:
 	print("Maschinenraum: offen %s, Stufen %s, Projekt %s, Credits %d, Material %d" % [hub.ui.engine.visible, g.upgrades, g.project, g.credits, g.material])
 	await _shot("h1f_maschinenraum")
 	hub.ui.engine.hide()
+	# Kombüse: Koch einstellen, ein Tag außerhalb des Hafens mit Kochprobe
+	Galley.set_cook(g, Campaign.crew()[1])
+	var pos0 := g.position
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			g.position = i
+			break
+	g.wait_days(1)
+	g.position = pos0
+	hub.open_room(&"galley")
+	await _frames(10)
+	print("Kombüse offen %s, Koch %s, Proviant %d, Proben %d" % [hub.ui.galley.visible, g.cook, g.provisions, g.cooklog.size()])
+	await _shot("h1h_kombuese")
+	hub.ui.galley.hide()
 	# Waffenkammer: Raum öffnet den Ausrüstungsdialog des Charakter-Moduls (erste Figur mit beschädigter Ausrüstung)
 	Campaign.crew()[0].wear = {"w0": -10, "armor": -30}
 	Stock.add(HubState.game, Stock.damaged_key(Stock.key_of(Campaign.crew()[0].weapons[0]), -20))
@@ -379,6 +393,13 @@ func _run() -> void:
 		MissionResult.FREE_XP + int(Campaign.last_result.get("reward_xp", 0))])
 	# Crewquartiere nach dem Einsatz: Übersicht mit dem Ergebnis
 	var stock0 := g.stock.duplicate()
+	hub.ui.report.hide()
+	# Einsatzbericht mit Ausgang Rückzug (Beispiel)
+	hub.ui.show_report({"outcome": &"rueckzug", "retreated": true, "title": "Lagerhalle säubern (Rückzug)", "system": "Kessra IV",
+		"faction": "Schrottbarone", "rounds": 4, "reward_xp": 0, "free_xp": MissionResult.FREE_XP, "units": [], "day": g.day,
+		"expires": g.day + 6, "prov0": 30, "prov1": 24, "cook": g.cooklog.slice(0, 1)})
+	await _frames(5)
+	await _shot("h9c_bericht_rueckzug")
 	hub.ui.report.hide()
 	await _frames(2)
 	print("Beute übernommen: offen %s, Lager %s -> %s" % [g.loot_pending, stock0, g.stock])

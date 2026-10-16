@@ -299,8 +299,8 @@ func _render_side() -> void:
 		_side.add_child(UiTheme.label("WEITERE AUFTRÄGE", 13, UiTheme.MUTED))
 		for o in others:
 			var m := mission(o)
-			var b := UiTheme.button("%s · %s, %s, noch %d %s" % [s.systems[o.system].name, m.faction.name.split(" ")[0],
-				o.difficulty, o.expires - game.day, "Tag" if o.expires - game.day == 1 else "Tage"])
+			var b := UiTheme.button("%s · %s, %s, noch %d %s%s" % [s.systems[o.system].name, m.faction.name.split(" ")[0],
+				o.difficulty, o.expires - game.day, "Tag" if o.expires - game.day == 1 else "Tage", " · erneuter Versuch" if o.get("retry", false) else ""])
 			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 			b.add_theme_font_size_override("font_size", 13)
 			b.pressed.connect(select.bind(o.system, o.id))
@@ -540,7 +540,10 @@ func _offer_card(o: Dictionary) -> Control:
 	card.add_child(v)
 	var head := HBoxContainer.new()
 	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var t := UiTheme.label(m.title, 16)
+	var t := UiTheme.label(m.title + ("  · erneuter Versuch" if o.get("retry", false) else ""), 16)
+	if o.get("retry", false):
+		t.tooltip_text = "Nach einem Rückzug weiter offen bis zum Ablaufdatum"
+		t.mouse_filter = Control.MOUSE_FILTER_PASS
 	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(t)
 	head.add_child(UiTheme.label(m.difficulty_name(), 15, {"leicht": UiTheme.GOOD, "mittel": UiTheme.ACCENT, "schwer": UiTheme.BAD}[m.difficulty]))

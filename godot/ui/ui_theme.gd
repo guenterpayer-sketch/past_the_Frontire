@@ -13,6 +13,8 @@ const CREW := Color("5db7ff")
 const ENEMY := Color("ff5d5d")
 const GOOD := Color("6fdc6f")
 const BAD := Color("ff6b6b")
+## Rückzug im Einsatzbericht (weder Sieg noch Niederlage)
+const RETREAT := Color("c9a0ff")
 
 
 static func box(bg: Color, border := LINE, radius := 6, margin := 8, width := 1) -> StyleBoxFlat:
