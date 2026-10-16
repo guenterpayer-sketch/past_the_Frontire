@@ -269,3 +269,12 @@ Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md` (Entscheidungen des Nutzers).
 - Gebaut: `ShipUpgrades` (`core/ship_upgrades.gd`), `EngineDialog` (`ui/engine_dialog.gd`), Raum `&"hangar"` heißt „Maschinenraum“ und ist nutzbar. `HubState.upgrades`, `project`, `last_upgrade` (im Spielstand), Werte über `HubState.tank_max()`, `hull_max()`, `fuel_per_day()`, `travel_bonus()`, `heal_bonus()`, `training_xp()`; `Voyage.check(c, skill, extra)` mit Zusatzbonus; `Medbay.bonus()` mit Krankenstations-Ausbau. Meldungen des Crew-Ausbaus im Reise- und Einsatzbericht und beim Warten.
 - **Für andere Module:** keine Schnittstellenänderung; `HubState.berths` steigt mit dem Ausbau (Crewquartiere zeigen ihn über `seats`).
 - Tests: `test_rules` OK, `test_hub` OK (Stufe 0 = alte Werte, Werft nur im Hafen/mit Credits, Wirkungen aller Bereiche, Crew-Ausbau mit Material, Tagen, Probe und Sperre, Spielstand), `--autotest-hub` durchgelaufen (Maschinenraum: Werft-Kauf, Crew-Ausbau, Screenshot).
+
+## Aufträge vom Koordinator (16.10.2026): Handelsfertigkeiten im Raumhafen
+
+Entscheidungen des Nutzers. Die Fertigkeiten gibt es (`core/rules.gd`, Gruppe „Handel & Soziales“):
+- **Handeln** (`handeln`): beeinflusst die Preise für alles, was Beute sein kann (Waffen, Rüstungen, Munition, Medikits …), Kauf und Verkauf.
+- **Gassenwissen** (`gassenwissen`): erweitert das Sortiment des Hafens.
+- **Verhandeln** (`verhandeln`): beeinflusst die Preise für alles, was das Schiff betrifft (Treibstoff, Werft/Reparatur, Schiffsmaterial, Schiffsausbau in der Werft).
+
+Regeln: Wer würfelt, wird im Handelsdialog **ausgewählt**. Probe **pro Tag im Hafen** (Ergebnis gilt bis zum nächsten Tag; Warten kann ein neues bringen). **EP** wie bei den Reiseproben. Misserfolg = Normalpreis/-sortiment; **nur ein Patzer** verschlechtert (schlechtere Preise bzw. kleineres Sortiment). Zahlen (Rabatt je Ergebnisstufe, Sortimentsgröße) vorher dem Nutzer vorschlagen. Regeln in `docs/Skillsystem.md` 8b nachtragen. Kann parallel zu Schritt 3/4 der anderen Module gebaut werden.
