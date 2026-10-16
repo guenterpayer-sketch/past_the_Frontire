@@ -42,7 +42,7 @@ const SKILL_GROUPS := [
 	{"id": "rsKampf", "name": "Raumschiff-Kampf", "skills": [
 		["strahlGeschuetze", "Strahl-Geschütze", "KOO", "INT"],
 		["ballistikGeschuetze", "Ballistische Geschütze", "KOO", "INT"],
-		["raketen", "Raketen", "INT", "KOO"],
+		["raketen", "Raketen-Geschütze", "INT", "KOO"],   # ID bleibt „raketen“ (Umbenennung 16.10.2026)
 		["schutzschild", "Schutzschild", "INT", "MEN"],
 		["panzerung", "Panzerung", "INT", "KON"],
 		["notReparatur", "Not-Reparatur", "KOO", "MEN"]]},

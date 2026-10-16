@@ -8,6 +8,7 @@ Jedes Modul wird in einem eigenen Chat auf einem eigenen Branch gebaut. Diese Da
 | `bodenkampf.md` | Bodenkampf (Lagerhalle, Missionen, Runde 0) | `claude/confident-edison-6mxzke` |
 | `charakter.md` | Charakter-Modul und Charakter-Editor | `claude/elegant-gauss-hq5bus` |
 | `hub.md` | Hub: Startmenü, Schiff, Sternenkarte, Spielstände | `claude/happy-lamport-u4fvya` |
+| `raumkampf.md` | Raumkampf (Mutterschiff, Jäger) | noch offen |
 
 ## Ablauf für jeden Modul-Chat
 

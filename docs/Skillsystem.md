@@ -104,7 +104,7 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 |---|---|
 | Strahl-Geschütze | KOO + INT |
 | Ballistische Geschütze | KOO + INT |
-| Raketen | INT + KOO |
+| Raketen-Geschütze (ID `raketen`) | INT + KOO |
 | Schutzschild | INT + MEN |
 | Panzerung | INT + KON – **Annahme:** Schadenskontrolle, Panzerung umleiten |
 | Not-Reparatur | KOO + MEN |
