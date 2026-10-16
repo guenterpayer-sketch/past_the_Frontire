@@ -9,7 +9,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`8b5a91f`) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`2bd5ced`) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`6dd6178`); muss Raumkampf-Branch holen und Tests anpassen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | `93b12b0` fertig, **nicht** in `main`: `test_hub` mit Raumkampf 4 Fehler (Preise `ShipWeapons` ≠ Hub-Übergangstabelle), wartet auf Hub |
@@ -18,6 +18,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 16.10.2026 | `ba8e62a` | Bodenkampf `claude/confident-edison-6mxzke` (`2bd5ced`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). 3 `.import`-Dateien so, wie der Editor sie schreibt (VRAM, `detect_3d` aus), damit GitHub Desktop sie nicht ständig als geändert zeigt. Prüfung unter Windows durch den Nutzer offen. |
 | 16.10.2026 | `147fa3a` | Hub `claude/happy-lamport-u4fvya` (`6dd6178`) | ohne Konflikte, enthielt `main`; keine eigenen Regeltests (Testregel). Raumhafen in eigenen Fenstern (Anzeigefehler: Raumhafen-Spalte schnitt rechts ab), Werft mit Reitern, Maschinenraum nur Crew-Arbeit. Koordinator: `--autotest-hub` durchgelaufen, Screenshots Sternenkarte/Schiffshändler/Werft angesehen, nichts abgeschnitten. Probe Raumkampf `93b12b0` + `main`: `test_rules`, `test_space` OK, `test_hub` 4 Fehler → nicht zusammengeführt. |
 | 16.10.2026 | `4d89c1c` | Hub `claude/happy-lamport-u4fvya` (`bd2f56f`) | ohne Konflikte; es fehlte nur der Doku-Commit `9bd524f`, Code identisch mit dem getesteten Stand, keine eigenen Tests (Testregel). Anbindung Raumkampf Teil 1: `ShipArms`, Waffenslots, Posten, Schiffsmunition, Systemschäden, Reparatur, Handel „Schiff“, `ShipUpgrades` +4 Bereiche. Tests laut Hub: `test_rules`, `test_hub`, `test_sim -- 10`, `--autotest-hub` OK. |
 | 16.10.2026 | `65bc896` | Raumkampf `claude/raumkampf-modul` (`8a0597f`) | ohne Konflikte, enthielt `main`, nur Doku, keine Tests. Schnittstelle fest (`docs/module/raumkampf.md` „Schnittstellen“, Entscheidungen `docs/Planung_Raumkampf.md` 1a): `SpaceBattle.start(tree, setup)`, `take_result()`, `SpaceSetup.quick()`, `ShipWeapons`. Hub kann mit „Anbindung Raumkampf“ beginnen. |
