@@ -528,6 +528,21 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 - **Crew** (überall): 3 / 6 / 9 Schiffsmaterial (sofort verbraucht) und 3 / 5 / 8 Spieltage; am Ende eine Reparaturprobe (Mittel, Station Technik, sonst der Beste): Erfolg = fertig, Teilerfolg = 1 Tag länger, Fehlschlag oder Patzer = 1 Material verloren und 1 Tag länger. Nur ein Crew-Ausbau zur Zeit; wer baut, darf in Einsätze.
 - Werkstatt-Ausbau folgt mit dem Handwerk.
 
+**Lager und Handel** (`core/stock.gd`, Entscheidungen des Nutzers 16.10.2026): Das Schiff hat ein **Lager** mit Stückzahlen (Waffen, Rüstungen, Medikits; Munition bleibt im eigenen Vorrat). Zu Beginn leer – die Crew trägt ihre Ausrüstung. Im Hafen Reiter **„Handel …“**: Kaufen ins Lager, Verkaufen aus dem Lager zum **halben Preis** (auch Munition im Reiter „Raumhafen“).
+
+| Gegenstand | Preis | | Gegenstand | Preis |
+|---|---|---|---|---|
+| Vibroklinge | 120 Cr | | Flexanzug (leicht) | 150 Cr |
+| Energiehammer | 250 Cr | | Kampfpanzer (mittel) | 350 Cr |
+| Laserpistole | 150 Cr | | Servo-Rüstung (schwer) | 700 Cr |
+| Laserkarabiner | 300 Cr | | Medikit | 30 Cr |
+| Sturmgewehr | 280 Cr | | | |
+| Schweres MG | 500 Cr | | | |
+| Raketenwerfer | 600 Cr | | | |
+
+- Eigene Waffen/Rüstungen aus dem Editor: Preis der Vorlage, mit Vermerk „frei“ doppelt. Fäuste und „Keine“ sind kein Handelsgut.
+- **Sortiment:** je Hafen die Hälfte aller Waffen/Rüstungen (zufällig), neu gemischt alle 10 Spieltage; Medikits immer.
+
 Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
 
 Durchschnitt je Reisetag (simuliert, 200 000 Würfe): schwache Crew (alle Werte um −15) 9,6 Treibstoff, Hülle −4,6; Roster-Startcrew (Pilot +75, Navigation +0, Computer +20, Reparatur +55) 7,2 und +0,1; starke Crew (+90/+60/+60/+80) 4,9 und +1,5.

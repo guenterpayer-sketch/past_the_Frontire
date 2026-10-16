@@ -260,6 +260,19 @@ static func buy_ammo(g: HubState, type: String, n: int) -> bool:
 	return true
 
 
+## Munition verkaufen (nur im Hafen, halber Preis)
+static func can_sell_ammo(g: HubState, type: String, n: int) -> bool:
+	return g.is_harbor(g.position) and n > 0 and int(g.ammo.get(type, 0)) >= n
+
+
+static func sell_ammo(g: HubState, type: String, n: int) -> bool:
+	if not can_sell_ammo(g, type, n):
+		return false
+	g.ammo[type] = int(g.ammo[type]) - n
+	g.credits += int(floor(n * int(AMMO_PRICE[type]) * Stock.SELL_FACTOR))
+	return true
+
+
 ## Verbrauch aus dem Einsatz abziehen (MissionResult.ammo_used), nicht unter 0. Gibt den tatsächlichen Abzug zurück.
 static func use_ammo(g: HubState, used: Dictionary) -> Dictionary:
 	var out := {}

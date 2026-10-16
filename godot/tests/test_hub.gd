@@ -25,6 +25,7 @@ func _init() -> void:
 	_test_gear_models()
 	_test_training()
 	_test_upgrades()
+	_test_stock()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -625,6 +626,57 @@ func _test_upgrades() -> void:
 	var h2 := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
 	check(h2.project == g.project, "laufender Crew-Ausbau im Spielstand")
 	check(HubState.from_dict({"sector": g.sector.to_dict()}).upgrades.is_empty(), "alte Spielstände ohne Ausbau")
+	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+func _test_stock() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(61, "Lager", 1)
+	check(g.stock.is_empty(), "Lager zu Beginn leer")
+	var sg := "res://data/weapons/sturmgewehr.tres"
+	check(Stock.price(sg) == 280 and Stock.sell_price(sg) == 140 and Stock.price(Stock.MEDKIT) == 30, "Preise")
+	check(not "res://data/weapons/faeuste.tres" in Stock.goods() and not "res://data/armor/keine.tres" in Stock.goods(), "Fäuste und „Keine“ kein Handelsgut")
+	g.position = g.nearest_harbor()
+	var shop := Stock.shop(g, g.position)
+	var all := Stock.goods()
+	check(Stock.MEDKIT in shop and shop.size() - 1 == ceili(all.size() * Stock.SHOP_SHARE), "Sortiment: halbes Angebot + Medikits (%d von %d)" % [shop.size() - 1, all.size()])
+	check(Stock.shop(g, g.position) == shop, "Sortiment bleibt innerhalb der 10 Tage gleich")
+	g.day += Stock.SHOP_DAYS
+	var shop2 := Stock.shop(g, g.position)
+	check(shop2.size() == shop.size(), "nach 10 Tagen neu gemischt (gleiche Größe)")
+	var key: String = shop2[1]
+	g.credits = Stock.price(key) - 1
+	check(not Stock.buy(g, key), "nicht ohne genug Credits")
+	g.credits = 5000
+	check(Stock.buy(g, key) and Stock.count(g, key) == 1 and g.credits == 5000 - Stock.price(key), "Kaufen ins Lager")
+	check(Stock.buy(g, Stock.MEDKIT) and Stock.buy(g, Stock.MEDKIT) and Stock.count(g, Stock.MEDKIT) == 2, "Medikits kaufen")
+	var cr := g.credits
+	check(Stock.sell(g, key) and Stock.count(g, key) == 0 and g.credits == cr + Stock.sell_price(key) and not g.stock.has(key), "Verkaufen zum halben Preis")
+	check(not Stock.sell(g, key), "nichts zu verkaufen")
+	check(Stock.take(g, Stock.MEDKIT) and Stock.count(g, Stock.MEDKIT) == 1 and not Stock.take(g, sg), "Herausnehmen fürs Ausrüsten")
+	Stock.add(g, sg, 2)
+	check(Stock.count(g, sg) == 2 and Stock.items(g).size() == 2, "Zurücklegen und Liste")
+	check(Stock.take(null, sg) and Stock.count(null, sg) > 1000, "ohne Spiel (Schnellkampf) unbegrenzt")
+	g.ammo.projektil = 40
+	cr = g.credits
+	check(Voyage.sell_ammo(g, "projektil", 30) and g.ammo.projektil == 10 and g.credits == cr + 30, "Munition verkaufen (halber Preis)")
+	# eigene Ausrüstung: Preis der Vorlage, frei doppelt
+	Gear.dir = "user://gear_test_stock"
+	_rm_tree(Gear.dir)
+	var w := Gear.from_template(load("res://data/weapons/laserpistole.tres"))
+	var own := Gear.save(w)
+	check(Stock.price(own.resource_path) == 150 and own.resource_path in Stock.goods(), "eigene Waffe: Preis der Vorlage, Handelsgut")
+	own.set_meta(&"free", true)
+	check(Stock.price(own.resource_path) == 300, "frei eingetragen: doppelter Preis")
+	_rm_tree(Gear.dir)
+	Gear.dir = "user://gear"
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.stock == g.stock and int(h.shop.get("_period", -1)) == int(g.shop.get("_period", -2)), "Lager und Sortiment im Spielstand")
 	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)

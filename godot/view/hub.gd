@@ -33,6 +33,10 @@ func _ready() -> void:
 	ui.star_map.start.connect(_start_mission)
 	ui.star_map.bought.connect(_refresh)
 	ui.engine.changed.connect(_refresh)
+	ui.trade.changed.connect(_refresh)
+	ui.star_map.trade.connect(func() -> void:
+		ui.trade.show_trade(game)
+		ui.trade.move_to_front())
 	ui.star_map.crew_repair.connect(crew_repair)
 	ui.travel_report.visibility_changed.connect(func() -> void:
 		if not ui.travel_report.visible and _after_travel.is_valid():

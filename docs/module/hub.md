@@ -251,6 +251,17 @@ Entscheidungen des Nutzers: **alle 5 Spieltage** (Tag 5, 10, 15 …) bekommt **d
 
 Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md` (Entscheidungen des Nutzers). Deine Schritte: **1. Schiffsausbau** (sofort), **2. Lager + Kauf/Verkauf** (Schnittstelle für Charakter und Bodenkampf unter „Schnittstellen“), danach **Beuteauswahl im Einsatzbericht** (wenn Bodenkampf geliefert hat) und **5. Handwerk**. Jeweils vorher Zahlen und Mockup mit dem Nutzer klären. Einzeln fertig melden (kleine Schritte).
 
+### Stand Schritt 2 Lager und Handel (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- Entscheidungen des Nutzers: Preise wie Mockup (Bildschirme 24–25), Verkauf 50 %; **zufälliges Sortiment** (Hälfte der Waffen/Rüstungen je Hafen, alle 10 Tage neu, Medikits immer); eigene Ausrüstung kostet wie die Vorlage, „frei“ doppelt; neuer Reiter **„Handel …“** im Hafen. Regeln in `docs/Skillsystem.md` 8b.
+- Gebaut: `Stock` (`core/stock.gd`), `TradeDialog` (`ui/trade_dialog.gd`), `HubState.stock` und `shop` im Spielstand, Munition verkaufen (`Voyage.sell_ammo`).
+- **Schnittstelle Lager (für Charakter und Bodenkampf):**
+  - Schlüssel eines Gegenstands: `Stock.key_of(res)` = `resource_path` der `WeaponData`/`ArmorData` (auch eigene aus `user://gear/`), Medikits: `Stock.MEDKIT`.
+  - `Stock.count(HubState.game, key)`, `Stock.take(HubState.game, key, n := 1) -> bool` (Ausrüsten nimmt heraus), `Stock.add(HubState.game, key, n := 1)` (Ablegen legt zurück), `Stock.items(g)` (Liste fürs Anzeigen), `Stock.name_of(key)`.
+  - Ohne Spiel (`HubState.game == null`, z. B. Schnellkampf aus dem Startmenü): `take()` gelingt immer, `count()` sehr groß – der Bestand ist dort unbegrenzt.
+  - Lager zu Beginn leer; was die Crew trägt, zählt nicht. **Charakter:** Waffenkammer am Lager (Ausrüsten/Ablegen, Medikits). **Bodenkampf:** Beute nach dem Kampf über `Stock.add()` (Auswahl im Einsatzbericht baut der Hub, wenn `MissionResult` die Beute liefert).
+- Tests: `test_rules` OK, `test_hub` OK (Preise, Sortiment halb/10 Tage, Kauf/Verkauf, Herausnehmen/Zurücklegen, ohne Spiel unbegrenzt, Munition verkaufen, eigene Ausrüstung, Spielstand), `--autotest-hub` durchgelaufen (Handel: Kauf und Verkauf, Screenshot).
+
 ### Stand Schritt 1 Schiffsausbau (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
 
 - `main` (`0329915`) geholt, ohne Konflikte.
