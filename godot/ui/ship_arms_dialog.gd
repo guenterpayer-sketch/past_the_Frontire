@@ -14,6 +14,7 @@ var _mode := &"slots"
 var _pick := ""               # Slot, für den gerade eine Waffe gewählt wird
 var _last := ""               # Ergebnis der letzten Crew-Reparatur
 var _yard := false            # Werft (Hafen) statt Maschinenraum
+var _yard_tab := 0            # Werft: 0 = Reparatur, 1 = Ausbau, 2 = Waffenslots (bleibt beim nächsten Öffnen)
 
 
 func show_slots(g: HubState) -> void:
@@ -221,6 +222,32 @@ func _render_yard() -> void:
 	var g := game
 	content.add_child(UiTheme.label("%d Cr · Material %d · Verhandeln heute: %s" % [g.credits, g.material,
 		TradeSkills.effect_text(&"verhandeln", TradeSkills.result(g, &"verhandeln"))], 16, UiTheme.BAD if g.credits < 0 else UiTheme.ACCENT))
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 8)
+	content.add_child(tabs)
+	for i in 3:
+		var t := UiTheme.button(["Reparatur", "Ausbau", "Waffenslots"][i], "", true)
+		t.button_pressed = i == _yard_tab
+		t.custom_minimum_size.y = 38
+		t.pressed.connect(func() -> void:
+			_yard_tab = i
+			_pick = ""
+			Sfx.play(&"klick")
+			_render())
+		tabs.add_child(t)
+	_line()
+	if _yard_tab == 1:
+		_render_upgrades()
+	elif _yard_tab == 2:
+		_render_slots()
+	else:
+		_render_repair()
+	_note("Alles gegen Credits nach Verhandeln, nur im Hafen. Der Maschinenraum an Bord behält die Crew-Arbeit: Crew-Ausbau, Crew-Reparatur (1 Tag), Geschützposten.")
+
+
+## Werft, Reiter „Reparatur“: Hülle, Systemschäden, beschädigte Schiffswaffen
+func _render_repair() -> void:
+	var g := game
 	content.add_child(UiTheme.label("HÜLLE", 13, UiTheme.MUTED))
 	var hr := HBoxContainer.new()
 	hr.add_theme_constant_override("separation", 12)
@@ -237,6 +264,13 @@ func _render_yard() -> void:
 		_again())
 	hr.add_child(hb)
 	_line()
+	content.add_child(UiTheme.label("SYSTEMSCHÄDEN", 13, UiTheme.MUTED))
+	_render_damage()
+
+
+## Werft, Reiter „Ausbau“: alle Bereiche gegen Credits
+func _render_upgrades() -> void:
+	var g := game
 	content.add_child(UiTheme.label("AUSBAU (SOFORT; CREW-AUSBAU IM MASCHINENRAUM)", 13, UiTheme.MUTED))
 	var grid := GridContainer.new()
 	grid.columns = 4
@@ -262,12 +296,6 @@ func _render_yard() -> void:
 			ShipUpgrades.buy_yard(g, id)
 			_again())
 		grid.add_child(yb)
-	_line()
-	content.add_child(UiTheme.label("SYSTEMSCHÄDEN", 13, UiTheme.MUTED))
-	_render_damage()
-	_line()
-	_render_slots()
-	_note("Alles gegen Credits nach Verhandeln, nur im Hafen. Der Maschinenraum an Bord behält die Crew-Arbeit: Crew-Ausbau, Crew-Reparatur (1 Tag), Geschützposten.")
 
 
 # ---------------------------------------------------------------- Systemschäden
