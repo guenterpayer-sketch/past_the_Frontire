@@ -1,20 +1,22 @@
 class_name Ammo
 ## Munition (Entscheidungen des Nutzers 15.10.2026, docs/Planung_Munition.md, docs/module/bodenkampf.md):
 ## - Munitionsarten mit gemeinsamem Schiffsvorrat (TYPES); Waffen ohne Magazin brauchen keine Munition.
-## - Mitnahme je Waffe: MAGS Magazine, höchstens „Munition gesamt“ der Waffe, solange der Vorrat reicht
+## - Mitnahme je Waffe: MAGS Magazine (Zweitwaffe: MAGS_SECOND), höchstens „Munition gesamt“, solange der Vorrat reicht
 ##   (Trupp in Reihenfolge); Schnellkampf und Gegner: voll (Vorrat null).
 ## - Feuerstoß: Schuss pro Angriff ≥ 2 gibt +BURST je abgefeuerter Kugel; reicht das Magazin nicht, mit dem Rest.
 
 const TYPES := {&"energie": "Energiezellen", &"projektil": "Projektil", &"raketen": "Raketen"}
 const MAGS := 3
+const MAGS_SECOND := 1   # Waffe 2 einer Figur (Entscheidung des Nutzers 15.10.2026: Vorrat bleibt für die Hauptwaffe)
 const BURST := 5
 
 
-## Schuss, die eine Figur mit dieser Waffe in den Einsatz mitnimmt, wenn genug Vorrat da ist
-static func carry(w: WeaponData) -> int:
+## Schuss, die eine Figur mit dieser Waffe in den Einsatz mitnimmt, wenn genug Vorrat da ist;
+## slot = Platz in der Waffenliste der Figur (0 = Waffe 1, danach Zweitwaffe)
+static func carry(w: WeaponData, slot := 0) -> int:
 	if w.magazine <= 0:
 		return 0
-	var n := w.magazine * MAGS
+	var n := w.magazine * (MAGS if slot == 0 else MAGS_SECOND)
 	return mini(n, w.ammo_total) if w.ammo_total > 0 else n
 
 
@@ -43,8 +45,9 @@ static func plan(loadouts: Array, stock: Variant) -> Dictionary:
 	for ws in loadouts:
 		var g := {}
 		var notes: Array[String] = []
-		for w: WeaponData in ws:
-			var want := carry(w)
+		for slot in ws.size():
+			var w: WeaponData = ws[slot]
+			var want := carry(w, slot)
 			if want <= 0:
 				continue
 			var n := want

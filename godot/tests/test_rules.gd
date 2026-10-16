@@ -34,6 +34,7 @@ func _init() -> void:
 	_test_dying()
 	_test_psi()
 	_test_ammo()
+	_test_custom_gear()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -722,7 +723,7 @@ func _test_ammo() -> void:
 	for w in GameData.weapons():
 		by_id[w.id] = w
 	check(Ammo.carry(by_id[&"raketenwerfer"]) == 2, "Raketenwerfer: 3 Magazine, höchstens Munition gesamt (2)")
-	check(Ammo.carry(by_id[&"mg"]) == 0 and by_id[&"mg"].shots == 3 and by_id[&"mg"].ob_bonus == 0, "MG: unbegrenzt, Feuerstoß 3 statt festem Bonus")
+	check(Ammo.carry(by_id[&"mg"]) == 180 and Ammo.carry(by_id[&"laserpistole"], 1) == 12 and by_id[&"mg"].shots == 3 and by_id[&"mg"].ob_bonus == 0, "MG: Magazin 60 (3 Magazine), Feuerstoß 3 statt festem Bonus; Pistole als Zweitwaffe 1 Magazin")
 	check(by_id[&"laserkarabiner"].ammo_type == &"energie" and by_id[&"sturmgewehr"].ammo_type == &"projektil" and by_id[&"raketenwerfer"].ammo_type == &"raketen", "Munitionsarten zugeordnet")
 	check(Ammo.burst_bonus(1) == 0 and Ammo.burst_bonus(2) == 10 and Ammo.burst_bonus(3) == 15, "Feuerstoß +5 je Kugel ab 2")
 	var w := WeaponData.new()
@@ -732,6 +733,7 @@ func _test_ammo() -> void:
 	w.shots = 3
 	w.ammo_type = &"projektil"
 	check(Ammo.carry(w) == 90 and Ammo.shots_next(w, 30) == 3 and Ammo.shots_next(w, 2) == 2, "3 Magazine; Rest-Feuerstoß")
+	check(Ammo.carry(w, 1) == 30 and Ammo.plan([[by_id[&"faeuste"], w]], null).give[0][&"test_mg"] == 30, "Zweitwaffe: 1 Magazin")
 	var p := Ammo.plan([[w], [w]], {&"projektil": 50})
 	check(p.give[0][&"test_mg"] == 50 and p.give[1][&"test_mg"] == 0 and p.take[&"projektil"] == 50, "Vorrat reicht nur für die erste Figur")
 	check(p.short[0].size() == 1 and "nur 50" in p.short[0][0] and "keine Munition" in p.short[1][0], "Hinweise bei knapper Munition")
@@ -739,7 +741,7 @@ func _test_ammo() -> void:
 	# Verbrauch und Rückmeldung
 	var c := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
 	var u := c.crew()[0]
-	u.weapons.append(w)
+	u.weapons.insert(0, w)   # als Waffe 1 (3 Magazine)
 	Ammo.apply(c.crew(), {&"projektil": 40, &"raketen": 1})
 	check(u.loaded[&"test_mg"] == 30 and u.ammo[&"test_mg"] == 10, "Magazin voll, Rest als Reserve")
 	u.loaded[&"test_mg"] -= Ammo.shots_next(w, u.loaded[&"test_mg"])
@@ -780,6 +782,7 @@ func _test_own_gear() -> void:
 	draft.set_meta(&"free", true)
 	var a := Gear.save(draft) as ArmorData
 	check(w in Equipment.weapons() and a in Equipment.armors(), "eigene Ausrüstung wählbar")
+	check(Equipment.weapons().count(w) == 1, "eigene Waffe nur einmal (auch wenn GameData sie liefert)")
 	check(Equipment.label(a).ends_with("(frei)") and Equipment.label(pistol) == "Laserpistole", "Vermerk frei")
 	var ch := Roster.start_crew()[0]
 	ch.weapons = [w, pistol] as Array[WeaponData]
@@ -802,3 +805,54 @@ func _test_own_gear() -> void:
 	check(mg.shots == 3 and Ammo.burst_bonus(mg.shots) == 15 and mg.ob_bonus == 0, "MG: Feuerstoß über shots")
 	var rw: WeaponData = load("res://data/weapons/raketenwerfer.tres")
 	check(Ammo.carry(rw) == (mini(rw.magazine * Ammo.MAGS, rw.ammo_total) if rw.ammo_total > 0 else rw.magazine * Ammo.MAGS), "Mitnahme mit Obergrenze")
+
+
+## Eigene Waffen/Rüstungen (Gear): in GameData.weapons(); Gegner bekommen freigegebene mit gleicher Fertigkeit/Klasse
+func _test_custom_gear() -> void:
+	var old_dir := Gear.dir
+	Gear.dir = "user://gear_test_rules"
+	for sub in ["weapons", "armor"]:
+		var d := Gear.dir.path_join(sub)
+		if DirAccess.dir_exists_absolute(d):
+			for f in DirAccess.get_files_at(d):
+				DirAccess.remove_absolute(d.path_join(f))
+	var m0 := Mission.generate(4711)
+	var plain: Array = m0.enemies.map(func(d: UnitData) -> String: return d.weapons[0].name if not d.weapons.is_empty() else "")
+	var by_skill := {}
+	var classes := {}
+	for d in m0.enemies:
+		if not d.weapons.is_empty():
+			by_skill[d.weapons[0].skill] = d.weapons[0]
+		if d.armor:
+			classes[d.armor.cls] = d.armor
+	for sk in by_skill:
+		var w := Gear.from_template(by_skill[sk]) as WeaponData
+		w.name = "Eigen-%s" % sk
+		w.set_meta(&"enemy", true)
+		Gear.save(w)
+	for cl in classes:
+		var a := Gear.from_template(classes[cl]) as ArmorData
+		a.name = "Eigen-Rüstung %d" % cl
+		a.set_meta(&"enemy", true)
+		Gear.save(a)
+	check(GameData.weapons().any(func(w: WeaponData) -> bool: return w.name.begins_with("Eigen-")), "eigene Waffen in GameData.weapons()")
+	var swapped := 0
+	var ok := true
+	for seed_v in range(4711, 4741):
+		var m := Mission.generate(seed_v)
+		var base := Mission.generate(seed_v)
+		for i in m.enemies.size():
+			var d: UnitData = m.enemies[i]
+			if d.weapons.is_empty():
+				continue
+			if d.weapons[0].name.begins_with("Eigen-"):
+				swapped += 1
+				ok = ok and d.weapons[0].skill == base.faction.units.filter(func(u: UnitData) -> bool: return u.name == d.name)[0].weapons[0].skill
+			if d.armor and d.armor.name.begins_with("Eigen-") and d.armor.cls != base.faction.units.filter(func(u: UnitData) -> bool: return u.name == d.name)[0].armor.cls:
+				ok = false
+	check(swapped > 0 and ok, "Gegner bekommen eigene Ausrüstung (gleiche Fertigkeit/Klasse), %d Mal in 30 Missionen" % swapped)
+	check(Mission.generate(4711).title == m0.title and Mission.generate(4711).enemies.size() == m0.enemies.size(), "Mission sonst unverändert")
+	for f in Mission.all_factions():
+		for u in f.units:
+			check(not (not u.weapons.is_empty() and u.weapons[0].name.begins_with("Eigen-")), "Vorlagen der Fraktion bleiben unverändert")
+	Gear.dir = old_dir

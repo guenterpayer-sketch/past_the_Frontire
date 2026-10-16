@@ -60,7 +60,41 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 		m.size_id = "klein" if rng.randf() < 0.2 else "mittel"
 	else:
 		m.size_id = "mittel" if rng.randf() < 0.4 else "gross"
+	_custom_gear(m, seed_value)
 	return m
+
+
+## Eigene Ausrüstung aus dem Editor (Gear) für Gegner, wenn für diese Fraktion freigegeben
+## (Entscheidung des Nutzers 15.10.2026): je Gegner mit CUSTOM_CHANCE Waffe 1 durch eine eigene Waffe
+## derselben Fertigkeit ersetzen, ebenso die Rüstung durch eine eigene derselben Klasse.
+## Eigener Zufall (seed + 1), damit sich die übrige Mission mit oder ohne eigene Ausrüstung nicht ändert.
+const CUSTOM_CHANCE := 1.0 / 3.0
+
+static func _custom_gear(m: Mission, seed_value: int) -> void:
+	var path := m.faction.resource_path
+	var ws := Gear.enemy_weapons(path)
+	var ars := Gear.enemy_armors(path)
+	if ws.is_empty() and ars.is_empty():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value + 1
+	for i in m.enemies.size():
+		var d: UnitData = m.enemies[i]
+		var copy: UnitData = null
+		if not d.weapons.is_empty() and rng.randf() < CUSTOM_CHANCE:
+			var fit := ws.filter(func(w: WeaponData) -> bool: return w.skill == d.weapons[0].skill)
+			if not fit.is_empty():
+				copy = d.duplicate()
+				copy.weapons = d.weapons.duplicate()
+				copy.weapons[0] = fit[rng.randi_range(0, fit.size() - 1)]
+		if d.armor and rng.randf() < CUSTOM_CHANCE:
+			var fit_a := ars.filter(func(a: ArmorData) -> bool: return a.cls == d.armor.cls)
+			if not fit_a.is_empty():
+				if copy == null:
+					copy = d.duplicate()
+				copy.armor = fit_a[rng.randi_range(0, fit_a.size() - 1)]
+		if copy:
+			m.enemies[i] = copy
 
 
 static func all_factions() -> Array[FactionData]:
