@@ -557,6 +557,8 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 
 Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
 
+**Waffenkammer am Lager** (`core/equipment.gd`, Entscheidungen des Nutzers 16.10.2026): Ausrüsten nimmt aus dem Lager, Ablegen legt zurück. Fäuste und „keine Rüstung“ sind immer verfügbar. Der **Schild** ist ein Lagergegenstand. **Medikits** (Anwendungen) nimmt eine Figur aus dem Lager, **höchstens 3**; im Einsatz verbrauchte fehlen danach. Ohne Spielstand (Schnellkampf) ist alles unbegrenzt.
+
 Durchschnitt je Reisetag (simuliert, 200 000 Würfe): schwache Crew (alle Werte um −15) 9,6 Treibstoff, Hülle −4,6; Roster-Startcrew (Pilot +75, Navigation +0, Computer +20, Reparatur +55) 7,2 und +0,1; starke Crew (+90/+60/+60/+80) 4,9 und +1,5.
 
 ## 9. Annahmen und offene Punkte

@@ -286,3 +286,7 @@ Regeln: Wer würfelt, wird im Handelsdialog **ausgewählt**. Probe **pro Tag im 
 - Gebaut: `TradeSkills` (`core/trade_skills.gd`), Proben im Handelsdialog (Figur wählen, „Würfeln“, Ergebnis), `HubState.trade_rolls` im Spielstand; alle Preise über Faktoren (`Stock.buy_price`, `sell_price(key, g)`, `Voyage.fuel_price/material_price/yard_cost/ammo_price/ammo_sell`, `ShipUpgrades.yard_cost`); Sortiment nach Gassenwissen (größer ergänzt nur).
 - Keine Schnittstellenänderung für andere Module; `Stock.sell_price(key)` ohne Spiel = 50 %.
 - Tests: `test_rules` OK, `test_hub` OK (alle fünf Stufen für Preise, Verkauf und Sortiment, ohne Probe = Fehlschlag, eine Probe pro Tag, EP, Verhandeln, Spielstand), `--autotest-hub` durchgelaufen (Probe Gassenwissen, Kauf/Verkauf mit +5 %, Screenshot).
+
+### Auftrag (16.10.2026): Schild als Handelsgut
+
+Charakter hat den Schild zum Lagergegenstand gemacht (Schlüssel `Equipment.SHIELD = "schild"`). `Stock.name_of`, `Stock.price`/`PRICES` und Sortiment (`goods`/`shop`) kennen den Schlüssel noch nicht. Aufnehmen, **Kaufpreis 150 Credits** (Entscheidung des Nutzers), Verkauf wie üblich über `TradeSkills`. Test in `test_hub` ergänzen.
