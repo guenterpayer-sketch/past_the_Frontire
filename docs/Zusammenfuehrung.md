@@ -13,13 +13,14 @@ Stand: 15.10.2026. Zuletzt zusammengeführt: Bodenkampf `13a468e` → `3e9a42c`.
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`8b5a91f`) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` |
-| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`8bdb04b`, nur Doku); Planung mit dem Nutzer |
+| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`8bd0e3a`, Planung V1); Auftrag 2 |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
 | 14.10.2026 | `cf5ad7e` | Charakter `claude/elegant-gauss-hq5bus` (`73a73ed`) | ohne Konflikte; Ergebnis identisch mit dem getesteten Branch-Stand. Tests laut Modul-Chat: `test_rules` OK, `test_sim -- 30` 22 Siege / 8 Niederlagen / 0 hängengeblieben, `--autotest` und `--autotest-player` laufen durch. Koordinator: `test_rules` OK. |
+| 16.10.2026 | `a73bdec` | Raumkampf `claude/raumkampf-modul` (`8bd0e3a`) | ohne Konflikte, enthielt `main`, nur Doku, keine Tests. Planung V1 (`docs/Planung_Raumkampf.md`, `docs/Raumkampf.md` angepasst, Mockup „Raumkampf Mockup“ bestätigt). Zuständigkeit: Raumkampf eigene Dateien + Einstieg, Hub alle Auslöser und `HubState`/`ShipUpgrades`/Handel (`docs/module/raumkampf.md` Auftrag 2, `hub.md`). |
 | 16.10.2026 | `abac709` | Raumkampf `claude/raumkampf-modul` (`8bdb04b`) | ohne Konflikte, nur Doku, keine Tests nötig. Branchname in `docs/module/README.md` und `docs/module/raumkampf.md` eingetragen. |
 | 16.10.2026 | `50b08f5` | Bodenkampf `claude/confident-edison-6mxzke` (`8b5a91f`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Waffen-Reparatur im Kampf (`Combat.repair_targets/do_repair`, 50 % Aktivität, einmal je Stück und Kampf, Probe Mittel: Herausragend +10, Erfolg +5, Patzer −10; Grenze im Kampf **−5** statt −10 laut Entscheidung des Nutzers; auch KI). |
 | 16.10.2026 | `b00f430` | Charakter `claude/elegant-gauss-hq5bus` (`2c8a590`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Fertigkeit `raketen` heißt angezeigt „Raketen-Geschütze“ (ID unverändert). |

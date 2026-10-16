@@ -30,3 +30,12 @@
 
 - (16.10.2026) Moduldatei angelegt.
 - (16.10.2026) Auftrag 1: Klärung mit dem Nutzer abgeschlossen, Planung in `docs/Planung_Raumkampf.md` (Entscheidungen, Vorschläge, offene Punkte, Schnittstellen-Vorschlag), `docs/Raumkampf.md` angeglichen. Mockup (Artifact „Raumkampf Mockup“) vom Nutzer bestätigt. Noch kein Code.
+
+### Auftrag 2 (16.10.2026): Regelkern, Szene, Schnittstelle
+
+Planung V1 (`8bd0e3a`) ist in `main`. **Zuständigkeit (Entscheidung Koordinator, im Auftrag des Nutzers):**
+- **Raumkampf baut** nur eigene Dateien (`space.tscn`, `core/space_*.gd`, `view/space_*.gd`, `ui/space_*.gd`, `data/ships/`, `tests/test_space.gd`): Regelkern, Szene, Kampf-Briefing (Stationen ändern), Gegnervorlagen, Ergebnis. Dazu einen Einstieg, den der Hub nur aufruft, z. B. `SpaceBattle.start(setup)` / Szene mit `SpaceSetup`, und eine Funktion `SpaceSetup` für den Schnellkampf (feste Testwerte, ohne `HubState`). Ergebnis wie in `docs/Planung_Raumkampf.md` 4 (Format `MissionResult` + Schiffsteil).
+- **Hub baut** alles in Hub-Dateien: alle vier Auslöser (Reiseereignis, Auftragsart, vor einem Bodeneinsatz, Schnellkampf-Knopf im Startmenü), `SpaceSetup` aus `HubState` zusammenstellen, Ergebnis auswerten (Hülle, Systemschäden, Schiffsmunition, Lösegeld, Beute, Einsatzbericht, Entern → Bodenkampf mit Lagerhalle, Notfall), `HubState`-Felder (Waffenslots, Schiffsmunition, Systemschäden, Posten „Station“), `ShipUpgrades` „Schilde“/„Panzerung“, Handel mit Schiffswaffen im Hafen, Reparatur der Systemschäden.
+- **Bodenkampf:** in V1 nichts (Entern startet die normale Lagerhalle über den Hub). Karte „Schiffsinneres“ später.
+- **Charakter:** nichts, solange das Ergebnis das `MissionResult`-Format hält.
+- **Reihenfolge:** Raumkampf zuerst Schnittstelle (`SpaceSetup`-Felder, Ergebnis-Felder, Einstiegsfunktion, Daten der Waffen-Keys für Slots) als festen Stand in diese Datei unter „Schnittstellen“ schreiben und pushen (vorab meldbar wie beim Hub +5). Erst dann beginnt der Hub. Offene Zahlen und Punkte (Planung 3, u. a. Energie für Strahlwaffen) vorher mit dem Nutzer klären.
