@@ -395,6 +395,14 @@ func _render_port() -> void:
 	for n in [1, 3]:
 		mrow.add_child(_buy_button("%d kaufen (%d Cr)" % [n, n * Voyage.material_price(game)], not Voyage.can_buy_material(game, n), func() -> void: Voyage.buy_material(game, n)))
 	mat.add_child(mrow)
+	var cm := _port_box("Handwerksmaterial", "an Bord %d" % game.craft_material, "%d Cr je Einheit, Verkauf %d Cr (nach Handeln) · für die Werkstatt und Medikits" % [
+		Crafting.material_price(game), Crafting.material_sell(game)])
+	var crow := HBoxContainer.new()
+	crow.add_theme_constant_override("separation", 6)
+	for n in [1, 10]:
+		crow.add_child(_buy_button("+%d (%d Cr)" % [n, n * Crafting.material_price(game)], not Crafting.can_buy_material(game, n), func() -> void: Crafting.buy_material(game, n)))
+	crow.add_child(_buy_button("−1 (+%d Cr)" % Crafting.material_sell(game), not Crafting.can_sell_material(game), func() -> void: Crafting.sell_material(game)))
+	cm.add_child(crow)
 	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr (nach Handeln, Handelsdialog)" % [
 		Voyage.ammo_price(game, "energie"), Voyage.ammo_price(game, "projektil"), Voyage.ammo_price(game, "raketen")])
 	for t in Voyage.AMMO_START:

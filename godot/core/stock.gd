@@ -7,6 +7,8 @@ extends RefCounted
 ## Beschädigte Stücke (Entscheidungen 16.10.2026) liegen als eigener Schlüssel „Grundschlüssel|Schaden“, z. B.
 ## "res://data/weapons/sturmgewehr.tres|-20" (Schaden −10/−20/−30 wie Combatant.wear); gleicher Schaden wird gezählt.
 ## damaged_key(), base_of(), damage_of() bauen und zerlegen ihn; intakte Stücke behalten den Grundschlüssel.
+## Gute Stücke aus dem Handwerk (Herausragend, Entscheidung 16.10.2026) liegen unter „Grundschlüssel|+5“, an der Figur
+## Character.wear[platz] = BONUS (positiver Wert = Bonus; der erste Schaden nimmt ihn: +5 → 0 → −10 …).
 
 const MEDKIT := "medkit"
 const MEDKIT_NAME := "Medikit"
@@ -25,6 +27,10 @@ const EXCLUDE := ["res://data/weapons/faeuste.tres", "res://data/armor/keine.tre
 ## Spieltage; Medikits immer. SHOP_SHARE = Anteil ohne Probe zum Vergleich.
 const SHOP_SHARE := 0.5
 const SHOP_DAYS := 10
+## Bonus eines guten Stücks (Waffe auf Angriffe, Rüstung auf die Verteidigung)
+const BONUS := 5
+## Verkauf eines guten Stücks: Verkaufspreis × SELL_BONUS
+const SELL_BONUS := 1.5
 ## Trenner zwischen Grundschlüssel und Schaden
 const DAMAGE_SEP := "|"
 ## Verkauf beschädigt: je −10 Schaden 25 % weniger
@@ -39,10 +45,18 @@ static func key_of(r: Resource) -> String:
 	return r.resource_path if r else ""
 
 
-## Schlüssel eines Stücks mit Schaden (0 = intakt → Grundschlüssel)
+## Schlüssel eines Stücks mit Zustand wie Character.wear: 0 = intakt → Grundschlüssel, negativ = Schaden (höchstens −30),
+## positiv = gutes Stück "|+5"
 static func damaged_key(key: String, damage: int) -> String:
 	key = base_of(key)
-	return key if damage >= 0 else "%s%s%d" % [key, DAMAGE_SEP, maxi(damage, Combatant.WEAR_BROKEN)]
+	if damage > 0:
+		return "%s%s+%d" % [key, DAMAGE_SEP, BONUS]
+	return key if damage == 0 else "%s%s%d" % [key, DAMAGE_SEP, maxi(damage, Combatant.WEAR_BROKEN)]
+
+
+## Gutes Stück (+5)?
+static func is_fine(key: String) -> bool:
+	return damage_of(key) > 0
 
 
 ## Grundschlüssel ohne Schaden
@@ -50,19 +64,21 @@ static func base_of(key: String) -> String:
 	return key.get_slice(DAMAGE_SEP, 0)
 
 
-## Schaden eines Schlüssels (0 = intakt, sonst −10 … −30)
+## Zustand eines Schlüssels wie Character.wear (0 = intakt, −10 … −30 Schaden, +5 gutes Stück)
 static func damage_of(key: String) -> int:
 	return int(key.get_slice(DAMAGE_SEP, 1)) if DAMAGE_SEP in key else 0
 
 
 ## Schadensstufen (−20 → 2)
 static func damage_steps(key: String) -> int:
-	return damage_of(key) / Combatant.WEAR_STEP
+	return mini(0, damage_of(key)) / Combatant.WEAR_STEP
 
 
-## Zusatz zum Namen: "" / " (−20)" / " (−30, unbrauchbar)"
+## Zusatz zum Namen: "" / " (+5)" / " (−20)" / " (−30, unbrauchbar)"
 static func damage_text(damage: int) -> String:
-	if damage >= 0:
+	if damage > 0:
+		return " (+%d)" % BONUS
+	if damage == 0:
 		return ""
 	var t := ("%d" % damage).replace("-", "−")
 	return " (%s, unbrauchbar)" % t if damage <= Combatant.WEAR_BROKEN else " (%s)" % t
@@ -95,7 +111,7 @@ static func price(key: String) -> int:
 
 ## Verkaufspreis (ohne Spiel: SELL_FACTOR; im Hafen nach Handeln, TradeSkills); beschädigt je −10 SELL_DAMAGE_STEP weniger
 static func sell_price(key: String, g: HubState = null) -> int:
-	var f := maxf(0.0, 1.0 - SELL_DAMAGE_STEP * damage_steps(key))
+	var f := SELL_BONUS if is_fine(key) else maxf(0.0, 1.0 - SELL_DAMAGE_STEP * damage_steps(key))
 	return int(floor(price(key) * (TradeSkills.sell_factor(g) if g else SELL_FACTOR) * f))
 
 

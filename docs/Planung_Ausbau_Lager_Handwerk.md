@@ -41,3 +41,16 @@ Ziel des Nutzers: Motivation, Credits zu jagen. Entscheidungen des Nutzers (Koor
 5. **Hub – Handwerk** (mit dem Nutzer noch klären: Verkaufen/Verschrotten/Zerlegen auch aus dem Reiter „Lager“ der Waffenkammer?) (Zerlegen, Bauen, Aufträge über Spieltage, Werkstatt in der Waffenkammer, Medikits in der Krankenstation), sobald Lager steht.
 
 Jeder Schritt: Zahlen (Preise, Ausbaustufen, Materialmengen, Bauzeiten, N der Beute) und Mockups vorher mit dem Nutzer klären. Regeln danach in `docs/Skillsystem.md`.
+
+## Handwerk – Entscheidungen des Nutzers (16.10.2026)
+
+- **Material:** eine Art **Handwerksmaterial**; **1 Einheit = 10 Cr**, im Raumhafen kaufbar (Preis nach Handeln, Verkauf wie üblich).
+- **Fertigkeiten:** Waffen herstellen (`hwWaffen`: Waffen und Munition), Rüstung herstellen (`hwRuestung`), Medikamente herstellen (`medikamente`: Medikits). EP für die benutzte Fertigkeit.
+- **Zerlegen** (Waffen/Rüstungen, auch Beute und beschädigte): Material im Wert von Patzer 0 / Fehlschlag 10 / Teilerfolg 20 / Erfolg 30 / Herausragend 40 % des Kaufpreises.
+- **Bauen:** kostet Material im Wert von **50 % des Kaufpreises**. Ergebnis: Patzer = Material weg, nichts; Fehlschlag = Stück −20; Teilerfolg = −10; Erfolg = heil; **Herausragend = besonders gutes Stück +5** (Waffe +5 auf Angriffe, Rüstung +5 auf die Verteidigung). Gilt für alles Verbrauchbare (Munition, Medikits – hier ohne Qualität: Patzer = Material weg, sonst Stück) sowie Waffen und Rüstungen (auch eigene aus dem Editor).
+- **+5-Stück und Schaden:** der **erste Schaden nimmt den Bonus** (+5 → heil → −10 → …).
+- **Reparieren durch die Crew:** Probe, Material im Wert von **5 % des Kaufpreises je −10**. Patzer: −10 mehr; Fehlschlag: nichts; Teilerfolg: −10 weg; Erfolg: ganz heil; Herausragend: heil und Material zurück.
+- **Dauer nach Preis:** Bauen 1 Spieltag je angefangene 200 Cr Kaufpreis; Zerlegen und Reparieren 1 Tag. **Eine Arbeit je Handwerker**; der Handwerker ist nicht gesperrt (kann auf Einsätze).
+- **Werkstatt ausbaubar** (Stufen und Kosten mit dem Nutzer klären): **Bonus auf die Probe**, **schneller**, **Freischalten** (z. B. Rüstungen/schwere Waffen erst ab höherer Stufe).
+- **Ort:** Werkstatt in der Waffenkammer (Waffen, Rüstungen, Munition) und Krankenstation (Medikits). Nicht aus dem Reiter „Lager“.
+- Noch offen (Hub klärt mit dem Nutzer): Werkstattstufen/-kosten/-werte, was ab welcher Stufe freigeschaltet wird, Verkaufspreis eines +5-Stücks, Mockup.

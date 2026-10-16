@@ -192,6 +192,9 @@ func _run() -> void:
 	Stock.add(HubState.game, Stock.damaged_key(Stock.key_of(Campaign.crew()[0].weapons[0]), -20))
 	Stock.add(HubState.game, Stock.damaged_key("res://data/weapons/laserpistole.tres", -30))
 	hub.open_room(&"armory")
+	await _frames(5)
+	await _shot("h1d0_waffenkammer_auswahl")
+	await _click_button(hub.ui.notice, "Ausrüstung")
 	await _frames(10)
 	print("Waffenkammer: Dialog offen ", hub.ui.armory.visible)
 	await _shot("h1d_waffenkammer")
@@ -210,6 +213,21 @@ func _run() -> void:
 	await _frames(5)
 	await _shot("h1d3_waffenkammer_lager_angelegt")
 	hub.ui.armory._mode = "equip"
+	hub.ui.armory.hide()
+	# Werkstatt: über die Auswahl beim Raum, Material auffüllen, Bauen beginnen
+	HubState.game.craft_material = 40
+	hub.open_room(&"armory")
+	await _frames(5)
+	await _click_button(hub.ui.notice, "Werkstatt")
+	await _frames(10)
+	print("Werkstatt offen ", hub.ui.craft.visible)
+	await _shot("h1g_werkstatt_bauen")
+	await _click_button(hub.ui.craft, "Bauen")
+	print("Werkstatt: Arbeiten %s, Material %d" % [HubState.game.jobs, HubState.game.craft_material])
+	await _click_button(hub.ui.craft, "Reparieren")
+	await _frames(5)
+	await _shot("h1g2_werkstatt_reparieren")
+	hub.ui.craft.hide()
 	# UI-Größe über das Menü im Schiff: 75 % und zurück
 	var f0 := UiScale.get_factor()
 	hub.ui.show_ui_scale()

@@ -141,3 +141,7 @@ Wunsch des Nutzers: Die Waffenkammer zeigt bisher nur die Plätze der Figur; es 
 - **Aktionen:** ansehen und **direkt ausrüsten** (Stück wählen → der aktuellen Figur an den passenden Platz anlegen, gleiche Regeln wie über die Plätze, altes Teil zurück ins Lager). Verkaufen/Verschrotten und Zerlegen **nicht jetzt** – wird mit dem Handwerk geklärt.
 - **Erst Mockup** (größere UI-Änderung), vom Nutzer bestätigen lassen, dann bauen. Ohne Spiel (`HubState.game == null`) Reiter ausblenden oder „unbegrenzt“ anzeigen – mit dem Nutzer klären.
 - (16.10.2026) → gebaut (siehe Stand).
+
+### Auftrag (16.10.2026): Gute Stücke (+5) anzeigen
+
+Das Handwerk (Hub) baut bei „Herausragend“ Stücke mit **+5** (Waffe auf Angriffe, Rüstung auf Verteidigung). Geplant: Lagerschlüssel `"Grundschlüssel|+5"`, an der Figur `Character.wear[platz] = 5`. Waffenkammer, Reiter „Lager“ und Übersicht sollen „+5“ anzeigen; Anlegen/Ablegen wie bei beschädigten Stücken. **Warten, bis der Hub die Schnittstelle vermerkt hat** (`docs/module/hub.md`).
