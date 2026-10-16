@@ -28,7 +28,7 @@ const TEXT := {
 	&"computer": "Schiffssysteme und Rechner bedienen. Reiseprobe je Reisetag, Erfolge sparen Treibstoff.",
 	&"strahlGeschuetze": "Strahlwaffen des Schiffs im Raumkampf." + SOON,
 	&"ballistikGeschuetze": "Kanonen und Massebeschleuniger des Schiffs im Raumkampf." + SOON,
-	&"raketen": "Raketen des Schiffs im Raumkampf." + SOON,
+	&"raketen": "Raketen-Geschütze des Schiffs im Raumkampf." + SOON,
 	&"schutzschild": "Schutzschild des Schiffs im Raumkampf steuern." + SOON,
 	&"panzerung": "Schadenskontrolle und Panzerung im Raumkampf." + SOON,
 	&"notReparatur": "Schnelle Reparaturen unter Beschuss im Raumkampf." + SOON,
