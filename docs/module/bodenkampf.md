@@ -122,3 +122,7 @@ Entscheidung des Nutzers (über den Charakter-Chat): Laserpistole, Laserkarabine
 ## Aufträge vom Koordinator (16.10.2026): neue Waffenmodelle und Klänge
 
 Grundlage: `docs/Planung_Waffenmodelle_Klaenge.md` (Entscheidungen des Nutzers). Du baust zuerst (Abschnitt „Aufteilung“, Punkt 1), inkl. Reparatur des MG-Klangs (spielt seit den Magazinen den Gewehr-Klang). Offene Punkte vorher mit dem Nutzer klären.
+
+## Hinweis vom Koordinator (16.10.2026): Enzyklopädie
+
+Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.
