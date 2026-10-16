@@ -72,7 +72,7 @@ Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bil
 
 ## Roster und Crew
 
-- **Globaler Roster** (`roster.tscn`, `ui/crew/roster_screen.gd`, Speicher `user://roster.json` über `core/global_roster.gd`): die 6 Startcharaktere (schreibgeschützt) und alle selbst erschaffenen Figuren, unabhängig von Spielständen. Eigene Figuren: „Name & Aussehen“ (Werte bleiben fest), „Kopieren“ (auch Startcharaktere), „Löschen“; „+ Neue Figur erschaffen“ öffnet den Charakter-Editor.
+- **Globaler Roster** (`roster.tscn`, `ui/crew/roster_screen.gd`, Speicher `user://roster.json` über `core/global_roster.gd`): die 6 Startcharaktere (schreibgeschützt) und alle selbst erschaffenen Figuren, unabhängig von Spielständen. Eigene Figuren: „Name & Aussehen“ (Werte bleiben fest), „Kopieren“ (auch Startcharaktere), „Löschen“; „Charakterbogen“ (alle Figuren, auch Startcharaktere) zeigt den vollständigen Bogen; „+ Neue Figur erschaffen“ öffnet den Charakter-Editor.
 - **Neues Spiel:** `CrewPicker` (`ui/crew/crew_picker.gd`) wählt 1 bis 8 Roster-Figuren (jede einmal), `Campaign.new_game(picked)` legt Kopien als Crew an. Der Roster bleibt unverändert.
 - **Im Spiel:** „Entlassen“ in der Charakterübersicht; Entlassene warten mit ihrem Fortschritt „im Hafen“ (`Campaign.harbor()`) und können dort wieder angeheuert werden (`Campaign.hire()`, Oberfläche auf der Brücke im Hafen vom Hub).
 - **Einsatz:** bis zu 6 Figuren (`Campaign.squad()`); Truppwahl im Briefing mit `Campaign.candidates()` (Sperr-Status) und `set_squad()`, der letzte Trupp wird gespeichert.
