@@ -176,6 +176,8 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			ui.show_ui_scale()
 		&"help":
 			ui.show_help()
+		&"encyclopedia":
+			Encyclopedia.show_on(ui)
 
 
 # ---------------------------------------------------------------- Eingabe (Kamera wie im Bodenkampf)

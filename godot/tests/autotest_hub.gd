@@ -23,6 +23,30 @@ func _run() -> void:
 		AudioServer.get_bus_index(Music.BUS_MUSIC), AudioServer.get_bus_index(Music.BUS_SFX),
 		Sfx.get_children().all(func(c: Node) -> bool: return not c is AudioStreamPlayer or (c as AudioStreamPlayer).bus == Music.BUS_SFX)])
 	await _shot("h0_start")
+	# Enzyklopädie über das Burgermenü im Startmenü
+	var st0 := get_tree().current_scene as StartScreen
+	var burger: MenuButton = st0.find_children("*", "MenuButton", true, false)[0]
+	burger.get_popup().id_pressed.emit(0)
+	await _frames(10)
+	var enc := st0.find_children(Encyclopedia.NAME, "Encyclopedia", true, false)[0] as Encyclopedia
+	print("Enzyklopädie offen: %s, Bereich %s, Eintrag %s" % [enc.visible, enc.section, enc.entry])
+	await _click_button(enc, "Sturmgewehr")
+	await _frames(5)
+	await _shot("h0e1_enz_waffe")
+	await _click_button(enc, "Psi-Listen")
+	await _click_button(enc, "Angriff")
+	await _frames(5)
+	await _shot("h0e2_enz_psi")
+	await _click_button(enc, "Kurzregeln")
+	await _click_button(enc, "Reichweite und Deckung")
+	await _frames(5)
+	await _shot("h0e3_enz_regel")
+	enc._search.text = "deckung"
+	enc._search.text_changed.emit("deckung")
+	await _frames(5)
+	print("Enzyklopädie Suche „deckung“: %d Treffer" % enc._list.get_child_count())
+	await _shot("h0e4_enz_suche")
+	enc.close()
 	# Ausrüstungs-Editor (Testordner): Revolver aus der Laserpistole, speichern, frei, löschen
 	Gear.dir = "user://gear_autotest"
 	var st := get_tree().current_scene as StartScreen
@@ -77,6 +101,11 @@ func _run() -> void:
 		not SaveSlots.info(1).is_empty()])
 	var hub := get_tree().current_scene as Hub
 	print("Musik Schiff: Anlass %s" % Music.theme)
+	hub._on_action(&"encyclopedia", null)
+	await _frames(5)
+	var enc2 := hub.ui.get_node_or_null(Encyclopedia.NAME)
+	print("Enzyklopädie im Schiff offen: %s, Dialog erkannt %s" % [enc2 != null and enc2.visible, hub.ui.any_dialog_open()])
+	enc2.close()
 	print("Schiff: Tag %d, %s, %d Aufträge" % [g.day, g.sector.systems[g.position].name, g.offers.size()])
 	await _shot("h1_schiff")
 	# Hafen (Start im Heimathafen): eine Figur entlassen und auf der Brücke wieder anheuern

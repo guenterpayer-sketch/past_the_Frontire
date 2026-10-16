@@ -209,3 +209,15 @@ Siehe `docs/Planung_Waffenmodelle_Klaenge.md`. Der Bodenkampf liefert zuerst ein
 ## Aufträge vom Koordinator (16.10.2026): Enzyklopädie
 
 Grundlage: `docs/Planung_Enzyklopaedie.md` (Entscheidungen des Nutzers). Du baust den gemeinsamen Dialog und bindest ihn im Startmenü und Schiff an (Abschnitt „Aufteilung“, Punkt 1). **Vorher Mockup.** Bodenkampf und Charakter binden danach an.
+
+### Stand Enzyklopädie (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`61ae834`) geholt, ohne Konflikte.
+- Mockup (Artifact „Schiff-Hub Mockup“, Bildschirme 18–21) vom Nutzer bestätigt. Entscheidungen: Kurzregeln **aus `docs/Skillsystem.md`** (Abschnitte 1, 4, 5.1, 5.3, 5.4, 7, 7.2, 8, 8a, 8b; zur Laufzeit aus `../docs/Skillsystem.md` neben dem Projektordner gelesen, also immer aktuell; im exportierten Spiel fehlen sie); Fertigkeiten **mit Kurzbeschreibung** (`core/skill_texts.gd`, Texte vom Hub-Chat, „Im Spiel noch ohne Wirkung“ wo zutreffend).
+- Gebaut: `Encyclopedia` (`ui/encyclopedia.gd`, auf `Modal`): Bereiche Waffen (mitgelieferte + eigene, „frei“-Vermerk), Rüstungen, Angriffstabellen, Kritische Treffer, Patzer, Psi-Listen, Fertigkeiten, Kurzregeln; Suche über alle Bereiche; Verweise (z. B. Waffe → Tabelle, Kritische, Patzer; Fertigkeit Psi-Liste → Liste) anklickbar. Startmenü: neues **Burgermenü** oben rechts (Enzyklopädie, Einstellungen …). Schiff: Menüpunkt „Enzyklopädie“.
+- **Schnittstelle für Bodenkampf und Charakter:**
+  - `Encyclopedia.show_on(control, bereich, eintrag)` – legt den Dialog einmal unter `control` an (Name `Encyclopedia.NAME`) und öffnet ihn; `control` sollte das UiTheme haben (z. B. die oberste UI-Control der Szene).
+  - Bereiche: `&"waffen"`, `&"ruestungen"`, `&"tabellen"`, `&"kritische"`, `&"patzer"`, `&"psi"`, `&"fertigkeiten"`, `&"regeln"`. Eintrag = angezeigter Name: Waffe `w.name`, Psi-Liste `PsiLists.LISTS[id].name` (z. B. „Angriff“), Fertigkeit wie in `Rules.SKILL_GROUPS`, Tabelle `AttackTableData.name`, Kritische `CritTableData.name`. Leer = erster Eintrag.
+  - **Bodenkampf:** Burgermenü → `show_on(ui, &"waffen")`; „Tabellen“ → `show_on(ui, &"waffen", gewählte_waffe.name)`; `TablesDialog` kann danach entfallen.
+  - **Charakter:** ⓘ bei Psi-Listen → `show_on(…, &"psi", PsiLists.LISTS[id].name)`; Zugang in Übersicht/Editor nach Absprache mit dem Nutzer.
+- Tests: `test_rules` OK, `test_hub` OK (alle Bereiche gefüllt, Kurzregeln gefunden und sauber abgegrenzt, Beschreibung für jede Fertigkeit, Markdown-Umwandlung, Suche), `--autotest-hub` durchgelaufen (Burgermenü im Startmenü, Waffe, Psi-Liste, Kurzregel, Suche „deckung“ 5 Treffer, Menü im Schiff). `test_sim` nicht gelaufen (Kampf unverändert).
