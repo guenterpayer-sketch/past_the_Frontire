@@ -4,6 +4,9 @@ extends RefCounted
 ## Nutzers 16.10.2026). Das Lager zählt Stück je Gegenstand in HubState.stock {Schlüssel: Anzahl}; Schlüssel ist der
 ## resource_path der WeaponData/ArmorData (auch eigene aus dem Editor), MEDKIT oder Equipment.SHIELD. Was die Crew trägt, gehört nicht
 ## dazu. Munition bleibt im eigenen Vorrat (HubState.ammo). Ohne Spiel (Schnellkampf) gilt alles als vorhanden.
+## Beschädigte Stücke (Entscheidungen 16.10.2026) liegen als eigener Schlüssel „Grundschlüssel|Schaden“, z. B.
+## "res://data/weapons/sturmgewehr.tres|-20" (Schaden −10/−20/−30 wie Combatant.wear); gleicher Schaden wird gezählt.
+## damaged_key(), base_of(), damage_of() bauen und zerlegen ihn; intakte Stücke behalten den Grundschlüssel.
 
 const MEDKIT := "medkit"
 const MEDKIT_NAME := "Medikit"
@@ -22,14 +25,53 @@ const EXCLUDE := ["res://data/weapons/faeuste.tres", "res://data/armor/keine.tre
 ## Spieltage; Medikits immer. SHOP_SHARE = Anteil ohne Probe zum Vergleich.
 const SHOP_SHARE := 0.5
 const SHOP_DAYS := 10
+## Trenner zwischen Grundschlüssel und Schaden
+const DAMAGE_SEP := "|"
+## Verkauf beschädigt: je −10 Schaden 25 % weniger
+const SELL_DAMAGE_STEP := 0.25
+## Werkstatt im Raumhafen: je −10 Schaden 10 % vom Kaufpreis, nach Handeln (TradeSkills.buy_factor), sofort und ganz
+const REPAIR_SHARE := 0.1
+## Schrottwert nicht mitgenommener Beute: 15 % vom Kaufpreis, ohne Probe; ab −30 (unbrauchbar) nichts
+const SCRAP_SHARE := 0.15
 
 
 static func key_of(r: Resource) -> String:
 	return r.resource_path if r else ""
 
 
-## Anzeigename eines Schlüssels
+## Schlüssel eines Stücks mit Schaden (0 = intakt → Grundschlüssel)
+static func damaged_key(key: String, damage: int) -> String:
+	key = base_of(key)
+	return key if damage >= 0 else "%s%s%d" % [key, DAMAGE_SEP, maxi(damage, Combatant.WEAR_BROKEN)]
+
+
+## Grundschlüssel ohne Schaden
+static func base_of(key: String) -> String:
+	return key.get_slice(DAMAGE_SEP, 0)
+
+
+## Schaden eines Schlüssels (0 = intakt, sonst −10 … −30)
+static func damage_of(key: String) -> int:
+	return int(key.get_slice(DAMAGE_SEP, 1)) if DAMAGE_SEP in key else 0
+
+
+## Schadensstufen (−20 → 2)
+static func damage_steps(key: String) -> int:
+	return damage_of(key) / Combatant.WEAR_STEP
+
+
+## Zusatz zum Namen: "" / " (−20)" / " (−30, unbrauchbar)"
+static func damage_text(damage: int) -> String:
+	if damage >= 0:
+		return ""
+	var t := ("%d" % damage).replace("-", "−")
+	return " (%s, unbrauchbar)" % t if damage <= Combatant.WEAR_BROKEN else " (%s)" % t
+
+
+## Anzeigename eines Schlüssels (beschädigt mit Schaden)
 static func name_of(key: String) -> String:
+	if DAMAGE_SEP in key:
+		return name_of(base_of(key)) + damage_text(damage_of(key))
 	if key == MEDKIT:
 		return MEDKIT_NAME
 	if key == Equipment.SHIELD:
@@ -38,8 +80,9 @@ static func name_of(key: String) -> String:
 	return String(r.get("name")) if r else key.get_file().get_basename()
 
 
-## Kaufpreis: mitgeliefert aus PRICES; eigene wie ihre Vorlage, mit Vermerk „frei“ doppelt
+## Kaufpreis (des intakten Stücks): mitgeliefert aus PRICES; eigene wie ihre Vorlage, mit Vermerk „frei“ doppelt
 static func price(key: String) -> int:
+	key = base_of(key)
 	if key == MEDKIT or key == Equipment.SHIELD:
 		return PRICES[key]
 	var r: Resource = load(key) if ResourceLoader.exists(key) else null
@@ -50,9 +93,21 @@ static func price(key: String) -> int:
 	return int(PRICES.get(key.get_file().get_basename(), DEFAULT_PRICE))
 
 
-## Verkaufspreis (ohne Spiel: SELL_FACTOR; im Hafen nach Handeln, TradeSkills)
+## Verkaufspreis (ohne Spiel: SELL_FACTOR; im Hafen nach Handeln, TradeSkills); beschädigt je −10 SELL_DAMAGE_STEP weniger
 static func sell_price(key: String, g: HubState = null) -> int:
-	return int(floor(price(key) * (TradeSkills.sell_factor(g) if g else SELL_FACTOR)))
+	var f := maxf(0.0, 1.0 - SELL_DAMAGE_STEP * damage_steps(key))
+	return int(floor(price(key) * (TradeSkills.sell_factor(g) if g else SELL_FACTOR) * f))
+
+
+## Werkstatt: Preis für die ganze Reparatur (0 = intakt)
+static func repair_cost(g: HubState, key: String) -> int:
+	var n := damage_steps(key)
+	return 0 if n <= 0 else TradeSkills.adj(price(key) * REPAIR_SHARE * n, TradeSkills.buy_factor(g))
+
+
+## Schrottwert nicht mitgenommener Beute (ohne Probe)
+static func scrap_value(key: String) -> int:
+	return 0 if damage_of(key) <= Combatant.WEAR_BROKEN else int(floor(price(key) * SCRAP_SHARE))
 
 
 ## Kaufpreis im Hafen nach Handeln (TradeSkills)
@@ -97,12 +152,12 @@ static func take(g: HubState, key: String, n := 1) -> bool:
 	return true
 
 
-## Lagerinhalt als sortierte Liste [{key, name, count}]
+## Lagerinhalt als sortierte Liste [{key, name, count, damage}]
 static func items(g: HubState) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for k in g.stock:
 		if int(g.stock[k]) > 0:
-			out.append({"key": k, "name": name_of(k), "count": int(g.stock[k])})
+			out.append({"key": k, "name": name_of(k), "count": int(g.stock[k]), "damage": damage_of(k)})
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.name < b.name)
 	return out
 
@@ -155,4 +210,19 @@ static func sell(g: HubState, key: String) -> bool:
 		return false
 	g.credits += sell_price(key, g)
 	take(g, key)
+	return true
+
+
+## Werkstatt im Raumhafen: beschädigtes Stück aus dem Lager, genug Credits
+static func can_repair(g: HubState, key: String) -> bool:
+	return g.is_harbor(g.position) and damage_of(key) < 0 and count(g, key) > 0 and g.credits >= repair_cost(g, key)
+
+
+## Ein Stück ganz reparieren: beschädigtes heraus, intaktes hinein
+static func repair(g: HubState, key: String) -> bool:
+	if not can_repair(g, key):
+		return false
+	g.credits -= repair_cost(g, key)
+	take(g, key)
+	add(g, base_of(key))
 	return true
