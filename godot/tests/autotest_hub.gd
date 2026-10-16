@@ -55,6 +55,9 @@ func _run() -> void:
 	await _click_button(ge, "+ Neu")
 	await _click_button(ge, "Laserpistole")
 	ge.draft.name = "Revolver"
+	var rv: Dictionary = WeaponModels.all().filter(func(m: Dictionary) -> bool: return m.name == "Revolver A")[0]
+	WeaponModels.apply(ge.draft, rv)
+	ge.draft.sound_id = rv.sound
 	ge.refresh()
 	ge.picking = false
 	for i in 2:

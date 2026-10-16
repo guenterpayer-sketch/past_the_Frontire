@@ -228,3 +228,10 @@ Teil Bodenkampf ist in `main` (`9896e43`), Schnittstelle in `docs/module/bodenka
 1. `WeaponModels.all()` statt `Gear.models()` anbieten; `WeaponModels.apply(waffe, eintrag)` setzt Modell, Länge, Griff, Zweihändigkeit.
 2. Klangauswahl `WeaponData.SOUNDS` für `sound_id`; der Eintrag `"sound"` im Katalog als Vorschlag.
 Hinweis: Der in `bodenkampf.md` erneut genannte Wunsch „mitgelieferte Waffen editierbar“ ist vom Nutzer **zurückgenommen** (siehe Hinweis vom 16.10.2026 oben) – nicht bauen.
+
+### Stand Modelle und Klänge im Editor (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`c1cecda`) geholt, ohne Konflikte.
+- Editor: Modell aus `WeaponModels.all()` (Schusswaffen-Vorlagen nur Schusswaffen-Modelle, Nahkampf-Vorlagen nur Nahkampf-Modelle, dazu „ohne“); Auswahl ruft `WeaponModels.apply()` und übernimmt den vorgeschlagenen Klang (`"sound"`). Neue Zeile **Klang**: „automatisch (…)“ = `sound_id` leer, sonst ein Eintrag aus `WeaponData.SOUNDS`; Knopf ▶ spielt den Klang (`Sfx.play(w.sound())`). `Gear.models()` entfernt, neu `Gear.auto_sound(w)`.
+- **Geänderte frühere Entscheidung:** eigene Nahkampfwaffen hatten „ohne Modell“ (damals gab es keine Nahkampfmodelle). Jetzt sind die Nahkampfmodelle des Katalogs wählbar, „ohne“ bleibt möglich.
+- Tests: `test_rules` OK, `test_hub` OK (Katalog nach Art, Modell/Klang übernehmen und speichern, automatischer Klang), `--autotest-hub` durchgelaufen (Editor mit Revolver A, Klang Revolver). Den Klang selbst habe ich nicht gehört.
