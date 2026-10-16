@@ -109,9 +109,10 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 	u.medkit_start = ch.medkits
 	if ch.injury == Injury.LIGHT:
 		u.malus = Injury.LIGHT_MALUS
-	for w in u.weapons:
+	for slot in u.weapons.size():
+		var w := u.weapons[slot]
 		if w.magazine > 0:   # voll; den Schiffsvorrat legt Ammo.apply() darüber
-			var n := Ammo.carry(w)
+			var n := Ammo.carry(w, slot)
 			u.loaded[w.id] = mini(n, w.magazine)
 			u.ammo[w.id] = n - u.loaded[w.id]
 			u.ammo_start[w.id] = n

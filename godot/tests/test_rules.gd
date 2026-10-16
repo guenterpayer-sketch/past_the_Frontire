@@ -722,7 +722,7 @@ func _test_ammo() -> void:
 	for w in GameData.weapons():
 		by_id[w.id] = w
 	check(Ammo.carry(by_id[&"raketenwerfer"]) == 2, "Raketenwerfer: 3 Magazine, höchstens Munition gesamt (2)")
-	check(Ammo.carry(by_id[&"mg"]) == 0 and by_id[&"mg"].shots == 3 and by_id[&"mg"].ob_bonus == 0, "MG: unbegrenzt, Feuerstoß 3 statt festem Bonus")
+	check(Ammo.carry(by_id[&"mg"]) == 180 and Ammo.carry(by_id[&"laserpistole"], 1) == 12 and by_id[&"mg"].shots == 3 and by_id[&"mg"].ob_bonus == 0, "MG: Magazin 60 (3 Magazine), Feuerstoß 3 statt festem Bonus; Pistole als Zweitwaffe 1 Magazin")
 	check(by_id[&"laserkarabiner"].ammo_type == &"energie" and by_id[&"sturmgewehr"].ammo_type == &"projektil" and by_id[&"raketenwerfer"].ammo_type == &"raketen", "Munitionsarten zugeordnet")
 	check(Ammo.burst_bonus(1) == 0 and Ammo.burst_bonus(2) == 10 and Ammo.burst_bonus(3) == 15, "Feuerstoß +5 je Kugel ab 2")
 	var w := WeaponData.new()
@@ -732,6 +732,7 @@ func _test_ammo() -> void:
 	w.shots = 3
 	w.ammo_type = &"projektil"
 	check(Ammo.carry(w) == 90 and Ammo.shots_next(w, 30) == 3 and Ammo.shots_next(w, 2) == 2, "3 Magazine; Rest-Feuerstoß")
+	check(Ammo.carry(w, 1) == 30 and Ammo.plan([[by_id[&"faeuste"], w]], null).give[0][&"test_mg"] == 30, "Zweitwaffe: 1 Magazin")
 	var p := Ammo.plan([[w], [w]], {&"projektil": 50})
 	check(p.give[0][&"test_mg"] == 50 and p.give[1][&"test_mg"] == 0 and p.take[&"projektil"] == 50, "Vorrat reicht nur für die erste Figur")
 	check(p.short[0].size() == 1 and "nur 50" in p.short[0][0] and "keine Munition" in p.short[1][0], "Hinweise bei knapper Munition")
@@ -739,7 +740,7 @@ func _test_ammo() -> void:
 	# Verbrauch und Rückmeldung
 	var c := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
 	var u := c.crew()[0]
-	u.weapons.append(w)
+	u.weapons.insert(0, w)   # als Waffe 1 (3 Magazine)
 	Ammo.apply(c.crew(), {&"projektil": 40, &"raketen": 1})
 	check(u.loaded[&"test_mg"] == 30 and u.ammo[&"test_mg"] == 10, "Magazin voll, Rest als Reserve")
 	u.loaded[&"test_mg"] -= Ammo.shots_next(w, u.loaded[&"test_mg"])
