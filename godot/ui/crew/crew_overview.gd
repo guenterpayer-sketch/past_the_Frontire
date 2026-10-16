@@ -26,6 +26,11 @@ var _psi_view: PsiListView
 var seats := Campaign.START_SEATS
 
 
+func _ready() -> void:
+	super()
+	title_bar.add_child(CrewWidgets.burger(self))
+
+
 func show_crew(crew: Array[Character], result := {}) -> void:
 	if _preview and _preview.get_parent():
 		_preview.get_parent().remove_child(_preview)
@@ -105,6 +110,9 @@ func page(delta: int) -> void:
 
 func _unhandled_input(e: InputEvent) -> void:
 	if not visible or not (e is InputEventKey) or not e.pressed:
+		return
+	if e.keycode == KEY_ESCAPE and CrewWidgets.close_encyclopedia(self):
+		get_viewport().set_input_as_handled()
 		return
 	if _psi_view and _psi_view.visible:
 		if e.keycode == KEY_ESCAPE:
@@ -434,12 +442,15 @@ func _psi_cell(u: Character, id: StringName, name_label: Label) -> Control:
 
 ## Knopf, der die Übersicht der Psi-Listen öffnet (list leer = erste gelernte Liste)
 func _psi_info_button(u: Character, list: StringName, text: String) -> Button:
-	var b := UiTheme.button(text, "Übersicht der Psi-Listen: Kräfte je Stufe, Wirkung, Ziel")
+	var b := UiTheme.button(text, "Diese Psi-Liste in der Enzyklopädie" if list != &"" else "Rang und Kräfte dieser Figur in allen Psi-Listen")
 	b.add_theme_font_size_override("font_size", 12)
 	b.add_theme_color_override("font_color", PsiListView.PSI)
 	b.pressed.connect(func() -> void:
-		psi_view().open_for(u, list)
-		psi_view().move_to_front())
+		if list != &"":
+			Encyclopedia.show_on(self, &"psi", PsiLists.LISTS[list].name).move_to_front()
+		else:
+			psi_view().open_for(u, list)
+			psi_view().move_to_front())
 	return b
 
 
