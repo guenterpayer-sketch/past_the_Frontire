@@ -171,7 +171,25 @@ static func estimate_fuel(g: HubState, days: int) -> int:
 
 ## Treibstoffpreis je Einheit (nach Notsprit doppelt)
 static func fuel_price(g: HubState) -> int:
-	return FUEL_PRICE_EMERGENCY if g.emergency else FUEL_PRICE
+	return TradeSkills.adj(FUEL_PRICE_EMERGENCY if g.emergency else FUEL_PRICE, TradeSkills.ship_factor(g))
+
+
+## Schiffsmaterial je Einheit und Werftlohn der großen Reparatur (nach Verhandeln)
+static func material_price(g: HubState) -> int:
+	return TradeSkills.adj(MATERIAL_PRICE, TradeSkills.ship_factor(g))
+
+
+static func yard_cost(g: HubState) -> int:
+	return TradeSkills.adj(YARD_COST, TradeSkills.ship_factor(g))
+
+
+## Munition je Schuss: Kauf nach Handeln, Verkauf nach Handeln (Anteil)
+static func ammo_price(g: HubState, type: String) -> int:
+	return maxi(1, TradeSkills.adj(int(AMMO_PRICE[type]), TradeSkills.buy_factor(g)))
+
+
+static func ammo_sell(g: HubState, type: String, n: int) -> int:
+	return int(floor(n * int(AMMO_PRICE[type]) * TradeSkills.sell_factor(g)))
 
 
 ## Tanken (nur im Hafen); geht auch ohne genug Credits (Notkredit). Gibt die getankte Menge zurück.
@@ -193,19 +211,19 @@ static func hull_emergency(g: HubState) -> bool:
 
 
 static func can_buy_material(g: HubState, n := 1) -> bool:
-	return g.is_harbor(g.position) and (g.credits >= n * MATERIAL_PRICE or hull_emergency(g))
+	return g.is_harbor(g.position) and (g.credits >= n * material_price(g) or hull_emergency(g))
 
 
 static func buy_material(g: HubState, n := 1) -> bool:
 	if not can_buy_material(g, n):
 		return false
-	g.credits -= n * MATERIAL_PRICE
+	g.credits -= n * material_price(g)
 	g.material += n
 	return true
 
 
 static func can_yard_repair(g: HubState) -> bool:
-	return g.is_harbor(g.position) and g.hull < g.hull_max() and g.material >= 1 and (g.credits >= YARD_COST or hull_emergency(g))
+	return g.is_harbor(g.position) and g.hull < g.hull_max() and g.material >= 1 and (g.credits >= yard_cost(g) or hull_emergency(g))
 
 
 ## Werft: große Reparatur (+25 Hülle für 1 Material + 40 Cr)
@@ -213,7 +231,7 @@ static func yard_repair(g: HubState) -> bool:
 	if not can_yard_repair(g):
 		return false
 	g.material -= 1
-	g.credits -= YARD_COST
+	g.credits -= yard_cost(g)
 	g.hull = mini(g.hull_max(), g.hull + YARD_HULL)
 	return true
 
@@ -249,13 +267,13 @@ static func crew_repair(g: HubState) -> Dictionary:
 
 ## Munition kaufen (nur im Hafen, nur mit genug Credits)
 static func can_buy_ammo(g: HubState, type: String, n: int) -> bool:
-	return g.is_harbor(g.position) and n > 0 and g.credits >= n * int(AMMO_PRICE.get(type, 0))
+	return g.is_harbor(g.position) and n > 0 and g.credits >= n * ammo_price(g, type)
 
 
 static func buy_ammo(g: HubState, type: String, n: int) -> bool:
 	if not can_buy_ammo(g, type, n):
 		return false
-	g.credits -= n * int(AMMO_PRICE[type])
+	g.credits -= n * ammo_price(g, type)
 	g.ammo[type] = int(g.ammo.get(type, 0)) + n
 	return true
 
@@ -269,7 +287,7 @@ static func sell_ammo(g: HubState, type: String, n: int) -> bool:
 	if not can_sell_ammo(g, type, n):
 		return false
 	g.ammo[type] = int(g.ammo[type]) - n
-	g.credits += int(floor(n * int(AMMO_PRICE[type]) * Stock.SELL_FACTOR))
+	g.credits += ammo_sell(g, type, n)
 	return true
 
 

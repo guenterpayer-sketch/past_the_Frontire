@@ -16,7 +16,8 @@ const DEFAULT_PRICE := 100
 const SELL_FACTOR := 0.5
 ## Kein Handelsgut
 const EXCLUDE := ["res://data/weapons/faeuste.tres", "res://data/armor/keine.tres"]
-## Sortiment: je Hafen dieser Anteil der Waffen/Rüstungen, neu gemischt alle SHOP_DAYS Spieltage; Medikits immer
+## Sortiment: je Hafen ein Anteil der Waffen/Rüstungen (Gassenwissen, TradeSkills.SHARE), neu gemischt alle SHOP_DAYS
+## Spieltage; Medikits immer. SHOP_SHARE = Anteil ohne Probe zum Vergleich.
 const SHOP_SHARE := 0.5
 const SHOP_DAYS := 10
 
@@ -45,8 +46,14 @@ static func price(key: String) -> int:
 	return int(PRICES.get(key.get_file().get_basename(), DEFAULT_PRICE))
 
 
-static func sell_price(key: String) -> int:
-	return int(floor(price(key) * SELL_FACTOR))
+## Verkaufspreis (ohne Spiel: SELL_FACTOR; im Hafen nach Handeln, TradeSkills)
+static func sell_price(key: String, g: HubState = null) -> int:
+	return int(floor(price(key) * (TradeSkills.sell_factor(g) if g else SELL_FACTOR)))
+
+
+## Kaufpreis im Hafen nach Handeln (TradeSkills)
+static func buy_price(g: HubState, key: String) -> int:
+	return TradeSkills.adj(price(key), TradeSkills.buy_factor(g))
 
 
 ## Alle Handelsgüter (Schlüssel): mitgelieferte Waffen ohne Psi/Fäuste, Rüstungen ohne „Keine“, eigene aus dem Editor
@@ -112,22 +119,24 @@ static func shop(g: HubState, system: int) -> Array[String]:
 			var t: String = all[i]
 			all[i] = all[j]
 			all[j] = t
-		g.shop[k] = all.slice(0, maxi(1, ceili(all.size() * SHOP_SHARE)))
+		g.shop[k] = all
+	# gemischte Liste; davon der Anteil nach Gassenwissen (TradeSkills), mehr ergänzt nur
+	var list: Array = g.shop[k].filter(func(s: String) -> bool: return ResourceLoader.exists(s))
+	var n := maxi(1, ceili(goods().size() * TradeSkills.shop_share(g)))
 	var out: Array[String] = [MEDKIT]
-	for s in g.shop[k]:
-		if ResourceLoader.exists(s):
-			out.append(s)
+	for s in list.slice(0, n):
+		out.append(s)
 	return out
 
 
 static func can_buy(g: HubState, key: String) -> bool:
-	return g.is_harbor(g.position) and key in shop(g, g.position) and g.credits >= price(key)
+	return g.is_harbor(g.position) and key in shop(g, g.position) and g.credits >= buy_price(g, key)
 
 
 static func buy(g: HubState, key: String) -> bool:
 	if not can_buy(g, key):
 		return false
-	g.credits -= price(key)
+	g.credits -= buy_price(g, key)
 	add(g, key)
 	return true
 
@@ -139,6 +148,6 @@ static func can_sell(g: HubState, key: String) -> bool:
 static func sell(g: HubState, key: String) -> bool:
 	if not can_sell(g, key):
 		return false
+	g.credits += sell_price(key, g)
 	take(g, key)
-	g.credits += sell_price(key)
 	return true

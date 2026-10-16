@@ -46,6 +46,8 @@ var last_training := 0
 var upgrades := {}
 ## Lager {Schlüssel: Anzahl} und Sortiment der Häfen {System: [Schlüssel], "_period": n} (Stock)
 var stock := {}
+## Handelsproben im Hafen {Fertigkeit: {day, system, result, …}} (TradeSkills)
+var trade_rolls := {}
 var shop := {}
 var project := {}
 ## Meldungen des Crew-Ausbaus beim letzten Tageswechsel
@@ -310,7 +312,8 @@ func to_dict() -> Dictionary:
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
-		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true)}
+		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
+		"trade_rolls": trade_rolls.duplicate(true)}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -336,6 +339,7 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	for k in d.get("stock", {}):
 		g.stock[String(k)] = int(d.stock[k])
 	g.shop = d.get("shop", {}).duplicate(true)
+	g.trade_rolls = d.get("trade_rolls", {}).duplicate(true)
 	var pr: Dictionary = d.get("project", {})
 	if not pr.is_empty():
 		g.project = {"id": String(pr.id), "days": int(pr.days)}

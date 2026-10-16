@@ -38,7 +38,7 @@ func _row(grid: GridContainer, id: StringName) -> void:
 		grid.add_child(Control.new())
 		grid.add_child(Control.new())
 		return
-	var yard := UiTheme.button("Werft %d Cr" % ShipUpgrades.YARD_COST[lv], "Sofort, nur im Hafen, nur mit genug Credits")
+	var yard := UiTheme.button("Werft %d Cr" % ShipUpgrades.yard_cost(game, id), "Sofort, nur im Hafen, nur mit genug Credits")
 	yard.disabled = not ShipUpgrades.can_yard(game, id)
 	yard.pressed.connect(func() -> void:
 		ShipUpgrades.buy_yard(game, id)
