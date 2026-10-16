@@ -14,7 +14,7 @@ signal unit_changed(unit: Combatant)
 signal died(unit: Combatant)
 signal crouched(unit: Combatant)
 signal reloaded(unit: Combatant)
-## sichtbare Handlung ohne Angriff: &"aid" (Erste Hilfe), &"psi" (Psi wirken)
+## sichtbare Handlung ohne Angriff: &"aid" (Erste Hilfe, Reparatur am Nachbarn), &"psi" (Psi wirken), &"reload" (eigene Waffe reparieren)
 signal acted(unit: Combatant, action: StringName)
 signal overwatch_fired(unit: Combatant)
 signal round_started(number: int)
@@ -28,7 +28,7 @@ const GAITS := {
 	&"laufen": {"name": "Laufen", "pace": 2, "attack_mod": -20},
 	&"sprinten": {"name": "Sprinten", "pace": 3, "attack_mod": 0, "no_attack": true},
 }
-const COST := {"aid": 50, "psi": 40, "reload": 30, "stand": 30, "swap": 10, "crouch": 10, "wait": 10}
+const COST := {"aid": 50, "repair": 50, "psi": 40, "reload": 30, "stand": 30, "swap": 10, "crouch": 10, "wait": 10}
 const CROUCH_DB := 15        # geduckt: +15 VW gegen Fernkampf
 const CROUCH_OB := 10        # +10 AW im Fernkampf
 const CROUCH_MELEE_OB := 10  # Nahkämpfer gegen Geduckte +10
@@ -995,6 +995,53 @@ func do_reload(u: Combatant, w: WeaponData) -> bool:
 	u.ammo[w.id] -= n
 	log_text("%s lädt %s nach (−%d %%, Reserve %d)." % [u.name, w.name, COST.reload, u.ammo[w.id]])
 	reloaded.emit(u)
+	return true
+
+
+## Waffen-Reparatur im Kampf (Entscheidungen des Nutzers 16.10.2026): eigene Waffe oder die einer Figur im Nachbarfeld,
+## einmal je Stück und Kampf (auch misslungen), Probe Mittel. Herausragend +10, Erfolg +5, Patzer −10; höchstens bis REPAIR_CAP.
+const REPAIR_CAP := -5
+const REPAIR_GAIN := {&"herausragend": 10, &"erfolg": 5}
+
+
+## Mögliche Reparaturen [{unit, slot}]: Waffen eigener Figuren (auch kampfunfähiger) im Umkreis 1 mit Schaden unter REPAIR_CAP
+func repair_targets(u: Combatant) -> Array:
+	var out: Array = []
+	for o in units:
+		if o.team != u.team or o.is_dead() or Hex.distance(o.pos, u.pos) > 1:
+			continue
+		for slot in ["w0", "w1"]:
+			if o.gear_at(slot) and int(o.wear.get(slot, 0)) < REPAIR_CAP and not o.repaired.has(slot):
+				out.append({"unit": o, "slot": slot})
+	return out
+
+
+func do_repair(u: Combatant, target: Combatant, slot: String) -> bool:
+	if not can_do(u, COST.repair) or not repair_targets(u).any(func(t: Dictionary) -> bool: return t.unit == target and t.slot == slot):
+		return false
+	u.act -= COST.repair
+	u.acted = true
+	target.repaired.append(slot)
+	var w: WeaponData = target.gear_at(slot)
+	var before := int(target.wear.get(slot, 0))
+	u.facing = Hex.dir_toward(u.pos, target.pos) if target != u else u.facing
+	faced.emit(u)
+	acted.emit(u, &"reload" if target == u else &"aid")   # eigene Waffe wie Nachladen, sonst wie Erste Hilfe
+	var who := "" if target == u else " von %s" % target.name
+	var m := _maneuver(u, &"waffenReparatur", "mittel", _wound_mods(u), "%s: repariert %s%s" % [u.name, w.name, who])
+	var fx: String
+	if REPAIR_GAIN.has(m.result.id):
+		target.wear[slot] = mini(before + REPAIR_GAIN[m.result.id], REPAIR_CAP)
+		fx = "%d → %d%s" % [before, target.wear[slot], " – wieder nutzbar" if before <= Combatant.WEAR_BROKEN else ""]
+	elif m.result.id == &"patzer":
+		var v := target.add_wear(slot)
+		fx = "verschlimmert den Schaden (%d → %d)%s" % [before, v, " – unbrauchbar" if v <= Combatant.WEAR_BROKEN and before > Combatant.WEAR_BROKEN else ""]
+	else:
+		fx = "keine Wirkung (%d)" % before
+	log_text("%s repariert %s%s (−%d %%): Wurf %s → %d = %s: %s." % [u.name, w.name, who, COST.repair,
+		Dice.format_roll(m.roll), m.total, m.result.name, fx], &"heal")
+	unit_changed.emit(target)
+	unit_changed.emit(u)
 	return true
 
 

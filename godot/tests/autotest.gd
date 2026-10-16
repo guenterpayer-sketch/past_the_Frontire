@@ -297,9 +297,28 @@ func _run_player() -> void:
 		print("nach Angriff: ", target.name, " TP ", target.hp, ", Aktivität ", u.act)
 	else:
 		print("kein Gegner angreifbar")
+	await _repair_shot(out, u)
 	await _status_shot(out, u)
 	print("AUTOTEST FERTIG")
 	get_tree().quit()
+
+
+## Waffen-Reparatur: Waffe 1 unbrauchbar machen (nur für das Bild), Knopf zeigen und anklicken
+func _repair_shot(out: String, u: Combatant) -> void:
+	if b.combat.current != u or not u.is_ok():
+		print("Reparatur: Figur nicht mehr am Zug")
+		return
+	u.act = 100
+	u.wear["w0"] = Combatant.WEAR_BROKEN
+	ActionPanel.set_open(&"more", true)
+	b._refresh()
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/p4b_reparatur.png")
+	await _click_button("Reparieren")
+	while not b.events.is_idle():
+		await get_tree().process_frame
+	print("Reparatur: %s Waffe 1 jetzt %d, Aktivität %d, nochmal möglich %s" % [u.name, int(u.wear.get("w0", 0)), u.act,
+		b.combat.repair_targets(u).any(func(t: Dictionary) -> bool: return t.unit == u and t.slot == "w0")])
 
 
 ## Zustandssymbole und -effekte: Zustände setzen (nur für das Bild), Symbole zählen, Screenshot
