@@ -129,13 +129,22 @@ func _run() -> void:
 	await _frames(5)
 	await _shot("h1a_raumhafen")
 	var cr0 := g.credits
-	await _click_button(hub.ui, "Volltanken")
-	await _click_button(hub.ui, "1 kaufen")
-	await _click_button(hub.ui, "1× reparieren")
+	# Schiffshändler: Volltanken, Material kaufen
+	await _click_button(hub.ui.star_map, "Schiffshändler")
+	await _frames(5)
+	await _click_button(hub.ui.port, "Volltanken")
+	await _click_button(hub.ui.port, "1 kaufen")
+	await _shot("h1a1_schiffshaendler")
+	hub.ui.port.hide()
+	# Werft: große Reparatur
+	await _click_button(hub.ui.star_map, "Werft")
+	await _frames(5)
+	await _click_button(hub.ui.ship_arms, "1× reparieren")
 	print("Raumhafen: Credits %d -> %d, Tank %d, Material %d, Hülle %d" % [cr0, g.credits, g.fuel, g.material, g.hull])
-	# Handel: kaufen und verkaufen
+	hub.ui.ship_arms.hide()
+	# Händler: kaufen und verkaufen
 	g.credits += 1000
-	await _click_button(hub.ui, "Handel")
+	await _click_button(hub.ui.star_map, "Händler")
 	await _frames(5)
 	await _click_button(hub.ui.trade, "Würfeln")
 	print("Handelsprobe: %s" % g.trade_rolls)
@@ -155,10 +164,11 @@ func _run() -> void:
 	print("Werkstatt: Lager %s, Credits %d" % [g.stock, g.credits])
 	hub.ui.trade.hide()
 	g.credits -= 1000
-	await _click_button(hub.ui, "Crew anheuern")
+	await _click_button(hub.ui.star_map, "Crew anheuern")
 	await _frames(5)
 	await _shot("h1b_hafen")
-	await _click_button(hub.ui, "Anheuern")
+	await _click_button(hub.ui.port, "Anheuern")
+	hub.ui.port.hide()
 	print("Hafen: %s im Hafen, nach Anheuern an Bord %s, Crew %d / %d" % [gone.name, Campaign.crew().has(gone), Campaign.crew().size(), g.berths])
 	hub.ui.star_map.close()
 	# Krankenstation: Verwundeten anlegen, Arzt zuweisen, einen Tag warten
@@ -181,12 +191,53 @@ func _run() -> void:
 	g.material = 8
 	hub.open_room(&"hangar")
 	await _frames(5)
-	await _click_button(hub.ui.engine, "Werft ")
+	await _shot("h1f0_maschinenraum_auswahl")
+	await _click_button(hub.ui.notice, "Schiffsausbau")
+	await _frames(5)
 	await _click_button(hub.ui.engine, "Crew: 3 Material")
 	await _frames(5)
 	print("Maschinenraum: offen %s, Stufen %s, Projekt %s, Credits %d, Material %d" % [hub.ui.engine.visible, g.upgrades, g.project, g.credits, g.material])
 	await _shot("h1f_maschinenraum")
 	hub.ui.engine.hide()
+	# Raumkampf, Teil 1: Waffenslots und Posten, Systemschäden, Handel „Schiff“
+	ShipArms.stock_add(g, "partikelkanone")
+	ShipArms.stock_add(g, "schnellfeuerkanone|-10")
+	g.ship_slots.backbord.damage = -20
+	ShipArms.set_stage(g, "antrieb", 3)
+	ShipArms.set_stage(g, "lebenserhaltung", 5)
+	ShipArms.set_stage(g, "station_computer", 1)
+	hub.open_room(&"hangar")
+	await _frames(5)
+	await _click_button(hub.ui.notice, "Waffenslots und Posten")
+	await _frames(5)
+	await _shot("h1f1_waffenslots")
+	hub.ui.ship_arms.hide()
+	g.material = 8
+	hub.open_room(&"hangar")
+	await _frames(5)
+	await _click_button(hub.ui.notice, "Systemschäden")
+	await _frames(5)
+	await _click_button(hub.ui.ship_arms, "Reparieren")
+	await _frames(5)
+	print("Systemschäden: offen %s, Schäden %s, Material %d, Tag %d" % [hub.ui.ship_arms.visible, g.ship_damage, g.material, g.day])
+	await _shot("h1f2_systemschaeden")
+	hub.ui.ship_arms.hide()
+	# Werft im Hafen: Systemschäden, Ausbau, Waffe einbauen
+	hub.ui.ship_arms.show_yard(g)
+	await _frames(5)
+	await _shot("h1f3_werft")
+	await _click_button(hub.ui.ship_arms, "Ausbau")
+	await _frames(5)
+	await _shot("h1f4_werft_ausbau")
+	await _click_button(hub.ui.ship_arms, "Waffenslots")
+	await _frames(5)
+	await _click_button(hub.ui.ship_arms, "Tauschen …")
+	await _frames(5)
+	await _shot("h1f5_werft_waffenslots")
+	await _click_button(hub.ui.ship_arms, "Einbauen")
+	print("Werft: offen %s, Slots %s, Lager %s" % [hub.ui.ship_arms.visible, g.ship_slots, g.ship_stock])
+	hub.ui.ship_arms.hide()
+	g.ship_damage = {}
 	# Kombüse: Koch einstellen, ein Tag außerhalb des Hafens mit Kochprobe
 	Galley.set_cook(g, Campaign.crew()[1])
 	var pos0 := g.position
@@ -348,6 +399,11 @@ func _run() -> void:
 	if hub.ui.travel_report.visible:
 		print("Reisebericht vor dem Einsatz offen")
 		await _click_button(hub.ui, "Weiter")
+	# warten, bis die Kampfszene geladen ist (höchstens 600 Frames)
+	var waited := 0
+	while not get_tree().current_scene is Battle and waited < 600:
+		await _frames(10)
+		waited += 10
 	await _frames(60)
 	var b := get_tree().current_scene as Battle
 	print("Bodenkampf: %s gegen %s (erwartet %s), Briefing offen %s" % [b.mission.title, b.mission.faction.name,

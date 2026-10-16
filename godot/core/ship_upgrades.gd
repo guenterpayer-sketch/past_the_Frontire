@@ -1,6 +1,7 @@
 class_name ShipUpgrades
 extends RefCounted
-## Schiffsausbau (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 8 Bereiche (Werkstatt: Crafting) mit je
+## Schiffsausbau (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 12 Bereiche (Werkstatt: Crafting;
+## Schilde, Panzerung, Reaktor, Waffenslots für den Raumkampf, Wirkung im Kampf legt der Raumkampf fest; Waffenslots: ShipArms) mit je
 ## 3 Stufen. Werft im Hafen: Credits, sofort. Crew: Schiffsmaterial und Spieltage, am Ende eine Reparaturprobe
 ## (Station Technik, sonst der Beste); nur ein Crew-Ausbau zur Zeit. Stufen liegen in HubState.upgrades {id: Stufe},
 ## der laufende Crew-Ausbau in HubState.project {id, days}.
@@ -16,6 +17,10 @@ const AREAS := {
 	&"training": {"name": "Trainingsraum", "values": [3, 4, 5, 6], "text": "%d freie EP alle 5 Tage"},
 	&"workshop": {"name": "Werkstatt", "values": [0, 1, 2, 3], "text": "Stufe %d", "texts": ["Bauen bis 200 Cr",
 		"+10 Handwerk, bis 400 Cr", "+10, Dauer −50 %, alles", "+20, Dauer −50 %, alles"]},
+	&"shields": {"name": "Schilde", "values": [0, 1, 2, 3], "text": "Stufe %d"},
+	&"armor": {"name": "Panzerung", "values": [0, 1, 2, 3], "text": "Stufe %d"},
+	&"reactor": {"name": "Reaktor", "values": [0, 1, 2, 3], "text": "Stufe %d"},
+	&"slots": {"name": "Waffenslots", "values": [4, 5, 6, 7], "text": "%d Slots", "texts": ["4 Slots", "5 Slots (+ Heck)", "6 Slots (+ Bug 2)", "7 Slots (+ Turm 2)"]},
 }
 const MAX_LEVEL := 3
 ## Kosten der Stufe 1, 2, 3 (Index = Zielstufe − 1)
@@ -120,3 +125,7 @@ static func _raise(g: HubState, id: StringName) -> void:
 	g.upgrades[String(id)] = level(g, id) + 1
 	if id == &"berths":
 		g.berths = value(g, id)
+	elif id == &"slots":
+		for s in ShipArms.slot_ids(g):
+			if not g.ship_slots.has(s):
+				g.ship_slots[s] = {"key": "", "damage": 0}

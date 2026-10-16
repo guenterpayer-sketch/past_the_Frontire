@@ -32,6 +32,7 @@ func _init() -> void:
 	_test_crafting()
 	_test_galley()
 	_test_retreat()
+	_test_ship_arms()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1045,6 +1046,143 @@ func _test_retreat() -> void:
 	check(g.offers.filter(func(x: Dictionary) -> bool: return x.id == o.id).is_empty() and not g.report.retreated, "Niederlage ohne Rückzug: Auftrag erledigt")
 	HubState.game = null
 	Campaign.last_result = {}
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+## Anbindung Raumkampf, Teil 1 (Entscheidungen 16.10.2026): Slots, Lager, Handel, Posten, Systemschäden, Reparatur, setup
+func _test_ship_arms() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	TradeSkills.fixed = &"teilerfolg"
+	var g := HubState.new_game(91, "Raumkampf", 1)
+	var crew := Campaign.crew()
+	for c in crew:
+		c.station = ""
+	check(ShipArms.slot_ids(g) == ["bug", "backbord", "steuerbord", "turm"] and ShipArms.slot_key(g, "bug") == "laserbank"
+		and ShipArms.slot_key(g, "turm") == "abwehrgeschuetz" and g.ship_ammo == {"schiffsraketen": 6, "geschosse": 40}, "Startschiff und Startvorrat")
+	check(ShipArms.keys().size() == 8 and ShipArms.name("partikelkanone") == "Partikelkanone" and ShipArms.price("laserbank") == 800
+		and ShipArms.ammo("raketenwerfer") == "schiffsraketen" and ShipArms.ammo("laserbank") == "", "Übergangskatalog")
+	check(ShipArms.fits("abwehrgeschuetz", "turm") and not ShipArms.fits("abwehrgeschuetz", "bug") and not ShipArms.fits("laserbank", "turm2")
+		and ShipArms.fits("raketenbatterie", "heck"), "Turm nur Abwehr, sonst jede andere Waffe")
+	check(ShipUpgrades.AREAS.size() == 12 and ShipUpgrades.describe(&"slots", 1) == "5 Slots (+ Heck)" and ShipUpgrades.describe(&"shields", 2) == "Stufe 2", "neue Ausbau-Bereiche")
+	# Ausbau Waffenslots in der Werft
+	var away := -1
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			away = i
+			break
+	g.position = g.nearest_harbor()
+	g.credits = 20000
+	check(ShipUpgrades.buy_yard(g, &"slots") and ShipArms.slot_ids(g).size() == 5 and g.ship_slots.has("heck") and ShipArms.slot_key(g, "heck") == "", "Waffenslots Stufe 1: Heck frei")
+	# Handel nach Verhandeln (Teilerfolg = Normalpreis, Verkauf 50 %)
+	var shop := ShipArms.shop(g, g.position)
+	check(not shop.is_empty() and shop.size() == ceili(8 * TradeSkills.shop_share(g)), "Schiffswaffen im Sortiment nach Gassenwissen")
+	var k: String = shop[0]
+	var cr := g.credits
+	check(ShipArms.buy(g, k) and g.credits == cr - ShipArms.price(k) and ShipArms.stock_count(g, k) == 1, "Schiffswaffe kaufen ins Lager")
+	check(ShipArms.sell_price(g, "laserbank|-20") == 200 and ShipArms.sell_price(g, "laserbank") == 400, "Verkauf 50 %, beschädigt −25 % je −10")
+	check(ShipArms.sell(g, k) and ShipArms.stock_count(g, k) == 0, "Schiffswaffe verkaufen")
+	cr = g.credits
+	check(ShipArms.buy_ammo(g, "schiffsraketen", 3) and g.credits == cr - 180 and g.ship_ammo.schiffsraketen == 9, "Schiffsraketen 60 Cr")
+	check(ShipArms.buy_ammo(g, "geschosse", 10) and g.ship_ammo.geschosse == 50 and ShipArms.ammo_sell(g, "schiffsraketen", 3) == 90, "Geschosse 3 Cr, Verkauf 50 %")
+	TradeSkills.fixed = &"erfolg"
+	check(ShipArms.buy_price(g, "laserbank") == 720 and ShipArms.ammo_price(g, "schiffsraketen") == 54 and ShipArms.sell_price(g, "laserbank") == 480, "Verhandeln Erfolg: −10 %, Verkauf 60 %")
+	TradeSkills.fixed = &"teilerfolg"
+	# Einbau nur im Hafen; alte Waffe ins Lager, Schaden bleibt am Stück
+	ShipArms.stock_add(g, "partikelkanone")
+	ShipArms.stock_add(g, "abwehrlaser")
+	ShipArms.stock_add(g, "schnellfeuerkanone|-10")
+	check(not ShipArms.install(g, "bug", "abwehrlaser"), "Abwehrlaser nicht in den Bug")
+	check(ShipArms.install(g, "bug", "partikelkanone") and ShipArms.slot_key(g, "bug") == "partikelkanone" and ShipArms.stock_count(g, "laserbank") == 1, "Tauschen: Laserbank ins Lager")
+	check(ShipArms.install(g, "turm", "abwehrlaser") and ShipArms.stock_count(g, "abwehrgeschuetz") == 1, "Turm: Abwehrlaser")
+	check(ShipArms.install(g, "heck", "schnellfeuerkanone|-10") and ShipArms.slot_damage(g, "heck") == -10, "beschädigt eingebaut")
+	check(ShipArms.uninstall(g, "heck") and ShipArms.stock_count(g, "schnellfeuerkanone|-10") == 1 and ShipArms.slot_key(g, "heck") == "", "Ausbau mit Schaden ins Lager")
+	g.position = away
+	check(not ShipArms.can_install(g, "heck", "laserbank") and not ShipArms.can_uninstall(g, "bug") and not ShipArms.can_buy_ammo(g, "geschosse", 10), "unterwegs kein Einbau, kein Handel")
+	# Posten: feste aus Character.station, Geschützposten im Hub
+	crew[0].station = "Steuer"
+	crew[1].station = "Geschütze"
+	var p := ShipArms.posts(g)
+	check(p.steuer == String(crew[0].id) and p.navigation == ShipArms.KI and p.geschuetz_bug == String(crew[1].id)
+		and p.geschuetz_turm == ShipArms.KI and not p.has("geschuetz_heck"), "Posten: Station, Geschütze am ersten Slot, sonst KI")
+	ShipArms.set_gun_post(g, "backbord", String(crew[1].id))
+	p = ShipArms.posts(g)
+	check(p.geschuetz_backbord == String(crew[1].id) and p.geschuetz_bug == ShipArms.KI, "eine Figur nur an einem Geschütz")
+	check(not crew[0] in ShipArms.gun_candidates(g) and crew[1] in ShipArms.gun_candidates(g), "Geschütz nur ohne andere Station")
+	Medbay.toggle(g, crew[0])
+	check(ShipArms.posts(g).steuer == ShipArms.KI, "Personal der Krankenstation: Bord-KI")
+	g.medics = []
+	# Systemschäden: Reiseproben, Ausfall
+	ShipArms.set_stage(g, "antrieb", 3)
+	ShipArms.set_stage(g, "station_computer", 1)
+	check(g.ship_damage == {"antrieb": "C", "station_computer": "A"} and ShipArms.travel_malus(g, &"pilot") == -15
+		and ShipArms.travel_malus(g, &"rsReparatur") == 0, "Antrieb C: −15 auf Pilot")
+	check(ShipArms.effect_text("antrieb", 3) == "−15 auf Pilot (Reiseprobe)" and ShipArms.effect_text("station_computer", 1) == "nur im Kampf", "Wirkungstext")
+	var target := g.nearest_harbor()
+	check(g.can_travel(target), "Antrieb C: Reise möglich")
+	ShipArms.set_stage(g, "antrieb", 5)
+	check(not g.can_travel(target) and g.travel_to(target) == -1, "Antrieb E: keine Reise")
+	ShipArms.set_stage(g, "antrieb", 3)
+	ShipArms.set_stage(g, "lebenserhaltung", 5)
+	g.provisions = 100
+	g.cook = ""
+	g.wait_days(1)
+	check(g.provisions == 100 - 2 * Galley.need(), "Lebenserhaltung E: Proviant doppelt")
+	ShipArms.set_stage(g, "lebenserhaltung", 0)
+	# Crew-Reparatur: 1 Tag, 1 Material, Probe
+	g.material = 5
+	var d0 := g.day
+	Voyage.fixed_result = &"erfolg"
+	var r := g.ship_fix("antrieb")
+	check(not r.is_empty() and ShipArms.stage(g, "antrieb") == 2 and g.material == 4 and g.day == d0 + 1, "Crew: Erfolg −1 Stufe, 1 Material, 1 Tag")
+	Voyage.fixed_result = &"herausragend"
+	g.ship_fix("antrieb")
+	check(not g.ship_damage.has("antrieb"), "Crew: Herausragend −2 Stufen")
+	Voyage.fixed_result = &"patzer"
+	g.ship_fix("station_computer")
+	check(ShipArms.stage(g, "station_computer") == 2, "Crew: Patzer +1 Stufe")
+	Voyage.fixed_result = &"teilerfolg"
+	g.ship_fix("station_computer")
+	check(ShipArms.stage(g, "station_computer") == 2 and g.material == 1, "Crew: Teilerfolg nichts, Material weg")
+	Voyage.fixed_result = &"erfolg"
+	g.ship_slots.backbord.damage = -20
+	g.ship_fix("slot:backbord")
+	check(ShipArms.slot_damage(g, "backbord") == -10 and g.material == 0, "Crew: Waffe im Slot −10 weg")
+	check(not ShipArms.can_crew_fix_weapon(g, "slot:backbord"), "ohne Material keine Crew-Reparatur")
+	g.material = 2
+	Voyage.fixed_result = &"herausragend"
+	g.ship_fix("schnellfeuerkanone|-10")
+	check(ShipArms.stock_count(g, "schnellfeuerkanone") == 1 and ShipArms.stock_count(g, "schnellfeuerkanone|-10") == 0, "Crew: Waffe im Lager heil")
+	Voyage.fixed_result = &""
+	check(ShipArms.damage_count(g) == 2, "offene Schäden: Station Computer, Massebeschleuniger")
+	# Werft: nur im Hafen
+	check(not ShipArms.can_yard_system(g, "station_computer"), "Werft nur im Hafen")
+	g.position = g.nearest_harbor()
+	g.credits = 1000
+	g.material = 1
+	check(ShipArms.yard_stage_cost(g) == 50 and ShipArms.yard_system(g, "station_computer") and ShipArms.stage(g, "station_computer") == 1
+		and g.credits == 950 and g.material == 0, "Werft: 1 Stufe 50 Cr + 1 Material")
+	check(not ShipArms.can_yard_system(g, "station_computer"), "Werft braucht Material")
+	check(ShipArms.yard_weapon_cost(g, "slot:backbord") == 90 and ShipArms.yard_weapon(g, "slot:backbord") and ShipArms.slot_damage(g, "backbord") == 0, "Werft: Waffe 10 % je −10")
+	# Spielstand
+	ShipArms.stock_add(g, "laserbank|-20")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(h.ship_slots == g.ship_slots and h.ship_stock == g.ship_stock and h.ship_ammo == g.ship_ammo and h.ship_damage == g.ship_damage
+		and h.gun_posts == g.gun_posts, "Schiff im Spielstand")
+	var old := HubState.from_dict({"sector": g.sector.to_dict()})
+	check(old.ship_slots == ShipArms.start_slots() and old.ship_ammo == ShipArms.START_AMMO and old.ship_damage.is_empty(), "alte Spielstände: Startschiff")
+	# setup für SpaceBattle.start
+	crew[2].injury = Injury.DOWN
+	crew[2].injury_days = 3
+	var su := ShipArms.setup(g, {"faction": "piraten", "difficulty": "mittel"}, "reise")
+	check(su.ship.levels == {"shields": 0, "armor": 0, "reactor": 0, "slots": 1} and su.ship.slots.size() == 5 and su.ship.hull_max == g.hull_max()
+		and su.ship_ammo == g.ship_ammo and su.source == "reise" and su.return_scene == HubState.HUB_SCENE and su.posts.has("geschuetz_bug")
+		and su.crew.size() == crew.size() - 1 and not crew[2] in su.crew, "setup aus dem HubState, Gesperrte fehlen")
+	TradeSkills.fixed = &"teilerfolg"
+	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)

@@ -11,7 +11,8 @@ Anweisung für den Koordinations-Chat. Er arbeitet nicht an Spielfunktionen, son
    Gibt es Konflikte oder rote Tests: **nicht** selbst auflösen. Stattdessen in die Moduldatei des Branches unter „Aufträge vom Koordinator“ schreiben, was kollidiert (Dateien, Stellen, Ursache), und den Nutzer informieren. Der Modul-Chat holt dann `main` in seinen Branch, löst die Konflikte dort und meldet erneut.
 2. **Moduldateien pflegen** (`docs/module/*.md`): Stand, Branch, Schnittstellen, Aufträge. Nach jedem Zusammenführen eintragen, was neu in `main` ist und welche Module `main` jetzt holen sollten.
 3. **Überblick halten:** Vor jedem Zusammenführen prüfen, welche Branches seit dem letzten Stand Neues gepusht haben (`git fetch origin`, `git log main..origin/<branch>`), und mit einer Probe-Zusammenführung (eigener Arbeitsordner, `git worktree`, nicht pushen) vorab sehen, was kollidiert. Auch inhaltliche Brüche melden, die Git nicht als Konflikt erkennt (z. B. Aufruf einer Funktion, die ein anderes Modul entfernt hat).
-4. **Dokumentation in `main`:** `CLAUDE.md` (gemeinsame Regeln), `docs/Zusammenfuehrung.md` (Verlauf der Zusammenführungen), `godot/README.md`. Inhaltliche Änderungen an Spielregeln (`docs/Skillsystem.md`) nur, wenn ein Modul sie geliefert hat.
+4. **Moduldateien kurz halten (Entscheidung des Nutzers 16.10.2026):** Nach jeder Zusammenführung erledigte Aufträge und alten Stand der betroffenen Moduldatei nach `docs/module/archiv/<modul>_bis_<datum>.md` verschieben (anfügen, nicht löschen); in der Moduldatei bleiben Zuständigkeit, Schnittstellen, gültige Absprachen, kurzer Stand und offene Aufträge. Ebenso in `docs/Zusammenfuehrung.md` nur die letzte Runde behalten. Nur Dateien kürzen, deren Branch keine ungemergten Commits hat.
+5. **Dokumentation in `main`:** `CLAUDE.md` (gemeinsame Regeln), `docs/Zusammenfuehrung.md` (Verlauf der Zusammenführungen), `godot/README.md`. Inhaltliche Änderungen an Spielregeln (`docs/Skillsystem.md`) nur, wenn ein Modul sie geliefert hat.
 
 ## Was der Koordinator nicht tut
 
@@ -45,7 +46,7 @@ Der zweite Koordinations-Chat wurde zum Neustart beendet (langer Verlauf). Alles
 **Stand:** `main` = Zusammenführung Bodenkampf `8b5a91f` (Waffen-Reparatur) + Doku. Bodenkampf (`claude/confident-edison-6mxzke`), Charakter (`claude/elegant-gauss-hq5bus`) und Hub (`claude/happy-lamport-u4fvya`) sind vollständig in `main`; keine offenen Aufträge. Verlauf: `docs/Zusammenfuehrung.md`. Planungen (alle gebaut): `docs/Planung_Ausbau_Lager_Handwerk.md`, `docs/Planung_Rueckzug_Proviant_Kochen.md`, `docs/Planung_Munition.md`, `docs/Planung_Ausruestungs_Editor.md`, `docs/Planung_Waffenmodelle_Klaenge.md`, `docs/Planung_Enzyklopaedie.md`, `docs/Planung_Reise_Schiff.md` u. a.
 
 **Offen:**
-- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch `claude/raumkampf-modul`, Planung V1 in `main`; Auftrag 2 (Schnittstelle zuerst, dann Regelkern). Hub wartet auf die Schnittstelle (Auftrag „Anbindung Raumkampf“ in `hub.md`).
+- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch `claude/raumkampf-modul`, Planung V1 in `main`; Schnittstelle fest und in `main` (`8a0597f`), Raumkampf baut den Regelkern. Hub darf mit „Anbindung Raumkampf“ (`hub.md`) beginnen.
 - Fertigkeiten ohne Wirkung: nur noch Raumschiff-Kampf (für den Raumkampf). „Geschütze“ nur im Ausrüstungs-Editor wählbar.
 - Noch nicht gebaut: Story/Kampagne, Hangar.
 

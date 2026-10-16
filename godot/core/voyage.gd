@@ -131,7 +131,7 @@ static func travel_day(g: HubState, day_no: int) -> Dictionary:
 		if e.ch == null:
 			row.checks.append({})
 			continue
-		var r := check(e.ch, e.post.skill, g.travel_bonus() + Galley.malus(g))
+		var r := check(e.ch, e.post.skill, g.travel_bonus() + Galley.malus(g) + ShipArms.travel_malus(g, e.post.skill))
 		row.checks.append(r)
 		if e.post.skill == &"rsReparatur":
 			row.hull = HULL_TRAVEL[r.result]
@@ -172,7 +172,8 @@ static func estimate_fuel(g: HubState, days: int) -> int:
 	var save := 0.0
 	for e in assign(g):
 		if e.ch != null and e.post.skill != &"rsReparatur":
-			save += expected_save(Rules.skill_total(e.ch, e.post.skill) + int(Rules.DIFFICULTY[DIFF].mod) + g.travel_bonus())
+			save += expected_save(Rules.skill_total(e.ch, e.post.skill) + int(Rules.DIFFICULTY[DIFF].mod) + g.travel_bonus()
+				+ ShipArms.travel_malus(g, e.post.skill))
 	return roundi(maxf(FUEL_MIN, g.fuel_per_day() - save) * days)
 
 
