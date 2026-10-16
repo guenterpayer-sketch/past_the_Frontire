@@ -4,40 +4,26 @@ extends RefCounted
 ## in docs/module/hub.md „Anbindung Raumkampf, Teil 1“): Waffenslots, Schiffswaffen im Lager, Schiffsmunition,
 ## Systemschäden A–E, Geschützposten, Handel im Hafen, Reparatur (Crew oder Werft) und das setup für SpaceBattle.start().
 ## Die Werte liegen im HubState (ship_slots, ship_stock, ship_ammo, ship_damage, gun_posts); hier nur die Regeln.
-## Waffendaten: aus dem Katalog des Raumkampfs (ShipWeapons), solange es ihn nicht gibt aus der Übergangstabelle CATALOG.
+## Waffendaten aus dem Katalog des Raumkampfs (ShipWeapons), Slots und Startwerte aus SpaceSetup (Schnittstelle).
 
-## Übergangstabelle (Keys aus der Schnittstelle, Preise Platzhalter, Entscheidung des Nutzers)
-const CATALOG := {
-	"laserbank": {"name": "Laserbank", "kind": "Strahl", "ammo": "", "price": 800},
-	"partikelkanone": {"name": "Partikelkanone", "kind": "Strahl", "ammo": "", "price": 1400},
-	"massebeschleuniger": {"name": "Massebeschleuniger", "kind": "Ballistik", "ammo": "geschosse", "price": 900},
-	"schnellfeuerkanone": {"name": "Schnellfeuerkanone", "kind": "Ballistik", "ammo": "geschosse", "price": 1100},
-	"raketenwerfer": {"name": "Raketenwerfer", "kind": "Rakete", "ammo": "schiffsraketen", "price": 1000},
-	"raketenbatterie": {"name": "Raketenbatterie", "kind": "Rakete", "ammo": "schiffsraketen", "price": 1600},
-	"abwehrgeschuetz": {"name": "Abwehrgeschütz", "kind": "Abwehr", "ammo": "geschosse", "price": 600},
-	"abwehrlaser": {"name": "Abwehrlaser", "kind": "Abwehr", "ammo": "", "price": 700},
-}
-## Startschiff und Startvorrat (wie SpaceSetup.START_SLOTS/START_AMMO laut Schnittstelle)
-const START_SLOTS := {"bug": "laserbank", "backbord": "massebeschleuniger", "steuerbord": "raketenwerfer", "turm": "abwehrgeschuetz"}
-const START_AMMO := {"schiffsraketen": 6, "geschosse": 40}
-
-## Slots: die ersten vier ab Start, je Stufe des Ausbaus „Waffenslots“ einer mehr; Turm-Slots nur Abwehrwaffen
-const SLOTS := ["bug", "backbord", "steuerbord", "turm", "heck", "bug2", "turm2"]
+## Slots: die ersten vier ab Start, je Stufe des Ausbaus „Waffenslots“ (0–5) einer mehr (SpaceSetup.slots_for);
+## Turm-Slots nur Abwehrwaffen
+const SLOTS := ["bug", "backbord", "steuerbord", "turm", "heck", "backbord2", "steuerbord2", "bug2", "turm2"]
 const START_SLOT_COUNT := 4
-const SLOT_NAMES := {"bug": "Bug", "backbord": "Backbord", "steuerbord": "Steuerbord", "turm": "Turm", "heck": "Heck",
-	"bug2": "Bug 2", "turm2": "Turm 2"}
+const SLOT_NAMES := SpaceSetup.SLOT_NAMES
 const TURRETS := ["turm", "turm2"]
-const DEFENSE := "Abwehr"
 
-## Feste Posten aus Character.station (Station-ID → Stationsname im Charakter-Modul); Geschützposten je Slot im Hub
+## Feste Posten aus Character.station (Station-ID → Stationsname im Charakter-Modul); Geschützposten je Slot und
+## weitere Techniker (technik_2, technik_3; nur Crew, "ki" = frei) im Hub
 const STATIONS := {"steuer": "Steuer", "navigation": "Navigation", "schilde": "Schilde", "technik": "Technik", "computer": "Computer"}
+const EXTRA_TECH := SpaceSetup.EXTRA_TECH
 const GUNNER_STATION := "Geschütze"
-## Wer ohne andere Station einen Geschützposten bekommen darf
+## Wer ohne andere Station einen Geschützposten oder eine weitere Technik-Station bekommen darf
 const GUN_FREE_STATIONS := ["", "Geschütze", "Jäger"]
 const KI := "ki"
 
 ## Schiffsmunition: Preis je Stück/Schuss (Kauf nach Verhandeln), Kaufpakete
-const AMMO_NAMES := {"schiffsraketen": "Schiffsraketen", "geschosse": "Geschosse"}
+const AMMO_NAMES := ShipWeapons.AMMO_TYPES
 const AMMO_PRICE := {"schiffsraketen": 60, "geschosse": 3}
 const AMMO_PACKS := {"schiffsraketen": [1, 3], "geschosse": [10, 40]}
 
@@ -60,66 +46,40 @@ const YARD_WEAPON_SHARE := 0.1
 ## Verkauf beschädigt: je −10 um diesen Anteil weniger (wie Stock)
 const SELL_DAMAGE_STEP := 0.25
 
-static var _ext_cache := {}
 
-
-## Globale Klasse des Raumkampfs (ShipWeapons, SpaceSetup), falls es sie gibt; sonst null
-static func _ext(cls: String) -> Script:
-	if not _ext_cache.has(cls):
-		_ext_cache[cls] = null
-		for c in ProjectSettings.get_global_class_list():
-			if String(c.class) == cls:
-				_ext_cache[cls] = load(String(c.path))
-	return _ext_cache[cls]
-
-
-## Konstante aus SpaceSetup, falls es die Klasse gibt; sonst der Hub-Wert
-static func _ext_const(const_name: String, fallback: Dictionary) -> Dictionary:
-	var s := _ext("SpaceSetup")
-	var m: Dictionary = s.get_script_constant_map() if s else {}
-	return m.get(const_name, fallback)
-
-
-# ---------------------------------------------------------------- Katalog
+# ---------------------------------------------------------------- Katalog (ShipWeapons)
 
 static func keys() -> Array[String]:
-	var s := _ext("ShipWeapons")
-	var out: Array[String] = []
-	for k in (s.call("keys") if s else CATALOG.keys()):
-		out.append(String(k))
-	return out
+	return ShipWeapons.keys()
 
 
-## Name, Preis, Munition, Art einer Schiffswaffe (Schlüssel ohne Schaden)
+## Name, Preis, Munition, Art einer Schiffswaffe (Schlüssel auch mit Schaden)
 static func name(key: String) -> String:
-	key = Stock.base_of(key)
-	var s := _ext("ShipWeapons")
-	return String(s.call("name", key)) if s else String(CATALOG.get(key, {}).get("name", key))
+	return ShipWeapons.name(Stock.base_of(key))
 
 
 static func price(key: String) -> int:
-	key = Stock.base_of(key)
-	var s := _ext("ShipWeapons")
-	return int(s.call("price", key)) if s else int(CATALOG.get(key, {}).get("price", 0))
+	return ShipWeapons.price(Stock.base_of(key))
 
 
 static func ammo(key: String) -> String:
-	key = Stock.base_of(key)
-	var s := _ext("ShipWeapons")
-	return String(s.call("ammo", key)) if s else String(CATALOG.get(key, {}).get("ammo", ""))
+	return ShipWeapons.ammo(Stock.base_of(key))
 
 
 static func kind(key: String) -> String:
-	return String(CATALOG.get(Stock.base_of(key), {}).get("kind", ""))
+	var d := ShipWeapons.data(Stock.base_of(key))
+	return String(ShipWeapons.ART_NAMES.get(d.get("art", ""), ""))
+
+
+## Fertigkeit der Geschützstation für diese Waffe
+static func gun_skill(key: String) -> StringName:
+	key = Stock.base_of(key)
+	return ShipWeapons.skill(key) if ShipWeapons.has(key) else &"ballistikGeschuetze"
 
 
 ## Passt die Waffe in den Slot? Turm-Slots nehmen nur Abwehrwaffen, alle anderen Slots jede andere Waffe.
 static func fits(key: String, slot: String) -> bool:
-	key = Stock.base_of(key)
-	var s := _ext("ShipWeapons")
-	if s:
-		return bool(s.call("fits", key, slot))
-	return CATALOG.has(key) and ((kind(key) == DEFENSE) == (slot in TURRETS))
+	return ShipWeapons.fits(Stock.base_of(key), slot)
 
 
 ## Anzeigename mit Schaden („Massebeschleuniger (−20)“)
@@ -133,19 +93,11 @@ static func ammo_name(key: String) -> String:
 
 
 static func start_slots() -> Dictionary:
-	var src: Dictionary = _ext_const("START_SLOTS", START_SLOTS)
-	var out := {}
-	for id in SLOTS.slice(0, START_SLOT_COUNT):
-		out[id] = {"key": String(src.get(id, "")), "damage": 0}
-	return out
+	return SpaceSetup.start_slots()
 
 
 static func start_ammo() -> Dictionary:
-	var src: Dictionary = _ext_const("START_AMMO", START_AMMO)
-	var out := {}
-	for t in AMMO_NAMES:
-		out[t] = int(src.get(t, 0))
-	return out
+	return SpaceSetup.START_AMMO.duplicate()
 
 
 # ---------------------------------------------------------------- Slots
@@ -153,8 +105,7 @@ static func start_ammo() -> Dictionary:
 ## Freigeschaltete Slots (Ausbau „Waffenslots“)
 static func slot_ids(g: HubState) -> Array[String]:
 	var out: Array[String] = []
-	for id in SLOTS.slice(0, START_SLOT_COUNT + ShipUpgrades.level(g, &"slots")):
-		out.append(id)
+	out.assign(SpaceSetup.slots_for(ShipUpgrades.level(g, &"slots")))
 	return out
 
 
@@ -272,7 +223,8 @@ static func gun_candidates(g: HubState) -> Array[Character]:
 	return out
 
 
-## Geschützposten eines Slots: Figur-ID oder KI. Ohne Eintrag steht, wer Station „Geschütze“ hat, am ersten bestückten Slot.
+## Geschützposten eines Slots bzw. weiterer Techniker (technik_2/3): Figur-ID oder KI (bei Technikern = frei).
+## Ohne Eintrag steht, wer Station „Geschütze“ hat, am ersten bestückten Slot.
 static func gun_post(g: HubState, slot: String) -> String:
 	var cands := gun_candidates(g)
 	if g.gun_posts.has(slot):
@@ -286,23 +238,26 @@ static func gun_post(g: HubState, slot: String) -> String:
 	return KI
 
 
-## Geschützposten setzen; eine Figur steht nur an einem Geschütz (ein anderer Slot mit ihr geht an die KI)
+## Geschützposten oder weiteren Techniker setzen; eine Figur hat nur einen dieser Posten (der andere geht an KI/frei)
 static func set_gun_post(g: HubState, slot: String, id: String) -> void:
 	if id != KI:
-		for s in armed(g):
+		for s in armed(g) + EXTRA_TECH:
 			if s != slot and gun_post(g, s) == id:
 				g.gun_posts[s] = KI
 	g.gun_posts[slot] = id
 
 
-## Posten für SpaceBattle: {Station-ID: Figur-ID oder "ki"}, Geschützposten als "geschuetz_<Slot>"
+## Posten für SpaceBattle: {Station-ID: Figur-ID oder "ki"}, Geschützposten als "geschuetz_<Slot>",
+## weitere Techniker technik_2/technik_3 ("ki" = frei)
 static func posts(g: HubState) -> Dictionary:
 	var out := {}
 	for st in STATIONS:
 		var c := station_holder(g, st)
 		out[st] = String(c.id) if c else KI
 	for s in armed(g):
-		out["geschuetz_" + s] = gun_post(g, s)
+		out[SpaceSetup.gun_station(s)] = gun_post(g, s)
+	for t in EXTRA_TECH:
+		out[t] = gun_post(g, t)
 	return out
 
 

@@ -1,6 +1,6 @@
 class_name StartScreen
 extends Node3D
-## Startmenü: Fortsetzen (zuletzt gespeicherter Slot), Neues Spiel, Laden, Schnellkampf (Bodenkampf ohne Schiff),
+## Startmenü: Fortsetzen (zuletzt gespeicherter Slot), Neues Spiel, Laden, Schnellkampf (Bodenkampf ohne Schiff), Schnellkampf im All,
 ## Einstellungen, Beenden. Im Hintergrund dreht sich das Schiff der Crew.
 ## --autotest / --autotest-player / --autotest-psi springen direkt in den Bodenkampf, --autotest-hub ins Schiff.
 
@@ -126,6 +126,9 @@ func _build_ui() -> void:
 	var quick := _item("Schnellkampf (Bodenkampf ohne Schiff)")
 	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission und Figuren aus dem Roster (Trupp im Briefing wählen). Nichts wird verbucht, danach zurück ins Startmenü."
 	quick.pressed.connect(start_quick_battle)
+	var space := _item("Schnellkampf im All (Raumkampf ohne Schiff)")
+	space.tooltip_text = "Einzelner Raumkampf mit festen Testwerten (Startschiff gegen Piraten, Crew aus dem Roster). Nichts wird verbucht, danach zurück ins Startmenü."
+	space.pressed.connect(start_space_quick)
 	_item("Einstellungen").pressed.connect(_show_settings)
 	var quit := _item("Beenden")
 	quit.add_theme_color_override("font_color", UiTheme.MUTED)
@@ -210,6 +213,12 @@ func start_quick_battle() -> void:
 	HubState.quick_battle = true
 	Campaign.new_game(GlobalRoster.entries())
 	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+
+
+## Schnellkampf im All: feste Testwerte des Raumkampfs (SpaceSetup.quick), nichts wird verbucht, zurück ins Startmenü
+func start_space_quick() -> void:
+	HubState.game = null
+	SpaceBattle.start(get_tree(), SpaceSetup.quick())
 
 
 func _show_settings() -> void:

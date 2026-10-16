@@ -130,16 +130,24 @@ func _render_slots() -> void:
 	content.add_child(row)
 	for st in ShipArms.STATIONS:
 		row.add_child(_station_box(st))
+	content.add_child(UiTheme.label("WEITERE TECHNIKER (NUR CREW; JE ZWEITE BAUSTELLE IM KAMPF %d)" % SpaceSetup.SECOND_TASK_MALUS, 13, UiTheme.MUTED))
+	var tr := HBoxContainer.new()
+	tr.add_theme_constant_override("separation", 10)
+	content.add_child(tr)
+	for t in ShipArms.EXTRA_TECH:
+		tr.add_child(UiTheme.label(SpaceSetup.station_name(t), 15))
+		tr.add_child(_post_pick(t))
 	_note("Geschützposten je bestücktem Slot: Crew an Bord ohne andere Station (oder mit Station „Geschütze“) oder Bord-KI; ohne Eintrag steht, wer die Station „Geschütze“ hat, am ersten bestückten Slot. Doppelbesetzung (−30) und Änderungen kurz vor dem Kampf macht das Kampf-Briefing des Raumkampfs. Verwundete ohne Einsatzfreigabe und Personal der Krankenstation fallen weg, ihr Posten geht an die Bord-KI.")
 
 
-## Auswahl Geschützposten (Figur oder Bord-KI)
+## Auswahl Geschützposten (Figur oder Bord-KI) bzw. weiterer Techniker (Figur oder frei)
 func _post_pick(slot: String) -> OptionButton:
 	var pick := OptionButton.new()
 	pick.custom_minimum_size = Vector2(260, 32)
 	var ids: Array[String] = [ShipArms.KI]
-	pick.add_item("Bord-KI (+20)")
-	var skill := _gun_skill(ShipArms.slot_key(game, slot))
+	var tech := slot in ShipArms.EXTRA_TECH
+	pick.add_item("frei" if tech else _ki_text())
+	var skill := ShipArms.SKILL if tech else ShipArms.gun_skill(ShipArms.slot_key(game, slot))
 	for c in ShipArms.gun_candidates(game):
 		ids.append(String(c.id))
 		pick.add_item("%s (%s %s)" % [c.name, Rules.skill_name(skill), Dice.fmt(Rules.skill_total(c, skill))])
@@ -150,14 +158,9 @@ func _post_pick(slot: String) -> OptionButton:
 	return pick
 
 
-## Fertigkeit des Geschützes nach Art der Waffe (für die Anzeige)
-func _gun_skill(key: String) -> StringName:
-	match ShipArms.kind(key):
-		"Strahl":
-			return &"strahlGeschuetze"
-		"Rakete":
-			return &"raketen"
-	return &"ballistikGeschuetze"
+## „Bord-KI (+0)“ mit dem Bonus aus dem Raumkampf
+func _ki_text() -> String:
+	return "Bord-KI (%s)" % Dice.fmt(SpaceSetup.KI_BONUS)
 
 
 func _pick_box(slot: String) -> Control:
@@ -203,7 +206,7 @@ func _station_box(st: String) -> Control:
 		v.add_child(UiTheme.label(marked.name, 15, Color("ff8a3d")))
 		v.add_child(UiTheme.label("nicht verfügbar: Bord-KI springt ein", 13, Color("ff8a3d")))
 	else:
-		v.add_child(UiTheme.label("Bord-KI (+20)", 15, UiTheme.CREW))
+		v.add_child(UiTheme.label(_ki_text(), 15, UiTheme.CREW))
 		v.add_child(UiTheme.label("niemand eingeteilt", 13, UiTheme.MUTED))
 	return p
 
@@ -279,9 +282,9 @@ func _render_upgrades() -> void:
 	content.add_child(grid)
 	for id in ShipUpgrades.AREAS:
 		var lv := ShipUpgrades.level(g, id)
-		var maxed := lv >= ShipUpgrades.MAX_LEVEL
+		var maxed := lv >= ShipUpgrades.max_level(id)
 		grid.add_child(UiTheme.label(ShipUpgrades.AREAS[id].name, 15))
-		grid.add_child(UiTheme.label("●".repeat(lv) + "○".repeat(ShipUpgrades.MAX_LEVEL - lv), 16, UiTheme.ACCENT))
+		grid.add_child(UiTheme.label("●".repeat(lv) + "○".repeat(ShipUpgrades.max_level(id) - lv), 16, UiTheme.ACCENT))
 		grid.add_child(UiTheme.label("ausgebaut: " + ShipUpgrades.describe(id, lv) if maxed else
 			"%s → %s" % [ShipUpgrades.describe(id, lv), ShipUpgrades.describe(id, lv + 1)], 14, UiTheme.MUTED if maxed else UiTheme.TEXT))
 		if maxed:

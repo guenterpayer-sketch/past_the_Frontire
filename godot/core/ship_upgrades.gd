@@ -20,15 +20,22 @@ const AREAS := {
 	&"shields": {"name": "Schilde", "values": [0, 1, 2, 3], "text": "Stufe %d"},
 	&"armor": {"name": "Panzerung", "values": [0, 1, 2, 3], "text": "Stufe %d"},
 	&"reactor": {"name": "Reaktor", "values": [0, 1, 2, 3], "text": "Stufe %d"},
-	&"slots": {"name": "Waffenslots", "values": [4, 5, 6, 7], "text": "%d Slots", "texts": ["4 Slots", "5 Slots (+ Heck)", "6 Slots (+ Bug 2)", "7 Slots (+ Turm 2)"]},
+	&"slots": {"name": "Waffenslots", "values": [4, 5, 6, 7, 8, 9], "text": "%d Slots", "max": 5, "texts": ["4 Slots",
+		"5 Slots (+ Heck)", "6 Slots (+ Backbord 2)", "7 Slots (+ Steuerbord 2)", "8 Slots (+ Bug 2)", "9 Slots (+ Turm 2)"]},
 }
+## Höchste Stufe, wenn der Bereich kein eigenes "max" hat (Waffenslots: 5, Schnittstelle Raumkampf 16.10.2026)
 const MAX_LEVEL := 3
-## Kosten der Stufe 1, 2, 3 (Index = Zielstufe − 1)
-const YARD_COST := [600, 1200, 2200]
-const CREW_MATERIAL := [3, 6, 9]
-const CREW_DAYS := [3, 5, 8]
+## Kosten der Stufe 1 … 5 (Index = Zielstufe − 1; Stufe 4/5 nur Waffenslots, Entscheidung des Nutzers 16.10.2026)
+const YARD_COST := [600, 1200, 2200, 3200, 4500]
+const CREW_MATERIAL := [3, 6, 9, 12, 15]
+const CREW_DAYS := [3, 5, 8, 10, 12]
 const SKILL := &"rsReparatur"
 const DIFF := "mittel"
+
+
+## Höchste Stufe eines Bereichs
+static func max_level(id: StringName) -> int:
+	return int(AREAS[id].get("max", MAX_LEVEL))
 
 
 static func level(g: HubState, id: StringName) -> int:
@@ -41,12 +48,12 @@ static func value(g: HubState, id: StringName) -> int:
 
 
 static func value_at(id: StringName, lv: int) -> int:
-	return int(AREAS[id].values[clampi(lv, 0, MAX_LEVEL)])
+	return int(AREAS[id].values[clampi(lv, 0, max_level(id))])
 
 
 static func describe(id: StringName, lv: int) -> String:
 	if AREAS[id].has("texts"):
-		return String(AREAS[id].texts[clampi(lv, 0, MAX_LEVEL)])
+		return String(AREAS[id].texts[clampi(lv, 0, max_level(id))])
 	return String(AREAS[id].text) % value_at(id, lv)
 
 
@@ -58,12 +65,12 @@ static func busy(g: HubState) -> bool:
 
 ## Werftpreis der nächsten Stufe (nach Verhandeln)
 static func yard_cost(g: HubState, id: StringName) -> int:
-	return TradeSkills.adj(YARD_COST[mini(level(g, id), MAX_LEVEL - 1)], TradeSkills.ship_factor(g))
+	return TradeSkills.adj(YARD_COST[mini(level(g, id), max_level(id) - 1)], TradeSkills.ship_factor(g))
 
 
 static func can_yard(g: HubState, id: StringName) -> bool:
 	var lv := level(g, id)
-	return lv < MAX_LEVEL and g.is_harbor(g.position) and g.credits >= yard_cost(g, id) and String(g.project.get("id", "")) != String(id)
+	return lv < max_level(id) and g.is_harbor(g.position) and g.credits >= yard_cost(g, id) and String(g.project.get("id", "")) != String(id)
 
 
 static func buy_yard(g: HubState, id: StringName) -> bool:
@@ -78,7 +85,7 @@ static func buy_yard(g: HubState, id: StringName) -> bool:
 
 static func can_crew(g: HubState, id: StringName) -> bool:
 	var lv := level(g, id)
-	return lv < MAX_LEVEL and not busy(g) and g.material >= CREW_MATERIAL[lv] and Voyage.repairer(g) != null
+	return lv < max_level(id) and not busy(g) and g.material >= CREW_MATERIAL[lv] and Voyage.repairer(g) != null
 
 
 ## Crew-Ausbau beginnen: Material wird sofort verbraucht

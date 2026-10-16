@@ -1065,7 +1065,8 @@ func _test_ship_arms() -> void:
 		c.station = ""
 	check(ShipArms.slot_ids(g) == ["bug", "backbord", "steuerbord", "turm"] and ShipArms.slot_key(g, "bug") == "laserbank"
 		and ShipArms.slot_key(g, "turm") == "abwehrgeschuetz" and g.ship_ammo == {"schiffsraketen": 6, "geschosse": 40}, "Startschiff und Startvorrat")
-	check(ShipArms.keys().size() == 8 and ShipArms.name("partikelkanone") == "Partikelkanone" and ShipArms.price("laserbank") == 800
+	check(ShipArms.keys() == ShipWeapons.keys() and ShipArms.name("partikelkanone") == ShipWeapons.name("partikelkanone")
+		and ShipArms.price("laserbank|-20") == ShipWeapons.price("laserbank")
 		and ShipArms.ammo("raketenwerfer") == "schiffsraketen" and ShipArms.ammo("laserbank") == "", "Übergangskatalog")
 	check(ShipArms.fits("abwehrgeschuetz", "turm") and not ShipArms.fits("abwehrgeschuetz", "bug") and not ShipArms.fits("laserbank", "turm2")
 		and ShipArms.fits("raketenbatterie", "heck"), "Turm nur Abwehr, sonst jede andere Waffe")
@@ -1085,13 +1086,17 @@ func _test_ship_arms() -> void:
 	var k: String = shop[0]
 	var cr := g.credits
 	check(ShipArms.buy(g, k) and g.credits == cr - ShipArms.price(k) and ShipArms.stock_count(g, k) == 1, "Schiffswaffe kaufen ins Lager")
-	check(ShipArms.sell_price(g, "laserbank|-20") == 200 and ShipArms.sell_price(g, "laserbank") == 400, "Verkauf 50 %, beschädigt −25 % je −10")
+	# Preise sind Platzhalter des Raumkampfs: Erwartung aus ShipWeapons berechnet
+	var lp: int = ShipWeapons.price("laserbank")
+	check(ShipArms.sell_price(g, "laserbank|-20") == int(floor(lp * 0.5 * 0.5)) and ShipArms.sell_price(g, "laserbank") == int(floor(lp * 0.5)),
+		"Verkauf 50 %, beschädigt −25 % je −10")
 	check(ShipArms.sell(g, k) and ShipArms.stock_count(g, k) == 0, "Schiffswaffe verkaufen")
 	cr = g.credits
 	check(ShipArms.buy_ammo(g, "schiffsraketen", 3) and g.credits == cr - 180 and g.ship_ammo.schiffsraketen == 9, "Schiffsraketen 60 Cr")
 	check(ShipArms.buy_ammo(g, "geschosse", 10) and g.ship_ammo.geschosse == 50 and ShipArms.ammo_sell(g, "schiffsraketen", 3) == 90, "Geschosse 3 Cr, Verkauf 50 %")
 	TradeSkills.fixed = &"erfolg"
-	check(ShipArms.buy_price(g, "laserbank") == 720 and ShipArms.ammo_price(g, "schiffsraketen") == 54 and ShipArms.sell_price(g, "laserbank") == 480, "Verhandeln Erfolg: −10 %, Verkauf 60 %")
+	check(ShipArms.buy_price(g, "laserbank") == roundi(lp * 0.9) and ShipArms.ammo_price(g, "schiffsraketen") == 54
+		and ShipArms.sell_price(g, "laserbank") == int(floor(lp * 0.6)), "Verhandeln Erfolg: −10 %, Verkauf 60 %")
 	TradeSkills.fixed = &"teilerfolg"
 	# Einbau nur im Hafen; alte Waffe ins Lager, Schaden bleibt am Stück
 	ShipArms.stock_add(g, "partikelkanone")
@@ -1168,14 +1173,14 @@ func _test_ship_arms() -> void:
 	check(ShipArms.yard_stage_cost(g) == 50 and ShipArms.yard_system(g, "station_computer") and ShipArms.stage(g, "station_computer") == 1
 		and g.credits == 950 and g.material == 0, "Werft: 1 Stufe 50 Cr + 1 Material")
 	check(not ShipArms.can_yard_system(g, "station_computer"), "Werft braucht Material")
-	check(ShipArms.yard_weapon_cost(g, "slot:backbord") == 90 and ShipArms.yard_weapon(g, "slot:backbord") and ShipArms.slot_damage(g, "backbord") == 0, "Werft: Waffe 10 % je −10")
+	check(ShipArms.yard_weapon_cost(g, "slot:backbord") == roundi(ShipWeapons.price("massebeschleuniger") * 0.1) and ShipArms.yard_weapon(g, "slot:backbord") and ShipArms.slot_damage(g, "backbord") == 0, "Werft: Waffe 10 % je −10")
 	# Spielstand
 	ShipArms.stock_add(g, "laserbank|-20")
 	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
 	check(h.ship_slots == g.ship_slots and h.ship_stock == g.ship_stock and h.ship_ammo == g.ship_ammo and h.ship_damage == g.ship_damage
 		and h.gun_posts == g.gun_posts, "Schiff im Spielstand")
 	var old := HubState.from_dict({"sector": g.sector.to_dict()})
-	check(old.ship_slots == ShipArms.start_slots() and old.ship_ammo == ShipArms.START_AMMO and old.ship_damage.is_empty(), "alte Spielstände: Startschiff")
+	check(old.ship_slots == ShipArms.start_slots() and old.ship_ammo == SpaceSetup.START_AMMO and old.ship_damage.is_empty(), "alte Spielstände: Startschiff")
 	# setup für SpaceBattle.start
 	crew[2].injury = Injury.DOWN
 	crew[2].injury_days = 3
@@ -1183,6 +1188,58 @@ func _test_ship_arms() -> void:
 	check(su.ship.levels == {"shields": 0, "armor": 0, "reactor": 0, "slots": 1} and su.ship.slots.size() == 5 and su.ship.hull_max == g.hull_max()
 		and su.ship_ammo == g.ship_ammo and su.source == "reise" and su.return_scene == HubState.HUB_SCENE and su.posts.has("geschuetz_bug")
 		and su.crew.size() == crew.size() - 1 and not crew[2] in su.crew, "setup aus dem HubState, Gesperrte fehlen")
+	# Schnittstellen-Erweiterung Raumkampf: Waffenslots 0–5, weitere Techniker, selbst entern
+	g.position = g.nearest_harbor()
+	g.credits = 50000
+	while ShipUpgrades.level(g, &"slots") < 3:
+		ShipUpgrades.buy_yard(g, &"slots")
+	check(ShipUpgrades.max_level(&"slots") == 5 and ShipUpgrades.max_level(&"tank") == 3 and ShipUpgrades.yard_cost(g, &"slots") == 3200
+		and ShipUpgrades.CREW_MATERIAL[3] == 12 and ShipUpgrades.CREW_DAYS[3] == 10, "Waffenslots Stufe 4: 3200 Cr, 12 Material, 10 Tage")
+	ShipUpgrades.buy_yard(g, &"slots")
+	check(ShipUpgrades.yard_cost(g, &"slots") == 4500, "Waffenslots Stufe 5: 4500 Cr")
+	ShipUpgrades.buy_yard(g, &"slots")
+	check(ShipArms.slot_ids(g) == SpaceSetup.slots_for(5) and "backbord2" in g.ship_slots and "steuerbord2" in g.ship_slots and "turm2" in g.ship_slots
+		and not ShipUpgrades.can_yard(g, &"slots") and ShipUpgrades.describe(&"slots", 5) == "9 Slots (+ Turm 2)", "Waffenslots Stufe 5: 9 Slots, ausgebaut")
+	check(ShipArms.fits("raketenwerfer", "backbord2") and ShipArms.fits("abwehrlaser", "turm2") and not ShipArms.fits("abwehrlaser", "steuerbord2"), "neue Slots: Turm 2 nur Abwehr")
+	var free_c: Character = null
+	for c in crew:
+		if c.station == "" and not c.is_locked():
+			free_c = c
+			break
+	p = ShipArms.posts(g)
+	check(p.technik_2 == ShipArms.KI and p.technik_3 == ShipArms.KI, "weitere Techniker ohne Eintrag frei")
+	ShipArms.set_gun_post(g, "technik_2", String(free_c.id))
+	check(ShipArms.posts(g).technik_2 == String(free_c.id), "Techniker 2 besetzt")
+	ShipArms.set_gun_post(g, "bug", String(free_c.id))
+	p = ShipArms.posts(g)
+	check(p.geschuetz_bug == String(free_c.id) and p.technik_2 == ShipArms.KI, "eine Figur nur auf einem Zusatzposten")
+	check(ShipArms.setup(g, {}, "reise").ship.levels.slots == 5, "setup: Waffenslots Stufe 5")
+	# selbst entern: vormerken, Bodenkampf, Beute nur bei Sieg
+	check(not g.book_board({"outcome": &"sieg"}, "mittel") and g.board_pending.is_empty(), "ohne board_enemy nichts vorgemerkt")
+	var loot := {"credits": 300, "material": 4, "ship_ammo": {"geschosse": 20}, "weapons": [{"key": "raketenbatterie", "name": "Raketenbatterie", "damage": -20}]}
+	var res := {"outcome": &"sieg", "board_enemy": true, "board_faction": "rote_sonne", "board_ship": "Korvette Ash", "board_loot": loot}
+	check(g.book_board(res, "schwer") and g.board_pending.faction == "rote_sonne" and g.board_pending.difficulty == "schwer", "Entern vorgemerkt")
+	var hb := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(hb.board_pending.ship == "Korvette Ash" and int(hb.board_pending.loot.credits) == 300, "Entern im Spielstand")
+	check(g.start_boarding() and g.active.board and g.active.difficulty == "schwer", "Bodenkampf gegen die Besatzung vorbereitet")
+	var bm := g.mission_of(g.active)
+	check(bm.faction.resource_path == "res://data/missions/rote_sonne.tres" and HubState.board_faction_path("piraten") == "", "Missionsfraktion kämpft selbst, Piraten zufällig")
+	var cr1 := g.credits
+	var m1 := g.material
+	var ga: int = g.ship_ammo.geschosse
+	var offers_before := g.offers.size()
+	Campaign.last_result = {"outcome": &"sieg"}
+	g.finish_mission({"outcome": &"sieg", "title": "Entern"})
+	check(g.credits == cr1 + 300 and g.material == m1 + 4 and g.ship_ammo.geschosse == ga + 20 and ShipArms.stock_count(g, "raketenbatterie|-20") == 1
+		and g.board_pending.is_empty() and g.report.board == "Korvette Ash" and g.report.payout.is_empty(), "Sieg: Beute des Schiffs verbucht, kein Lohn")
+	check(not HubState.in_mission() and g.offers.size() >= offers_before, "kein Einsatz mehr offen, Aufträge unberührt")
+	g.book_board(res, "mittel")
+	g.start_boarding()
+	cr1 = g.credits
+	Campaign.last_result = {"outcome": &"niederlage"}
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.credits == cr1 and g.report.board_loot.is_empty() and g.board_pending.is_empty(), "Niederlage: Beute verloren")
+	Campaign.last_result = {}
 	TradeSkills.fixed = &"teilerfolg"
 	HubState.game = null
 	if crew_before != "":
