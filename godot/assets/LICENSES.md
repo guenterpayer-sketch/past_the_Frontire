@@ -11,6 +11,9 @@ Alle Modelle sind frei nutzbar (auch kommerziell). Quelle, Lizenz und Verwendung
 | `hall/floor_tile.glb`, `hall/wall.glb`, `hall/crate.glb`, `hall/column.glb`, `hall/shelf.glb` | Ultimate Modular Sci-Fi Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimatemodularscifi.html |
 | `ship/floortile_*.glb`, `ship/wall_*.glb`, `ship/*_wall_sidea.glb`, `ship/column_slim.glb`, `ship/props_*.glb` | Ultimate Modular Sci-Fi Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimatemodularscifi.html |
 | `ship/dropship_insurgent.glb` (Insurgent), `ship/ship_imperial.glb` (Imperial) | Ultimate Spaceships Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimatespaceships.html |
+| `weapons/melee/*.glb` (24 Nahkampfwaffen, Bögen, Schilde; `*.tscn` = gedrehte Hüllen) | Modular Weapons Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/medievalweapons.html (über `trebeljahr/quaternius-showcase`, `public/glb/medieval_weapons_pack/`) |
+| `weapons/guns/*.glb` (21 Schusswaffen; Zubehör Zielfernrohr, Zweibein, Dreibein, Bajonett nicht übernommen) | Ultimate Guns Pack – Quaternius | CC0 1.0 | https://quaternius.com/packs/ultimategun.html, GLB-Ausgabe von https://poly.pizza/bundle/Ultimate-Guns-Pack-cpgUfI4t2F (vom Nutzer geladen) |
+| `weapons/blaster/blaster-*.glb`, `weapons/blaster/Textures/colormap.png` (18 Blaster; `*.tscn` = gedrehte Hüllen), Lizenztext `weapons/blaster/License.txt` | Blaster Kit 2.1 – Kenney (www.kenney.nl) | CC0 1.0 | https://kenney.nl/assets/blaster-kit (vom Nutzer geladen) |
 | `hall/tank.glb` | Cyberpunk Game Kit – Quaternius | CC0 1.0 | https://quaternius.com/packs/cyberpunkgamekit.html |
 | `source/kaykit/Knight.glb` (nur Quelle der Animationen) | KayKit Character Pack: Adventurers – Kay Lousberg | CC0 1.0 | https://kaylousberg.itch.io/kaykit-adventurers, `source/kaykit/LICENSE.txt` |
 | `characters/anims/*.res` | aus den KayKit-Animationen auf die Quaternius-Skelette übertragen (`tools/bake_animations.gd`) | CC0 1.0 | – |
@@ -25,3 +28,9 @@ Vom Nutzer ausgewählt und abgelegt (15.10.2026). Zuordnung zur Quelle nach dem 
 |---|---|---|
 | `arpmedia-instrumental-588483.mp3`, `uniquecreativeaudio-ambient-dream-stream-…-258513.mp3`, `ame_atmos-…-487106.mp3`, `ame_atmos-…-534132.mp3`, `foggysunrise-chill-synthwave-1-451092.mp3` | Pixabay (https://pixabay.com/music/) | Pixabay Content License |
 | `Futuristic Combat Pulse.mp3`, `Futuristic Combat Pulse(1).mp3`, `Ominous Battle Pulse.mp3`, `Distant Metallic Pulse.mp3`, `Tactical Silence.mp3`, `Deep Space Signal.mp3`, `Victory Pulse.mp3` | mit Suno erzeugt (https://suno.com) | nach den Suno-Bedingungen des Kontos des Nutzers |
+
+## Klänge
+
+| Dateien | Quelle / Urheber | Lizenz | Herkunft |
+|---|---|---|---|
+| `audio/sfx/revolver.ogg` (Smith & Wesson 642, V_22P), `pistole.ogg` (Walther PPQ, X_31P), `schrotflinte.ogg` (Mossberg, N_26P), `gewehr_schwer.ogg` (Mosin Nagant, M_21P), `mp.ogg` (PPSh, P_22P), `sturmgewehr.ogg` (AK-47, C_34P), `minigun.ogg` (AK-47, C_27P, auf 1,8-fache Geschwindigkeit gebracht) | The Free Firearm Sound Library (Kickstarter 2014) | CC0 1.0 | https://opengameart.org/content/the-free-firearm-sound-library, Kopie `buddingmonkey/FreeFirearmsSFXLibrary` (`Prepared SFX/`); geschnitten (erster Schuss bzw. Salve), Mono, 44,1 kHz, Ogg Vorbis |

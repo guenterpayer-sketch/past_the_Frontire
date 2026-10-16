@@ -1,10 +1,13 @@
 extends Node
 ## Soundeffekte, synthetisch erzeugt wie in der HTML-Version (Rauschen durch Filter, Töne mit Frequenzverlauf).
 ## Autoload "Sfx". Die Klänge werden beim ersten Abspielen berechnet und dann zwischengespeichert.
+## Liegt eine Datei res://audio/sfx/<Name>.ogg vor, wird sie statt des synthetischen Klangs gespielt (Waffenklänge).
 
 const RATE := 22050
 const VOICES := 12
 const MASTER := 0.5
+const FILE_DIR := "res://audio/sfx/"
+const FILE_DB := -6.0   # Aufnahmen sind auf fast volle Lautstärke normiert, die synthetischen Klänge leiser
 
 var enabled := true
 var _cache := {}
@@ -44,13 +47,18 @@ func play(name: StringName, delay := 0.0) -> void:
 	var p := _players[_next]
 	_next = (_next + 1) % VOICES
 	p.stream = stream
+	p.volume_db = 0.0 if stream is AudioStreamWAV else FILE_DB
 	p.play()
 
 
-func _stream(name: StringName) -> AudioStreamWAV:
+func _stream(name: StringName) -> AudioStream:
 	if not _cache.has(name):
-		var buf := _synth(name)
-		_cache[name] = _to_wav(buf) if not buf.is_empty() else null
+		var path := FILE_DIR + String(name) + ".ogg"
+		if ResourceLoader.exists(path):
+			_cache[name] = load(path)
+		else:
+			var buf := _synth(name)
+			_cache[name] = _to_wav(buf) if not buf.is_empty() else null
 	return _cache[name]
 
 
