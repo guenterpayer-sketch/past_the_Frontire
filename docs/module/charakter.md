@@ -119,3 +119,9 @@ Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis
 Geplant (`docs/Planung_Ausbau_Lager_Handwerk.md`, Schritt 3): Der Hub baut ein Lager mit Stückzahlen. **Warten, bis seine Schnittstelle in `main` ist.** Dann: Ausrüsten nimmt aus dem Lager, Ablegen legt zurück, Medikits aus dem Lager.
 - **Lager des Hubs ist in `main` (`81991c8`):** `Stock.key_of(res)` (= `resource_path`), `Stock.MEDKIT`, `Stock.count/take/add(HubState.game, key, n)`, `Stock.items(g)`, `Stock.name_of(key)`; ohne Spiel (Schnellkampf) unbegrenzt. Details `docs/module/hub.md`. Jetzt `main` holen und die Waffenkammer anbinden (Schritt 3).
 - (16.10.2026) Angebunden → siehe Stand; Auftrag an Hub zum Schild.
+
+### Auftrag (16.10.2026): Beschädigung und Verlust übernehmen
+
+Bodenkampf meldet je Figur im `MissionResult` `wear` {Platz "w0"/"w1"/"armor": Abzug; −10 je Schaden, ab −30 unbrauchbar} und `lost` [Platz] (Niederlage ohne Rückzug). Regeln: `docs/Skillsystem.md`, „Beute, Beschädigung und Verlust“. Schild ist davon ausgenommen (Entscheidung des Nutzers).
+- **Jetzt:** `Character.wear` speichern (der Kampf liest es schon über `ch.get("wear")`), in `apply_result` übernehmen; verlorene Plätze leeren (Waffe 1 → Fäuste, Waffe 2 → leer, Rüstung → keine) **ohne** `Equipment.set_weapon/set_armor` (die legen das alte Teil ins Lager zurück – das verlorene käme wieder). Beschädigung in Charakterübersicht und Waffenkammer anzeigen.
+- **Danach (wartet auf Hub):** Beschädigte Stücke liegen einzeln mit Schaden im Lager; das `Stock`-Format legt der Hub fest. Dann Waffenkammer: beschädigte Stücke wählbar, beim Ablegen mit Schaden zurück ins Lager (`wear` des Platzes geht mit).

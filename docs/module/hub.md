@@ -296,3 +296,11 @@ Charakter hat den Schild zum Lagergegenstand gemacht (Schlüssel `Equipment.SHIE
 - `Stock`: Schlüssel `Equipment.SHIELD` mit Name „Schild“, Kaufpreis **150 Cr** (`PRICES`), Teil von `goods()` und damit des zufälligen Sortiments (Anteil nach Gassenwissen, wie Waffen/Rüstungen). Verkauf und Kauf nach Handeln (`TradeSkills`), z. B. Verkauf 75 Cr bei Teilerfolg.
 - Test: `_test_stock` prüft Preis, Name, Handelsgut, Preise nach Handeln, Kauf aus dem Sortiment und Verkauf.
 - Doku: Preistabelle `docs/Skillsystem.md` 8b, `godot/README.md`.
+
+### Auftrag (16.10.2026): Beuteauswahl, beschädigte Stücke im Lager, Reparatur
+
+Bodenkampf meldet jetzt im `MissionResult` `loot` = [{key (`Stock.key_of`), name, damage 0/−10…−30}] plus Medikits [{key: `Stock.MEDKIT`, name, count}], je Figur `wear` {Platz "w0"/"w1"/"armor": Abzug} und `lost` [Platz]. Regeln: `docs/Skillsystem.md`, „Beute, Beschädigung und Verlust“. Entscheidungen des Nutzers:
+- **Beuteauswahl im Einsatzbericht:** bis zu **N = 1 Stück je Crewmitglied im Einsatz**; Medikits zählen nicht (gehen alle ins Lager). Schild ist nie Beute.
+- **Beschädigte Stücke liegen einzeln mit Schaden im Lager** (z. B. „Sturmgewehr (−20)“ als eigener Eintrag). Das Format im `Stock` legst du fest und vermerkst es in den Schnittstellen – Charakter wartet darauf (Waffenkammer wählt/legt beschädigte Stücke ab).
+- **Reparatur**, alle drei Wege: (1) Crew mit Probe (Waffen/Rüstung herstellen) – gehört zum Handwerk (Schritt 5), hier nur vormerken; (2) **Werkstatt im Raumhafen** gegen Credits, sofort; (3) **beschädigt billiger verkaufen** (Preis sinkt je −10). Zahlen (Werkstattpreis, Abschlag) vorher mit dem Nutzer klären; Werkstattpreis über `TradeSkills` (Verhandeln) oder Handeln – mit dem Nutzer klären.
+- Erst Mockup (Beuteauswahl), dann bauen.
