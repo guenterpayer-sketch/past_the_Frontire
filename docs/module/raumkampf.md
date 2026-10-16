@@ -101,6 +101,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 
 - (16.10.2026) Moduldatei angelegt.
 - (16.10.2026) Auftrag 1: Klärung mit dem Nutzer abgeschlossen, Planung in `docs/Planung_Raumkampf.md` (Entscheidungen, Vorschläge, offene Punkte, Schnittstellen-Vorschlag), `docs/Raumkampf.md` angeglichen. Mockup (Artifact „Raumkampf Mockup“) vom Nutzer bestätigt. Noch kein Code.
+- (16.10.2026) Auftrag 2: offene Punkte mit dem Nutzer geklärt (`docs/Planung_Raumkampf.md` 1a), Schnittstelle als fester Stand oben unter „Schnittstellen“. Noch kein Code.
 
 ### Auftrag 2 (16.10.2026): Regelkern, Szene, Schnittstelle
 
@@ -110,4 +111,3 @@ Planung V1 (`8bd0e3a`) ist in `main`. **Zuständigkeit (Entscheidung Koordinator
 - **Bodenkampf:** in V1 nichts (Entern startet die normale Lagerhalle über den Hub). Karte „Schiffsinneres“ später.
 - **Charakter:** nichts, solange das Ergebnis das `MissionResult`-Format hält.
 - **Reihenfolge:** Raumkampf zuerst Schnittstelle (`SpaceSetup`-Felder, Ergebnis-Felder, Einstiegsfunktion, Daten der Waffen-Keys für Slots) als festen Stand in diese Datei unter „Schnittstellen“ schreiben und pushen (vorab meldbar wie beim Hub +5). Erst dann beginnt der Hub. Offene Zahlen und Punkte (Planung 3, u. a. Energie für Strahlwaffen) vorher mit dem Nutzer klären.
-- (16.10.2026) Auftrag 2: offene Punkte mit dem Nutzer geklärt (`docs/Planung_Raumkampf.md` 1a), Schnittstelle als fester Stand oben unter „Schnittstellen“. Noch kein Code.
