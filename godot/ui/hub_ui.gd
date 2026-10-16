@@ -19,6 +19,7 @@ var sheet: SheetDialog
 var slots: SlotsDialog
 var report: Modal
 var medbay: MedbayDialog
+var galley: GalleyDialog
 var armory: ArmoryDialog
 var notice: Modal
 var help: Modal
@@ -131,6 +132,7 @@ func _ready() -> void:
 	slots = SlotsDialog.new()
 	report = Modal.new()
 	medbay = MedbayDialog.new()
+	galley = GalleyDialog.new()
 	armory = ArmoryDialog.new()
 	travel_report = Modal.new()
 	engine = EngineDialog.new()
@@ -138,7 +140,7 @@ func _ready() -> void:
 	craft = CraftDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report, engine, trade, craft]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, galley, armory, travel_report, engine, trade, craft]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = Vector2(640, 440)
@@ -172,6 +174,7 @@ func set_status(g: HubState) -> void:
 	_res_row.add_child(_meter("Treibstoff", g.fuel, g.tank_max(), UiTheme.CREW))
 	_res_row.add_child(_meter("Hülle", g.hull, g.hull_max(), UiTheme.GOOD))
 	_res_row.add_child(_stat("Material", str(g.material), UiTheme.TEXT))
+	_res_row.add_child(_stat("Proviant", provisions_text(g), UiTheme.BAD if g.provisions <= 0 else UiTheme.TEXT))
 	_res_row.add_child(_stat("Munition", ammo_text(g), UiTheme.TEXT))
 	UiTheme.clear(_warn_box)
 	for w in warnings(g):
@@ -184,6 +187,13 @@ static func ammo_text(g: HubState) -> String:
 	for t in Voyage.AMMO_START:
 		parts.append("%s %d" % [String(Ammo.TYPES.get(StringName(t), t)).split("zellen")[0], int(g.ammo.get(t, 0))])
 	return " · ".join(parts)
+
+
+## „48 · 6 je Tag“ bzw. „48 · im Hafen kein Verbrauch“
+static func provisions_text(g: HubState) -> String:
+	if g.is_harbor(g.position):
+		return "%d · im Hafen kein Verbrauch" % g.provisions
+	return "%d · %d je Tag" % [g.provisions, Galley.need()]
 
 
 ## Warnungen unter der Statusleiste: [Text, Farbe]
@@ -200,6 +210,10 @@ static func warnings(g: HubState) -> Array:
 		out.append(["Treibstoff knapp: reicht für etwa %d Reisetage" % maxi(1, g.fuel / maxi(1, Voyage.estimate_fuel(g, 1))), Color("ff8a3d")])
 	if g.hull <= 0:
 		out.append(["Hülle 0: nur Kurs zum nächsten Hafen%s" % port_text, UiTheme.BAD])
+	if g.provisions <= 0 and not Campaign.crew().is_empty():
+		out.append(["Proviant leer: %d auf Proben im Schiff, bis wieder Proviant gekauft ist" % Galley.MALUS, UiTheme.BAD])
+	elif not g.is_harbor(g.position) and Galley.days_left(g) < Galley.LOW_DAYS:
+		out.append(["Proviant knapp: reicht etwa %d %s" % [Galley.days_left(g), "Tag" if Galley.days_left(g) == 1 else "Tage"], Color("ff8a3d")])
 	if g.credits < 0:
 		out.append(["Notkredit: %d Cr Schulden, der nächste Lohn gleicht aus" % -g.credits, UiTheme.BAD])
 	return out
@@ -326,7 +340,13 @@ func show_notice(title: String, text: String) -> void:
 ## Einsatzbericht nach der Rückkehr aus dem Bodenkampf
 func show_report(rep: Dictionary) -> void:
 	var win: bool = rep.get("outcome", &"") == &"sieg"
-	report.open("Einsatzbericht: %s – %s" % ["Sieg" if win else "Niederlage", rep.get("title", "")])
+	var retreat := bool(rep.get("retreated", false))
+	var title := String(rep.get("title", "")).trim_suffix(" (Rückzug)")
+	report.open("Einsatzbericht: %s – %s" % ["Rückzug" if retreat else ("Sieg" if win else "Niederlage"), title])
+	if retreat:
+		var rb := UiTheme.label("Rückzug · der Auftrag bleibt offen bis Tag %d (auf der Brücke als „erneuter Versuch“). Kein Lohn, keine Beute; Ausrüstung: kein Verlust, Kampfunfähige können Schaden bekommen." % int(rep.get("expires", 0)), 15, UiTheme.RETREAT)
+		rb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		report.content.add_child(rb)
 	var rounds: int = rep.get("rounds", 0)
 	var head := UiTheme.label("%s · %s · %d %s · zurück an Bord an Tag %d" % [rep.get("system", ""), rep.get("faction", ""),
 		rounds, "Runde" if rounds == 1 else "Runden", rep.get("day", 0)], 14, UiTheme.MUTED)
@@ -353,6 +373,10 @@ func show_report(rep: Dictionary) -> void:
 		report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
 	for m in rep.get("crafts", []):
 		report.content.add_child(UiTheme.label("Werkstatt: " + m, 15, UiTheme.ACCENT))
+	if rep.has("prov0"):
+		var ck: Array = rep.get("cook", [])
+		var kt := ("   ·   Kochen: " + ", ".join(ck.map(func(e: Dictionary) -> String: return cook_text(e)))) if not ck.is_empty() else ""
+		report.content.add_child(UiTheme.label("Proviant %d → %d%s" % [rep.prov0, rep.prov1, kt], 15, UiTheme.BAD if int(rep.prov1) <= 0 else UiTheme.TEXT))
 	_payout(rep)
 	_loot(HubState.game)
 	var go := UiTheme.button("Zu den Crewquartieren")
@@ -486,7 +510,8 @@ func show_travel(rep: Dictionary) -> void:
 	travel_report.content.add_child(UiTheme.label("Tag %d → %d · %d %s" % [rep.day0, rep.day0 + rep.days, rep.days,
 		"Reisetag" if rep.days == 1 else "Reisetage"], 14, UiTheme.MUTED))
 	var g := GridContainer.new()
-	g.columns = 3 + Voyage.POSTS.size()
+	var cook: Array = rep.get("cook", [])
+	g.columns = 3 + Voyage.POSTS.size() + (1 if not cook.is_empty() else 0)
 	g.add_theme_constant_override("h_separation", 18)
 	g.add_theme_constant_override("v_separation", 6)
 	g.add_child(UiTheme.label("Tag", 12, UiTheme.MUTED))
@@ -494,8 +519,11 @@ func show_travel(rep: Dictionary) -> void:
 		g.add_child(UiTheme.label(p.name, 12, UiTheme.MUTED))
 	g.add_child(UiTheme.label("Treibstoff", 12, UiTheme.MUTED))
 	g.add_child(UiTheme.label("Hülle", 12, UiTheme.MUTED))
+	if not cook.is_empty():
+		g.add_child(UiTheme.label("Kochen", 12, UiTheme.MUTED))
 	var xp := {}
-	for row in rep.rows:
+	for ri in rep.rows.size():
+		var row: Dictionary = rep.rows[ri]
 		g.add_child(UiTheme.label(str(row.day), 14))
 		for c in row.checks:
 			if c.is_empty():
@@ -514,6 +542,12 @@ func show_travel(rep: Dictionary) -> void:
 			xp[key] = int(xp.get(key, 0)) + int(c.xp)
 		g.add_child(UiTheme.label(Dice.fmt(row.fuel) if row.fuel != 0 else "±0", 14))
 		g.add_child(UiTheme.label(Dice.fmt(row.hull) if row.hull != 0 else "±0", 14, UiTheme.GOOD if row.hull > 0 else (UiTheme.BAD if row.hull < 0 else UiTheme.TEXT)))
+		if not cook.is_empty():
+			var e: Dictionary = cook[ri] if ri < cook.size() else {}
+			g.add_child(UiTheme.label(cook_text(e), 13, cook_color(e)))
+			if not e.is_empty() and int(e.xp) > 0:
+				var ck := "%s %s" % [String(e.cook).split(" ")[0], Rules.skill_name(Galley.SKILL)]
+				xp[ck] = int(xp.get(ck, 0)) + int(e.xp)
 	travel_report.content.add_child(g)
 	var sum := "Treibstoff %d → %d" % [rep.fuel0, rep.fuel1]
 	if rep.emergency:
@@ -521,7 +555,12 @@ func show_travel(rep: Dictionary) -> void:
 	else:
 		sum += " (%s statt %s)" % [Dice.fmt(rep.fuel1 - rep.fuel0), Dice.fmt(-int(rep.get("per_day", Voyage.FUEL_PER_DAY)) * rep.days)]
 	sum += "   ·   Hülle %d → %d" % [rep.hull0, rep.hull1]
+	if rep.has("prov0"):
+		sum += "   ·   Proviant %d → %d" % [rep.prov0, rep.prov1]
 	travel_report.content.add_child(UiTheme.label(sum, 16, UiTheme.ACCENT))
+	var out_day := empty_day(cook)
+	if out_day > 0:
+		travel_report.content.add_child(UiTheme.label("Proviant aufgebraucht an Tag %d – ab jetzt %d auf Proben im Schiff, bis wieder Proviant gekauft ist." % [out_day, Galley.MALUS], 14, UiTheme.BAD))
 	if int(rep.get("training", 0)) > 0:
 		travel_report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
 	for m in rep.get("upgrade", []):
@@ -548,6 +587,33 @@ func show_travel(rep: Dictionary) -> void:
 	travel_report.move_to_front()
 
 
+## Kochprobe eines Tages kurz: „Ikko: Erfolg (5)“ / „ohne Koch (6)“
+static func cook_text(e: Dictionary) -> String:
+	if e.is_empty():
+		return "–"
+	var who := (String(e.cook).split(" ")[0] + ": ") if String(e.cook) != "" else ""
+	return "%s%s (%d)" % [who, e.result_name, int(e.use)]
+
+
+static func cook_color(e: Dictionary) -> Color:
+	match StringName(e.get("result", "")):
+		&"herausragend":
+			return UiTheme.ACCENT
+		&"erfolg", &"teilerfolg":
+			return UiTheme.GOOD
+		&"patzer":
+			return UiTheme.BAD
+	return UiTheme.TEXT
+
+
+## erster Tag, an dem der Proviant ausging (0 = nicht ausgegangen)
+static func empty_day(cook: Array) -> int:
+	for e in cook:
+		if bool(e.get("empty", false)) and int(e.p0) > 0:
+			return int(e.day)
+	return 0
+
+
 func show_help() -> void:
 	help.open("Bedienung im Schiff")
 	var l := UiTheme.label("""Raum anklicken (oder Knopf unten links): Brücke = Sternenkarte und Aufträge, Crewquartiere = Crew steigern.
@@ -560,7 +626,7 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible \
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
 
 
@@ -569,7 +635,7 @@ func close_dialogs() -> bool:
 	if enc and enc.visible:
 		enc.close()
 		return true
-	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report, engine, trade, craft]:
+	for d in [sheet, help, notice, slots, report, medbay, galley, armory, travel_report, engine, trade, craft]:
 		if d.visible:
 			d.close()
 			return true

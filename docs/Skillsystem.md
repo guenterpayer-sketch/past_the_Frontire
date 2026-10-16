@@ -561,6 +561,16 @@ Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
 
 Durchschnitt je Reisetag (simuliert, 200 000 Würfe): schwache Crew (alle Werte um −15) 9,6 Treibstoff, Hülle −4,6; Roster-Startcrew (Pilot +75, Navigation +0, Computer +20, Reparatur +55) 7,2 und +0,1; starke Crew (+90/+60/+60/+80) 4,9 und +1,5.
 
+## 8c. Proviant und Kochen (Entscheidungen 16.10.2026)
+
+Umgesetzt im Hub (`godot/core/galley.gd`, Werte im `HubState`; Planung `docs/Planung_Rueckzug_Proviant_Kochen.md`).
+
+- **Proviant:** Startvorrat **60**; Kauf im Raumhafen **5 Cr** je Einheit (nach Handeln). **Verbrauch je Tag 1 je Crewmitglied an Bord**, Reisetage zählen wie jeder Tag, **im Raumhafen kein Verbrauch**.
+- **Kochen** (`kochen`, EMP + KOO): Ein **fester Koch** (Raum Kombüse) würfelt **jeden Tag außerhalb des Hafens** automatisch eine Probe (Mittel, EP wie bei jeder Probe). Ohne Koch – oder wenn der Koch gesperrt verwundet ist – gilt **Fehlschlag**. Der Koch darf zugleich Arzt, Helfer oder Handwerker sein.
+- **Verbrauch nach Ergebnis:** Patzer +25 % · Fehlschlag normal · Teilerfolg −10 % · Erfolg −20 % · Herausragend −30 %; **kaufmännisch gerundet, mindestens 1**.
+- **Mangel:** Reicht der Vorrat nicht, wird der Rest verbraucht. **Ohne Proviant −10 auf alle Proben im Schiff** (Reise, Handel, Heilung, Handwerk, Schiffsausbau, Kochen), **nicht im Bodenkampf**, bis wieder Proviant gekauft ist. Keine weiteren Folgen.
+- **Training:** War unter den Kochproben seit dem letzten Training ein **Herausragend**, gibt das Training **+1 freie EP** (z. B. 4 statt 3).
+
 ## 9. Annahmen und offene Punkte
 
 Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leicht zu ändern:
@@ -588,6 +598,7 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 - **Beschädigung** von Waffen und Rüstungen (Crew und Gegner): −10 je Schaden, summiert, ab −30 unbrauchbar. Waffe: Abzug auf Angriffe, ab −30 nicht nutzbar. Rüstung: Abzug auf die Verteidigung, ab −30 wie keine Rüstung. Ursachen im Kampf: Patzer „Waffe klemmt“ (41–70) beschädigt die eigene Waffe, ein Kritischer D oder E die Rüstung des Getroffenen. Am Kampfende (Sieg, Niederlage oder Rückzug) bekommt jedes Teil jeder kampfunfähigen Crew-Figur mit 25 % einen Schaden. Beschädigtes bleibt bis zur Reparatur beschädigt (mit Abzug nutzbar). **Gutes Stück** (+5, aus dem Handwerk bei „Herausragend“): Waffe +5 auf Angriffe, Rüstung +5 auf die Verteidigung; der erste Schaden nimmt den Bonus (+5 → 0 → −10 …). Beute ist nie +5.
 - **Beute** bei Sieg: Waffen, Rüstungen und übrige Medikits der besiegten Gegner; Waffen mit 30 %, Rüstungen mit 60 % beschädigt (−10 bis −30, plus Schaden aus dem Kampf). Wie viel man mitnehmen kann, regelt die Beuteauswahl im Schiff.
 - **Verlust** bei Niederlage ohne Rückzug: jedes Teil der zurückgebliebenen Figuren mit 50 %. Rückzug schützt.
+- **Rückzug** (16.10.2026): eigener Ausgang im Einsatzbericht (nicht Niederlage); **der Auftrag bleibt offen** bis zum Ablaufdatum („erneuter Versuch“), kein Lohn, keine Beute, zählt nicht als erledigter Einsatz.
 - **Beuteauswahl** im Einsatzbericht: mitnehmen kann man **1 Stück je Crewmitglied im Einsatz** (auch bewusstlose und sterbende zählen); vorausgewählt sind die wertvollsten. Medikits zählen nicht und gehen alle ins Lager; der Schild ist nie Beute. Nicht Mitgenommenes wird sofort als **Schrott** verkauft: 15 % vom Kaufpreis (gleich ob intakt, −10 oder −20), unbrauchbare Stücke (−30) bringen nichts; ohne Probe, auch außerhalb eines Hafens.
 - **Beschädigte Stücke im Lager** liegen einzeln je Schaden („Sturmgewehr (−20)“); gleicher Schaden wird gezählt.
 - **Reparatur:** (1) **Werkstatt im Raumhafen**: sofort und ganz, 10 % vom Kaufpreis je −10, nach Handeln (wie der Kauf von Ausrüstung); nur Stücke im Lager, Getragenes vorher in der Waffenkammer ablegen. (2) **Beschädigt verkaufen**: Verkaufspreis nach Handeln, je −10 um 25 % weniger (−10: 75 %, −20: 50 %, −30: 25 %). (3) Reparatur durch die Crew mit Probe kommt mit dem Handwerk.

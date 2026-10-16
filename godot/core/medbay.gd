@@ -72,7 +72,7 @@ static func pass_days(g: HubState, n: int) -> Array[Character]:
 		var s := staff(g)
 		if not Campaign.patients().is_empty() and not s.is_empty():
 			var roll := Dice.open_d100()
-			var b := bonus(g)
+			var b := bonus(g) + Galley.malus(g)
 			var total: int = roll.total + b
 			extra = extra_days(total)
 			for c in s:

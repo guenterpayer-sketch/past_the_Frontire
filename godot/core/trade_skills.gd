@@ -48,7 +48,7 @@ static func can_roll(g: HubState, skill: StringName) -> bool:
 static func roll(g: HubState, skill: StringName, c: Character) -> Dictionary:
 	if c == null or not can_roll(g, skill):
 		return {}
-	var r := Voyage.check(c, skill)
+	var r := Voyage.check(c, skill, Galley.malus(g))
 	var out := {"day": g.day, "system": g.position, "result": String(r.result), "total": r.total, "name": c.name,
 		"result_name": r.result_name, "xp": r.xp}
 	g.trade_rolls[String(skill)] = out

@@ -37,7 +37,7 @@ const TEXT := {
 	&"verhandeln": "Verträge und Bedingungen aushandeln." + SOON,
 	&"hwRuestung": "Rüstungen in der Werkstatt bauen, zerlegen und reparieren.",
 	&"hwWaffen": "Waffen und Munition in der Werkstatt bauen, zerlegen und reparieren.",
-	&"kochen": "Versorgung der Crew an Bord." + SOON,
+	&"kochen": "Versorgung der Crew an Bord: der Koch in der Kombüse würfelt jeden Tag außerhalb des Hafens; das Ergebnis senkt oder erhöht den Proviantverbrauch (Patzer +25 %, Teilerfolg −10 %, Erfolg −20 %, Herausragend −30 %). Ein Herausragend bis zum Training gibt dort +1 freie EP.",
 	&"medikamente": "Medikits in der Krankenstation herstellen.",
 	&"koerper": "Körperliche Entwicklung: je Rang +5 Trefferpunkte. Nur die Ränge zählen.",
 	&"psiPunkte": "Psi-Entwicklung: je Rang +2 Psi-Punkte. Nur die Ränge zählen.",
