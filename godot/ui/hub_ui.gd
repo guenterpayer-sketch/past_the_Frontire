@@ -320,6 +320,8 @@ func show_report(rep: Dictionary) -> void:
 		xl.custom_minimum_size.x = 420
 		g.add_child(xl)
 	report.content.add_child(g)
+	if int(rep.get("training", 0)) > 0:
+		report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
 	_payout(rep)
 	var go := UiTheme.button("Zu den Crewquartieren")
 	go.add_theme_color_override("font_color", UiTheme.ACCENT)
@@ -405,6 +407,8 @@ func show_travel(rep: Dictionary) -> void:
 		sum += " (%s statt %s)" % [Dice.fmt(rep.fuel1 - rep.fuel0), Dice.fmt(-Voyage.FUEL_PER_DAY * rep.days)]
 	sum += "   ·   Hülle %d → %d" % [rep.hull0, rep.hull1]
 	travel_report.content.add_child(UiTheme.label(sum, 16, UiTheme.ACCENT))
+	if int(rep.get("training", 0)) > 0:
+		travel_report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
 	if rep.fuel1 <= 0 and not rep.emergency:
 		travel_report.content.add_child(UiTheme.label("Tank leer: Notsprit. Weiter nur zum nächsten Hafen; dort kostet das Tanken das Doppelte.", 14, UiTheme.BAD))
 	travel_report.content.add_child(UiTheme.label("ERFAHRUNG", 13, UiTheme.MUTED))

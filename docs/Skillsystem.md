@@ -466,6 +466,8 @@ Kosten für den nächsten Rang = **10 + 2 × aktueller Rang** (Rang 0→1: 10 EP
 
 ---
 
+**Training an Bord (Hub, 16.10.2026):** Alle **5 Spieltage** (Tag 5, 10, 15 …) bekommt die **ganze Crew an Bord** – auch Verwundete und das Personal der Krankenstation – **3 freie EP**, damit auch Mitglieder ohne Einsätze steigern können. Gezählt wird nach dem Spieltag (wer neu an Bord kommt, ab dem nächsten 5er-Tag). Angezeigt im Reisebericht, im Einsatzbericht und als Meldung beim Warten (`HubState.advance_days()`).
+
 ## 8a. Verwundung und Heilung
 
 Kein Tod im Normalfall: Wer nach den Regeln sterben würde, ist **sterbend** (kampfunfähig, Erste Hilfe kann stabilisieren). Nur wenn die **ganze Crew fällt**, stirbt jede sterbende Figur mit 10 % (Todeswurf im Bodenkampf); Tote verlassen die Crew, ihr Roster-Eintrag bleibt.
