@@ -1,7 +1,7 @@
 # Past the Frontire – Godot-Version (Godot 4.7)
 
 Rundenbasierter Bodenkampf im RMSS-Stil, 6 Crewmitglieder gegen eine zufällig zusammengestellte Gegnergruppe (3–9 Figuren) in einer zufällig erzeugten Lagerhalle (3D, isometrische Kamera).
-Regeln wie in der HTML-Version (docs/Skillsystem.md): W100 aus zwei W10, offen nach oben und unten, Angriffstabellen, Kritische Treffer, Aktivitätssystem, Feuerbereitschaft, Blickrichtung, Deckung, Ducken, Abwarten, Erste Hilfe, Psi-Schild, Erfahrung nur für Benutztes.
+Regeln wie in der HTML-Version (docs/Skillsystem.md): W100 aus zwei W10, offen nach oben und unten, Angriffstabellen, Kritische Treffer, Aktivitätssystem, Feuerbereitschaft, Blickrichtung, Deckung, Ducken, Abwarten, Erste Hilfe, Waffen-Reparatur, Psi-Schild, Erfahrung nur für Benutztes.
 
 ## Starten (Windows 11, GitHub Desktop)
 
@@ -58,7 +58,7 @@ Oben links Spielstand, Tag, Position und offene Aufträge, darunter **Credits, T
 Die Karte nutzt den ganzen Bildschirm, die Bedienung schwebt darüber:
 - oben links die Initiative-Leiste (Einspringen nach dem Abwarten),
 - oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen = Enzyklopädie des Hubs bei der gewählten Waffe bzw. Psi-Liste, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, UI-Größe, Enzyklopädie, Bedienung),
-- darunter rechts die **Seitenleiste** (kompakte Kampf-UI, Variante C): Figurenkarte (TP/PP/Aktivität, AW/VW/INI, Bogen), dann Abschnitte Waffe (mit Psi-Angriffskräften), Gangart, Angriffsaktivität, Psi (Reiter je Liste) und Aktionen (Ducken, Abwarten, Feuerbereit, Nachladen, Erste Hilfe, Ausrichten) – Waffen mit Feuerstoß zeigen „×3“, mit Magazin „geladen/Magazin“ bzw. „ohne Munition“ (Munition: `core/ammo.gd`, Schiffsvorrat je Art, 3 Magazine je Waffe, Hinweise im Briefing), jeder per Klick auf die Überschrift ein-/ausklappbar (gespeichert), unten immer „Zug beenden“; in Runde 0 die Aufstellung; ist die KI am Zug, nur deren Figurenkarte. Der Knopf „›“ klappt die ganze Leiste ein (Enter beendet weiter den Zug),
+- darunter rechts die **Seitenleiste** (kompakte Kampf-UI, Variante C): Figurenkarte (TP/PP/Aktivität, AW/VW/INI, Bogen), dann Abschnitte Waffe (mit Psi-Angriffskräften), Gangart, Angriffsaktivität, Psi (Reiter je Liste) und Aktionen (Ducken, Abwarten, Feuerbereit, Nachladen, Reparieren je beschädigter Waffe in Reichweite, Erste Hilfe, Ausrichten) – Waffen mit Feuerstoß zeigen „×3“, mit Magazin „geladen/Magazin“ bzw. „ohne Munition“ (Munition: `core/ammo.gd`, Schiffsvorrat je Art, 3 Magazine je Waffe, Hinweise im Briefing), jeder per Klick auf die Überschrift ein-/ausklappbar (gespeichert), unten immer „Zug beenden“; in Runde 0 die Aufstellung; ist die KI am Zug, nur deren Figurenkarte. Der Knopf „›“ klappt die ganze Leiste ein (Enter beendet weiter den Zug),
 - links neben der Leiste der Infokasten für das Feld bzw. die Figur unter der Maus (auf Touchgeräten mit „Ausführen“),
 - unten links Würfel und Kampflog (eingeklappt eine Zeile, „Log ▴“ klappt den Verlauf auf).
 

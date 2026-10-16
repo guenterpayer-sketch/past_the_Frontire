@@ -759,6 +759,8 @@ func _panel_action(u: Combatant, name: StringName, arg: Variant) -> void:
 			combat.do_reload(u, arg)
 		&"aid":
 			player.toggle_mode(PlayerController.Mode.AID)
+		&"repair":
+			combat.do_repair(u, arg.unit, arg.slot)
 		&"power":
 			player.choose_power(u, arg)
 		&"face":

@@ -39,6 +39,7 @@ func _init() -> void:
 	_test_models_sounds()
 	_test_loot_wear()
 	_test_char_wear()
+	_test_weapon_repair()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1092,3 +1093,56 @@ func _test_armory_stock() -> void:
 	ch.medkits = 3
 	ch.apply_result({"used": {"medkits": 2}})
 	check(ch.medkits == 1, "verbrauchte Medikits werden abgezogen")
+
+
+## Waffen-Reparatur im Kampf: Nachbarfeld, einmal je Stück, Mittel, +10/+5/Patzer −10, höchstens bis −5
+func _test_weapon_repair() -> void:
+	Dice.set_seed(33)
+	var c := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
+	c.deploying = false
+	var u := c.crew().filter(func(o: Combatant) -> bool: return Rules.skill_rank(o, &"waffenReparatur") > 0)[0] as Combatant
+	c.order.assign([u])
+	c.turn_idx = 0
+	u.act = 100
+	check(c.repair_targets(u).is_empty() or c.repair_targets(u).all(func(t: Dictionary) -> bool: return t.unit != u), "unbeschädigte Waffe: nichts zu reparieren")
+	u.wear["w0"] = -5
+	check(not c.repair_targets(u).any(func(t: Dictionary) -> bool: return t.unit == u), "−5: im Kampf nicht weiter reparierbar")
+	u.wear["w0"] = 5
+	check(not c.repair_targets(u).any(func(t: Dictionary) -> bool: return t.unit == u), "+5: nichts zu reparieren")
+	var far := c.crew().filter(func(o: Combatant) -> bool: return o != u and Hex.distance(o.pos, u.pos) > 1)[0] as Combatant
+	far.wear["w0"] = -20
+	check(not c.repair_targets(u).any(func(t: Dictionary) -> bool: return t.unit == far), "nur Nachbarfeld")
+	far.wear.erase("w0")
+	var seen := {}
+	var xp_ok := true
+	for i in 400:
+		u.wear["w0"] = -30 if i % 2 == 0 else -10
+		u.repaired.clear()
+		u.act = 100
+		var before := int(u.wear.w0)
+		var xp0: int = u.xp_log.get(&"waffenReparatur", 0)
+		if not c.do_repair(u, u, "w0"):
+			check(false, "Reparatur nicht möglich")
+			return
+		var after := int(u.wear.w0)
+		var d := after - before
+		seen[d] = seen.get(d, 0) + 1
+		xp_ok = xp_ok and u.xp_log.get(&"waffenReparatur", 0) >= xp0
+		check(u.act == 100 - Combat.COST.repair, "kostet %d %%" % Combat.COST.repair)
+		check(after <= Combat.REPAIR_CAP and after >= Combatant.WEAR_BROKEN, "Ergebnis zwischen −30 und −5 (%d → %d)" % [before, after])
+		check(d in [0, 5, 10, -10] or (before == -10 and d == 5), "Stufe +10/+5/0/−10 (%d → %d)" % [before, after])
+		check(not c.do_repair(u, u, "w0"), "einmal je Stück und Kampf")
+	print("Waffen-Reparatur (Sol, Wert %d): Änderungen %s" % [Rules.skill_total(u, &"waffenReparatur"), seen])
+	check(seen.has(5) and seen.has(10) and seen.has(0), "Erfolg, Herausragend und keine Wirkung kommen vor")
+	check(xp_ok and u.xp_log.get(&"waffenReparatur", 0) > 0, "EP für Waffen-Reparatur")
+	# unbrauchbar → nutzbar
+	u.wear["w0"] = -30
+	check(u.weapon_broken(u.weapons[0]), "−30 unbrauchbar")
+	u.wear["w0"] = -25
+	check(not u.weapon_broken(u.weapons[0]), "−25 wieder nutzbar")
+	# KI: repariert eine unbrauchbare Waffe sofort
+	u.wear["w0"] = -30
+	u.repaired.clear()
+	u.act = 100
+	var step := CombatAI.new().plan_step(c, u)
+	check(step.type == &"repair" and step.target == u and step.slot == "w0", "KI repariert unbrauchbare Waffe (%s)" % step.type)

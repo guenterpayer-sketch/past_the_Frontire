@@ -78,6 +78,7 @@ const WEAR_STEP := -10
 const WEAR_BROKEN := -30
 var wear := {}
 var lost: Array[String] = []   # bei Niederlage ohne Rückzug verlorene Plätze
+var repaired: Array[String] = []   # Waffen-Plätze, an denen in diesem Kampf schon repariert wurde (einmal je Stück)
 
 
 ## Figur aus einer Vorlage (Gegner, Tests); saved = Fortschritt im alten Format {skills, attrs, free_xp}

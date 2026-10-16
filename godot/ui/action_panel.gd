@@ -116,6 +116,12 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 		"Restliche Aktivität (mind. %d %%) zurückhalten: Schuss auf den ersten Gegner, der im Sichtfeld handelt (%d)." % [Combat.MIN_OVERWATCH, Combat.REACTION_MOD])
 	for rw in c.reloadable(u):
 		add_action.call("Nachladen %d %%" % Combat.COST.reload, &"reload", rw, c.can_do(u, Combat.COST.reload), false, "%s nachladen" % rw.name)
+	for rt in c.repair_targets(u):
+		var o: Combatant = rt.unit
+		var rw: Resource = o.gear_at(rt.slot)
+		add_action.call("Reparieren %s%s (%d) %d %%" % [rw.get("name"), "" if o == u else " · " + o.name, int(o.wear.get(rt.slot, 0)), Combat.COST.repair],
+			&"repair", rt, c.can_do(u, Combat.COST.repair), false,
+			"Waffen-Reparatur (Mittel), einmal je Stück und Kampf: Herausragend +10, Erfolg +5, Patzer −10; höchstens bis %d." % Combat.REPAIR_CAP)
 	add_action.call("Erste Hilfe %d %%" % Combat.COST.aid, &"aid", null, c.can_do(u, Combat.COST.aid) and not c.first_aid_targets(u).is_empty(),
 		pc.mode == PlayerController.Mode.AID, "Benachbarte Figur behandeln (Erste Hilfe, Leicht; Medikit +%d)" % Combat.MEDKIT_BONUS)
 	add_action.call("Ausrichten", &"face", null, true, pc.mode == PlayerController.Mode.FACE, "Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ Rechtsklick.")
