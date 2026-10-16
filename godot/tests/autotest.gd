@@ -166,6 +166,12 @@ func _run_ai() -> void:
 		await get_tree().create_timer(0.3).timeout
 		await _screenshot(out + "/04g_psi_listen.png")
 		ed.psi_view().close()
+		var enc := Encyclopedia.show_on(ed, &"psi", "Angriff")
+		enc.move_to_front()
+		print("Enzyklopädie aus der Übersicht offen: ", enc.visible)
+		await get_tree().create_timer(0.3).timeout
+		await _screenshot(out + "/04h_enzyklopaedie_psi.png")
+		enc.close()
 	# Roster: Figur erschaffen (Editor im Roster-Modus), anheuern, entlassen; danach wieder aus dem Roster löschen
 	var ce := cs.editor
 	ce.open_for_roster()
