@@ -1,6 +1,6 @@
 # Modul Raumkampf
 
-- **Branch:** noch offen – der Raumkampf-Chat trägt seinen Branchnamen hier und in `docs/module/README.md` ein (bzw. der Nutzer meldet ihn dem Koordinator).
+- **Branch:** `claude/raumkampf-modul`
 - **Zuständig für (Vorschlag, mit dem Koordinator abstimmen):** eigene Szene und eigene Dateien, z. B. `godot/space.tscn`, `godot/core/space_*.gd`, `godot/view/space_*.gd`, `godot/ui/space_*.gd`, `godot/data/ships/`. Keine Dateien anderer Module umbauen; nötige Änderungen an Schnittstellen in „Stand“ vermerken.
 
 ## Grundlagen (in `main`)
