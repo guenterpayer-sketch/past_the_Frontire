@@ -561,8 +561,13 @@ func _add_shields(s: SpaceShip, pts: int, alloc: Array) -> void:
 				want[i] = floori(want[i] * scale)
 		for i in 6:
 			s.shields[i] = want[i]
+		# nicht verteilte Punkte gehen auf die schwächsten Seiten
+		_fill_weakest(s, pool - s.shield_total())
 		return
-	var add := pool - s.shield_total()
+	_fill_weakest(s, pool - s.shield_total())
+
+
+func _fill_weakest(s: SpaceShip, add: int) -> void:
 	while add > 0:
 		var low := 0
 		for i in 6:

@@ -357,6 +357,70 @@ func _shield_controls(v: VBoxContainer) -> void:
 	row.add_child(ob)
 	v.add_child(row)
 	_w.alloc = ob
+	# Schieberegler je Seite (Wunsch des Nutzers); der Schwerpunkt setzt sie vor
+	var sliders: Array = []
+	var nums: Array = []
+	for i in 6:
+		var r := HBoxContainer.new()
+		var l := UiTheme.label(SpaceShip.SIDE_NAMES[i], 12)
+		l.custom_minimum_size.x = 82
+		r.add_child(l)
+		var sl := HSlider.new()
+		sl.min_value = 0
+		sl.max_value = combat.own.shield_max
+		sl.step = 1
+		sl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		sl.focus_mode = Control.FOCUS_NONE
+		r.add_child(sl)
+		var n := UiTheme.label("0", 12)
+		n.custom_minimum_size.x = 24
+		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		r.add_child(n)
+		v.add_child(r)
+		sliders.append(sl)
+		nums.append(n)
+	var sum := UiTheme.label("", 11, UiTheme.MUTED)
+	v.add_child(sum)
+	_w.sliders = sliders
+	var update := func() -> void:
+		var t := 0
+		for i in 6:
+			nums[i].text = str(int(sliders[i].value))
+			t += int(sliders[i].value)
+		var pool := _shield_pool(int(_w.e_shields.value))
+		sum.text = "Verteilt %d von etwa %d (die Schildprobe kann mehr oder weniger aufladen; zu viel wird gekürzt, Rest geht auf die schwächsten Seiten)" % [t, pool]
+		sum.add_theme_color_override("font_color", UiTheme.BAD if t > pool else UiTheme.MUTED)
+	var apply := func() -> void:
+		var a := _preset_alloc(ALLOC_PRESETS[ob.selected], int(_w.e_shields.value))
+		for i in 6:
+			sliders[i].set_value_no_signal(int(a[i]))
+		update.call()
+	for sl in sliders:
+		sl.value_changed.connect(func(_x: float) -> void: update.call())
+	ob.item_selected.connect(func(_i: int) -> void: apply.call())
+	_w.e_shields.value_changed.connect(func(_x: float) -> void: update.call())
+	apply.call()
+
+
+## Schildpunkte, die nach der Aufladung (bei Erfolg) etwa zur Verfügung stehen
+func _shield_pool(energy: int) -> int:
+	return mini(combat.own.shield_total() + energy * SpaceCombat.SHIELD_PER_ENERGY, combat.own.shield_max * 6)
+
+
+## Verteilung eines Schwerpunkts
+func _preset_alloc(preset: String, energy: int) -> Array:
+	if preset == "Zum Gegner":
+		return _defaults.get("alloc", [0, 0, 0, 0, 0, 0])
+	var pool := _shield_pool(energy)
+	var weights: Array = ALLOC_WEIGHTS[preset]
+	var wsum := 0
+	for w in weights:
+		wsum += int(w)
+	var out: Array = []
+	for i in 6:
+		out.append(mini(combat.own.shield_max, pool * int(weights[i]) / wsum))
+	return out
 
 
 func _move_controls(v: VBoxContainer) -> void:
@@ -513,15 +577,9 @@ func collect_orders() -> Dictionary:
 			var sh := int(_w.e_shields.value)
 			var eng := int(_w.e_engine.value)
 			var jump := int(_w.e_jump.value)
-			var preset: String = ALLOC_PRESETS[_w.alloc.selected]
-			var alloc: Array = _defaults.get("alloc", [])
-			if preset != "Zum Gegner":
-				var weights: Array = ALLOC_WEIGHTS[preset]
-				var pool := mini(combat.own.shield_total() + sh * SpaceCombat.SHIELD_PER_ENERGY, combat.own.shield_max * 6)
-				alloc = []
-				for i in 6:
-					alloc.append(mini(combat.own.shield_max, pool * int(weights[i]) / 10 if preset != "Gleichmäßig"
-						else pool / 6))
+			var alloc: Array = []
+			for sl in _w.sliders:
+				alloc.append(int(sl.value))
 			return {"energy": {"jump": jump, "shields": sh, "engine": eng, "weapons": combat.energy_total}, "alloc": alloc}
 		SpaceCombat.Phase.MOVE:
 			return {"speed": view.plan.count("F"), "steps": view.plan.duplicate()}

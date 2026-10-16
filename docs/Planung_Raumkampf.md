@@ -58,7 +58,7 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Modelle | Bug war hinten → um 180° gedreht. |
 | Fragerunden | Am Ende jeder Fragerunde eine **Abschlussfrage mit Freitext** (Wunsch des Nutzers, auch für die anderen Module). |
 | Umbesetzen im Kampf | **Nur zu Rundenbeginn** (Schildphase) über den Knopf **„Posten umbesetzen“**; wer an eine Station neu kommt, hat dort in dieser Runde **−10**. |
-| Schildverteilung | Gab es schon (Auswahl in der Schilde-Karte), war aber leicht zu übersehen → deutlicher beschriftet. |
+| Schildverteilung | Gab es schon (Auswahl in der Schilde-Karte), war aber leicht zu übersehen → deutlicher beschriftet, dazu **Schieberegler je Seite** (Schwerpunkt setzt sie vor; zu viel wird gekürzt, Rest geht auf die schwächsten Seiten). |
 
 ## 2. Vorschläge (noch zu bestätigen)
 
