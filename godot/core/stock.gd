@@ -2,15 +2,17 @@ class_name Stock
 extends RefCounted
 ## Lager des Schiffs und Handel im Raumhafen (docs/Planung_Ausbau_Lager_Handwerk.md, Schritt 2; Entscheidungen des
 ## Nutzers 16.10.2026). Das Lager zählt Stück je Gegenstand in HubState.stock {Schlüssel: Anzahl}; Schlüssel ist der
-## resource_path der WeaponData/ArmorData (auch eigene aus dem Editor) oder MEDKIT. Was die Crew trägt, gehört nicht
+## resource_path der WeaponData/ArmorData (auch eigene aus dem Editor), MEDKIT oder Equipment.SHIELD. Was die Crew trägt, gehört nicht
 ## dazu. Munition bleibt im eigenen Vorrat (HubState.ammo). Ohne Spiel (Schnellkampf) gilt alles als vorhanden.
 
 const MEDKIT := "medkit"
 const MEDKIT_NAME := "Medikit"
+## Schild (Lagergegenstand des Charakter-Moduls, Schlüssel Equipment.SHIELD)
+const SHIELD_NAME := "Schild"
 ## Kaufpreise der mitgelieferten Gegenstände (Dateiname ohne Endung); Verkauf SELL_FACTOR davon
 const PRICES := {
 	"vibroklinge": 120, "energiehammer": 250, "laserpistole": 150, "laserkarabiner": 300, "sturmgewehr": 280, "mg": 500,
-	"raketenwerfer": 600, "leicht": 150, "mittel": 350, "schwer": 700, MEDKIT: 30,
+	"raketenwerfer": 600, "leicht": 150, "mittel": 350, "schwer": 700, MEDKIT: 30, Equipment.SHIELD: 150,
 }
 const DEFAULT_PRICE := 100
 const SELL_FACTOR := 0.5
@@ -30,14 +32,16 @@ static func key_of(r: Resource) -> String:
 static func name_of(key: String) -> String:
 	if key == MEDKIT:
 		return MEDKIT_NAME
+	if key == Equipment.SHIELD:
+		return SHIELD_NAME
 	var r := load(key) if ResourceLoader.exists(key) else null
 	return String(r.get("name")) if r else key.get_file().get_basename()
 
 
 ## Kaufpreis: mitgeliefert aus PRICES; eigene wie ihre Vorlage, mit Vermerk „frei“ doppelt
 static func price(key: String) -> int:
-	if key == MEDKIT:
-		return PRICES[MEDKIT]
+	if key == MEDKIT or key == Equipment.SHIELD:
+		return PRICES[key]
 	var r: Resource = load(key) if ResourceLoader.exists(key) else null
 	if r and Gear.is_custom(r):
 		var t := Gear.template_of(r)
@@ -56,9 +60,10 @@ static func buy_price(g: HubState, key: String) -> int:
 	return TradeSkills.adj(price(key), TradeSkills.buy_factor(g))
 
 
-## Alle Handelsgüter (Schlüssel): mitgelieferte Waffen ohne Psi/Fäuste, Rüstungen ohne „Keine“, eigene aus dem Editor
+## Alle Handelsgüter (Schlüssel): mitgelieferte Waffen ohne Psi/Fäuste, Rüstungen ohne „Keine“, eigene aus dem Editor,
+## Schild
 static func goods() -> Array[String]:
-	var out: Array[String] = []
+	var out: Array[String] = [Equipment.SHIELD]
 	for w in Gear.base_weapons() + Gear.weapons():
 		if not w.resource_path in EXCLUDE:
 			out.append(w.resource_path)
@@ -121,7 +126,7 @@ static func shop(g: HubState, system: int) -> Array[String]:
 			all[j] = t
 		g.shop[k] = all
 	# gemischte Liste; davon der Anteil nach Gassenwissen (TradeSkills), mehr ergänzt nur
-	var list: Array = g.shop[k].filter(func(s: String) -> bool: return ResourceLoader.exists(s))
+	var list: Array = g.shop[k].filter(func(s: String) -> bool: return s == Equipment.SHIELD or ResourceLoader.exists(s))
 	var n := maxi(1, ceili(goods().size() * TradeSkills.shop_share(g)))
 	var out: Array[String] = [MEDKIT]
 	for s in list.slice(0, n):
