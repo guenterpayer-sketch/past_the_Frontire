@@ -32,6 +32,10 @@ var new_list: StringName = &""
 var status := {}
 ## Verbrauch im letzten Einsatz ({medkits, ammo: {Waffen-ID: Schuss}}); wird noch nicht ausgewertet (kein Nachschub)
 var used := {}
+## Beschädigung der Ausrüstung je Platz ("w0"/"w1"/"armor" → Abzug, −10 je Schaden, ab −30 unbrauchbar;
+## docs/Skillsystem.md „Beute, Beschädigung und Verlust“). Der Kampf liest sie (Combatant.from_character).
+## Der Schild ist ausgenommen (Entscheidung des Nutzers 16.10.2026).
+var wear := {}
 
 ## Rules erwartet diese Felder bei jeder Figur
 var is_crew := true
@@ -87,6 +91,35 @@ func apply_result(r: Dictionary) -> void:
 	used = r.get("used", {}).duplicate(true)
 	# verbrauchte Medikits fehlen danach (Nachschub aus dem Lager in der Waffenkammer)
 	medkits = maxi(0, medkits - int(used.get("medkits", 0)))
+	# Beschädigung: Stand nach dem Kampf; verlorene Plätze (Niederlage ohne Rückzug) werden geleert
+	if r.has("wear"):
+		wear = {}
+		var w: Dictionary = r.wear
+		for k in w:
+			if int(w[k]) < 0:
+				wear[String(k)] = int(w[k])
+	for slot in r.get("lost", []):
+		lose(String(slot))
+
+
+## Platz verlieren: Waffe 1 → Fäuste, Waffe 2 → leer, Rüstung → keine. Nicht über Equipment.set_weapon/set_armor,
+## denn die legen das alte Teil ins Lager zurück – das verlorene ist weg.
+func lose(slot: String) -> void:
+	wear.erase(slot)
+	match slot:
+		"w0":
+			if not weapons.is_empty():
+				weapons[0] = load(Gear.FALLBACK_WEAPON)
+		"w1":
+			if weapons.size() > 1:
+				weapons = weapons.slice(0, 1)
+		"armor":
+			armor = load(Gear.FALLBACK_ARMOR)
+
+
+## Abzug eines Platzes (0 = heil)
+func wear_of(slot: String) -> int:
+	return int(wear.get(slot, 0))
 
 
 ## Heilung um n Tage; true, wenn die Figur danach wieder unverletzt ist
@@ -128,7 +161,7 @@ func to_dict() -> Dictionary:
 		"weapons": weapons.map(func(w: WeaponData) -> String: return w.resource_path),
 		"armor": armor.resource_path if armor else "", "shield": shield, "medkits": medkits,
 		"visual": visual.resource_path if visual else "", "station": station, "new_list": String(new_list), "injury": injury, "injury_days": injury_days,
-		"status": status.duplicate(true), "used": used.duplicate(true),
+		"status": status.duplicate(true), "used": used.duplicate(true), "wear": wear.duplicate(),
 	}
 
 
@@ -147,9 +180,15 @@ static func from_dict(d: Dictionary) -> Character:
 	c.apply_progress({"skills": d.get("skills", {})})
 	c.free_xp = int(d.get("free_xp", 0))
 	# gelöschte eigene Ausrüstung (Gear): Waffe 1 → Fäuste, Waffe 2 entfällt, Rüstung → keine (Entscheidung des Nutzers)
+	var wr: Dictionary = d.get("wear", {})
+	for k in wr:
+		if int(wr[k]) < 0:
+			c.wear[String(k)] = int(wr[k])
 	var paths: Array = d.get("weapons", [])
 	for i in paths.size():
 		var w := _load(paths[i]) as WeaponData
+		if w == null:
+			c.wear.erase("w%d" % i)
 		if w == null and i == 0:
 			w = load(Gear.FALLBACK_WEAPON)
 		if w:
@@ -158,6 +197,7 @@ static func from_dict(d: Dictionary) -> Character:
 	c.armor = _load(ap) as ArmorData
 	if c.armor == null and ap != "":
 		c.armor = load(Gear.FALLBACK_ARMOR)
+		c.wear.erase("armor")
 	c.shield = bool(d.get("shield", false))
 	c.medkits = int(d.get("medkits", 0))
 	c.visual = _load(d.get("visual", "")) as CharacterVisual

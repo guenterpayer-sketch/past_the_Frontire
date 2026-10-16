@@ -38,6 +38,7 @@ func _init() -> void:
 	_test_custom_gear()
 	_test_models_sounds()
 	_test_loot_wear()
+	_test_char_wear()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -969,6 +970,40 @@ func _test_loot_wear() -> void:
 	for o in c3.crew():
 		worn += o.wear.size()
 	check(c3.crew().all(func(o: Combatant) -> bool: return o.lost.is_empty()) and worn > 0 and c3.loot.is_empty(), "Rückzug: kein Verlust, Kampfunfähige teils beschädigt (%d)" % worn)
+
+
+## Charakter-Modul: Beschädigung und Verlust aus dem MissionResult übernehmen
+func _test_char_wear() -> void:
+	var g := HubState.new()
+	var by := {}
+	for w in GameData.weapons():
+		by[w.id] = w
+	var ch := Roster.start_crew()[0]
+	var sg: WeaponData = by[&"sturmgewehr"]
+	var lp: WeaponData = by[&"laserpistole"]
+	ch.weapons.assign([sg, lp])
+	var arm := ch.armor
+	ch.apply_result({"wear": {"w0": -10, "armor": -30, "w1": 0}})
+	check(ch.wear == {"w0": -10, "armor": -30}, "wear übernommen (nur Abzüge)")
+	check(Equipment.wear_text(ch, "w0") == "beschädigt " + Dice.fmt(-10) and Equipment.wear_text(ch, "armor") == "unbrauchbar" and Equipment.wear_text(ch, "w1") == "", "Text der Beschädigung")
+	var ch2 := Character.from_dict(ch.to_dict())
+	check(ch2.wear == ch.wear, "wear gespeichert und geladen")
+	var u := Combatant.from_character(ch2, &"crew")
+	check(u.weapon_wear(sg) == -10 and u.armor_broken(), "Kampf liest Character.wear")
+	# Verlust: Plätze leeren, nichts ins Lager
+	ch.apply_result({"wear": {"w0": -10, "armor": -30}, "lost": ["w1", "armor"]})
+	check(ch.weapons == [sg] and ch.armor.resource_path == Gear.FALLBACK_ARMOR and ch.wear == {"w0": -10}, "Waffe 2 und Rüstung verloren")
+	ch.apply_result({"lost": ["w0"]})
+	check(ch.weapons[0].resource_path == Gear.FALLBACK_WEAPON and ch.wear.is_empty(), "Waffe 1 verloren → Fäuste")
+	check(Stock.count(g, Stock.key_of(lp)) == 0 and Stock.count(g, Stock.key_of(arm)) == 0, "Verlorenes nicht im Lager")
+	# Wechsel in der Waffenkammer: Abzug gehört zum Teil; zurücknehmen stellt ihn wieder her
+	ch.weapons.assign([sg])
+	ch.armor = arm
+	ch.wear = {"w0": -20, "armor": -10}
+	var snap := Equipment.snapshot(ch)
+	Stock.add(g, Stock.key_of(lp))
+	check(Equipment.set_weapon(ch, 0, lp, g) == "" and not ch.wear.has("w0") and ch.wear.armor == -10, "Wechsel: Abzug des Platzes fällt weg")
+	check(Equipment.restore(ch, snap, g) == "" and ch.wear == {"w0": -20, "armor": -10}, "zurücknehmen stellt den Abzug wieder her")
 
 
 func c2_ok(lost_n: int, parts: int) -> bool:

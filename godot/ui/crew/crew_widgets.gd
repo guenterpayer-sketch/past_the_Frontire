@@ -77,7 +77,8 @@ static func summary(ch: Character) -> Control:
 	for kv in [["Eigenschaften", str(Creation.attr_sum(ch))], ["Beste Waffe", "%s %s" % [bw[0], Dice.fmt(bw[1])]],
 			["TP / PP", "%d / %s" % [Rules.max_hp(ch), str(Rules.max_pp(ch)) if Rules.has_psi(ch) else "–"]],
 			["Psi-Listen", ", ".join(lists) if not lists.is_empty() else "–"],
-			["Ausrüstung", "%s · %s" % [", ".join(ch.weapons.map(func(w: WeaponData) -> String: return w.name)), ch.armor.name if ch.armor else "–"]]]:
+			["Ausrüstung", "%s · %s" % [", ".join(ch.weapons.map(func(w: WeaponData) -> String: return w.name)), ch.armor.name if ch.armor else "–"]],
+			["Beschädigt", Equipment.wear_summary(ch) if Equipment.wear_summary(ch) != "" else "–"]]:
 		g.add_child(UiTheme.label(kv[0], 13, UiTheme.MUTED))
 		var l := UiTheme.label(kv[1], 13)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

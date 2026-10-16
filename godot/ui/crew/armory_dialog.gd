@@ -30,7 +30,7 @@ func open_for(crew: Array[Character], idx := 0) -> void:
 	_armors = Equipment.armors()
 	_snap.clear()
 	for c in crew:
-		_snap[c] = {"weapons": c.weapons.duplicate(), "armor": c.armor, "shield": c.shield, "medkits": c.medkits}
+		_snap[c] = Equipment.snapshot(c)
 	if _preview and _preview.get_parent():
 		_preview.get_parent().remove_child(_preview)
 	open("Waffenkammer")
@@ -135,11 +135,12 @@ func _render_left(u: Character) -> void:
 		var w := Equipment.weapon(u, slot)
 		if w:
 			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), Equipment.label(w),
-				"%s · %s" % [Rules.skill_name(w.skill), "Nahkampf" if w.melee else "Fernkampf"], Rules.skill_total(u, w.skill)))
+				"%s · %s" % [Rules.skill_name(w.skill), "Nahkampf" if w.melee else "Fernkampf"], Rules.skill_total(u, w.skill),
+				Equipment.wear_text(u, "w%d" % slot)))
 		else:
 			_left.add_child(_slot_button("w%d" % slot, "Waffe %d" % (slot + 1), "leer", "keine zweite Waffe", null))
 	var a := u.armor
-	_left.add_child(_slot_button("armor", "Rüstung", Equipment.label(a), _armor_text(a), null))
+	_left.add_child(_slot_button("armor", "Rüstung", Equipment.label(a), _armor_text(a), null, Equipment.wear_text(u, "armor")))
 	_left.add_child(_slot_button("shield", "Schild", "getragen" if u.shield else "kein Schild",
 		"Verteidigung +10 + ½ Rangbonus Schild", Equipment.shield_bonus(u) if u.shield else null))
 	_left.add_child(UiTheme.label("Vorrat", 13, UiTheme.MUTED))
@@ -197,7 +198,8 @@ func _stock_text(r: Resource) -> String:
 	return str(Equipment.in_stock(_g(), r)) if _g() else "–"
 
 
-func _slot_button(key: String, title: String, value: String, sub: String, bonus: Variant) -> Button:
+## wear = Beschädigung des Platzes als Text ("" = heil, sonst orange bzw. rot bei „unbrauchbar“ neben dem Namen)
+func _slot_button(key: String, title: String, value: String, sub: String, bonus: Variant, wear := "") -> Button:
 	var b := Button.new()
 	b.toggle_mode = true
 	b.button_pressed = _slot == key
@@ -218,7 +220,12 @@ func _slot_button(key: String, title: String, value: String, sub: String, bonus:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	v.add_child(UiTheme.label(value, 14))
+	var vh := HBoxContainer.new()
+	vh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vh.add_child(UiTheme.label(value, 14))
+	if wear != "":
+		vh.add_child(UiTheme.label(wear, 12, UiTheme.BAD if wear == "unbrauchbar" else Color("ffb04d")))
+	v.add_child(vh)
 	var s := UiTheme.label(sub, 11, UiTheme.MUTED)
 	s.clip_text = true
 	s.custom_minimum_size.x = 200

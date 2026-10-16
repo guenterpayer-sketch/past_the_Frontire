@@ -174,7 +174,8 @@ func _run() -> void:
 	print("Maschinenraum: offen %s, Stufen %s, Projekt %s, Credits %d, Material %d" % [hub.ui.engine.visible, g.upgrades, g.project, g.credits, g.material])
 	await _shot("h1f_maschinenraum")
 	hub.ui.engine.hide()
-	# Waffenkammer: Raum öffnet den Ausrüstungsdialog des Charakter-Moduls
+	# Waffenkammer: Raum öffnet den Ausrüstungsdialog des Charakter-Moduls (erste Figur mit beschädigter Ausrüstung)
+	Campaign.crew()[0].wear = {"w0": -10, "armor": -30}
 	hub.open_room(&"armory")
 	await _frames(10)
 	print("Waffenkammer: Dialog offen ", hub.ui.armory.visible)
