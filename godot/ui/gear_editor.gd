@@ -264,26 +264,35 @@ func _weapon_choices(grid: GridContainer, w: WeaponData) -> void:
 	grid.add_child(_option(tabs.map(func(t: AttackTableData) -> String: return t.name), ti, func(i: int) -> void: w.table = tabs[i]))
 	grid.add_child(Control.new())
 	grid.add_child(_cap("Modell"))
-	if w.melee:
-		grid.add_child(UiTheme.label("ohne", 15, UiTheme.MUTED))
-		grid.add_child(UiTheme.label("Nahkampf: ohne Modell", 13, UiTheme.MUTED))
-	else:
-		var models := Gear.models()
-		var names := ["ohne"] + models.map(func(m: Dictionary) -> String: return m.name)
-		var mi := 0
-		for i in models.size():
-			if w.model and models[i].model.resource_path == w.model.resource_path:
-				mi = i + 1
-		grid.add_child(_option(names, mi, func(i: int) -> void:
-			if i == 0:
-				w.model = null
-			else:
-				var from: WeaponData = models[i - 1].from
-				w.model = from.model
-				w.length_m = from.length_m
-				w.grip_offset = from.grip_offset
-				w.grip_rotation_deg = from.grip_rotation_deg))
-		grid.add_child(UiTheme.label("Modell der genannten Waffe", 13, UiTheme.MUTED))
+	# Modell-Katalog des Bodenkampfs (WeaponModels): Nahkampfwaffen nur Nahkampfmodelle, Schusswaffen nur Schusswaffen
+	var models: Array = WeaponModels.all().filter(func(m: Dictionary) -> bool: return bool(m.melee) == w.melee)
+	var names := ["ohne"] + models.map(func(m: Dictionary) -> String: return m.name)
+	var mi := 0
+	for i in models.size():
+		if w.model and models[i].model == w.model.resource_path:
+			mi = i + 1
+	grid.add_child(_option(names, mi, func(i: int) -> void:
+		if i == 0:
+			w.model = null
+		else:
+			var e: Dictionary = models[i - 1]
+			WeaponModels.apply(w, e)
+			if e.has("sound"):
+				w.sound_id = e.sound
+		_render_form()))
+	grid.add_child(UiTheme.label("setzt Länge, Griff, Hände und den passenden Klang", 13, UiTheme.MUTED))
+	grid.add_child(_cap("Klang"))
+	var keys: Array = [&""] + WeaponData.SOUNDS.keys()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.add_child(_option(keys.map(func(k: StringName) -> String: return "automatisch (%s)" % WeaponData.SOUNDS.get(Gear.auto_sound(w), "") if k == &"" else String(WeaponData.SOUNDS[k])),
+		maxi(0, keys.find(w.sound_id)), func(i: int) -> void: w.sound_id = keys[i]))
+	var hear := UiTheme.button("▶", "Klang anhören")
+	hear.custom_minimum_size = Vector2(40, 34)
+	hear.pressed.connect(func() -> void: Sfx.play(w.sound()))
+	row.add_child(hear)
+	grid.add_child(row)
+	grid.add_child(UiTheme.label("automatisch = aus den Werten abgeleitet", 13, UiTheme.MUTED))
 	if not w.melee:
 		grid.add_child(_cap("Munitionsart"))
 		var types: Array = [&""] + Ammo.TYPES.keys()
