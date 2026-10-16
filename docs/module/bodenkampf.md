@@ -149,3 +149,7 @@ Geplant (`docs/Planung_Ausbau_Lager_Handwerk.md`, Schritt 4): `MissionResult` me
   - **Ausgang `MissionResult`:** `loot` = [{key (`Stock.key_of`), name, damage 0/−10…−30}] und Medikits [{key: `Stock.MEDKIT`, name, count}]; je Figur `wear` (neuer Stand) und `lost` (verlorene Plätze).
   - **Charakter:** `wear` speichern/übernehmen, verlorene Plätze leeren (Waffe 1 → Fäuste, Waffe 2 → leer, Rüstung → keine), beschädigte Teile anzeigen.
   - **Hub:** Beuteauswahl im Einsatzbericht (N), beschädigte Stücke im Lager (Schlüssel + Schaden), Reparatur (Fertigkeiten Waffen/Rüstung herstellen).
+
+### Auftrag (16.10.2026): Gute Stücke (+5) aus dem Handwerk
+
+Das Handwerk (Hub) baut bei „Herausragend“ ein **besonders gutes Stück +5** (Entscheidung des Nutzers): Waffe +5 auf Angriffe, Rüstung +5 auf die Verteidigung. Geplant: `Character.wear[platz] = 5` (positiver Wert = Bonus; endgültig legt es der Hub in `docs/module/hub.md` fest). **Der erste Schaden nimmt den Bonus** (+5 → 0 → −10 …); heute ergibt `Combatant.add_wear` +5 − 10 = −5. Bitte: positiven `wear` als Bonus anwenden und `add_wear` so ändern, dass ein Bonus auf 0 fällt. Beute bleibt ohne +5. **Warten, bis der Hub die Schnittstelle vermerkt hat.**

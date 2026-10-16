@@ -139,3 +139,7 @@ Wunsch des Nutzers: Die Waffenkammer zeigt bisher nur die Plätze der Figur; es 
 - **Inhalt:** das ganze Schiffslager (`Stock.items(HubState.game)`) – Waffen, Rüstungen, Schilde, Medikits mit Stückzahl, auch was die Figur gerade nicht nutzen kann; **beschädigte Stücke einzeln** („Sturmgewehr (−20)“, `Stock.name_of/damage_of`); **Munition je Art** (`HubState.ammo`); **Material** (Schiffsmaterial, später Handwerksmaterial – nur anzeigen).
 - **Aktionen:** ansehen und **direkt ausrüsten** (Stück wählen → der aktuellen Figur an den passenden Platz anlegen, gleiche Regeln wie über die Plätze, altes Teil zurück ins Lager). Verkaufen/Verschrotten und Zerlegen **nicht jetzt** – wird mit dem Handwerk geklärt.
 - **Erst Mockup** (größere UI-Änderung), vom Nutzer bestätigen lassen, dann bauen. Ohne Spiel (`HubState.game == null`) Reiter ausblenden oder „unbegrenzt“ anzeigen – mit dem Nutzer klären.
+
+### Auftrag (16.10.2026): Gute Stücke (+5) anzeigen
+
+Das Handwerk (Hub) baut bei „Herausragend“ Stücke mit **+5** (Waffe auf Angriffe, Rüstung auf Verteidigung). Geplant: Lagerschlüssel `"Grundschlüssel|+5"`, an der Figur `Character.wear[platz] = 5`. Waffenkammer, Reiter „Lager“ und Übersicht sollen „+5“ anzeigen; Anlegen/Ablegen wie bei beschädigten Stücken. **Warten, bis der Hub die Schnittstelle vermerkt hat** (`docs/module/hub.md`).

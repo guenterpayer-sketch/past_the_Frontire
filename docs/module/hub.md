@@ -325,3 +325,10 @@ Bodenkampf meldet jetzt im `MissionResult` `loot` = [{key (`Stock.key_of`), name
 - Im Roster (`ui/crew/roster_screen.gd`, **Datei des Charakter-Moduls**) neuer Knopf **„Charakterbogen“** in der Detailansicht: öffnet den `SheetDialog` für die gewählte Figur (nur diese, die Reiterzeile des Bogens passt nicht für den ganzen Roster); Esc schließt ihn. Bitte vom Charakter-Modul übernehmen.
 - Tests: `test_rules` OK, `test_hub` OK, Knopf und Bogen headless geprüft; `--autotest-hub` um einen Screenshot `h0b2_roster_bogen` erweitert (nicht ausgeführt).
 
+
+### Auftrag (16.10.2026): Handwerk (Schritt 5)
+
+Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md`, Abschnitt „Handwerk – Entscheidungen des Nutzers (16.10.2026)“ (Material, Zerlegen, Bauen mit +5 bei Herausragend, Reparatur durch die Crew, Dauer, eine Arbeit je Handwerker, Werkstatt-Ausbau, Orte).
+- **Erst** die offenen Punkte dort mit dem Nutzer klären (Werkstattstufen, Freischalten, Preis eines +5-Stücks), **dann Mockup**, dann bauen.
+- **Schnittstelle +5 zuerst festlegen und vermerken:** Vorschlag Koordinator: Lagerschlüssel `"Grundschlüssel|+5"` (über `Stock.damaged_key` erweitert), an der Figur `Character.wear[platz] = 5` (positiver Wert = Bonus). Bodenkampf und Charakter warten darauf (siehe deren Moduldateien).
+- Handwerksmaterial im Spielstand (`HubState`), Kauf im Raumhafen (1 = 10 Cr nach Handeln).
