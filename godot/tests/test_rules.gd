@@ -996,14 +996,22 @@ func _test_char_wear() -> void:
 	ch.apply_result({"lost": ["w0"]})
 	check(ch.weapons[0].resource_path == Gear.FALLBACK_WEAPON and ch.wear.is_empty(), "Waffe 1 verloren → Fäuste")
 	check(Stock.count(g, Stock.key_of(lp)) == 0 and Stock.count(g, Stock.key_of(arm)) == 0, "Verlorenes nicht im Lager")
-	# Wechsel in der Waffenkammer: Abzug gehört zum Teil; zurücknehmen stellt ihn wieder her
+	# Waffenkammer am Lager mit beschädigten Stücken (Lagerformat des Hubs: "Grundschlüssel|Schaden")
 	ch.weapons.assign([sg])
 	ch.armor = arm
 	ch.wear = {"w0": -20, "armor": -10}
 	var snap := Equipment.snapshot(ch)
 	Stock.add(g, Stock.key_of(lp))
-	check(Equipment.set_weapon(ch, 0, lp, g) == "" and not ch.wear.has("w0") and ch.wear.armor == -10, "Wechsel: Abzug des Platzes fällt weg")
-	check(Equipment.restore(ch, snap, g) == "" and ch.wear == {"w0": -20, "armor": -10}, "zurücknehmen stellt den Abzug wieder her")
+	check(Equipment.set_weapon(ch, 0, lp, g) == "" and not ch.wear.has("w0") and ch.wear.armor == -10, "Wechsel auf intaktes Stück: Platz heil")
+	check(Stock.count(g, Stock.damaged_key(Stock.key_of(sg), -20)) == 1 and Stock.count(g, Stock.key_of(sg)) == 0, "Ablegen: mit Schaden ins Lager")
+	check(Equipment.stock_damages(g, sg) == [-20] and Equipment.listed(g, sg, false), "beschädigtes Stück wählbar")
+	check(Equipment.weapon_block(ch, 0, sg, g) == "nicht im Lager" and Equipment.weapon_block(ch, 0, sg, g, -20) == "", "nur die Schadensstufe im Lager")
+	check(Equipment.set_weapon(ch, 0, sg, g, -20) == "" and ch.wear.w0 == -20 and Stock.count(g, Stock.key_of(lp)) == 1 and Stock.count(g, Stock.damaged_key(Stock.key_of(sg), -20)) == 0, "Anlegen: Schaden geht in den Platz")
+	check(Equipment.set_weapon(ch, 0, lp, g) == "" and Equipment.restore(ch, snap, g) == "" and ch.wear == {"w0": -20, "armor": -10} and Stock.count(g, Stock.key_of(lp)) == 1 and Stock.count(g, Stock.damaged_key(Stock.key_of(sg), -20)) == 0, "zurücknehmen: Schaden und Lager wie vorher")
+	Stock.add(g, Stock.key_of(arm))
+	check(Equipment.set_armor(ch, arm, g) == "" and not ch.wear.has("armor") and Stock.count(g, Stock.damaged_key(Stock.key_of(arm), -10)) == 1, "Rüstung tauschen: beschädigte zurück ins Lager, intakte im Platz")
+	check(Equipment.set_armor(ch, arm, g, -10) == "" and ch.wear.armor == -10 and Stock.count(g, Stock.key_of(arm)) == 1, "beschädigte Rüstung anlegen")
+	check(Equipment.stock_damages(null, sg) == [0], "ohne Spiel nur intakt")
 
 
 func c2_ok(lost_n: int, parts: int) -> bool:

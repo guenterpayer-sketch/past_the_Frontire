@@ -7,8 +7,9 @@ extends RefCounted
 ## aus dem Lager des Schiffs (Stock), Ablegen legt zurück; Fäuste und „keine Rüstung“ sind immer da; der Schild ist
 ## ein Lagergegenstand (SHIELD); Medikits aus dem Lager, höchstens MAX_MEDKITS je Figur. g = HubState.game;
 ## g == null (Schnellkampf, Tests ohne Spiel) = unbegrenzt.
-## Beschädigung (Character.wear) gehört zum Teil im Platz: Wechselt das Teil, fällt der Abzug des Platzes weg.
-## Vorläufig: beschädigte Stücke gehen noch ohne Schaden ins Lager, bis der Hub das Lagerformat dafür festlegt.
+## Beschädigung (Character.wear) gehört zum Teil im Platz: Beschädigte Stücke liegen einzeln mit Schaden im Lager
+## (Schlüssel Stock.damaged_key, docs/module/hub.md); Anlegen übernimmt den Schaden in den Platz, Ablegen legt das
+## Stück mit Schaden zurück. Fäuste und „keine Rüstung“ sind nie beschädigt im Lager. damage = 0 (intakt) … −30.
 
 ## Lager-Schlüssel des Schilds (kein Ressourcenpfad; Handel/Preis/Name im Hub)
 const SHIELD := "schild"
@@ -49,23 +50,49 @@ static func is_free_item(r: Resource) -> bool:
 	return r != null and r.resource_path in Stock.EXCLUDE
 
 
-## Stück im Lager (immer verfügbare: sehr viele)
-static func in_stock(g: HubState, r: Resource) -> int:
-	return 1 << 20 if is_free_item(r) else Stock.count(g, Stock.key_of(r))
+## Lager-Schlüssel eines Stücks mit Schaden
+static func stock_key(r: Resource, damage := 0) -> String:
+	return Stock.damaged_key(Stock.key_of(r), damage)
+
+
+## Stück im Lager mit diesem Schaden (immer verfügbare: sehr viele, aber nur intakt)
+static func in_stock(g: HubState, r: Resource, damage := 0) -> int:
+	if is_free_item(r):
+		return 1 << 20 if damage == 0 else 0
+	if g == null and damage < 0:
+		return 0   # ohne Spiel gibt es nur intakte Stücke
+	return Stock.count(g, stock_key(r, damage))
+
+
+## Schadensstufen, in denen r im Lager liegt (0 = intakt, dann −10, −20, −30)
+static func stock_damages(g: HubState, r: Resource) -> Array[int]:
+	var out: Array[int] = []
+	for d in [0, -10, -20, -30]:
+		if in_stock(g, r, d) > 0:
+			out.append(d)
+	return out
 
 
 ## anzeigen? (im Lager, immer verfügbar, oder getragen)
 static func listed(g: HubState, r: Resource, worn: bool) -> bool:
-	return worn or in_stock(g, r) > 0
+	return worn or not stock_damages(g, r).is_empty()
 
 
-static func _put_back(g: HubState, r: Resource) -> void:
+static func _put_back(g: HubState, r: Resource, damage := 0) -> void:
 	if r and not is_free_item(r):
-		Stock.add(g, Stock.key_of(r))
+		Stock.add(g, stock_key(r, damage))
 
 
-static func _take(g: HubState, r: Resource) -> bool:
-	return r == null or is_free_item(r) or Stock.take(g, Stock.key_of(r))
+static func _take(g: HubState, r: Resource, damage := 0) -> bool:
+	return r == null or is_free_item(r) or Stock.take(g, stock_key(r, damage))
+
+
+## Abzug eines Platzes setzen (0 = heil, Eintrag fällt weg)
+static func _set_wear(ch: Character, slot: String, damage: int) -> void:
+	if damage < 0:
+		ch.wear[slot] = damage
+	else:
+		ch.wear.erase(slot)
 
 
 ## Waffe im Platz (0 oder 1) oder null
@@ -73,8 +100,8 @@ static func weapon(ch: Character, slot: int) -> WeaponData:
 	return ch.weapons[slot] if slot < ch.weapons.size() else null
 
 
-## Warum die Waffe in diesem Platz nicht geht ("" = erlaubt)
-static func weapon_block(ch: Character, slot: int, w: WeaponData, g: HubState = null) -> String:
+## Warum die Waffe (mit diesem Schaden) in diesem Platz nicht geht ("" = erlaubt)
+static func weapon_block(ch: Character, slot: int, w: WeaponData, g: HubState = null, damage := 0) -> String:
 	if w == null:
 		return "Waffe 1 ist Pflicht" if slot == 0 else ""
 	if w.psi:
@@ -82,23 +109,30 @@ static func weapon_block(ch: Character, slot: int, w: WeaponData, g: HubState = 
 	var other := weapon(ch, 1 - slot)
 	if other and other.id == w.id:
 		return "schon als Waffe %d gewählt" % (2 - slot)
-	if w != weapon(ch, slot) and in_stock(g, w) < 1:
+	if not _is_worn(ch, "w%d" % slot, w, damage) and in_stock(g, w, damage) < 1:
 		return "nicht im Lager"
 	return ""
 
 
-## Waffe setzen (null in Platz 1 = Waffe 2 leer). Legt den Schild ab, wenn eine zweihändige Waffe dazukommt.
+## trägt die Figur genau dieses Stück (Teil und Schaden) im Platz?
+static func _is_worn(ch: Character, slot: String, r: Resource, damage: int) -> bool:
+	return gear_at(ch, slot) == r and ch.wear_of(slot) == damage
+
+
+## Waffe setzen (null in Platz 1 = Waffe 2 leer), damage = Schaden des Stücks aus dem Lager.
+## Legt die alte Waffe mit ihrem Schaden ins Lager und den Schild ab, wenn eine zweihändige Waffe dazukommt.
 ## Gibt "" zurück oder den Grund, warum es nicht geht.
-static func set_weapon(ch: Character, slot: int, w: WeaponData, g: HubState = null) -> String:
-	var why := weapon_block(ch, slot, w, g)
+static func set_weapon(ch: Character, slot: int, w: WeaponData, g: HubState = null, damage := 0) -> String:
+	var why := weapon_block(ch, slot, w, g, damage)
 	if why != "":
 		return why
-	var old := weapon(ch, slot)
-	if old == w:
+	var key := "w%d" % slot
+	if _is_worn(ch, key, w, damage):
 		return ""
-	_take(g, w)
-	_put_back(g, old)
-	ch.wear.erase("w%d" % slot)
+	var old := weapon(ch, slot)
+	_take(g, w, damage)
+	_put_back(g, old, ch.wear_of(key))
+	_set_wear(ch, key, damage if w else 0)
 	if blocks_shield(w) and ch.shield:
 		ch.shield = false
 		Stock.add(g, SHIELD)
@@ -138,15 +172,15 @@ static func set_shield(ch: Character, on: bool, g: HubState = null) -> String:
 	return ""
 
 
-## Rüstung wechseln (alte zurück ins Lager)
-static func set_armor(ch: Character, a: ArmorData, g: HubState = null) -> String:
-	if a == ch.armor:
+## Rüstung wechseln, damage = Schaden des Stücks aus dem Lager (alte mit ihrem Schaden zurück ins Lager)
+static func set_armor(ch: Character, a: ArmorData, g: HubState = null, damage := 0) -> String:
+	if _is_worn(ch, "armor", a, damage):
 		return ""
-	if in_stock(g, a) < 1:
+	if in_stock(g, a, damage) < 1:
 		return "nicht im Lager"
-	_take(g, a)
-	_put_back(g, ch.armor)
-	ch.wear.erase("armor")
+	_take(g, a, damage)
+	_put_back(g, ch.armor, ch.wear_of("armor"))
+	_set_wear(ch, "armor", damage)
 	ch.armor = a
 	return ""
 
@@ -169,9 +203,12 @@ static func restore(ch: Character, snap: Dictionary, g: HubState = null) -> Stri
 	var now := snapshot(ch)
 	_give_back(ch, g)
 	var need := {}
-	for r in snap.weapons + [snap.armor]:
+	var sw: Dictionary = snap.get("wear", {})
+	for i in snap.weapons.size() + 1:
+		var r: Resource = snap.armor if i == snap.weapons.size() else snap.weapons[i]
+		var k := stock_key(r, int(sw.get("armor" if i == snap.weapons.size() else "w%d" % i, 0)))
 		if r and not is_free_item(r):
-			need[Stock.key_of(r)] = int(need.get(Stock.key_of(r), 0)) + 1
+			need[k] = int(need.get(k, 0)) + 1
 	if snap.shield:
 		need[SHIELD] = int(need.get(SHIELD, 0)) + 1
 	if int(snap.medkits) > 0:
@@ -190,9 +227,9 @@ static func snapshot(ch: Character) -> Dictionary:
 
 
 static func _give_back(ch: Character, g: HubState) -> void:
-	for w in ch.weapons:
-		_put_back(g, w)
-	_put_back(g, ch.armor)
+	for i in ch.weapons.size():
+		_put_back(g, ch.weapons[i], ch.wear_of("w%d" % i))
+	_put_back(g, ch.armor, ch.wear_of("armor"))
 	if ch.shield:
 		Stock.add(g, SHIELD)
 	Stock.add(g, Stock.MEDKIT, ch.medkits)
@@ -204,9 +241,9 @@ static func _equip(ch: Character, st: Dictionary, g: HubState) -> void:
 	ch.shield = st.shield
 	ch.medkits = int(st.medkits)
 	ch.wear = (st.get("wear", {}) as Dictionary).duplicate()
-	for w in ch.weapons:
-		_take(g, w)
-	_take(g, ch.armor)
+	for i in ch.weapons.size():
+		_take(g, ch.weapons[i], ch.wear_of("w%d" % i))
+	_take(g, ch.armor, ch.wear_of("armor"))
 	if ch.shield:
 		Stock.take(g, SHIELD)
 	Stock.take(g, Stock.MEDKIT, ch.medkits)
