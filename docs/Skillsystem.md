@@ -582,3 +582,9 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 14. **Startcrew** hat in Körperentwicklung, Psi-Punkte-Entwicklung und den Psi-Listen noch keine Ränge.
 15. **Hülle 0 im Hafen ohne Credits** (8b): damit das Spiel nicht festsitzt, gehen Werft und Materialkauf bei Hülle 0 auch auf Notkredit. Vom Hub-Chat festgelegt, nicht vom Nutzer entschieden.
 16. **Unbesetzter Reiseposten** (8b; zu wenig verfügbare Crew): keine Probe, keine Ersparnis beim Treibstoff, Hülle unverändert.
+
+## Beute, Beschädigung und Verlust (Entscheidungen 16.10.2026)
+
+- **Beschädigung** von Waffen und Rüstungen (Crew und Gegner): −10 je Schaden, summiert, ab −30 unbrauchbar. Waffe: Abzug auf Angriffe, ab −30 nicht nutzbar. Rüstung: Abzug auf die Verteidigung, ab −30 wie keine Rüstung. Ursachen im Kampf: Patzer „Waffe klemmt“ (41–70) beschädigt die eigene Waffe, ein Kritischer D oder E die Rüstung des Getroffenen. Am Kampfende (Sieg, Niederlage oder Rückzug) bekommt jedes Teil jeder kampfunfähigen Crew-Figur mit 25 % einen Schaden. Beschädigtes bleibt bis zur Reparatur beschädigt (mit Abzug nutzbar).
+- **Beute** bei Sieg: Waffen, Rüstungen und übrige Medikits der besiegten Gegner; Waffen mit 30 %, Rüstungen mit 60 % beschädigt (−10 bis −30, plus Schaden aus dem Kampf). Wie viel man mitnehmen kann, regelt die Beuteauswahl im Schiff.
+- **Verlust** bei Niederlage ohne Rückzug: jedes Teil der zurückgebliebenen Figuren mit 50 %. Rückzug schützt.

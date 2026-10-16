@@ -53,6 +53,12 @@ var jump_queue: Array[Combatant] = []
 var fumbles: FumbleTableData
 var deploying := true          # Runde 0: Crew im Eingangsbereich aufstellen, bis start() aufgerufen wird
 var retreated := false         # Crew hat sich zurückgezogen (zählt als Niederlage)
+## Beute bei Sieg (Ausrüstung der Besiegten): [{key (Stock.key_of), name, damage (0 / −10 … −30)}] bzw. Medikits
+## [{key: Stock.MEDKIT, name, count}]. Entscheidungen des Nutzers 16.10.2026.
+var loot: Array[Dictionary] = []
+const LOOT_DAMAGE := {"weapon": 30, "armor": 60}   # Chance in %, dass ein Beutestück beschädigt ist
+const END_WEAR_CHANCE := 25    # kampfunfähig am Kampfende: je Teil Chance auf einen Schaden
+const LOSS_CHANCE := 50        # Niederlage ohne Rückzug: je Teil Chance auf Verlust
 
 
 ## Modifikator für die in einen Angriff gesteckte Aktivität: 60 % = ±0, darunter −10 je 10 %, darüber +5 je 10 %
@@ -336,8 +342,48 @@ func retreat() -> bool:
 	retreated = true
 	result = &"niederlage"
 	log_text("Die Crew zieht sich zurück.", &"round")
+	_end_gear()
 	ended.emit(result)
 	return true
+
+
+## Ausrüstung am Kampfende: Kampfunfähige der Crew bekommen je Teil mit END_WEAR_CHANCE einen Schaden;
+## Niederlage ohne Rückzug: je Teil mit LOSS_CHANCE verloren; Sieg: Beute aus der Ausrüstung der Besiegten.
+func _end_gear() -> void:
+	for u in crew():
+		if u.is_ok():
+			continue
+		for slot in ["w0", "w1", "armor"]:
+			var g := u.gear_at(slot)
+			if g == null or Stock.EXCLUDE.has(g.resource_path):
+				continue
+			if result == &"niederlage" and not retreated and Dice.d(100) <= LOSS_CHANCE:
+				u.lost.append(slot)
+				log_text("  %s verliert %s." % [u.name, g.get("name")], &"")
+			elif Dice.d(100) <= END_WEAR_CHANCE:
+				u.add_wear(slot)
+				log_text("  %s: %s beschädigt (%d)." % [u.name, g.get("name"), u.wear[slot]], &"")
+	loot.clear()
+	if result != &"sieg":
+		return
+	for e in enemies():
+		var gear: Array = []
+		for w in e.weapons:
+			if w.power == "" and not w.psi:
+				gear.append([w, e.slot_of(w), "weapon"])
+		if e.armor:
+			gear.append([e.armor, "armor", "armor"])
+		for g in gear:
+			var r: Resource = g[0]
+			var key := Stock.key_of(r)
+			if key == "" or Stock.EXCLUDE.has(key):
+				continue
+			var dmg := int(e.wear.get(g[1], 0)) if g[1] != "" else 0
+			if Dice.d(100) <= LOOT_DAMAGE[g[2]]:
+				dmg += Combatant.WEAR_STEP * Dice.d(3)
+			loot.append({"key": key, "name": r.get("name"), "damage": maxi(dmg, Combatant.WEAR_BROKEN)})
+		if e.medkit > 0:
+			loot.append({"key": Stock.MEDKIT, "name": Stock.MEDKIT_NAME, "count": e.medkit})
 
 
 func check_end() -> bool:
@@ -349,6 +395,7 @@ func check_end() -> bool:
 		result = &"niederlage"
 		_death_rolls()
 	if result != &"":
+		_end_gear()
 		ended.emit(result)
 		return true
 	return false
@@ -462,6 +509,8 @@ func usable_weapons(u: Combatant) -> Array[WeaponData]:
 	return u.weapons.filter(func(w: WeaponData) -> bool:
 		if w.magazine > 0 and u.loaded.get(w.id, 0) <= 0:
 			return false
+		if u.weapon_broken(w):
+			return false
 		return not (w.pp_cost > 0 and u.pp < w.pp_cost))
 
 
@@ -473,7 +522,7 @@ func reserve_of(u: Combatant) -> int:
 ## Verteidigungswert gegen einen Angriff (wie im Panel angezeigt)
 func dodge_value(u: Combatant) -> int:
 	var dodge := maxi(0, Rules.skill_total(u, &"ausweichen"))
-	return dodge / 2 + int(dodge / 2.0 * maxi(0, u.act) / 100.0) + u.armor.db
+	return dodge / 2 + int(dodge / 2.0 * maxi(0, u.act) / 100.0) + u.armor_db() + (0 if u.armor_broken() else mini(0, int(u.wear.get("armor", 0))))
 
 
 func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: BattleMap.Tile, sense: bool, facing: int) -> Array:
@@ -497,8 +546,11 @@ func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: Batt
 		mods.append({"label": "Ausweichen (überrascht)", "val": 0})
 	else:
 		mods.append({"label": "Ausweichen (½ + Reserve %d %%)" % reserve, "val": normal})
-	if def.armor.db:
-		mods.append({"label": def.armor.name, "val": def.armor.db})
+	if def.armor_db():
+		mods.append({"label": def.armor.name, "val": def.armor_db()})
+	var aw := int(def.wear.get("armor", 0))
+	if aw < 0 and not def.armor_broken():
+		mods.append({"label": "%s beschädigt" % def.armor.name, "val": aw})
 	if def.shield and not surprised:
 		mods.append({"label": "Schild", "val": 10 + maxi(0, Rules.rank_bonus(Rules.skill_rank(def, &"schild")) / 2)})
 	var located: bool = def.buffs.has("geortet") and def.team != def.buffs.geortet.team
@@ -535,6 +587,8 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 		return _bad("Ziel ist kampfunfähig", w)
 	if w.magazine > 0 and att.loaded.get(w.id, 0) <= 0:
 		return _bad("nicht geladen", w)
+	if att.weapon_broken(w):
+		return _bad("Waffe unbrauchbar (beschädigt)", w)
 	if w.pp_cost > 0 and att.pp < w.pp_cost:
 		return _bad("zu wenig Psi-Punkte (%d nötig)" % w.pp_cost, w)
 	var ob: Array = [{"label": Rules.skill_name(w.skill), "val": Rules.skill_total(att, w.skill)}]
@@ -576,6 +630,8 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 		ob.append({"label": "Ziel geduckt", "val": CROUCH_MELEE_OB})
 	if w.ob_bonus:
 		ob.append({"label": w.name if w.power != "" else "Bonus", "val": w.ob_bonus})
+	if att.weapon_wear(w) < 0:
+		ob.append({"label": "Waffe beschädigt", "val": att.weapon_wear(w)})
 	var burst := Ammo.shots_next(w, att.loaded.get(w.id, 0))
 	if Ammo.burst_bonus(burst):
 		ob.append({"label": "Feuerstoß ×%d" % burst, "val": Ammo.burst_bonus(burst)})
@@ -595,7 +651,7 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 		if pct < NORMAL_ATTACK:
 			return _bad("Ziel in voller Deckung – nur gezielter Schuss (mind. %d %% Aktivität)" % NORMAL_ATTACK, w)
 	var net := _sum(ob) - _sum(db)
-	var thr: int = w.table.thresholds[def.armor.cls]
+	var thr: int = w.table.thresholds[def.armor_cls()]
 	# Trefferchance: W100 (ohne Patzerbereich) + net >= thr; der offene Wurf nach oben wird vernachlässigt
 	var need := maxi(thr - net, w.fumble + 1)
 	return {"valid": true, "weapon": w, "ob": ob, "db": db, "net": net, "thr": thr,
@@ -692,7 +748,7 @@ func _resolve_attack(u: Combatant, target: Combatant, info: Dictionary, tag := "
 		return
 	var raw: int = roll.total + info.net
 	var total := mini(raw, w.max_result)
-	var res := Tables.lookup_attack(w.table, total, target.armor.cls, w.damage)
+	var res := Tables.lookup_attack(w.table, total, target.armor_cls(), w.damage)
 	var head := "%s%s → %s (%s, %d %%): Wurf %s %s AW − %d VW = %d%s" % [tag, u.name, target.name, w.name, info.pct,
 		Dice.format_roll(roll), Dice.fmt(_sum(info.ob)), _sum(info.db), total, " (max. %d)" % w.max_result if raw > w.max_result else ""]
 	if not res.hit:
@@ -841,6 +897,9 @@ func _apply_crit(u: Combatant, crit: Dictionary, sev: String) -> void:
 	u.malus += r.malus
 	if r.prone:
 		u.prone = true
+	if (sev == "D" or sev == "E") and u.armor_cls() > 0:   # schwerer Kritischer beschädigt die Rüstung
+		var v := u.add_wear("armor")
+		log_text("  %s beschädigt (%d)%s." % [u.armor.name, v, " – schützt nicht mehr" if v <= Combatant.WEAR_BROKEN else ""], &"crit")
 	if r.ko and u.is_ok():
 		u.state = Combatant.State.KO
 		u.overwatch = {}
@@ -869,7 +928,7 @@ func _resolve_splash(att: Combatant, target: Combatant, roll: Dictionary, info: 
 		if d < 1 or d > w.splash.size():
 			continue
 		var total := mini(roll.total + _sum(info.ob) + w.splash[d - 1], w.max_result)
-		var res := Tables.lookup_attack(w.table, total, v.armor.cls, w.damage)
+		var res := Tables.lookup_attack(w.table, total, v.armor_cls(), w.damage)
 		if not res.hit:
 			log_text("  Druckwelle verfehlt %s (%d)." % [v.name, total], &"miss")
 			continue
@@ -888,6 +947,11 @@ func _resolve_fumble(u: Combatant, roll: Dictionary, w: WeaponData) -> void:
 		u.move_spare = 0.0
 	if row.next_malus:
 		u.next_attack_malus = row.next_malus
+		# „Waffe klemmt“ beschädigt die Waffe (Entscheidung des Nutzers 16.10.2026)
+		var slot := u.slot_of(w)
+		if slot != "":
+			var v := u.add_wear(slot)
+			log_text("  %s beschädigt (%d)%s." % [w.name, v, " – unbrauchbar" if v <= Combatant.WEAR_BROKEN else ""], &"fumble")
 	if row.prone:
 		u.prone = true
 	if row.self_damage:
