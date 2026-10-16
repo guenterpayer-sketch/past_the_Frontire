@@ -20,8 +20,6 @@ var card: UnitCard           # Seitenleiste: eigene Figur
 var ai_card: UnitCard        # Seitenleiste: Figur unter KI-Steuerung
 var actions: ActionPanel
 var sheet: SheetDialog
-var tables: TablesDialog
-var psi_lists: PsiListView   # Übersicht der Psi-Listen (Baustein des Charakter-Moduls), aus „Tabellen“ geöffnet
 var briefing: BriefingDialog
 var help: Modal
 var result_banner: ResultBanner
@@ -79,12 +77,9 @@ func _ready() -> void:
 	set_side_open(Prefs.get_bool("side_open", true))
 
 	sheet = SheetDialog.new()
-	tables = TablesDialog.new()
 	briefing = BriefingDialog.new()
 	help = Modal.new()
-	psi_lists = PsiListView.new()
-	tables.psi_view = psi_lists
-	for d in [sheet, tables, briefing, help, psi_lists]:
+	for d in [sheet, briefing, help]:
 		add_child(d)
 	active_tag = ActiveTag.new()
 	add_child(active_tag)
@@ -153,18 +148,32 @@ func set_toggle(name: StringName, on: bool, tip := "") -> void:
 
 
 func any_dialog_open() -> bool:
-	return sheet.visible or tables.visible or briefing.visible or help.visible or psi_lists.visible or _confirm.visible
+	var enc := encyclopedia()
+	return sheet.visible or briefing.visible or help.visible or (enc != null and enc.visible) or _confirm.visible
 
 
 func close_dialogs() -> bool:
 	if context_menu.visible:
 		context_menu.hide()
 		return true
-	for d in [psi_lists, sheet, tables, briefing, help]:
-		if d.visible:
+	for d in [encyclopedia(), sheet, briefing, help]:
+		if d and d.visible:
 			d.close()
 			return true
 	return false
+
+
+## Enzyklopädie des Hubs (ersetzt seit 16.10.2026 den Dialog „Tabellen“); null, solange sie nie geöffnet wurde
+func encyclopedia() -> Encyclopedia:
+	return get_node_or_null(Encyclopedia.NAME) as Encyclopedia
+
+
+## Enzyklopädie öffnen; w = gewählte Waffe (Psi-Angriffskraft → ihre Psi-Liste), null = Bereich Waffen
+func show_encyclopedia(w: WeaponData = null) -> void:
+	if w and w.power != "":
+		Encyclopedia.show_on(self, &"psi", PsiLists.LISTS[PsiCombat.list_of(w.power)].name)
+	else:
+		Encyclopedia.show_on(self, &"waffen", w.name if w else "")
 
 
 func show_help() -> void:

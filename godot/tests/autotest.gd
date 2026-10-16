@@ -214,8 +214,9 @@ func _run_ai() -> void:
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/05_bogen.png")
 	b.ui.sheet.hide()
-	b.ui.tables.show_tables()
+	b.ui.show_encyclopedia(b.combat.crew()[0].weapons[0])
 	await get_tree().create_timer(0.3).timeout
+	print("Enzyklopädie (Tabellen): offen %s, Bereich %s, Eintrag %s" % [b.ui.encyclopedia().visible, b.ui.encyclopedia().section, b.ui.encyclopedia().entry])
 	await _screenshot(out + "/06_tabellen.png")
 	print("AUTOTEST FERTIG")
 	get_tree().quit()
