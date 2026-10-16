@@ -957,6 +957,7 @@ func _test_loot_wear() -> void:
 	check(c.loot.all(func(l: Dictionary) -> bool: return l.has("count") or (int(l.damage) <= 0 and int(l.damage) >= -30)), "Beute-Schaden 0 bis −30")
 	var r := MissionResult.from_combat(c)
 	check(r.loot.size() == c.loot.size() and r.units[u.id].wear.w0 == -30, "MissionResult: loot und wear")
+	check(not r.retreated, "MissionResult: Sieg ohne Rückzug")
 	# Niederlage ohne Rückzug: Verlust; mit Rückzug: keiner
 	var lost_n := 0
 	var parts := 0
@@ -966,6 +967,9 @@ func _test_loot_wear() -> void:
 		for o in c2.crew():
 			o.state = Combatant.State.KO
 		c2.check_end()
+		if seed_v == 0:
+			var r2 := MissionResult.from_combat(c2)
+			check(r2.outcome == &"niederlage" and not r2.retreated, "MissionResult: Niederlage ohne Rückzug")
 		for o in c2.crew():
 			lost_n += o.lost.size()
 			for slot in ["w0", "w1", "armor"]:
@@ -983,6 +987,8 @@ func _test_loot_wear() -> void:
 	for o in c3.crew():
 		worn += o.wear.size()
 	check(c3.crew().all(func(o: Combatant) -> bool: return o.lost.is_empty()) and worn > 0 and c3.loot.is_empty(), "Rückzug: kein Verlust, Kampfunfähige teils beschädigt (%d)" % worn)
+	var r3 := MissionResult.from_combat(c3)
+	check(r3.outcome == &"niederlage" and r3.retreated, "MissionResult: Rückzug gekennzeichnet (outcome niederlage)")
 
 
 ## Charakter-Modul: Beschädigung und Verlust aus dem MissionResult übernehmen
