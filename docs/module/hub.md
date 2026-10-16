@@ -290,3 +290,9 @@ Regeln: Wer würfelt, wird im Handelsdialog **ausgewählt**. Probe **pro Tag im 
 ### Auftrag (16.10.2026): Schild als Handelsgut
 
 Charakter hat den Schild zum Lagergegenstand gemacht (Schlüssel `Equipment.SHIELD = "schild"`). `Stock.name_of`, `Stock.price`/`PRICES` und Sortiment (`goods`/`shop`) kennen den Schlüssel noch nicht. Aufnehmen, **Kaufpreis 150 Credits** (Entscheidung des Nutzers), Verkauf wie üblich über `TradeSkills`. Test in `test_hub` ergänzen.
+
+#### Stand Schild als Handelsgut (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `Stock`: Schlüssel `Equipment.SHIELD` mit Name „Schild“, Kaufpreis **150 Cr** (`PRICES`), Teil von `goods()` und damit des zufälligen Sortiments (Anteil nach Gassenwissen, wie Waffen/Rüstungen). Verkauf und Kauf nach Handeln (`TradeSkills`), z. B. Verkauf 75 Cr bei Teilerfolg.
+- Test: `_test_stock` prüft Preis, Name, Handelsgut, Preise nach Handeln, Kauf aus dem Sortiment und Verkauf.
+- Doku: Preistabelle `docs/Skillsystem.md` 8b, `godot/README.md`.
