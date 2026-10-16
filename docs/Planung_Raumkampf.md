@@ -38,7 +38,7 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Schiffsmunition | **2 Arten**: Schiffsraketen, Geschosse. |
 | Slots | Start **Bug, Backbord, Steuerbord, Turm**; neuer Ausbau-Bereich **„Waffenslots“**: Stufe 1 Heck, Stufe 2 Bug 2, Stufe 3 Turm 2. |
 | Slotgrößen | **Nur der Turm ist besonders** (nur Abwehrwaffen); sonst passt jede Waffe überall, der Feuerbogen hängt am Slot. |
-| Bestätigt | Bord-KI +20, Doppelbesetzung −30, Flucht: Sprung nach 2 Runden Vorbereitung (Probe Navigation mittel), kostet Energie und Treibstoff, Ende ohne Beute, Auftrag bleibt offen. |
+| Bestätigt | Bord-KI **+0** (Änderung des Nutzers 16.10.2026, vorher +20), Doppelbesetzung −30, Flucht: Sprung nach 2 Runden Vorbereitung (Probe Navigation mittel), kostet Energie und Treibstoff, Ende ohne Beute, Auftrag bleibt offen. |
 | Systemschäden | **Stufen A–E** (E = ausgefallen); betroffen: Antrieb, Sensoren, Lebenserhaltung, Schilde, Reaktor, einzelne Waffenslots, Stationen (Person dort verletzt). |
 | Zahlen | **Erst nach dem Bau**: Platzhalter, Feinschliff per Simulation. Ebenso die **Gegnerzahl je Schwierigkeit**. |
 | Beute, Lösegeld | **Raumkampf würfelt aus**, der Hub bucht nur. |
@@ -48,7 +48,7 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 
 ## 2. Vorschläge (noch zu bestätigen)
 
-- **Bord-KI:** fester Gesamtbonus +20. **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
+- **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
 - **Phasen im Detail:** 0 Initiative (Navigation) → 1 Schilde (Schutzschild) → 2 Bewegen (Pilot; gegnerische Jäger ziehen hier ebenfalls) → 3 Schießen (Geschützstationen, Punktverteidigung) → 4 Technik/Computer (Not-Reparatur, Panzerung, Zielerfassung/Störsender wirken ab der nächsten Runde).
 - **Slots des Startschiffs:** 2 Bug, 1 je Seite, 1 Turm (Punktverteidigung). Startbewaffnung: 2× Laserbank (Strahl), 1× Massebeschleuniger (Ballistik), 1× Raketenwerfer, 1× Abwehrgeschütz.
 - **Neue Ausbau-Bereiche:** „Schilde“ (Schildpunkte je Seite) und „Panzerung“ (Abzug je Treffer), je Stufe 0–3 wie die übrigen Bereiche in `ShipUpgrades`.

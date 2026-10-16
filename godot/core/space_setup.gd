@@ -24,7 +24,7 @@ const STATION_SKILL := {"steuer": &"pilot", "navigation": &"navigation", "schild
 const POST_FROM_CHARACTER := {"Steuer": "steuer", "Navigation": "navigation", "Schilde": "schilde",
 	"Technik": "technik", "Computer": "computer"}
 const KI := "ki"
-const KI_BONUS := 20
+const KI_BONUS := 0
 const DOUBLE_MALUS := -30
 
 ## Werte je Ausbau-Stufe 0–3 (Platzhalter)
