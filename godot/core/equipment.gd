@@ -9,7 +9,8 @@ extends RefCounted
 ## g == null (Schnellkampf, Tests ohne Spiel) = unbegrenzt.
 ## Beschädigung (Character.wear) gehört zum Teil im Platz: Beschädigte Stücke liegen einzeln mit Schaden im Lager
 ## (Schlüssel Stock.damaged_key, docs/module/hub.md); Anlegen übernimmt den Schaden in den Platz, Ablegen legt das
-## Stück mit Schaden zurück. Fäuste und „keine Rüstung“ sind nie beschädigt im Lager. damage = 0 (intakt) … −30.
+## Stück mit Schaden zurück. Fäuste und „keine Rüstung“ sind nie beschädigt im Lager. damage = 0 (intakt) bis −30,
+## +5 = gutes Stück aus dem Handwerk (Stock.BONUS, Schlüssel „…|+5“), angelegt und abgelegt wie beschädigte Stücke.
 
 ## Lager-Schlüssel des Schilds (kein Ressourcenpfad; Handel/Preis/Name im Hub)
 const SHIELD := "schild"
@@ -59,15 +60,15 @@ static func stock_key(r: Resource, damage := 0) -> String:
 static func in_stock(g: HubState, r: Resource, damage := 0) -> int:
 	if is_free_item(r):
 		return 1 << 20 if damage == 0 else 0
-	if g == null and damage < 0:
+	if g == null and damage != 0:
 		return 0   # ohne Spiel gibt es nur intakte Stücke
 	return Stock.count(g, stock_key(r, damage))
 
 
-## Schadensstufen, in denen r im Lager liegt (0 = intakt, dann −10, −20, −30)
+## Zustände, in denen r im Lager liegt (+5 gut, 0 intakt, dann −10, −20, −30)
 static func stock_damages(g: HubState, r: Resource) -> Array[int]:
 	var out: Array[int] = []
-	for d in [0, -10, -20, -30]:
+	for d in [Stock.BONUS, 0, -10, -20, -30]:
 		if in_stock(g, r, d) > 0:
 			out.append(d)
 	return out
@@ -89,7 +90,7 @@ static func _take(g: HubState, r: Resource, damage := 0) -> bool:
 
 ## Abzug eines Platzes setzen (0 = heil, Eintrag fällt weg)
 static func _set_wear(ch: Character, slot: String, damage: int) -> void:
-	if damage < 0:
+	if damage != 0:
 		ch.wear[slot] = damage
 	else:
 		ch.wear.erase(slot)
@@ -252,7 +253,9 @@ static func _equip(ch: Character, st: Dictionary, g: HubState) -> void:
 ## Beschädigung eines Platzes als Text ("" = heil), z. B. „beschädigt −10“ (Dice.fmt) oder „unbrauchbar“
 static func wear_text(ch: Character, slot: String) -> String:
 	var v := ch.wear_of(slot)
-	if v >= 0:
+	if v > 0:
+		return Dice.fmt(v)
+	if v == 0:
 		return ""
 	return "unbrauchbar" if v <= Combatant.WEAR_BROKEN else "beschädigt " + Dice.fmt(v)
 
@@ -267,11 +270,12 @@ static func gear_at(ch: Character, slot: String) -> Resource:
 
 
 ## alle beschädigten Teile als Text, z. B. „Sturmgewehr beschädigt −10, Leichte Rüstung unbrauchbar“ ("" = alles heil)
-static func wear_summary(ch: Character) -> String:
+## fine = true: stattdessen die guten Stücke, z. B. „Sturmgewehr +5“
+static func wear_summary(ch: Character, fine := false) -> String:
 	var parts: Array[String] = []
 	for slot in ["w0", "w1", "armor"]:
 		var r := gear_at(ch, slot)
-		if r and wear_text(ch, slot) != "":
+		if r and (ch.wear_of(slot) > 0 if fine else ch.wear_of(slot) < 0):
 			parts.append("%s %s" % [r.get("name"), wear_text(ch, slot)])
 	return ", ".join(parts)
 
