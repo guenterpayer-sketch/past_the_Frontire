@@ -30,6 +30,7 @@ func _init() -> void:
 	_test_equipment()
 	_test_psi_view()
 	_test_own_gear()
+	_test_armory_stock()
 	_test_deploy()
 	_test_dying()
 	_test_psi()
@@ -899,3 +900,50 @@ func _aabb(n: Node, xf: Transform3D, acc: Array) -> void:
 		acc[0] = a if acc[0] == null else (acc[0] as AABB).merge(a)
 	for c in n.get_children():
 		_aabb(c, t, acc)
+
+
+## Waffenkammer am Lager (Schritt 3): Ausrüsten nimmt heraus, Ablegen legt zurück, Schild und Medikits im Lager
+func _test_armory_stock() -> void:
+	var g := HubState.new()
+	var by := {}
+	for w in GameData.weapons():
+		by[w.id] = w
+	var ch := Roster.start_crew()[0]
+	ch.weapons.assign([by[&"laserpistole"]])
+	ch.shield = false
+	ch.medkits = 3
+	var sg: WeaponData = by[&"sturmgewehr"]
+	check(Equipment.weapon_block(ch, 0, sg, g) == "nicht im Lager" and not Equipment.listed(g, sg, false), "leeres Lager: Waffe nicht wählbar, ausgeblendet")
+	check(Equipment.set_weapon(ch, 1, by[&"faeuste"], g) == "", "Fäuste immer verfügbar")
+	Stock.add(g, Stock.key_of(sg))
+	var before := g.stock.duplicate()
+	var snap := {"weapons": ch.weapons.duplicate(), "armor": ch.armor, "shield": ch.shield, "medkits": ch.medkits}
+	check(Equipment.set_weapon(ch, 0, sg, g) == "" and Stock.count(g, Stock.key_of(sg)) == 0
+		and Stock.count(g, Stock.key_of(by[&"laserpistole"])) == 1, "Ausrüsten nimmt heraus, Ablegen legt zurück")
+	var old_armor := ch.armor
+	var none: ArmorData = load(Gear.FALLBACK_ARMOR)
+	check(Equipment.set_armor(ch, none, g) == "" and Stock.count(g, Stock.key_of(old_armor)) == 1, "Rüstung ablegen → Lager")
+	check(Equipment.set_shield(ch, true, g) != "", "Schild nur aus dem Lager")
+	Equipment.set_weapon(ch, 0, by[&"laserpistole"], g)
+	Stock.add(g, Equipment.SHIELD)
+	check(Equipment.set_shield(ch, true, g) == "" and ch.shield and Stock.count(g, Equipment.SHIELD) == 0, "Schild aus dem Lager")
+	Stock.add(g, Stock.key_of(by[&"energiehammer"]))
+	Equipment.set_weapon(ch, 0, by[&"energiehammer"], g)
+	check(not ch.shield and Stock.count(g, Equipment.SHIELD) == 1, "zweihändige Waffe legt den Schild ins Lager")
+	check(Equipment.set_medkits(ch, 1, g) == 1 and Stock.count(g, Stock.MEDKIT) == 2, "Medikits zurücklegen")
+	check(Equipment.set_medkits(ch, 9, g) == 3 and Stock.count(g, Stock.MEDKIT) == 0, "Medikits höchstens 3, aus dem Lager")
+	Stock.take(g, Equipment.SHIELD)
+	Stock.add(g, Equipment.SHIELD)
+	check(Equipment.restore(ch, snap, g) == "" and ch.weapons == snap.weapons and ch.armor == snap.armor and ch.medkits == 3, "zurücknehmen")
+	var same := true
+	for k in before.keys() + g.stock.keys():
+		var want := int(before.get(k, 0)) + (1 if k == Equipment.SHIELD else 0) + (1 if k == Stock.key_of(by[&"energiehammer"]) else 0)
+		if Stock.count(g, k) != want:
+			same = false
+	check(same, "zurücknehmen stellt das Lager wieder her")
+	# ohne Spiel unbegrenzt
+	check(Equipment.set_weapon(ch, 0, by[&"mg"]) == "" and Equipment.set_medkits(ch, 3) == 3, "ohne Spielstand unbegrenzt")
+	# Verbrauch im Einsatz
+	ch.medkits = 3
+	ch.apply_result({"used": {"medkits": 2}})
+	check(ch.medkits == 1, "verbrauchte Medikits werden abgezogen")
