@@ -221,3 +221,10 @@ Grundlage: `docs/Planung_Enzyklopaedie.md` (Entscheidungen des Nutzers). Du baus
   - **Bodenkampf:** Burgermenü → `show_on(ui, &"waffen")`; „Tabellen“ → `show_on(ui, &"waffen", gewählte_waffe.name)`; `TablesDialog` kann danach entfallen.
   - **Charakter:** ⓘ bei Psi-Listen → `show_on(…, &"psi", PsiLists.LISTS[id].name)`; Zugang in Übersicht/Editor nach Absprache mit dem Nutzer.
 - Tests: `test_rules` OK, `test_hub` OK (alle Bereiche gefüllt, Kurzregeln gefunden und sauber abgegrenzt, Beschreibung für jede Fertigkeit, Markdown-Umwandlung, Suche), `--autotest-hub` durchgelaufen (Burgermenü im Startmenü, Waffe, Psi-Liste, Kurzregel, Suche „deckung“ 5 Treffer, Menü im Schiff). `test_sim` nicht gelaufen (Kampf unverändert).
+
+## Aufträge vom Koordinator (16.10.2026): Modelle und Klänge im Editor
+
+Teil Bodenkampf ist in `main` (`9896e43`), Schnittstelle in `docs/module/bodenkampf.md` unter „Schnittstellen“. Im Ausrüstungs-Editor:
+1. `WeaponModels.all()` statt `Gear.models()` anbieten; `WeaponModels.apply(waffe, eintrag)` setzt Modell, Länge, Griff, Zweihändigkeit.
+2. Klangauswahl `WeaponData.SOUNDS` für `sound_id`; der Eintrag `"sound"` im Katalog als Vorschlag.
+Hinweis: Der in `bodenkampf.md` erneut genannte Wunsch „mitgelieferte Waffen editierbar“ ist vom Nutzer **zurückgenommen** (siehe Hinweis vom 16.10.2026 oben) – nicht bauen.
