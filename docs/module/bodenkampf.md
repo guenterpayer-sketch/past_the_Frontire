@@ -27,4 +27,8 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (16.10.2026): Import-Einstellungen von 3 Texturen festschreiben
+
+Der Godot-Editor des Nutzers schreibt bei jedem Öffnen diese `.import`-Dateien um (GitHub Desktop zeigt sie ständig als Änderung): `godot/assets/weapons/blaster/Textures/colormap.png.import`, `godot/assets/source/kaykit/Knight_knight_texture.png.import`, `godot/assets/characters/models/mech_leela_Leela_Texture.png.import`. Ursache (geprüft): im Repo `detect_3d/compress_to=1` und `"vram_texture": false`; der Editor erkennt die 3D-Nutzung und stellt auf VRAM-Kompression um (`path.s3tc=…`, `imported_formats`, `"vram_texture": true`, neue `uid`). Headless `--import` tut das nicht.
+- Die drei Dateien so committen, wie der Editor sie schreibt (VRAM komprimiert, `compress/mode=2`, `detect_3d` dann wirkungslos), und prüfen, dass die `uid` in den Szenen/Ressourcen, die die Texturen nutzen, weiter stimmt (sonst bei der alten `uid` bleiben und nur die Kompression ändern).
+- Danach darf nach einem Öffnen im Editor keine dieser Dateien mehr als geändert erscheinen.
