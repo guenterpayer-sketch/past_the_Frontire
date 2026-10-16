@@ -9,7 +9,10 @@ extends RefCounted
 ##          dying: am Ende sterbend und nicht stabilisiert, stabilized: sterbend, aber per Erster Hilfe stabilisiert,
 ##          died: tot (nur durch den Todeswurf, wenn die ganze Crew gefallen ist),
 ##          used: {medkits, ammo: {Waffen-ID: Schuss}}}},
-##  ammo_used: {Munitionsart: Schuss} (ganze Crew, für den Schiffsvorrat; Ammo.TYPES)}
+##  ammo_used: {Munitionsart: Schuss} (ganze Crew, für den Schiffsvorrat; Ammo.TYPES),
+##  loot: Beute bei Sieg [{key (Stock.key_of), name, damage 0/−10…−30}] und Medikits [{key: Stock.MEDKIT, name, count}]}
+## Je Figur zusätzlich: wear {Platz "w0"/"w1"/"armor": Abzug} (Stand nach dem Kampf, −10 je Schaden, ab −30 unbrauchbar),
+## lost [Platz, …] (bei Niederlage ohne Rückzug verloren). Entscheidungen des Nutzers 16.10.2026.
 
 ## freie EP pro Einsatz für jede Figur (dazu bei Sieg die Missionsbelohnung)
 const FREE_XP := 3
@@ -37,6 +40,9 @@ static func from_combat(c: Combat, mission: Mission = null) -> Dictionary:
 			"stabilized": u.state == Combatant.State.DYING and u.stabilized,
 			"died": u.is_dead(),
 			"used": {"medkits": u.medkit_start - u.medkit, "ammo": ammo},
+			"wear": u.wear.duplicate(),
+			"lost": u.lost.duplicate(),
 		}
 	return {"outcome": c.result, "mission": mission.title if mission else "", "rounds": c.round_no,
-		"reward_xp": reward, "units": units, "ammo_used": Ammo.used(c.crew())}
+		"reward_xp": reward, "units": units, "ammo_used": Ammo.used(c.crew()),
+		"loot": c.loot.duplicate(true)}

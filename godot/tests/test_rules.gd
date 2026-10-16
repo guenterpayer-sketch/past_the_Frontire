@@ -36,6 +36,7 @@ func _init() -> void:
 	_test_ammo()
 	_test_custom_gear()
 	_test_models_sounds()
+	_test_loot_wear()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -899,3 +900,75 @@ func _aabb(n: Node, xf: Transform3D, acc: Array) -> void:
 		acc[0] = a if acc[0] == null else (acc[0] as AABB).merge(a)
 	for c in n.get_children():
 		_aabb(c, t, acc)
+
+
+## Beute, Beschädigung und Verlust (Entscheidungen des Nutzers 16.10.2026)
+func _test_loot_wear() -> void:
+	Dice.set_seed(21)
+	var c := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
+	var u := c.crew()[0]
+	var w := u.weapons[0]
+	check(u.slot_of(w) == "w0" and u.weapon_wear(w) == 0, "Platz der Waffe 1")
+	u.add_wear("w0")
+	var foe := c.enemies()[0]
+	for n in Hex.neighbors(u.pos):
+		var t := c.map.tile(n)
+		if t and c.map.walkable(t) and c.unit_at(n) == null:
+			foe.pos = n
+			break
+	var info := c.attack_info(u, foe, w, {"pct": 60})
+	check(info.get("ob", []).any(func(m: Dictionary) -> bool: return m.label == "Waffe beschädigt" and m.val == -10), "beschädigte Waffe: −10 auf den Angriff")
+	u.add_wear("w0")
+	u.add_wear("w0")
+	u.add_wear("w0")
+	check(u.weapon_wear(w) == -30 and u.weapon_broken(w) and not c.usable_weapons(u).has(w), "ab −30 unbrauchbar (nicht tiefer)")
+	var a := c.crew().filter(func(o: Combatant) -> bool: return o.armor and o.armor.cls > 0)[0] as Combatant
+	var cls := a.armor.cls
+	for i in 3:
+		a.add_wear("armor")
+	check(a.armor_cls() == 0 and a.armor_db() == 0 and cls > 0, "Rüstung ab −30 wie keine")
+	var b := c.crew().filter(func(o: Combatant) -> bool: return o.armor and o.armor.cls > 0 and o != a)[0] as Combatant
+	c._apply_crit(b, Tables.roll_crit(GameData.crit_tables()[0], "D"), "D")
+	check(int(b.wear.get("armor", 0)) == -10, "Kritischer D beschädigt die Rüstung")
+	# Sieg: Beute aus der Ausrüstung der Gegner
+	for e in c.enemies():
+		e.state = Combatant.State.DEAD
+	c.check_end()
+	var keys := c.loot.map(func(l: Dictionary) -> String: return l.key)
+	var e_weapons := 0
+	for e in c.enemies():
+		e_weapons += e.weapons.filter(func(x: WeaponData) -> bool: return x.power == "" and not Stock.EXCLUDE.has(x.resource_path)).size()
+	check(c.loot.size() >= e_weapons and keys.all(func(k: String) -> bool: return k != ""), "Beute: alle Waffen der Gegner (%d Einträge)" % c.loot.size())
+	check(c.loot.all(func(l: Dictionary) -> bool: return l.has("count") or (int(l.damage) <= 0 and int(l.damage) >= -30)), "Beute-Schaden 0 bis −30")
+	var r := MissionResult.from_combat(c)
+	check(r.loot.size() == c.loot.size() and r.units[u.id].wear.w0 == -30, "MissionResult: loot und wear")
+	# Niederlage ohne Rückzug: Verlust; mit Rückzug: keiner
+	var lost_n := 0
+	var parts := 0
+	for seed_v in 8:
+		Dice.set_seed(100 + seed_v)
+		var c2 := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
+		for o in c2.crew():
+			o.state = Combatant.State.KO
+		c2.check_end()
+		for o in c2.crew():
+			lost_n += o.lost.size()
+			for slot in ["w0", "w1", "armor"]:
+				var g := o.gear_at(slot)
+				if g and not Stock.EXCLUDE.has(g.resource_path):
+					parts += 1
+	check(c2_ok(lost_n, parts), "Niederlage: rund die Hälfte verloren (%d von %d)" % [lost_n, parts])
+	Dice.set_seed(7)
+	var c3 := Combat.new(MapGenerator.generate(4711, "klein"), Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(4711).enemies, &"enemy"))
+	for o in c3.crew():
+		o.state = Combatant.State.KO
+	c3.deploying = false
+	check(c3.retreat(), "Rückzug möglich")
+	var worn := 0
+	for o in c3.crew():
+		worn += o.wear.size()
+	check(c3.crew().all(func(o: Combatant) -> bool: return o.lost.is_empty()) and worn > 0 and c3.loot.is_empty(), "Rückzug: kein Verlust, Kampfunfähige teils beschädigt (%d)" % worn)
+
+
+func c2_ok(lost_n: int, parts: int) -> bool:
+	return parts > 0 and lost_n > parts * 0.3 and lost_n < parts * 0.7

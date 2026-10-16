@@ -71,6 +71,12 @@ var disarmed := false            # Entwaffnen: im nächsten eigenen Zug kein Ang
 var stabilized := false        # sterbend, aber per Erster Hilfe stabilisiert
 var worst_crit := ""           # schwerster erlittener Kritischer (A–E), "" = keiner
 var free_xp := 0              # gesparte freie EP (für Fertigkeiten oder Eigenschaften)
+## Beschädigung der Ausrüstung (Entscheidungen des Nutzers 16.10.2026): Platz → Abzug (−10 je Schaden),
+## Plätze "w0" (Waffe 1), "w1" (Waffe 2), "armor"; ab WEAR_BROKEN unbrauchbar. Kommt aus Character.wear (falls vorhanden).
+const WEAR_STEP := -10
+const WEAR_BROKEN := -30
+var wear := {}
+var lost: Array[String] = []   # bei Niederlage ohne Rückzug verlorene Plätze
 
 
 ## Figur aus einer Vorlage (Gegner, Tests); saved = Fortschritt im alten Format {skills, attrs, free_xp}
@@ -107,6 +113,9 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 	u.pp = u.max_pp
 	u.medkit = ch.medkits
 	u.medkit_start = ch.medkits
+	var w0: Variant = ch.get("wear")
+	if w0 is Dictionary:
+		u.wear = (w0 as Dictionary).duplicate()
 	if ch.injury == Injury.LIGHT:
 		u.malus = Injury.LIGHT_MALUS
 	for slot in u.weapons.size():
@@ -118,6 +127,49 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 			u.ammo_start[w.id] = n
 	u.facing = 0 if u.is_crew else 3
 	return u
+
+
+## Platz einer Waffe ("w0"/"w1"); Psi-Kräfte und Waffen ab Platz 3 haben keinen
+func slot_of(w: WeaponData) -> String:
+	var i := weapons.find(w)
+	return "w%d" % i if i >= 0 and i <= 1 and w.power == "" else ""
+
+
+func weapon_wear(w: WeaponData) -> int:
+	return int(wear.get(slot_of(w), 0))
+
+
+func weapon_broken(w: WeaponData) -> bool:
+	return weapon_wear(w) <= WEAR_BROKEN
+
+
+## Rüstung ab WEAR_BROKEN wie keine: Klasse 0, keine Verteidigung
+func armor_broken() -> bool:
+	return int(wear.get("armor", 0)) <= WEAR_BROKEN
+
+
+func armor_cls() -> int:
+	return 0 if armor == null or armor_broken() else armor.cls
+
+
+func armor_db() -> int:
+	return 0 if armor == null or armor_broken() else armor.db
+
+
+## Platz um einen Schaden verschlechtern (höchstens bis WEAR_BROKEN); gibt den neuen Wert zurück
+func add_wear(slot: String) -> int:
+	if slot == "":
+		return 0
+	wear[slot] = maxi(int(wear.get(slot, 0)) + WEAR_STEP, WEAR_BROKEN)
+	return wear[slot]
+
+
+## Ausrüstung eines Platzes (WeaponData/ArmorData) oder null
+func gear_at(slot: String) -> Resource:
+	if slot == "armor":
+		return armor
+	var i := int(slot.substr(1)) if slot.begins_with("w") else -1
+	return weapons[i] if i >= 0 and i < weapons.size() and weapons[i].power == "" else null
 
 
 func is_ok() -> bool:
@@ -176,4 +228,9 @@ func status_list() -> PackedStringArray:
 		s.append("entwaffnet")
 	if next_attack_malus:
 		s.append("Waffe klemmt %d" % next_attack_malus)
+	for slot in ["w0", "w1", "armor"]:
+		var v := int(wear.get(slot, 0))
+		var g := gear_at(slot)
+		if v < 0 and g:
+			s.append("%s %s" % [g.get("name"), "unbrauchbar" if v <= WEAR_BROKEN else "beschädigt %d" % v])
 	return s
