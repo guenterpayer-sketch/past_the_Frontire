@@ -85,3 +85,29 @@ static func summary(ch: Character) -> Control:
 		g.add_child(l)
 	v.add_child(g)
 	return v
+
+
+## Burgermenü (☰) für die Titelzeile eines Dialogs: Enzyklopädie (öffnet sie über host)
+static func burger(host: Control) -> MenuButton:
+	var b := MenuButton.new()
+	b.text = "☰"
+	b.tooltip_text = "Menü"
+	b.flat = false
+	b.add_theme_font_size_override("font_size", 20)
+	b.custom_minimum_size = Vector2(44, 36)
+	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var pop := b.get_popup()
+	pop.add_item("Enzyklopädie", 0)
+	pop.id_pressed.connect(func(id: int) -> void:
+		if id == 0:
+			Encyclopedia.show_on(host).move_to_front())
+	return b
+
+
+## Enzyklopädie unter host schließen, falls offen (Esc); true = war offen
+static func close_encyclopedia(host: Node) -> bool:
+	var e := host.get_node_or_null(Encyclopedia.NAME) as Encyclopedia
+	if e and e.visible:
+		e.close()
+		return true
+	return false
