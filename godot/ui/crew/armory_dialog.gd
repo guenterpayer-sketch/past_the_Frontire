@@ -4,6 +4,9 @@ extends Modal
 ## mit Werten aus WeaponData/ArmorData und dem Bonus der Figur; Medikits aus dem Lager, Munition nur anzeigen.
 ## Am Lager des Schiffs (Equipment, Stock): Ausrüsten nimmt heraus, Ablegen legt zurück; nicht Vorrätiges wird
 ## ausgeblendet. Ohne Spiel (HubState.game == null) ist der Bestand unbegrenzt.
+## Reiter „Lager“ (Mockup „Frontire Waffenkammer Lager“, vom Nutzer bestätigt 16.10.2026; nur mit Spielstand):
+## das ganze Schiffslager in Gruppen mit Kurzwerten für die gewählte Figur, direkt anlegen (Waffe 1/2, Rüstung,
+## Schild, +1 Medikit); Munition und Material nur Anzeige. Fäuste und „keine Rüstung“ stehen nicht in der Liste.
 ## Der Hub öffnet ihn im Raum „Waffenkammer“: open_for(Campaign.crew()). „Fertig“ speichert über Campaign.save().
 
 ## nach „Fertig“ (schon gespeichert)
@@ -12,6 +15,8 @@ signal done
 var _crew: Array[Character] = []
 var _idx := 0
 var _slot := "w0"            # w0, w1, armor, shield
+var _mode := "equip"         # equip = Plätze und Auswahl, stock = Reiter „Lager“
+var _modes: HBoxContainer
 var _snap := {}              # Character -> {weapons, armor, shield, medkits} beim Öffnen
 var _tabs: HBoxContainer
 var _left: VBoxContainer
@@ -26,6 +31,7 @@ func open_for(crew: Array[Character], idx := 0) -> void:
 	_crew = crew
 	_idx = clampi(idx, 0, maxi(0, crew.size() - 1))
 	_slot = "w0"
+	_mode = "equip"
 	_weapons = Equipment.weapons()
 	_armors = Equipment.armors()
 	_snap.clear()
@@ -39,6 +45,9 @@ func open_for(crew: Array[Character], idx := 0) -> void:
 	_tabs = HBoxContainer.new()
 	_tabs.add_theme_constant_override("separation", 6)
 	content.add_child(_tabs)
+	_modes = HBoxContainer.new()
+	_modes.add_theme_constant_override("separation", 0)
+	content.add_child(_modes)
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", 16)
 	content.add_child(cols)
@@ -103,6 +112,19 @@ func _render() -> void:
 			_idx = i
 			_render())
 		_tabs.add_child(b)
+	# Umschalter Ausrüstung | Lager (Lager nur mit Spielstand)
+	UiTheme.clear(_modes)
+	if _g() == null:
+		_mode = "equip"
+	_modes.visible = _g() != null
+	for m in [["equip", "Ausrüstung", "Plätze der Figur und Auswahl je Platz"], ["stock", "Lager", "Ganzes Schiffslager, direkt anlegen"]]:
+		var mb := UiTheme.button(m[1], m[2], true)
+		mb.button_pressed = _mode == m[0]
+		mb.custom_minimum_size.x = 130
+		mb.pressed.connect(func() -> void:
+			_mode = m[0]
+			_render())
+		_modes.add_child(mb)
 	var n := _crew.filter(_is_changed).size()
 	_changed.text = ("%d %s geändert (• am Reiter)" % [n, "Figur" if n == 1 else "Figuren"]) if n else ""
 	var u := current()
@@ -256,6 +278,7 @@ func _slot_button(key: String, title: String, value: String, sub: String, bonus:
 		h.add_child(bl)
 	b.pressed.connect(func() -> void:
 		_slot = key
+		_mode = "equip"
 		_render())
 	return b
 
@@ -274,6 +297,9 @@ func _armor_text(a: ArmorData) -> String:
 # ---------------------------------------------------------------- rechts: Auswahl
 
 func _render_right(u: Character) -> void:
+	if _mode == "stock":
+		_stock_view(u)
+		return
 	match _slot:
 		"w0", "w1":
 			_weapon_list(u, int(_slot[1]))
@@ -391,6 +417,165 @@ func _shield_list(u: Character) -> void:
 	var note := UiTheme.label(t, 12, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_right.add_child(note)
+
+
+# ---------------------------------------------------------------- rechts: Reiter „Lager“
+
+## Ganzes Schiffslager in Gruppen (Waffen, Rüstungen, Ausrüstung, Munition, Material), Werte für die Figur u
+func _stock_view(u: Character) -> void:
+	var g := _g()
+	_right.add_child(UiTheme.label("Ganzes Schiffslager · Werte für %s" % u.name.split(" ")[0], 13, UiTheme.ACCENT))
+	var sc := ScrollContainer.new()
+	sc.custom_minimum_size.y = 430
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_right.add_child(sc)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", 6)
+	sc.add_child(v)
+	var weapons := []
+	var armors := []
+	for it in Stock.items(g):
+		var r := Character._load(Stock.base_of(it.key))
+		if r is WeaponData:
+			weapons.append([r, it])
+		elif r is ArmorData:
+			armors.append([r, it])
+
+	# Waffen: → Waffe 1 / → Waffe 2
+	var gw := _stock_group(v, "Waffen", "", ["Stück", "", "Fertigkeit", "Bonus " + u.letter, ""])
+	for e in weapons:
+		var w: WeaponData = e[0]
+		var d: int = e[1].damage
+		gw.add_child(_stock_name(Equipment.label(w) + Stock.damage_text(d), d,
+			"zweihändig: legt den Schild ab" if u.shield and Equipment.blocks_shield(w) else ""))
+		gw.add_child(UiTheme.label("×%d" % e[1].count, 13))
+		gw.add_child(UiTheme.label(Rules.skill_name(w.skill), 12, UiTheme.MUTED))
+		var tot := Rules.skill_total(u, w.skill) + d
+		gw.add_child(UiTheme.label(Dice.fmt(tot), 13, _col(tot)))
+		var h := HBoxContainer.new()
+		for slot in 2:
+			var why := Equipment.weapon_block(u, slot, w, g, d)
+			if why == "" and Equipment.weapon(u, slot) == w and u.wear_of("w%d" % slot) == d:
+				why = "trägt %s schon als Waffe %d" % [u.name.split(" ")[0], slot + 1]
+			var b := UiTheme.button("→ Waffe %d" % (slot + 1), why if why != "" else "%s als Waffe %d anlegen" % [w.name, slot + 1])
+			b.disabled = why != ""
+			b.pressed.connect(func() -> void:
+				Equipment.set_weapon(u, slot, w, g, d)
+				_slot = "w%d" % slot
+				_render())
+			h.add_child(b)
+		gw.add_child(h)
+	if weapons.is_empty():
+		_stock_empty(gw, "keine Waffen im Lager")
+
+	# Rüstungen: anlegen
+	var ga := _stock_group(v, "Rüstungen", "", ["Stück", "", "Klasse", "Verteidigung", ""])
+	for e in armors:
+		var a: ArmorData = e[0]
+		var d: int = e[1].damage
+		ga.add_child(_stock_name(Equipment.label(a) + Stock.damage_text(d), d, ""))
+		ga.add_child(UiTheme.label("×%d" % e[1].count, 13))
+		ga.add_child(UiTheme.label(str(a.cls), 13))
+		var db := a.db + d
+		ga.add_child(UiTheme.label("wie keine" if d <= Combatant.WEAR_BROKEN else (Dice.fmt(db) if db else "–"), 13, UiTheme.MUTED if d <= Combatant.WEAR_BROKEN else _col(db)))
+		var same := a == u.armor and u.wear_of("armor") == d
+		var b := UiTheme.button("anlegen", "trägt %s schon" % u.name.split(" ")[0] if same else "%s anlegen (alte Rüstung zurück ins Lager)" % a.name)
+		b.disabled = same
+		b.pressed.connect(func() -> void:
+			Equipment.set_armor(u, a, g, d)
+			_slot = "armor"
+			_render())
+		ga.add_child(b)
+	if armors.is_empty():
+		_stock_empty(ga, "keine Rüstungen im Lager")
+
+	# Ausrüstung: Schild, Medikits
+	var gx := _stock_group(v, "Ausrüstung", "", ["Stück", "", "Hinweis", "", ""])
+	var sn := Stock.count(g, Equipment.SHIELD)
+	var mn := Stock.count(g, Stock.MEDKIT)
+	if sn > 0:
+		var why := "trägt schon einen" if u.shield else Equipment.shield_block(u)
+		gx.add_child(_stock_name(Stock.SHIELD_NAME, 0, ""))
+		gx.add_child(UiTheme.label("×%d" % sn, 13))
+		gx.add_child(UiTheme.label(why if why != "" else "Verteidigung +%d" % Equipment.shield_bonus(u), 12, UiTheme.MUTED))
+		gx.add_child(Control.new())
+		var b := UiTheme.button("anlegen", why if why != "" else "Schild aus dem Lager nehmen")
+		b.disabled = why != ""
+		b.pressed.connect(func() -> void:
+			Equipment.set_shield(u, true, g)
+			_slot = "shield"
+			_render())
+		gx.add_child(b)
+	if mn > 0:
+		gx.add_child(_stock_name(Stock.MEDKIT_NAME, 0, ""))
+		gx.add_child(UiTheme.label("×%d" % mn, 13))
+		gx.add_child(UiTheme.label("trägt %d / %d" % [u.medkits, Equipment.MAX_MEDKITS], 12, UiTheme.MUTED))
+		gx.add_child(Control.new())
+		var full := u.medkits >= Equipment.MAX_MEDKITS
+		var b := UiTheme.button("+1 mitnehmen", "höchstens %d je Figur" % Equipment.MAX_MEDKITS if full else "Ein Medikit aus dem Lager nehmen")
+		b.disabled = full
+		b.pressed.connect(func() -> void:
+			Equipment.set_medkits(u, u.medkits + 1, g)
+			_render())
+		gx.add_child(b)
+	if sn <= 0 and mn <= 0:
+		_stock_empty(gx, "kein Schild und keine Medikits im Lager")
+
+	# Munition und Material: nur Anzeige
+	var gm := _stock_group(v, "Munition", "nur Anzeige", [])
+	for t in Ammo.TYPES:
+		gm.add_child(UiTheme.label(Ammo.TYPES[t], 13))
+		gm.add_child(UiTheme.label(str(int(g.ammo.get(String(t), 0))), 13))
+		_stock_rest(gm, "Schuss im Schiffsvorrat")
+	var gt := _stock_group(v, "Material", "nur Anzeige", [])
+	gt.add_child(UiTheme.label("Schiffsmaterial", 13))
+	gt.add_child(UiTheme.label(str(g.material), 13))
+	_stock_rest(gt, "für Reparaturen am Schiff; Handwerksmaterial folgt mit dem Handwerk")
+
+	var note := UiTheme.label("Anlegen gilt für die Figur im Reiter oben; gleiche Regeln wie über die Plätze (keine Waffe doppelt, Schild nur mit einhändigen Waffen). Das abgelegte Teil geht mit seinem Schaden ins Lager. Fäuste und „keine Rüstung“ sind immer da und stehen nicht in der Liste.", 11, UiTheme.MUTED)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(note)
+
+
+## Überschrift einer Gruppe und Tabelle mit 5 Spalten (heads leer = keine Kopfzeile)
+func _stock_group(v: VBoxContainer, title: String, tag: String, heads: Array) -> GridContainer:
+	v.add_child(UiTheme.label(title + (("  · " + tag) if tag != "" else ""), 13, UiTheme.ACCENT))
+	var g := GridContainer.new()
+	g.columns = 5
+	g.add_theme_constant_override("h_separation", 14)
+	g.add_theme_constant_override("v_separation", 4)
+	for h in heads:
+		g.add_child(UiTheme.label(h, 11, UiTheme.MUTED))
+	v.add_child(g)
+	return g
+
+
+## Name eines Stücks (beschädigt orange, unbrauchbar rot), darunter ein Hinweis
+func _stock_name(text: String, damage: int, hint: String) -> Control:
+	var nv := VBoxContainer.new()
+	nv.add_theme_constant_override("separation", 0)
+	var l := UiTheme.label(text, 13, _wear_col(damage) if damage < 0 else UiTheme.TEXT)
+	l.custom_minimum_size.x = 210
+	nv.add_child(l)
+	if hint != "":
+		nv.add_child(UiTheme.label(hint, 11, UiTheme.MUTED))
+	return nv
+
+
+## leere Gruppe: Hinweis in der ersten Spalte, Rest füllen
+func _stock_empty(g: GridContainer, text: String) -> void:
+	g.add_child(UiTheme.label(text, 12, UiTheme.MUTED))
+	for i in 4:
+		g.add_child(Control.new())
+
+
+## Rest einer Anzeigezeile (Spalten 3–5)
+func _stock_rest(g: GridContainer, text: String) -> void:
+	g.add_child(UiTheme.label(text, 12, UiTheme.MUTED))
+	g.add_child(Control.new())
+	g.add_child(Control.new())
 
 
 func _range(w: WeaponData) -> String:

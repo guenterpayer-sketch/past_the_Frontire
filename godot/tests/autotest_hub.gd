@@ -195,6 +195,21 @@ func _run() -> void:
 	await _frames(10)
 	print("Waffenkammer: Dialog offen ", hub.ui.armory.visible)
 	await _shot("h1d_waffenkammer")
+	# Reiter „Lager“: ganzes Schiffslager, direkt anlegen
+	Stock.add(HubState.game, Equipment.SHIELD)
+	Stock.add(HubState.game, Stock.MEDKIT, 2)
+	Stock.add(HubState.game, "res://data/armor/leicht.tres")
+	hub.ui.armory._mode = "stock"
+	hub.ui.armory._render()
+	await _frames(5)
+	await _shot("h1d2_waffenkammer_lager")
+	var before := Stock.count(HubState.game, "res://data/weapons/laserpistole.tres|-30")
+	Equipment.set_weapon(Campaign.crew()[0], 1, load("res://data/weapons/laserpistole.tres"), HubState.game, -30)
+	hub.ui.armory._render()
+	print("Lager-Reiter: Laserpistole (−30) als Waffe 2 angelegt ", Stock.count(HubState.game, "res://data/weapons/laserpistole.tres|-30") == before - 1, ", Platz ", Campaign.crew()[0].wear_of("w1"))
+	await _frames(5)
+	await _shot("h1d3_waffenkammer_lager_angelegt")
+	hub.ui.armory._mode = "equip"
 	# UI-Größe über das Menü im Schiff: 75 % und zurück
 	var f0 := UiScale.get_factor()
 	hub.ui.show_ui_scale()
