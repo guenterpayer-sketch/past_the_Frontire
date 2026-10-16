@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_mc21s"]
 [ext_resource type="Resource" path="res://data/tables/attack_wucht.tres" id="2_dh3kb"]
+[ext_resource type="PackedScene" path="res://assets/weapons/melee/hammer_double.tscn" id="3_model"]
 
 [resource]
 script = ExtResource("1_mc21s")
@@ -13,3 +14,9 @@ melee = true
 fumble = 5
 damage = 1.4
 splash = PackedInt32Array()
+model = ExtResource("3_model")
+length_m = 1.1
+grip_offset = Vector3(0, 0.418, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+two_handed = true
+sound_id = &"nahkampf"

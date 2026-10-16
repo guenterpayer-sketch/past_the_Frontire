@@ -22,3 +22,4 @@ model = ExtResource("1_acstc")
 length_m = 1.1
 grip_offset = Vector3(0, 0.198, 0)
 grip_rotation_deg = Vector3(0, 0, 90)
+sound_id = &"minigun"
