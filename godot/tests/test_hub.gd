@@ -12,6 +12,7 @@ func check(cond: bool, what: String) -> void:
 
 
 func _init() -> void:
+	TradeSkills.fixed = &"teilerfolg"   # Normalpreise für die älteren Preistests; _test_trade_skills prüft die Stufen
 	_test_sector()
 	_test_travel_and_offers()
 	_test_mission_faction()
@@ -26,6 +27,7 @@ func _init() -> void:
 	_test_training()
 	_test_upgrades()
 	_test_stock()
+	_test_trade_skills()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -644,7 +646,7 @@ func _test_stock() -> void:
 	g.position = g.nearest_harbor()
 	var shop := Stock.shop(g, g.position)
 	var all := Stock.goods()
-	check(Stock.MEDKIT in shop and shop.size() - 1 == ceili(all.size() * Stock.SHOP_SHARE), "Sortiment: halbes Angebot + Medikits (%d von %d)" % [shop.size() - 1, all.size()])
+	check(Stock.MEDKIT in shop and shop.size() - 1 == ceili(all.size() * TradeSkills.shop_share(g)), "Sortiment: Anteil nach Gassenwissen + Medikits (%d von %d)" % [shop.size() - 1, all.size()])
 	check(Stock.shop(g, g.position) == shop, "Sortiment bleibt innerhalb der 10 Tage gleich")
 	g.day += Stock.SHOP_DAYS
 	var shop2 := Stock.shop(g, g.position)
@@ -677,6 +679,48 @@ func _test_stock() -> void:
 	Gear.dir = "user://gear"
 	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
 	check(h.stock == g.stock and int(h.shop.get("_period", -1)) == int(g.shop.get("_period", -2)), "Lager und Sortiment im Spielstand")
+	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+func _test_trade_skills() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	TradeSkills.fixed = &""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(71, "Handel", 1)
+	g.position = g.nearest_harbor()
+	var sg := "res://data/weapons/sturmgewehr.tres"
+	check(TradeSkills.result(g, &"handeln") == &"fehlschlag" and Stock.buy_price(g, sg) == 294 and Stock.sell_price(sg, g) == 126, "ohne Probe wie Fehlschlag: +5 %, Verkauf 45 %")
+	check(Voyage.fuel_price(g) == 5 and Voyage.material_price(g) == 63 and ShipUpgrades.yard_cost(g, &"tank") == 630, "Verhandeln ohne Probe: Schiffspreise +5 %")
+	var all := Stock.goods().size()
+	check(Stock.shop(g, g.position).size() - 1 == ceili(all * 0.5), "Gassenwissen ohne Probe: 50 %")
+	var c: Character = Campaign.crew()[0]
+	var xp0: int = Rules.ensure_skill(c, &"handeln").xp
+	var r := TradeSkills.roll(g, &"handeln", c)
+	check(not r.is_empty() and TradeSkills.roll_of(g, &"handeln") == r and not TradeSkills.can_roll(g, &"handeln"), "eine Probe pro Tag")
+	check(Rules.ensure_skill(c, &"handeln").xp == xp0 + int(r.xp), "EP in Handeln")
+	check(TradeSkills.result(g, &"handeln") == StringName(r.result), "Ergebnis gilt heute")
+	g.day += 1
+	check(TradeSkills.result(g, &"handeln") == &"fehlschlag" and TradeSkills.can_roll(g, &"handeln"), "nächster Tag: neue Probe möglich")
+	var ex := {&"patzer": [336, 84, 30], &"fehlschlag": [294, 126, 50], &"teilerfolg": [280, 140, 60], &"erfolg": [252, 168, 75], &"herausragend": [224, 196, 90]}
+	for res in ex:
+		TradeSkills.fixed = res
+		var share := ceili(all * TradeSkills.SHARE[res])
+		check(Stock.buy_price(g, sg) == ex[res][0] and Stock.sell_price(sg, g) == ex[res][1] and roundi(TradeSkills.shop_share(g) * 100) == ex[res][2]
+			and Stock.shop(g, g.position).size() - 1 == share, "Stufe %s: Kauf %d, Verkauf %d, Sortiment %d %%" % [res, ex[res][0], ex[res][1], ex[res][2]])
+	TradeSkills.fixed = &"erfolg"
+	check(Voyage.fuel_price(g) == 5 and Voyage.material_price(g) == 54 and Voyage.yard_cost(g) == 36 and ShipUpgrades.yard_cost(g, &"tank") == 540, "Verhandeln Erfolg: −10 %")
+	TradeSkills.fixed = &"fehlschlag"
+	var small := Stock.shop(g, g.position)
+	TradeSkills.fixed = &"herausragend"
+	var big := Stock.shop(g, g.position)
+	check(small.all(func(k: String) -> bool: return k in big), "größeres Sortiment ergänzt nur")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.trade_rolls.has("handeln"), "Handelsproben im Spielstand")
+	TradeSkills.fixed = &"teilerfolg"
 	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)

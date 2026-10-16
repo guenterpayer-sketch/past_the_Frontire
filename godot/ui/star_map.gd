@@ -387,16 +387,16 @@ func _render_port() -> void:
 	row.add_child(_buy_button("Volltanken +%d (%d Cr)" % [need, need * price], need <= 0, func() -> void: Voyage.buy_fuel(game, need)))
 	fuel.add_child(row)
 	var yard := _port_box("Werft: große Reparatur", "Hülle %d / %d" % [game.hull, game.hull_max()],
-		"+%d Hülle für 1 Material + %d Cr Werftlohn%s" % [Voyage.YARD_HULL, Voyage.YARD_COST, " · Hülle 0: auch auf Notkredit" if Voyage.hull_emergency(game) else ""])
-	yard.add_child(_buy_button("1× reparieren (1 Material, %d Cr)" % Voyage.YARD_COST, not Voyage.can_yard_repair(game), func() -> void: Voyage.yard_repair(game)))
-	var mat := _port_box("Schiffsmaterial", "an Bord %d" % game.material, "%d Cr je Einheit · nur für große Reparaturen" % Voyage.MATERIAL_PRICE)
+		"+%d Hülle für 1 Material + %d Cr Werftlohn%s" % [Voyage.YARD_HULL, Voyage.yard_cost(game), " · Hülle 0: auch auf Notkredit" if Voyage.hull_emergency(game) else ""])
+	yard.add_child(_buy_button("1× reparieren (1 Material, %d Cr)" % Voyage.yard_cost(game), not Voyage.can_yard_repair(game), func() -> void: Voyage.yard_repair(game)))
+	var mat := _port_box("Schiffsmaterial", "an Bord %d" % game.material, "%d Cr je Einheit · nur für große Reparaturen" % Voyage.material_price(game))
 	var mrow := HBoxContainer.new()
 	mrow.add_theme_constant_override("separation", 6)
 	for n in [1, 3]:
-		mrow.add_child(_buy_button("%d kaufen (%d Cr)" % [n, n * Voyage.MATERIAL_PRICE], not Voyage.can_buy_material(game, n), func() -> void: Voyage.buy_material(game, n)))
+		mrow.add_child(_buy_button("%d kaufen (%d Cr)" % [n, n * Voyage.material_price(game)], not Voyage.can_buy_material(game, n), func() -> void: Voyage.buy_material(game, n)))
 	mat.add_child(mrow)
-	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr; Verkauf zum halben Preis" % [
-		Voyage.AMMO_PRICE.energie, Voyage.AMMO_PRICE.projektil, Voyage.AMMO_PRICE.raketen])
+	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr (nach Handeln, Handelsdialog)" % [
+		Voyage.ammo_price(game, "energie"), Voyage.ammo_price(game, "projektil"), Voyage.ammo_price(game, "raketen")])
 	for t in Voyage.AMMO_START:
 		var arow := HBoxContainer.new()
 		arow.add_theme_constant_override("separation", 6)
@@ -404,10 +404,10 @@ func _render_port() -> void:
 		nl.custom_minimum_size.x = 150
 		arow.add_child(nl)
 		for n in Voyage.AMMO_PACKS[t]:
-			var cost: int = n * int(Voyage.AMMO_PRICE[t])
+			var cost: int = n * Voyage.ammo_price(game, t)
 			arow.add_child(_buy_button("+%d (%d Cr)" % [n, cost], not Voyage.can_buy_ammo(game, t, n), func() -> void: Voyage.buy_ammo(game, t, n)))
 		var sn: int = Voyage.AMMO_PACKS[t][0]
-		arow.add_child(_buy_button("−%d (+%d Cr)" % [sn, int(floor(sn * int(Voyage.AMMO_PRICE[t]) * Stock.SELL_FACTOR))], not Voyage.can_sell_ammo(game, t, sn),
+		arow.add_child(_buy_button("−%d (+%d Cr)" % [sn, Voyage.ammo_sell(game, t, sn)], not Voyage.can_sell_ammo(game, t, sn),
 			func() -> void: Voyage.sell_ammo(game, t, sn)))
 		am.add_child(arow)
 
