@@ -22,7 +22,7 @@
 
 ## Stand
 
-- Alle Aufträge bis 16.10.2026 erledigt und in `main`. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
+- Alle Aufträge bis 16.10.2026 erledigt und in `main`, zuletzt `2bd5ced` (Import-Einstellungen von 3 Texturen VRAM-komprimiert festgeschrieben). Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator
