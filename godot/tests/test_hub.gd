@@ -21,6 +21,7 @@ func _init() -> void:
 	_test_voyage()
 	_test_gear()
 	_test_ammo()
+	_test_encyclopedia()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -488,3 +489,23 @@ func _test_ammo() -> void:
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)
 	Campaign.reload()
+
+
+func _test_encyclopedia() -> void:
+	var e := Encyclopedia.new()
+	for sec in Encyclopedia.SECTIONS:
+		check(not e.entries(sec[0]).is_empty(), "Enzyklopädie: Bereich %s hat Einträge" % sec[1])
+	var w: Array = e.entries(&"waffen").filter(func(x: Dictionary) -> bool: return x.name == "Sturmgewehr")
+	check(w.size() == 1 and String(w[0].text).contains("Gewehre") and String(w[0].text).contains("[table=5]"), "Waffe mit Werten und Angriffstabelle")
+	for r in Encyclopedia.RULES:
+		var t := Encyclopedia.rule_text(r[1])
+		check(t.length() > 100 and not t.contains("nicht gefunden"), "Kurzregel aus Skillsystem.md: %s" % r[0])
+	var dw := Encyclopedia.rule_text("### 5.4")
+	check(not dw.contains("### 5.5") and not dw.contains("Patzer (W100)[/b]"), "Kurzregel endet beim nächsten Abschnitt")
+	for g in Rules.SKILL_GROUPS:
+		for s in g.skills:
+			check(SkillTexts.text(StringName(s[0])) != "", "Beschreibung für %s" % s[1])
+	check(Encyclopedia.md_to_bb("**fett** und *kursiv*") == "[b]fett[/b] und [i]kursiv[/i]", "Markdown fett/kursiv")
+	check(Encyclopedia.md_to_bb("| a | b |\n|---|---|\n| 1 | 2 |").begins_with("[table=2]"), "Markdown-Tabelle")
+	check(Encyclopedia._plain("[b]Deckung[/b] x").to_lower().contains("deckung"), "Suche im Klartext")
+	e.free()
