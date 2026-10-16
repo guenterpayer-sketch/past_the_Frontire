@@ -115,3 +115,4 @@ Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis
 ## Hinweis vom Koordinator (16.10.2026): Waffenkammer am Lager
 
 Geplant (`docs/Planung_Ausbau_Lager_Handwerk.md`, Schritt 3): Der Hub baut ein Lager mit Stückzahlen. **Warten, bis seine Schnittstelle in `main` ist.** Dann: Ausrüsten nimmt aus dem Lager, Ablegen legt zurück, Medikits aus dem Lager.
+- **Lager des Hubs ist in `main` (`81991c8`):** `Stock.key_of(res)` (= `resource_path`), `Stock.MEDKIT`, `Stock.count/take/add(HubState.game, key, n)`, `Stock.items(g)`, `Stock.name_of(key)`; ohne Spiel (Schnellkampf) unbegrenzt. Details `docs/module/hub.md`. Jetzt `main` holen und die Waffenkammer anbinden (Schritt 3).

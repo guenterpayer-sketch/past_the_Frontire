@@ -141,3 +141,4 @@ Wunsch des Nutzers: Die mitgelieferten Waffen (`data/weapons/*.tres`) bekommen p
 ## Hinweis vom Koordinator (16.10.2026): Beute und Verlust
 
 Geplant (`docs/Planung_Ausbau_Lager_Handwerk.md`, Schritt 4): `MissionResult` meldet nach dem Kampf die Ausrüstung der besiegten Gegner (für die Beuteauswahl) und bei Niederlage **ohne Rückzug** verlorene Gegenstände von zurückgebliebenen Kampfunfähigen/Sterbenden (Chance mit dem Nutzer klären). **Warten, bis das Lager des Hubs in `main` ist**; Format mit dem Hub abstimmen.
+- **Lager des Hubs ist in `main` (`81991c8`):** Schlüssel `Stock.key_of(res)`. Jetzt Schritt 4: Beute (Ausrüstung der Besiegten) und Verlust (Niederlage ohne Rückzug) im `MissionResult`; Format mit dem Hub abstimmen, Chance und Mengen mit dem Nutzer.
