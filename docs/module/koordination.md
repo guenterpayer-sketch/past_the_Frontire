@@ -45,7 +45,7 @@ Der zweite Koordinations-Chat wurde zum Neustart beendet (langer Verlauf). Alles
 **Stand:** `main` = Zusammenführung Bodenkampf `8b5a91f` (Waffen-Reparatur) + Doku. Bodenkampf (`claude/confident-edison-6mxzke`), Charakter (`claude/elegant-gauss-hq5bus`) und Hub (`claude/happy-lamport-u4fvya`) sind vollständig in `main`; keine offenen Aufträge. Verlauf: `docs/Zusammenfuehrung.md`. Planungen (alle gebaut): `docs/Planung_Ausbau_Lager_Handwerk.md`, `docs/Planung_Rueckzug_Proviant_Kochen.md`, `docs/Planung_Munition.md`, `docs/Planung_Ausruestungs_Editor.md`, `docs/Planung_Waffenmodelle_Klaenge.md`, `docs/Planung_Enzyklopaedie.md`, `docs/Planung_Reise_Schiff.md` u. a.
 
 **Offen:**
-- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch `claude/raumkampf-modul`, Planung V1 in `main`; Auftrag 2 (Schnittstelle zuerst, dann Regelkern). Hub wartet auf die Schnittstelle (Auftrag „Anbindung Raumkampf“ in `hub.md`).
+- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch `claude/raumkampf-modul`, Planung V1 in `main`; Schnittstelle fest und in `main` (`8a0597f`), Raumkampf baut den Regelkern. Hub darf mit „Anbindung Raumkampf“ (`hub.md`) beginnen.
 - Fertigkeiten ohne Wirkung: nur noch Raumschiff-Kampf (für den Raumkampf). „Geschütze“ nur im Ausrüstungs-Editor wählbar.
 - Noch nicht gebaut: Story/Kampagne, Hangar.
 
