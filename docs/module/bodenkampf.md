@@ -131,3 +131,7 @@ Grundlage: `docs/Planung_Waffenmodelle_Klaenge.md` (Entscheidungen des Nutzers).
 ## Hinweis vom Koordinator (16.10.2026): Enzyklopädie
 
 Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.
+
+## Aufträge vom Koordinator (16.10.2026): Standardwaffen mit neuen Modellen und Klängen
+
+Wunsch des Nutzers: Die mitgelieferten Waffen (`data/weapons/*.tres`) bekommen passende **Modelle aus `WeaponModels`** und einen **`sound_id`**. Nur Modell, Länge, Griff, Zweihändigkeit und Klang ändern – die **Spielwerte bleiben** (Standardwaffen bleiben feste Vorlagen). Vorschlag je Waffe (Modell + Klang) dem Nutzer vorlegen, nach Bestätigung eintragen. Zusammen mit dem Auftrag Enzyklopädie oder davor, Reihenfolge mit dem Nutzer.
