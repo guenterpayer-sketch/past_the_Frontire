@@ -225,10 +225,15 @@ func _run() -> void:
 	# Werft im Hafen: Systemschäden, Ausbau, Waffe einbauen
 	hub.ui.ship_arms.show_yard(g)
 	await _frames(5)
-	await _click_button(hub.ui.ship_arms, "Tauschen …")
-	await _frames(5)
 	await _shot("h1f3_werft")
-	await _click_button(hub.ui.ship_arms, "Einbauen")
+	# Waffenslots stehen unten in der Werft (Scrollbereich): Auswahl direkt öffnen und Einbau auslösen
+	hub.ui.ship_arms._pick = "steuerbord"
+	hub.ui.ship_arms._render()
+	await _frames(5)
+	for b in hub.ui.ship_arms.find_children("*", "Button", true, false):
+		if (b as Button).text == "Einbauen" and not (b as Button).disabled:
+			(b as Button).pressed.emit()
+			break
 	print("Werft: offen %s, Slots %s, Lager %s" % [hub.ui.ship_arms.visible, g.ship_slots, g.ship_stock])
 	hub.ui.ship_arms.hide()
 	g.ship_damage = {}

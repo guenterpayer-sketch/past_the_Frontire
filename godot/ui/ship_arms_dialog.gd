@@ -38,6 +38,7 @@ func show_yard(g: HubState) -> void:
 	_yard = true
 	_mode = &"yard"
 	_pick = ""
+	_last = ""
 	_render()
 
 

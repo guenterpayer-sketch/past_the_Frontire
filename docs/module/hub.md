@@ -51,3 +51,4 @@ Auslöser: Spieltest des Nutzers (Raumhafen-Spalte in der Sternenkarte schnitt r
 - **Maschinenraum nur noch Crew-Arbeit** (Crew-Ausbau, Crew-Reparatur, Geschützposten, Anzeige der Slots); alles gegen Credits nur in der Werft.
 - **Proviant nach Verhandeln** (vorher Handeln).
 - Gebaut: `PortDialog` (`ui/port_dialog.gd`: Schiffshändler, Crew anheuern), `TradeDialog` = Händler (`TradeDialog.skill_row()` statisch, auch im Schiffshändler), `ShipArmsDialog.show_yard()` = Werft, `EngineDialog` ohne Werft-Spalte, `StarMap` mit Signal `port(kind)` statt `trade`/`bought`/`hired` (Raumhafen-Reiter und Anheuern-Liste entfernt), `Galley.price` nach Verhandeln. Keine Schnittstellenänderung für andere Module.
+- Tests: `test_rules` OK, `test_hub` OK, `test_sim -- 10` OK (0 hängengeblieben), `--autotest-hub` durchgelaufen (neue Screenshots `h1a1_schiffshaendler`, `h1f3_werft`; „Button nicht gefunden: Fertig“ kommt auch in `main` vor, nicht von dieser Änderung).
