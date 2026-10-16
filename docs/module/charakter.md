@@ -33,7 +33,7 @@
 **Oberfläche**
 - `CrewOverview.show_crew(crew, result)` (Aufleveln, 3D-Vorschau, Zustand und Resttage, „Entlassen“), `current()`, `seats`, Signale `next_battle`, `reset_crew`, `open_sheet`, `crew_changed`; `create_member` bleibt nur für alte Verbindungen (wird nicht gesendet). Knopftexte „Crew zurücksetzen“ und „Speichern & nächste Mission“ bleiben (der Hub sucht danach).
 - `roster.tscn` (`RosterScreen`, „Zurück“ → `res://start.tscn`), `CrewPicker.open_pick(subtitle, seats)` + Signal `picked(chars)`, `CharacterEditor.open_for_roster()`, `FigurePreview`, `CrewWidgets`.
-- `ui/modal.gd`: `closable`.
+- `ui/modal.gd`: `closable`, `title_bar` (Titelzeile; Knöpfe rechts anhängen). `CrewWidgets.burger(host)`: Burgermenü mit „Enzyklopädie“ (`Encyclopedia.show_on(host)`), `CrewWidgets.close_encyclopedia(host)` für Esc.
 
 **Übersicht Psi-Listen (neu, 15.10.2026)** – gemeinsamer Baustein, auch für den Bodenkampf
 - `PsiListView` (`ui/crew/psi_list_view.gd`, erbt `Modal`): einmal anlegen und einhängen, dann
@@ -67,6 +67,7 @@
 
 ## Stand (15.10.2026)
 
+- (16.10.2026) Enzyklopädie angebunden, Entscheidungen des Nutzers: **Burgermenü ☰ oben rechts** in Charakterübersicht und Charakter-Editor (Eintrag „Enzyklopädie“, `CrewWidgets.burger(host)`); **ⓘ an jeder Psi-Liste öffnet die Enzyklopädie** an dieser Liste; **„Alle Psi-Listen ansehen“ öffnet weiter `PsiListView`** (Stand der Figur, auch im Kampf genutzt); **Hinweiszeilen** unter den Psi-Listen bleiben. Esc schließt die Enzyklopädie zuerst. Geändert in `ui/modal.gd`: neue `title_bar` (Titelzeile als HBox, Titel links; Platz für Knöpfe rechts), sonst gleich.
 - Eigene Rüstungen/Waffen und Munitionsanzeige in der Waffenkammer: `Equipment.weapons()/armors()` liefern auch `Gear`-Einträge (Vermerk „(frei)“); `Character.from_dict()`: gelöschte eigene Ausrüstung → Waffe 1 `Gear.FALLBACK_WEAPON`, Waffe 2 leer, Rüstung `Gear.FALLBACK_ARMOR` (prüft `user://`-Dateien mit `FileAccess`, weil Gelöschtes im Cache liegen kann). Anzeige „Besonderes“ und Vorrat nach `shots`, `ammo_type`, `ammo_total`, `Ammo.carry()`. Tests `_test_own_gear`.
 - Übersicht Psi-Listen gebaut nach Mockup „Frontire Psi-Listen“ (vom Nutzer bestätigt; Reichweite aus dem Bodenkampf): `PsiListView`, eingebaut in Charakterübersicht/Aufleveln und Charakter-Editor; Kommentar und Wirkungstexte in `core/psi_lists.gd` an den Bodenkampf angeglichen; Tests `_test_psi_view`, Screenshots `04f`/`04g` im Autotest. Einbau im Bodenkampf: Aufruf oben unter „Schnittstellen“.
 - Waffenkammer gebaut nach Mockup „Frontire Waffenkammer“ (vom Nutzer bestätigt): `ArmoryDialog` + `Equipment`, Tests in `test_rules.gd` (`_test_equipment`). Der Hub muss nur noch den Raum „Waffenkammer“ anbinden (Aufruf oben).
@@ -109,3 +110,4 @@ Munition Teil Kampf ist in `main` (`928b0f9`), siehe `docs/module/bodenkampf.md`
 
 Der Hub baut eine Enzyklopädie (`docs/Planung_Enzyklopaedie.md`). **Warten, bis sie in `main` ist**; dann deinen Teil aus Abschnitt „Aufteilung“ umsetzen.
 - **Enzyklopädie ist in `main` (`04091c2`):** `Encyclopedia.show_on(control, &"psi", name)` für das ⓘ bei den Psi-Listen (Eintrag = Name der Liste, z. B. „Angriff“); Zugang in Übersicht/Editor mit dem Nutzer klären. Details `docs/module/hub.md`. Jetzt `main` holen und anbinden.
+- (16.10.2026) Angebunden → siehe Stand.

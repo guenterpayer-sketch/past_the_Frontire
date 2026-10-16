@@ -9,6 +9,8 @@ var max_size := Vector2(1180, 860)
 ## false = bleibt offen (Klick daneben und Esc schließen nicht), z. B. als ganzer Bildschirm
 var closable := true
 var content: VBoxContainer
+## Titelzeile: Titel links, Platz für Knöpfe rechts (z. B. Burgermenü)
+var title_bar: HBoxContainer
 var footer: HBoxContainer
 var _title: Label
 var _panel: PanelContainer
@@ -30,8 +32,11 @@ func _ready() -> void:
 	add_child(_panel)
 	var v := VBoxContainer.new()
 	_panel.add_child(v)
+	title_bar = HBoxContainer.new()
+	v.add_child(title_bar)
 	_title = UiTheme.label("", 20, UiTheme.ACCENT)
-	v.add_child(_title)
+	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_bar.add_child(_title)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

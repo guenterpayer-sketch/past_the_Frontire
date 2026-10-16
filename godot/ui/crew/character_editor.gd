@@ -26,6 +26,11 @@ var _visuals: Array[CharacterVisual] = []
 var _psi_view: PsiListView
 
 
+func _ready() -> void:
+	super()
+	title_bar.add_child(CrewWidgets.burger(self))
+
+
 ## Neue Figur für den globalen Roster erschaffen; saved(ch, null) liefert sie (noch nicht gespeichert)
 func open_for_roster() -> void:
 	open_new([], 0, true)
@@ -281,10 +286,13 @@ func _psi_powers() -> Control:
 
 ## Knopf, der die Übersicht der Psi-Listen öffnet (list leer = erste gelernte Liste)
 func _psi_info_button(list: StringName, text: String) -> Button:
-	var b := UiTheme.button(text, "Übersicht der Psi-Listen: Kräfte je Stufe, Wirkung, Ziel")
+	var b := UiTheme.button(text, "Diese Psi-Liste in der Enzyklopädie" if list != &"" else "Rang und Kräfte dieser Figur in allen Psi-Listen")
 	b.add_theme_font_size_override("font_size", 12)
 	b.add_theme_color_override("font_color", PsiListView.PSI)
 	b.pressed.connect(func() -> void:
+		if list != &"":
+			Encyclopedia.show_on(self, &"psi", PsiLists.LISTS[list].name).move_to_front()
+			return
 		if _psi_view == null:
 			_psi_view = PsiListView.new()
 			add_child(_psi_view)
@@ -294,6 +302,9 @@ func _psi_info_button(list: StringName, text: String) -> Button:
 
 
 func _unhandled_input(e: InputEvent) -> void:
+	if visible and e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE and CrewWidgets.close_encyclopedia(self):
+		get_viewport().set_input_as_handled()
+		return
 	if _psi_view and _psi_view.visible and e is InputEventKey and e.pressed and e.keycode == KEY_ESCAPE:
 		_psi_view.close()
 		get_viewport().set_input_as_handled()
