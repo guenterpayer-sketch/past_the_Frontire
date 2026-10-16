@@ -99,7 +99,7 @@ func _build_ui() -> void:
 	layer.add_child(root)
 	_menu = VBoxContainer.new()
 	_menu.add_theme_constant_override("separation", 10)
-	_menu.position = Vector2(140, 200)
+	_menu.position = Vector2(60, 40)
 	_menu.custom_minimum_size.x = 460
 	root.add_child(_menu)
 	var title := UiTheme.label("PAST THE FRONTIRE", 64, UiTheme.ACCENT)
