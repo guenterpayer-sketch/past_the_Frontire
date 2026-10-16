@@ -27,7 +27,24 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Umfang V1 bei Ausbau/Handel | **Alles in V1**: Slots, Kauf im Hafen, Beute ins Lager, Munitionskauf. |
 | Schiffsanzeige | **Schildring (6 Segmente) und Hüllenbalken immer in 3D an jedem Schiff** auf der Karte; dazu ein **Kasten links oben** für das eigene Schiff, per Klick zwischen **Schema** (Umriss mit Schildbögen und Systemsymbolen) und **Zahlen** (Hüllenbalken, Schild je Seite, Systemschäden) umschaltbar. |
 | Stationen auf dem Bildschirm | **Einklappbare Seitenleiste rechts**, wie im Bodenkampf. |
-| Hub-Anbindung | **Koordinator entscheidet**, wer Auslöser und Sprung zur Szene im Hub baut (siehe 4). |
+| Hub-Anbindung | Koordinator hat entschieden: **Hub baut die Auslöser** (siehe 1a). |
+
+## 1a. Entscheidungen des Nutzers (Auftrag 2, 16.10.2026)
+
+| Thema | Entscheidung |
+|---|---|
+| Energie | **Energie im Kampf**: Reaktor gibt je Runde Energiepunkte; verbraucht von **Strahlwaffen, Schild-Aufladung, Antrieb, Sprung vorbereiten**. Verteilt von der **Schild-Station**. Nichts bleibt nach dem Kampf. |
+| Reaktor | Neuer Ausbau-Bereich **„Reaktor“** (Stufen 0–3). |
+| Schiffsmunition | **2 Arten**: Schiffsraketen, Geschosse. |
+| Slots | Start **Bug, Backbord, Steuerbord, Turm**; neuer Ausbau-Bereich **„Waffenslots“**: Stufe 1 Heck, Stufe 2 Bug 2, Stufe 3 Turm 2. |
+| Slotgrößen | **Nur der Turm ist besonders** (nur Abwehrwaffen); sonst passt jede Waffe überall, der Feuerbogen hängt am Slot. |
+| Bestätigt | Bord-KI +20, Doppelbesetzung −30, Flucht: Sprung nach 2 Runden Vorbereitung (Probe Navigation mittel), kostet Energie und Treibstoff, Ende ohne Beute, Auftrag bleibt offen. |
+| Systemschäden | **Stufen A–E** (E = ausgefallen); betroffen: Antrieb, Sensoren, Lebenserhaltung, Schilde, Reaktor, einzelne Waffenslots, Stationen (Person dort verletzt). |
+| Zahlen | **Erst nach dem Bau**: Platzhalter, Feinschliff per Simulation. Ebenso die **Gegnerzahl je Schwierigkeit**. |
+| Beute, Lösegeld | **Raumkampf würfelt aus**, der Hub bucht nur. |
+| Waffendaten | **Raumkampf-Katalog** `ShipWeapons`; der Hub liest Keys, Namen, Preise. |
+| Karte V1 | **Mittel (ca. 20×14) mit Asteroiden** (Deckung, blockieren); Trümmer und Nebel später. |
+| Zuständigkeit | Koordinator, Auftrag 2: Raumkampf nur eigene Dateien, Hub alle Auslöser und Hub-Dateien, Bodenkampf und Charakter in V1 nichts. |
 
 ## 2. Vorschläge (noch zu bestätigen)
 
@@ -45,43 +62,12 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 ## 3. Offene Punkte
 
 - Konkrete Zahlen: Struktur/Schild/VW der Schiffsklassen, Tabellen Strahl/Ballistik/Rakete mit Spalten Jäger/leicht/mittel/schwer, Systemkritische A–E.
-- Wie viele Gegner sind ein typischer Kampf je Schwierigkeit?
-- Hexkarte: Größe, Hindernisse (Asteroiden, Trümmer, Nebel) – alle in V1 oder nur ein Teil?
-- Zuständigkeit für Dateien anderer Module: `ShipUpgrades`, `HubState` (Hub), `Stock`/Raumhafen-Handel (Hub), Lagerhalle als Enter-Karte (Bodenkampf), Posten „Station“ im Hub, Startmenü-Schnellkampf.
-- Wer baut die Auslöser im Hub (Koordinator).
-- Treibstoff/Energie für Strahlwaffen: ja oder nein.
+- Wie viele Gegner sind ein typischer Kampf je Schwierigkeit? (nach dem Bau per Simulation)
+- Energiewerte je Reaktorstufe und Verbrauch je Aktion (nach dem Bau per Simulation).
 
-## 4. Schnittstellen-Vorschlag
+## 4. Schnittstelle
 
-### Eingang: `SpaceSetup` (Dictionary, vom Hub oder Schnellkampf)
-
-```
-{crew: [Character-Kopien an Bord],
- posts: {Station-ID: Figur-ID oder &"ki"},            # Vorbelegung aus dem Hub, im Kampf-Briefing änderbar
- ship: {hull, hull_max, shields_lv, armor_lv,          # aus HubState / ShipUpgrades
-        slots: {Slot-ID: Waffen-Key oder ""},
-        damage: {System: Stufe}},                       # bleibende Systemschäden
- ship_ammo: {Art: Schuss},                              # eigener Schiffsvorrat
- enemy: {faction, ships: [Vorlagen-ID], fighters: n, on_win, ransom},
- source: &"reise"/&"auftrag"/&"vor_einsatz"/&"schnell", mission: Titel oder ""}
-```
-
-### Ausgang: wie `MissionResult` plus Schiffsteil
-
-Gleiche Felder wie `MissionResult.from_combat` (`outcome`, `retreated`, `units` mit EP je Fertigkeit, Zustand, `worst_crit`, …), damit Charakter-Modul und Einsatzbericht nichts Neues lesen müssen. Zusätzlich:
-
-```
-{ship: {hull, damage: {System: Stufe}},
- ship_ammo_used: {Art: Schuss},
- fuel_used,                       # Flucht per Sprung
- surrendered, ransom_paid: {credits, …},
- boarding: true/false,            # Niederlage → Bodenkampf (Entern) folgt
- loot: [{key, name, damage} …] für Schiffswaffen, dazu credits, material, ship_ammo}
-```
-
-### Eigene Dateien (Vorschlag aus der Moduldatei)
-
-`godot/space.tscn`, `godot/core/space_*.gd`, `godot/view/space_*.gd`, `godot/ui/space_*.gd`, `godot/data/ships/`, Tests `godot/tests/test_space.gd`.
+Fester Stand in `docs/module/raumkampf.md`, Abschnitt „Schnittstellen“ (ersetzt den früheren Vorschlag hier).
 
 ## 5. Reihenfolge (Vorschlag)
 

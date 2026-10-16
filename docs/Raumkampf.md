@@ -46,7 +46,9 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 ## 4a. Schiff: Waffen, Schilde, Munition
 
 - Schiffswaffen sitzen in **Slots** (konkrete Waffen, Kauf im Raumhafen, Beute aus Wracks ins Lager). **Schilde und Panzerung** sind **Ausbau-Stufen** wie Hülle oder Tank.
-- **Eigene Schiffsmunition**, getrennt vom Munitionsvorrat der Crew.
+- **Eigene Schiffsmunition** (Schiffsraketen, Geschosse), getrennt vom Munitionsvorrat der Crew. Strahlwaffen brauchen **Energie**.
+- **Energie im Kampf:** Der Reaktor (Ausbau-Stufe) gibt je Runde Energiepunkte; die Schild-Station verteilt sie auf Strahlwaffen, Schild-Aufladung, Antrieb und die Sprungvorbereitung.
+- Slots: Start Bug, Backbord, Steuerbord, Turm; mehr durch Ausbau (Heck, Bug 2, Turm 2). Turm-Slots nur für Abwehrwaffen.
 
 ## 4b. Kampfende
 
