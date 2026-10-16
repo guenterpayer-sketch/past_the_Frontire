@@ -250,3 +250,11 @@ Entscheidungen des Nutzers: **alle 5 Spieltage** (Tag 5, 10, 15 …) bekommt **d
 ## Aufträge vom Koordinator (16.10.2026): Schiffsausbau, Lager, Handwerk
 
 Grundlage: `docs/Planung_Ausbau_Lager_Handwerk.md` (Entscheidungen des Nutzers). Deine Schritte: **1. Schiffsausbau** (sofort), **2. Lager + Kauf/Verkauf** (Schnittstelle für Charakter und Bodenkampf unter „Schnittstellen“), danach **Beuteauswahl im Einsatzbericht** (wenn Bodenkampf geliefert hat) und **5. Handwerk**. Jeweils vorher Zahlen und Mockup mit dem Nutzer klären. Einzeln fertig melden (kleine Schritte).
+
+### Stand Schritt 1 Schiffsausbau (Hub-Chat, 16.10.2026) – **bereit zum Zusammenführen**
+
+- `main` (`0329915`) geholt, ohne Konflikte.
+- Entscheidungen des Nutzers: Zahlen aus dem Mockup (Artifact „Schiff-Hub Mockup“, Bildschirme 22–23), Kosten **teurer**: Werft 600 / 1200 / 2200 Cr, Crew 3 / 6 / 9 Material bei 3 / 5 / 8 Tagen; **Hangar wird Maschinenraum**; **ein** Crew-Ausbau zur Zeit; Werkstatt-Ausbau erst mit dem Handwerk. Regeln in `docs/Skillsystem.md` 8b.
+- Gebaut: `ShipUpgrades` (`core/ship_upgrades.gd`), `EngineDialog` (`ui/engine_dialog.gd`), Raum `&"hangar"` heißt „Maschinenraum“ und ist nutzbar. `HubState.upgrades`, `project`, `last_upgrade` (im Spielstand), Werte über `HubState.tank_max()`, `hull_max()`, `fuel_per_day()`, `travel_bonus()`, `heal_bonus()`, `training_xp()`; `Voyage.check(c, skill, extra)` mit Zusatzbonus; `Medbay.bonus()` mit Krankenstations-Ausbau. Meldungen des Crew-Ausbaus im Reise- und Einsatzbericht und beim Warten.
+- **Für andere Module:** keine Schnittstellenänderung; `HubState.berths` steigt mit dem Ausbau (Crewquartiere zeigen ihn über `seats`).
+- Tests: `test_rules` OK, `test_hub` OK (Stufe 0 = alte Werte, Werft nur im Hafen/mit Credits, Wirkungen aller Bereiche, Crew-Ausbau mit Material, Tagen, Probe und Sperre, Spielstand), `--autotest-hub` durchgelaufen (Maschinenraum: Werft-Kauf, Crew-Ausbau, Screenshot).

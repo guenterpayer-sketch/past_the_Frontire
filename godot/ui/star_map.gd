@@ -128,7 +128,7 @@ func refresh() -> void:
 		return
 	var sys: Dictionary = game.sector.systems[game.position]
 	_status.text = "Tag %d · Position: %s · %s\n%d Cr · Treibstoff %d/%d · Hülle %d/%d · Material %d" % [game.day, sys.name, game.sector.name,
-		game.credits, game.fuel, Voyage.TANK, game.hull, Voyage.HULL_MAX, game.material]
+		game.credits, game.fuel, game.tank_max(), game.hull, game.hull_max(), game.material]
 	_repair_btn.disabled = not Voyage.can_crew_repair(game)
 	var who := Voyage.repairer(game)
 	_repair_btn.text = "Große Reparatur (1 Tag)" + ((" · %s %s" % [who.name.split(" ")[0], Dice.fmt(Rules.skill_total(who, &"rsReparatur"))]) if who else "")
@@ -326,7 +326,7 @@ func _render_side() -> void:
 ## Kurs: Treibstoff (Schätzung, höchstens), Reiseposten, Warnungen
 func _render_route(days: int) -> void:
 	var est := Voyage.estimate_fuel(game, days)
-	var fl := UiTheme.label("Treibstoff: ca. %d (höchstens %d) · Tank %d" % [est, Voyage.FUEL_PER_DAY * days, game.fuel], 14,
+	var fl := UiTheme.label("Treibstoff: ca. %d (höchstens %d) · Tank %d" % [est, game.fuel_per_day() * days, game.fuel], 14,
 		UiTheme.BAD if game.fuel <= 0 else (Color("ff8a3d") if est > game.fuel else UiTheme.TEXT))
 	fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_side.add_child(fl)
@@ -370,8 +370,8 @@ func _render_route(days: int) -> void:
 func _render_port() -> void:
 	_side.add_child(UiTheme.label("Credits: %d Cr" % game.credits, 16, UiTheme.BAD if game.credits < 0 else UiTheme.ACCENT))
 	var price := Voyage.fuel_price(game)
-	var need := Voyage.TANK - game.fuel
-	var fuel := _port_box("Tanken", "Tank %d / %d" % [game.fuel, Voyage.TANK],
+	var need := game.tank_max() - game.fuel
+	var fuel := _port_box("Tanken", "Tank %d / %d" % [game.fuel, game.tank_max()],
 		"%d Cr je Einheit%s · Tanken geht immer (Notkredit)" % [price, " (nach Notsprit doppelt)" if game.emergency else ""])
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
@@ -380,7 +380,7 @@ func _render_port() -> void:
 		row.add_child(_buy_button("+%d (%d Cr)" % [n, n * price], amt <= 0 or n > need, func() -> void: Voyage.buy_fuel(game, n)))
 	row.add_child(_buy_button("Volltanken +%d (%d Cr)" % [need, need * price], need <= 0, func() -> void: Voyage.buy_fuel(game, need)))
 	fuel.add_child(row)
-	var yard := _port_box("Werft: große Reparatur", "Hülle %d / %d" % [game.hull, Voyage.HULL_MAX],
+	var yard := _port_box("Werft: große Reparatur", "Hülle %d / %d" % [game.hull, game.hull_max()],
 		"+%d Hülle für 1 Material + %d Cr Werftlohn%s" % [Voyage.YARD_HULL, Voyage.YARD_COST, " · Hülle 0: auch auf Notkredit" if Voyage.hull_emergency(game) else ""])
 	yard.add_child(_buy_button("1× reparieren (1 Material, %d Cr)" % Voyage.YARD_COST, not Voyage.can_yard_repair(game), func() -> void: Voyage.yard_repair(game)))
 	var mat := _port_box("Schiffsmaterial", "an Bord %d" % game.material, "%d Cr je Einheit · nur für große Reparaturen" % Voyage.MATERIAL_PRICE)

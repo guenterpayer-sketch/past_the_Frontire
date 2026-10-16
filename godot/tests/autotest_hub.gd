@@ -149,6 +149,17 @@ func _run() -> void:
 		pat.injury_days, g.medlog[0] if not g.medlog.is_empty() else "-"])
 	await _shot("h1c_krankenstation")
 	hub.ui.medbay.hide()
+	# Maschinenraum (früher Hangar): Schiffsausbau
+	g.credits = 3000
+	g.material = 8
+	hub.open_room(&"hangar")
+	await _frames(5)
+	await _click_button(hub.ui.engine, "Werft 600")
+	await _click_button(hub.ui.engine, "Crew: 3 Material")
+	await _frames(5)
+	print("Maschinenraum: offen %s, Stufen %s, Projekt %s, Credits %d, Material %d" % [hub.ui.engine.visible, g.upgrades, g.project, g.credits, g.material])
+	await _shot("h1f_maschinenraum")
+	hub.ui.engine.hide()
 	# Waffenkammer: Raum öffnet den Ausrüstungsdialog des Charakter-Moduls
 	hub.open_room(&"armory")
 	await _frames(10)

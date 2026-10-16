@@ -26,6 +26,7 @@ var _status_box: PanelContainer
 var _res_row: HBoxContainer
 var _warn_box: VBoxContainer
 var travel_report: Modal
+var engine: EngineDialog
 var _top_right: VBoxContainer
 var _rooms_box: PanelContainer
 var _hint: PanelContainer
@@ -128,9 +129,10 @@ func _ready() -> void:
 	medbay = MedbayDialog.new()
 	armory = ArmoryDialog.new()
 	travel_report = Modal.new()
+	engine = EngineDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, armory, travel_report, engine]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = Vector2(640, 440)
@@ -160,8 +162,8 @@ func set_status(g: HubState) -> void:
 		g.sector.name, g.offers.size(), "Auftrag" if g.offers.size() == 1 else "Aufträge"]
 	UiTheme.clear(_res_row)
 	_res_row.add_child(_stat("Credits", "%d Cr" % g.credits, UiTheme.BAD if g.credits < 0 else UiTheme.ACCENT))
-	_res_row.add_child(_meter("Treibstoff", g.fuel, Voyage.TANK, UiTheme.CREW))
-	_res_row.add_child(_meter("Hülle", g.hull, Voyage.HULL_MAX, UiTheme.GOOD))
+	_res_row.add_child(_meter("Treibstoff", g.fuel, g.tank_max(), UiTheme.CREW))
+	_res_row.add_child(_meter("Hülle", g.hull, g.hull_max(), UiTheme.GOOD))
 	_res_row.add_child(_stat("Material", str(g.material), UiTheme.TEXT))
 	_res_row.add_child(_stat("Munition", ammo_text(g), UiTheme.TEXT))
 	UiTheme.clear(_warn_box)
@@ -322,6 +324,8 @@ func show_report(rep: Dictionary) -> void:
 	report.content.add_child(g)
 	if int(rep.get("training", 0)) > 0:
 		report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
+	for m in rep.get("upgrade", []):
+		report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
 	_payout(rep)
 	var go := UiTheme.button("Zu den Crewquartieren")
 	go.add_theme_color_override("font_color", UiTheme.ACCENT)
@@ -404,11 +408,13 @@ func show_travel(rep: Dictionary) -> void:
 	if rep.emergency:
 		sum += " (Notsprit)"
 	else:
-		sum += " (%s statt %s)" % [Dice.fmt(rep.fuel1 - rep.fuel0), Dice.fmt(-Voyage.FUEL_PER_DAY * rep.days)]
+		sum += " (%s statt %s)" % [Dice.fmt(rep.fuel1 - rep.fuel0), Dice.fmt(-int(rep.get("per_day", Voyage.FUEL_PER_DAY)) * rep.days)]
 	sum += "   ·   Hülle %d → %d" % [rep.hull0, rep.hull1]
 	travel_report.content.add_child(UiTheme.label(sum, 16, UiTheme.ACCENT))
 	if int(rep.get("training", 0)) > 0:
 		travel_report.content.add_child(UiTheme.label("Training: +%d freie EP für alle an Bord" % rep.training, 15, UiTheme.GOOD))
+	for m in rep.get("upgrade", []):
+		travel_report.content.add_child(UiTheme.label("Schiffsausbau: " + m, 15, UiTheme.ACCENT))
 	if rep.fuel1 <= 0 and not rep.emergency:
 		travel_report.content.add_child(UiTheme.label("Tank leer: Notsprit. Weiter nur zum nächsten Hafen; dort kostet das Tanken das Doppelte.", 14, UiTheme.BAD))
 	travel_report.content.add_child(UiTheme.label("ERFAHRUNG", 13, UiTheme.MUTED))
@@ -419,7 +425,7 @@ func show_travel(rep: Dictionary) -> void:
 	xl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	travel_report.content.add_child(xl)
 	var rule := UiTheme.label("Grundverbrauch %d je Reisetag. Pilot, Navigation, Computer: Teilerfolg −1, Erfolg −2, Herausragend −4, mindestens %d je Tag. Reparatur: Patzer −10, Fehlschlag −5, Teilerfolg ±0, Erfolg +2, Herausragend +4 Hülle." % [
-		Voyage.FUEL_PER_DAY, Voyage.FUEL_MIN], 12, UiTheme.MUTED)
+		int(rep.get("per_day", Voyage.FUEL_PER_DAY)), Voyage.FUEL_MIN], 12, UiTheme.MUTED)
 	rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	travel_report.content.add_child(rule)
 	var ok := UiTheme.button("Weiter")
@@ -441,7 +447,7 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible \
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or armory.visible or travel_report.visible or engine.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
 
 
@@ -450,7 +456,7 @@ func close_dialogs() -> bool:
 	if enc and enc.visible:
 		enc.close()
 		return true
-	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report]:
+	for d in [sheet, help, notice, slots, report, medbay, armory, travel_report, engine]:
 		if d.visible:
 			d.close()
 			return true

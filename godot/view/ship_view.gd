@@ -12,8 +12,8 @@ const LOW_WALL := 0.1        # Außenwand zur Kamera hin
 
 ## Räume (Meter: x entlang des Schiffs, z quer). ready = schon nutzbar, sonst „kommt noch“.
 const ROOMS := [
-	{"id": &"hangar", "name": "Hangar", "rect": Rect2(0, 0, 16, 8), "ready": false,
-		"text": "Landungsschiff.", "light": Color(1.0, 0.85, 0.6)},
+	{"id": &"hangar", "name": "Maschinenraum", "rect": Rect2(0, 0, 16, 8), "ready": true,
+		"text": "Schiffsausbau: Plätze, Tank, Hülle, Antrieb, Systeme, Krankenstation, Training (Werft oder Crew).", "light": Color(1.0, 0.85, 0.6)},
 	{"id": &"armory", "name": "Waffenkammer", "rect": Rect2(0, 8, 16, 8), "ready": true,
 		"text": "Ausrüstung ändern: Waffen, Rüstung, Schild (Dialog des Charakter-Moduls).", "light": Color(1.0, 0.75, 0.55)},
 	{"id": &"quarters", "name": "Crewquartiere", "rect": Rect2(16, 0, 12, 8), "ready": true,
