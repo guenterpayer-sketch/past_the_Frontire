@@ -85,6 +85,8 @@ func apply_result(r: Dictionary) -> void:
 	injury_days = inj.days
 	status = r.get("status", {}).duplicate(true)
 	used = r.get("used", {}).duplicate(true)
+	# verbrauchte Medikits fehlen danach (Nachschub aus dem Lager in der Waffenkammer)
+	medkits = maxi(0, medkits - int(used.get("medkits", 0)))
 
 
 ## Heilung um n Tage; true, wenn die Figur danach wieder unverletzt ist
