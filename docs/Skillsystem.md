@@ -541,7 +541,19 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 | Raketenwerfer | 600 Cr | | | |
 
 - Eigene Waffen/Rüstungen aus dem Editor: Preis der Vorlage, mit Vermerk „frei“ doppelt. Fäuste und „Keine“ sind kein Handelsgut.
-- **Sortiment:** je Hafen die Hälfte aller Waffen/Rüstungen (zufällig), neu gemischt alle 10 Spieltage; Medikits immer.
+- **Sortiment:** je Hafen ein zufälliger Anteil der Waffen/Rüstungen (Gassenwissen, ohne Probe 50 %), neu gemischt alle 10 Spieltage; Medikits immer.
+
+**Handelsfertigkeiten im Raumhafen** (`core/trade_skills.gd`, Entscheidungen des Nutzers 16.10.2026): Im Handelsdialog wählt man je Fertigkeit, wer würfelt; Probe Mittel, **eine pro Tag und Hafen**, das Ergebnis gilt bis zum nächsten Tag. EP wie bei den Reiseproben. **Ohne Probe gilt das Ergebnis wie ein Fehlschlag.**
+
+| Ergebnis | Handeln: Kauf | Handeln: Verkauf | Verhandeln | Gassenwissen (Sortiment) |
+|---|---|---|---|---|
+| Patzer | +20 % | 30 % | +20 % | 30 % |
+| Fehlschlag / keine Probe | +5 % | 45 % | +5 % | 50 % |
+| Teilerfolg | normal | 50 % | normal | 60 % |
+| Erfolg | −10 % | 60 % | −10 % | 75 % |
+| Herausragend | −20 % | 70 % | −20 % | 90 % |
+
+- **Handeln:** Waffen, Rüstungen, Munition, Medikits (Kauf und Verkauf). **Verhandeln:** Treibstoff, Werft-Reparatur, Schiffsmaterial, Ausbau in der Werft. **Gassenwissen:** Größe des Sortiments; mehr ergänzt das bisherige.
 
 Gekauft wird im **Raumhafen** = neutrale Systeme (wie beim Anheuern).
 

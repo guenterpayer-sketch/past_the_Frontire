@@ -47,15 +47,20 @@ static func busy(g: HubState) -> bool:
 
 # ---------------------------------------------------------------- Werft
 
+## Werftpreis der nächsten Stufe (nach Verhandeln)
+static func yard_cost(g: HubState, id: StringName) -> int:
+	return TradeSkills.adj(YARD_COST[mini(level(g, id), MAX_LEVEL - 1)], TradeSkills.ship_factor(g))
+
+
 static func can_yard(g: HubState, id: StringName) -> bool:
 	var lv := level(g, id)
-	return lv < MAX_LEVEL and g.is_harbor(g.position) and g.credits >= YARD_COST[lv] and String(g.project.get("id", "")) != String(id)
+	return lv < MAX_LEVEL and g.is_harbor(g.position) and g.credits >= yard_cost(g, id) and String(g.project.get("id", "")) != String(id)
 
 
 static func buy_yard(g: HubState, id: StringName) -> bool:
 	if not can_yard(g, id):
 		return false
-	g.credits -= YARD_COST[level(g, id)]
+	g.credits -= yard_cost(g, id)
 	_raise(g, id)
 	return true
 
