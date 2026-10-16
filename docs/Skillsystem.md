@@ -87,7 +87,7 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 | Erste Hilfe | INT + KOO | im Kampf: Blutung stoppen, Bewusstlose stabilisieren |
 | Zweite Hilfe | INT + EMP | **Annahme:** Behandlung nach dem Kampf (Operation, Heilung schwerer Wunden) |
 | Psi wirken | MEN + EMP | **Annahme:** unterstützende Psi-Kräfte (Schild, Heilung), keine Angriffe |
-| Waffen-Reparatur | INT + KOO | Waffen instand setzen |
+| Waffen-Reparatur | INT + KOO | im Kampf: beschädigte Waffen instand setzen (eigene oder im Nachbarfeld) |
 
 **Raumschiff-Technik**
 
@@ -386,6 +386,8 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 **Abwarten** (10 %): Solange eine Figur in dieser Runde noch nichts getan hat, kann sie ihren Zug nach hinten schieben. Nach jedem beliebigen anderen Zug kann sie einspringen (im Spiel über „einspringen“ in der Initiative-Liste); wer nicht einspringt, handelt am Rundenende. Einmal pro Runde. Beim Einspringen stehen 10 % weniger Aktivität zur Verfügung; während des Wartens zählt die noch freie Aktivität als Ausweichreserve.
 
 **Erste Hilfe:** Probe auf **Leicht** (+20). Jedes Crewmitglied trägt ein **Medikit** mit 3 Anwendungen (+20 auf die Probe). Auch die KI versorgt bewusstlose, sterbende oder stark blutende Kameraden.
+
+**Waffen-Reparatur** (50 %, Entscheidungen des Nutzers 16.10.2026): eigene Waffe oder die Waffe einer Figur im **Nachbarfeld**, **einmal je Stück und Kampf** (auch ein misslungener Versuch zählt). Probe auf **Mittel** (±0): Herausragend +10, Erfolg +5, Teilerfolg und Fehlschlag keine Wirkung, Patzer −10 (bis −30). Im Kampf höchstens bis **−5**, den Rest repariert das Schiff; angeboten nur bei Schaden unter −5. Auch unbrauchbare Waffen (−30 → −25 bzw. −20 = wieder nutzbar); ein +5-Bonus kommt nie zurück. Die KI (mit Rang ≥ 1) repariert unbrauchbare Waffen benachbarter kampffähiger Figuren sofort, beschädigte (≤ −10), wenn sie von ihrem Feld aus nicht angreifen kann.
 
 **Verwundung statt Tod:** Wer nach den Regeln sterben würde (TP ≤ −KON/5 oder tödlicher Kritischer), ist **sterbend**: kampfunfähig am Boden, aber nicht tot. Das gilt für Crew und Gegner. Sterbende bluten weiter (TP sinken höchstens bis −max. TP, ohne weitere Folgen). Eine **gelungene Erste Hilfe** (Erfolg oder besser) **stabilisiert**: Die Figur bleibt für den Rest des Kampfes kampfunfähig, zählt danach aber nur als kampfunfähig statt schwer verwundet. **Tod** nur, wenn die **ganze Crew fällt**: Dann stirbt jede noch unversorgte sterbende Figur mit **10 %** (W100 ≤ 10); Stabilisierte überleben. Heilung und Schwere nach dem Kampf: `docs/Planung_Roster_Verwundung.md`, Abschnitt B.
 

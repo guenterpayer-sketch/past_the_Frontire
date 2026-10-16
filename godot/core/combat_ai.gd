@@ -178,6 +178,24 @@ func _first_aid_step(c: Combat, u: Combatant, avail: int, memo: Dictionary) -> D
 	return {"type": &"move", "tile": best.tile, "gait": &"gehen"} if not best.is_empty() else {}
 
 
+## Waffen-Reparatur (nur mit Rang ≥ 1, nur benachbarte, kampffähige Besitzer): unbrauchbare Waffen sofort,
+## sonst beschädigte (≤ −10), wenn von hier kein Angriff möglich ist
+func _repair_step(c: Combat, u: Combatant, here: BattleMap.Tile, weapons: Array[WeaponData], avail: int) -> Dictionary:
+	if avail < Combat.COST.repair or Rules.skill_rank(u, &"waffenReparatur") < 1:
+		return {}
+	var ts := c.repair_targets(u).filter(func(t: Dictionary) -> bool: return (t.unit as Combatant).is_ok())
+	if ts.is_empty():
+		return {}
+	ts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.unit.wear.get(a.slot, 0)) < int(b.unit.wear.get(b.slot, 0)))
+	var worst: Dictionary = ts[0]
+	if int(worst.unit.wear.get(worst.slot, 0)) <= Combatant.WEAR_BROKEN:
+		return {"type": &"repair", "target": worst.unit, "slot": worst.slot}
+	var h := _best_attack(c, u, here, weapons, avail) if c.can_attack(u) else {}
+	if h.is_empty():
+		return {"type": &"repair", "target": worst.unit, "slot": worst.slot}
+	return {}
+
+
 ## Unterstützende Psi-Kräfte: erst Notfälle (Sterbende, Bewusstlose, schwer Verletzte, Blutende in Reichweite),
 ## dann Schutz für Angeschlagene, wenn kein guter Angriff möglich ist; sonst Ortung/Markierung
 func _psi_step(c: Combat, u: Combatant, here: BattleMap.Tile, weapons: Array[WeaponData], avail: int, memo: Dictionary) -> Dictionary:
@@ -243,6 +261,11 @@ func plan_step(c: Combat, u: Combatant) -> Dictionary:
 	var aid := _first_aid_step(c, u, avail, memo)
 	if not aid.is_empty():
 		return aid
+
+	# Waffen reparieren (unbrauchbare sofort, beschädigte ohne möglichen Angriff)
+	var rp := _repair_step(c, u, here, weapons, avail)
+	if not rp.is_empty():
+		return rp
 
 	# Psi: heilen und schützen (höchstens einmal je Zug)
 	var ps := _psi_step(c, u, here, weapons, avail, memo)
@@ -357,6 +380,8 @@ func execute(c: Combat, u: Combatant, step: Dictionary) -> bool:
 			return c.do_crouch(u)
 		&"aid":
 			return c.do_first_aid(u, step.target)
+		&"repair":
+			return c.do_repair(u, step.target, step.slot)
 		&"power":
 			memo.psi_done = true
 			return c.do_power(u, step.k, step.target)
