@@ -789,6 +789,11 @@ func _test_loot() -> void:
 	g.position = away
 	g.credits = 1000
 	check(not Stock.can_repair(g, k20), "Werkstatt nur im Raumhafen")
+	# gute Stücke (+5) aus dem Handwerk
+	var k5 := Stock.damaged_key(sg, 5)
+	check(k5 == sg + "|+5" and Stock.damaged_key(sg, 12) == k5 and Stock.damage_of(k5) == Stock.BONUS and Stock.is_fine(k5) and not Stock.is_fine(k20), "Schlüssel +5")
+	check(Stock.base_of(k5) == sg and Stock.name_of(k5) == "Sturmgewehr (+5)" and Stock.damage_steps(k5) == 0, "Name und Stufen +5")
+	check(Stock.sell_price(k5) == 210 and Stock.repair_cost(g, k5) == 0 and not Stock.can_repair(g, k5), "+5: Verkauf +50 %, nichts zu reparieren")
 	g.stock = {}
 	# Beute aus dem MissionResult: Medikits sofort, Rest zur Auswahl, 1 Stück je Crewmitglied im Einsatz
 	var res := {"units": {"a": {}, "b": {}}, "loot": [
