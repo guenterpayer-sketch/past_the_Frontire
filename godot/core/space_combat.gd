@@ -129,7 +129,7 @@ func _build_map() -> void:
 		for col in MAP_W:
 			cells[Hex.from_offset(col, row)] = true
 	for i in rng.randi_range(3, 5):
-		var c := Hex.from_offset(rng.randi_range(6, MAP_W - 7), rng.randi_range(1, MAP_H - 2))
+		var c := Hex.from_offset(rng.randi_range(7, MAP_W - 6), rng.randi_range(1, MAP_H - 2))
 		rocks[c] = true
 		for j in rng.randi_range(1, 3):
 			var n: Vector2i = c + Hex.DIRS[rng.randi_range(0, 5)]
@@ -158,7 +158,7 @@ func _build_own() -> void:
 	var f: float = SHIELD_FACTOR[own.dmg_level("schilde")]
 	for i in 6:
 		own.shields[i] = roundi(own.shield_max * f)
-	own.pos = _free_cell(Hex.from_offset(2, MAP_H / 2))
+	own.pos = _free_cell(Hex.from_offset(4, MAP_H / 2))
 	own.facing = 0
 	ships.append(own)
 
