@@ -131,7 +131,7 @@ static func travel_day(g: HubState, day_no: int) -> Dictionary:
 		if e.ch == null:
 			row.checks.append({})
 			continue
-		var r := check(e.ch, e.post.skill, g.travel_bonus())
+		var r := check(e.ch, e.post.skill, g.travel_bonus() + Galley.malus(g))
 		row.checks.append(r)
 		if e.post.skill == &"rsReparatur":
 			row.hull = HULL_TRAVEL[r.result]
@@ -264,7 +264,7 @@ static func can_crew_repair(g: HubState) -> bool:
 static func crew_repair(g: HubState) -> Dictionary:
 	if not can_crew_repair(g):
 		return {}
-	var r := check(repairer(g), &"rsReparatur")
+	var r := check(repairer(g), &"rsReparatur", Galley.malus(g))
 	g.material -= 1
 	var h0 := g.hull
 	g.hull = clampi(g.hull + int(HULL_CREW[r.result]), 0, g.hull_max())

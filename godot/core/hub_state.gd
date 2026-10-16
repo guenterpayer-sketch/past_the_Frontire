@@ -57,6 +57,12 @@ var last_upgrade: Array[String] = []
 var craft_material := 0
 var jobs := {}
 var last_crafts: Array[String] = []
+## Kombüse (Galley): Proviant, Koch (Character-ID, "" = keiner), letzte Kochproben (neueste zuerst),
+## Kochproben beim letzten Tageswechsel (für Reise- und Einsatzbericht)
+var provisions := Galley.START
+var cook := ""
+var cooklog: Array = []
+var last_cook: Array = []
 ## laufender Einsatz (Auftrag) oder leer
 var active := {}
 ## Bericht des letzten Einsatzes für das Schiff (leer = schon gezeigt)
@@ -106,18 +112,26 @@ func mission_of(offer: Dictionary) -> Mission:
 	return Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
 
 
-## Tage vergehen (Reisen, Einsatz, Warten): Krankenstation und Heilung (Medbay), abgelaufene Aufträge, neue Aufträge
-func advance_days(n: int) -> void:
+## Tage vergehen (Reisen, Einsatz, Warten): Kombüse (Galley: Kochprobe und Proviant, nicht im Hafen; traveling =
+## Reisetage, nie im Hafen), Krankenstation und Heilung (Medbay), Training (mit Kochbonus), abgelaufene und neue Aufträge
+func advance_days(n: int, traveling := false) -> void:
 	if n <= 0:
 		return
-	last_training = training_xp() * training_days(day, day + n)
+	last_training = 0
 	last_upgrade = []
 	last_crafts = []
+	last_cook = []
 	for i in n:
 		var msg := ShipUpgrades.work_day(self)
 		if msg != "":
 			last_upgrade.append(msg)
 		last_crafts.append_array(Crafting.work_day(self))
+		var d := day + i + 1
+		var e := Galley.pass_day(self, d, not traveling and is_harbor(position))
+		if not e.is_empty():
+			last_cook.append(e)
+		if d % TRAINING_DAYS == 0 and training_xp() > 0:
+			last_training += training_xp() + Galley.training_bonus(self, d)
 	day += n
 	last_healed = Medbay.pass_days(self, n)
 	if last_training > 0:
@@ -220,7 +234,10 @@ func travel_to(target: int) -> int:
 	rep.hull1 = hull
 	last_travel = rep
 	position = target
-	advance_days(r.days)
+	rep.prov0 = provisions
+	advance_days(r.days, true)
+	rep.prov1 = provisions
+	rep.cook = last_cook.duplicate(true)
 	rep.training = last_training
 	rep.upgrade = last_upgrade.duplicate()
 	rep.crafts = last_crafts.duplicate()
@@ -283,7 +300,10 @@ func finish_mission(rep: Dictionary) -> void:
 	offers = offers.filter(func(o: Dictionary) -> bool: return o.id != active.get("id", -1))
 	active = {}
 	missions_done += 1
+	rep.prov0 = provisions
 	advance_days(MISSION_DAYS)
+	rep.prov1 = provisions
+	rep.cook = last_cook.duplicate(true)
 	rep.training = last_training
 	rep.upgrade = last_upgrade.duplicate()
 	rep.crafts = last_crafts.duplicate()
@@ -376,7 +396,7 @@ func to_dict() -> Dictionary:
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
 		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
 		"loot_pending": loot_pending.duplicate(true), "craft_material": craft_material, "jobs": jobs.duplicate(true),
-		"trade_rolls": trade_rolls.duplicate(true)}
+		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true)}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -419,6 +439,11 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.ammo = {}
 	for t in Voyage.AMMO_START:
 		g.ammo[t] = int(am.get(t, Voyage.AMMO_START[t]))
+	g.provisions = int(d.get("provisions", Galley.START))
+	g.cook = String(d.get("cook", ""))
+	for e in d.get("cooklog", []):
+		g.cooklog.append({"day": int(e.day), "cook": String(e.cook), "result": String(e.result), "result_name": String(e.result_name),
+			"total": int(e.total), "xp": int(e.xp), "use": int(e.use), "p0": int(e.p0), "p1": int(e.p1), "empty": bool(e.empty)})
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g

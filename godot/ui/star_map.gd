@@ -403,6 +403,16 @@ func _render_port() -> void:
 		crow.add_child(_buy_button("+%d (%d Cr)" % [n, n * Crafting.material_price(game)], not Crafting.can_buy_material(game, n), func() -> void: Crafting.buy_material(game, n)))
 	crow.add_child(_buy_button("−1 (+%d Cr)" % Crafting.material_sell(game), not Crafting.can_sell_material(game), func() -> void: Crafting.sell_material(game)))
 	cm.add_child(crow)
+	var fill := Galley.fill_amount(game)
+	var pv := _port_box("Proviant", "an Bord %d · %d je Tag außerhalb des Hafens" % [game.provisions, Galley.need()],
+		"%d Cr je Einheit (nach Handeln) · im Hafen kein Verbrauch · ohne Proviant %d auf Proben im Schiff" % [Galley.price(game), Galley.MALUS])
+	var prow := HBoxContainer.new()
+	prow.add_theme_constant_override("separation", 6)
+	for n in [10, 30]:
+		prow.add_child(_buy_button("+%d (%d Cr)" % [n, n * Galley.price(game)], not Galley.can_buy(game, n), func() -> void: Galley.buy(game, n)))
+	prow.add_child(_buy_button("bis %d Tage +%d (%d Cr)" % [Galley.FILL_DAYS, fill, fill * Galley.price(game)], not Galley.can_buy(game, fill),
+		func() -> void: Galley.buy(game, fill)))
+	pv.add_child(prow)
 	var am := _port_box("Munition", "", "Je Schuss: Energiezellen %d Cr, Projektil %d Cr, Raketen %d Cr (nach Handeln, Handelsdialog)" % [
 		Voyage.ammo_price(game, "energie"), Voyage.ammo_price(game, "projektil"), Voyage.ammo_price(game, "raketen")])
 	for t in Voyage.AMMO_START:

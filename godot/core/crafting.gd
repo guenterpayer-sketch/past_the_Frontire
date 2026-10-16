@@ -235,7 +235,7 @@ static func _finish(g: HubState, c: Character, job: Dictionary) -> String:
 		if String(job.kind) != "build":
 			Stock.add(g, key)
 		return "%s: %s abgebrochen (nicht mehr an Bord), Material und Stück zurück" % [job.get("name", "?"), name_of(key)]
-	var r := Voyage.check(c, skill_of(key), bonus(g, key), difficulty(key, String(job.kind)))
+	var r := Voyage.check(c, skill_of(key), bonus(g, key) + Galley.malus(g), difficulty(key, String(job.kind)))
 	var res := StringName(r.result)
 	var head := "%s %s: %s (%d)" % [c.name, {"build": "baut " + name_of(key), "take": "zerlegt " + name_of(key),
 		"repair": "repariert " + name_of(key)}[String(job.kind)], r.result_name, int(r.total)]

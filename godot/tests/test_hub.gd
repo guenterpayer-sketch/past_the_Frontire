@@ -30,6 +30,7 @@ func _init() -> void:
 	_test_trade_skills()
 	_test_loot()
 	_test_crafting()
+	_test_galley()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -939,6 +940,78 @@ func _test_crafting() -> void:
 	m0 = g.craft_material
 	g.advance_days(1)
 	check(g.craft_material == m0 + 8 and g.last_crafts[0].contains("abgebrochen"), "abgebrochen: Material zurück")
+	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+## Kombüse: Proviant, Kochprobe, Verbrauch, Malus, Kauf, Trainingsbonus, Spielstand (Entscheidungen 16.10.2026)
+func _test_galley() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(77, "Kombüse", 1)
+	var n := Campaign.crew().size()
+	check(g.provisions == Galley.START and g.cook == "", "Startvorrat 60, kein Koch")
+	check(Galley.need(&"fehlschlag", 6) == 6 and Galley.need(&"patzer", 6) == 8 and Galley.need(&"teilerfolg", 6) == 5
+		and Galley.need(&"erfolg", 6) == 5 and Galley.need(&"herausragend", 6) == 4 and Galley.need(&"herausragend", 1) == 1, "Verbrauch je Ergebnis, kaufmännisch, mindestens 1")
+	# im Hafen: kein Verbrauch, keine Probe
+	g.position = g.nearest_harbor()
+	g.wait_days(2)
+	check(g.provisions == Galley.START and g.cooklog.is_empty(), "im Hafen kein Verbrauch")
+	# außerhalb ohne Koch: Fehlschlag, normaler Verbrauch
+	var away := -1
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			away = i
+			break
+	g.position = away
+	g.wait_days(1)
+	check(g.provisions == Galley.START - n and g.cooklog[0].result == "fehlschlag" and g.cooklog[0].cook == "", "ohne Koch wie Fehlschlag")
+	# Koch würfelt mit EP; Ergebnis bestimmt den Verbrauch
+	var c: Character = Campaign.crew()[1]
+	Galley.set_cook(g, c)
+	var xp0: int = Rules.ensure_skill(c, Galley.SKILL).xp
+	Voyage.fixed_result = &"herausragend"
+	var p0 := g.provisions
+	g.wait_days(1)
+	check(g.provisions == p0 - Galley.need(&"herausragend") and g.cooklog[0].cook == c.name and Rules.ensure_skill(c, Galley.SKILL).xp > xp0, "Koch: Herausragend spart, EP")
+	check(Galley.bonus_pending(g) == (g.day % HubState.TRAINING_DAYS != 0), "Anzeige: Herausragend seit dem Training")
+	# Trainingsbonus: Herausragend in den Tagen vor dem Training
+	var fx0: int = Campaign.crew()[0].free_xp
+	while g.day % HubState.TRAINING_DAYS != HubState.TRAINING_DAYS - 1:
+		g.wait_days(1)
+	g.wait_days(1)
+	check(g.last_training == g.training_xp() + Galley.TRAINING_BONUS, "Training +1 nach Herausragend")
+	Voyage.fixed_result = &"fehlschlag"
+	g.wait_days(HubState.TRAINING_DAYS)
+	check(g.last_training == g.training_xp(), "Training ohne Herausragend normal")
+	check(Campaign.crew()[0].free_xp > fx0, "freie EP vergeben")
+	# Mangel: Rest aufbrauchen, dann −10 auf Proben im Schiff
+	g.provisions = 2
+	g.wait_days(1)
+	check(g.provisions == 0 and g.cooklog[0].use == 2 and g.cooklog[0].empty, "Rest aufgebraucht")
+	check(Galley.malus(g) == Galley.MALUS, "ohne Proviant −10")
+	Voyage.fixed_result = &""
+	# Koch nicht mehr an Bord → ausgetragen
+	g.cook = "niemand"
+	check(Galley.cook(g) == null and g.cook == "", "Koch nicht an Bord: ausgetragen")
+	# Kauf nur im Hafen, nach Handeln
+	check(not Galley.can_buy(g, 10), "Kauf nur im Hafen")
+	g.position = g.nearest_harbor()
+	var cr := g.credits
+	check(Galley.price(g) == Galley.PRICE and Galley.buy(g, 10) and g.provisions == 10 and g.credits == cr - 10 * Galley.PRICE, "Proviant kaufen 5 Cr")
+	check(Galley.malus(g) == 0 and Galley.fill_amount(g) == n * Galley.FILL_DAYS - 10, "nach Kauf kein Malus; bis 10 Tage")
+	# Reise: Verbrauch an Reisetagen, auch wenn das Ziel ein Hafen ist; Bericht
+	var nb: int = g.sector.neighbors(g.position)[0][0]
+	g.provisions = 50
+	var d := g.travel_to(nb)
+	check(d > 0 and g.last_travel.cook.size() == d and g.last_travel.prov0 == 50 and g.last_travel.prov1 == 50 - d * n, "Reise: Verbrauch je Reisetag, Bericht")
+	# Spielstand
+	Galley.set_cook(g, c)
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(h.provisions == g.provisions and h.cook == g.cook and h.cooklog == g.cooklog, "Kombüse im Spielstand")
 	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)

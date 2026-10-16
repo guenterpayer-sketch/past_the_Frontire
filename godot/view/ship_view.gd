@@ -22,14 +22,16 @@ const ROOMS := [
 		"text": "Verwundete und Resttage, Arzt und Helfer zuweisen (Zweite Hilfe), „1 Tag warten“.", "light": Color(0.7, 1.0, 0.9)},
 	{"id": &"bridge", "name": "Brücke", "rect": Rect2(28, 4, 12, 8), "ready": true,
 		"text": "Sternenkarte des Sektors, offene Aufträge, Kurs setzen. Später: Raumkampf.", "light": Color(1.0, 0.9, 0.55)},
+	{"id": &"galley", "name": "Kombüse", "rect": Rect2(28, 12, 12, 4), "ready": true,
+		"text": "Proviant und Kochen: Koch einstellen, Vorrat, Verbrauch je Tag, letzte Kochproben.", "light": Color(1.0, 0.8, 0.5)},
 ]
 
 ## Durchgänge in Zwischenwänden: Mittelpunkt der 4-m-Kante
-const DOORS := [Vector2(16, 6), Vector2(16, 10), Vector2(28, 6), Vector2(22, 8), Vector2(10, 8)]
+const DOORS := [Vector2(16, 6), Vector2(16, 10), Vector2(28, 6), Vector2(22, 8), Vector2(10, 8), Vector2(28, 14)]
 ## Außenwände mit Fenstern (Mittelpunkt der Kante -> Modell)
 const WINDOWS := {Vector2(40, 6): "threewindows_wall_sidea", Vector2(40, 10): "threewindows_wall_sidea",
 	Vector2(30, 4): "longwindow_wall_sidea", Vector2(34, 4): "longwindow_wall_sidea", Vector2(38, 4): "smallwindows_wall_sidea",
-	Vector2(30, 12): "longwindow_wall_sidea", Vector2(34, 12): "longwindow_wall_sidea", Vector2(38, 12): "smallwindows_wall_sidea",
+	Vector2(30, 16): "longwindow_wall_sidea", Vector2(38, 16): "smallwindows_wall_sidea",
 	Vector2(18, 0): "smallwindows_wall_sidea", Vector2(26, 0): "smallwindows_wall_sidea"}
 const WALL_VARIANTS := ["wall_1", "wall_2", "wall_3", "wall_4", "wall_5", "wall_empty"]
 
@@ -57,6 +59,9 @@ const PROPS := [
 	["props_shelf_tall", 3.0, 15.0, 180.0, 1.0], ["props_shelf_tall", 6.0, 15.0, 180.0, 1.0], ["props_shelf_tall", 14.4, 15.0, 180.0, 1.0],
 	["props_laser", 11.0, 12.0, -90.0, 0.8],
 	["props_cratelong", 1.2, 10.0, 90.0, 1.0], ["props_chest", 14.6, 10.0, 90.0, 1.0],
+	# Kombüse: Vorratsregal, Behälter, Kisten, Kochstelle (Konsole)
+	["props_shelf", 31.0, 15.2, 180.0, 1.0], ["props_vessel_tall", 33.4, 15.2, 0.0, 1.0], ["props_vessel", 34.1, 15.2, 0.0, 1.0],
+	["props_crate", 36.0, 13.0, 10.0, 1.0], ["props_chest", 37.6, 15.0, 0.0, 1.0], ["props_computersmall", 39.2, 14.0, -90.0, 1.0],
 ]
 
 var _walls: Array[Dictionary] = []     # {full, low, normal}

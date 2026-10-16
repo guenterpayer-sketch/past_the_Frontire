@@ -28,6 +28,8 @@ func _ready() -> void:
 	ui.star_map.travel.connect(_travel)
 	ui.star_map.wait_day.connect(wait_day)
 	ui.medbay.wait_day.connect(wait_day)
+	ui.galley.wait_day.connect(wait_day)
+	ui.galley.changed.connect(_refresh)
 	ui.armory.done.connect(_refresh)
 	ui.star_map.hired.connect(func(_c: Character) -> void: _refresh())
 	ui.star_map.start.connect(_start_mission)
@@ -102,6 +104,8 @@ func open_room(id: StringName) -> void:
 			ui.star_map.open(game)
 		&"medbay":
 			ui.medbay.show_medbay(game)
+		&"galley":
+			ui.galley.show_galley(game)
 		&"hangar":
 			ui.engine.show_engine(game)
 		&"armory":
@@ -139,6 +143,7 @@ func _after_days() -> void:
 		ui.medbay.show_medbay(game)
 	if ui.craft.visible:
 		ui.craft.refresh()
+	ui.galley.refresh()
 	if not game.last_healed.is_empty():
 		ui.show_toast("Wieder einsatzbereit: " + ", ".join(game.last_healed.map(func(c: Character) -> String: return c.name)))
 

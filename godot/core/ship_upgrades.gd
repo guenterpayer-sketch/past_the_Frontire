@@ -99,7 +99,7 @@ static func work_day(g: HubState) -> String:
 	if who == null:
 		g.project.days = 1
 		return "%s: niemand für die Reparaturprobe verfügbar, 1 Tag länger" % AREAS[id].name
-	var r := Voyage.check(who, SKILL)
+	var r := Voyage.check(who, SKILL, Galley.malus(g))
 	var head := "%s Stufe %d: %s, Reparatur %s %s = %d %s" % [AREAS[id].name, level(g, id) + 1, who.name,
 		Dice.format_roll(r.roll), Dice.fmt(r.bonus), r.total, r.result_name]
 	if Rules.is_success(Rules.maneuver_result(r.total)):
