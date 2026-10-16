@@ -197,3 +197,7 @@ Munition Teil Kampf ist in `main` (`928b0f9`); Schnittstelle in `docs/module/bod
 - Gebaut: `HubState.ammo` (im Spielstand, alte Stände bekommen den Startvorrat), Abzug in `HubState.finish_mission()` aus `Campaign.last_result.ammo_used` (nicht unter 0; `rep.ammo_used` im Einsatzbericht), Statusleiste „Munition“, Kasten „Munition“ im Raumhafen, Beute im Einsatzbericht. Editor: Felder `magazine`, `ammo_total`, `shots`, Munitionsart; `ob_bonus` heißt jetzt „Angriffsbonus (fest)“. Regeln in `docs/Skillsystem.md` 8b.
 - **Schnittstelle:** unverändert wie vom Bodenkampf vorgegeben – `HubState.game.ammo = {"energie": n, "projektil": n, "raketen": n}` (`Battle.ammo_stock()` liest ihn), Rückgabe über `MissionResult.ammo_used`. Am Bodenkampf nichts geändert.
 - Tests: `test_rules` OK, `test_hub` OK (Startvorrat, Kauf nur im Hafen/mit Credits, Abzug nicht unter 0, Einsatzende mit Verbrauch und Beute, Speichern, Editor-Felder), `--autotest-hub` durchgelaufen (Raumhafen, Statusleiste, Einsatz mit Beute, Editor). `test_sim` nicht gelaufen (Kampf unverändert).
+
+## Hinweis vom Koordinator (16.10.2026): Vorlagen bleiben fest
+
+Der in `docs/module/bodenkampf.md` notierte Wunsch, die mitgelieferten Waffen im Ausrüstungs-Editor editierbar zu machen, ist **zurückgenommen** (Entscheidung des Nutzers): Die Standardwaffen bleiben unverändert, sie sind die Vorlagen für neue Waffen. Nichts zu bauen.
