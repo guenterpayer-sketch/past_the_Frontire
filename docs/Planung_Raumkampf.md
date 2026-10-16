@@ -50,7 +50,6 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 - Zuständigkeit für Dateien anderer Module: `ShipUpgrades`, `HubState` (Hub), `Stock`/Raumhafen-Handel (Hub), Lagerhalle als Enter-Karte (Bodenkampf), Posten „Station“ im Hub, Startmenü-Schnellkampf.
 - Wer baut die Auslöser im Hub (Koordinator).
 - Treibstoff/Energie für Strahlwaffen: ja oder nein.
-- Mockup der Oberfläche gezeigt (Artifact „Raumkampf Mockup“); Bestätigung des Gesamtbilds steht aus.
 
 ## 4. Schnittstellen-Vorschlag
 
@@ -86,7 +85,7 @@ Gleiche Felder wie `MissionResult.from_combat` (`outcome`, `retreated`, `units` 
 
 ## 5. Reihenfolge (Vorschlag)
 
-1. Mockup der Oberfläche → Bestätigung durch den Nutzer.
+1. ~~Mockup der Oberfläche~~: vom Nutzer bestätigt (16.10.2026).
 2. Regelkern ohne Grafik (`core/space_combat.gd`: Phasen, Stationen, Treffer, Schilde, Systemschäden) mit Test.
 3. 3D-Hexkarte und Bedienung, Schnellkampf aus dem Startmenü.
 4. Slots, Schiffsmunition, Ausbau-Stufen, Handel und Beute (Absprache mit dem Hub).
