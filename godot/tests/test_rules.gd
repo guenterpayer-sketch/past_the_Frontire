@@ -1025,6 +1025,16 @@ func _test_char_wear() -> void:
 	check(Equipment.set_armor(ch, arm, g) == "" and not ch.wear.has("armor") and Stock.count(g, Stock.damaged_key(Stock.key_of(arm), -10)) == 1, "Rüstung tauschen: beschädigte zurück ins Lager, intakte im Platz")
 	check(Equipment.set_armor(ch, arm, g, -10) == "" and ch.wear.armor == -10 and Stock.count(g, Stock.key_of(arm)) == 1, "beschädigte Rüstung anlegen")
 	check(Equipment.stock_damages(null, sg) == [0], "ohne Spiel nur intakt")
+	# gute Stücke (+5) aus dem Handwerk: Schlüssel "…|+5", Character.wear = 5
+	Stock.add(g, Stock.damaged_key(Stock.key_of(sg), 5))
+	check(Equipment.stock_damages(g, sg)[0] == Stock.BONUS, "gutes Stück wählbar (zuerst)")
+	check(Equipment.set_weapon(ch, 0, sg, g, Stock.BONUS) == "" and ch.wear.w0 == Stock.BONUS and Stock.count(g, Stock.damaged_key(Stock.key_of(sg), -20)) == 1, "+5 anlegen, altes mit Schaden zurück")
+	check(Equipment.wear_text(ch, "w0") == "+5" and Equipment.wear_summary(ch, true).contains("+5") and not Equipment.wear_summary(ch).contains("+5"), "+5 in Text und Übersicht")
+	check(Character.from_dict(ch.to_dict()).wear.w0 == Stock.BONUS, "+5 gespeichert")
+	ch.apply_result({"wear": {"w0": 5, "armor": -10}})
+	check(ch.wear.w0 == Stock.BONUS, "+5 aus dem Einsatz übernommen")
+	check(Equipment.set_weapon(ch, 0, lp, g) == "" and Stock.count(g, Stock.damaged_key(Stock.key_of(sg), 5)) == 1 and not ch.wear.has("w0"), "+5 ablegen: zurück ins Lager als „|+5“")
+	check(Equipment.stock_damages(null, sg) == [0], "ohne Spiel kein +5")
 
 
 func c2_ok(lost_n: int, parts: int) -> bool:
