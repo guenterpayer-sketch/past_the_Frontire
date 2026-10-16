@@ -199,6 +199,12 @@ func _left_column(u: Character) -> Control:
 	var sl := UiTheme.label(sub, 12, UiTheme.MUTED)
 	sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	person.add_child(sl)
+	if Equipment.wear_summary(u, true) != "":
+		var fl := UiTheme.label("Gute Stücke: " + Equipment.wear_summary(u, true), 12, UiTheme.GOOD)
+		fl.tooltip_text = "aus dem Handwerk: Waffe +5 auf Angriffe, Rüstung +5 auf die Verteidigung; der erste Schaden nimmt den Bonus"
+		fl.mouse_filter = Control.MOUSE_FILTER_PASS
+		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		person.add_child(fl)
 	if Equipment.wear_summary(u) != "":
 		var wl := UiTheme.label("Beschädigt: " + Equipment.wear_summary(u), 12, Color("ffb04d"))
 		wl.tooltip_text = "−10 je Schaden auf Angriffe (Waffe) bzw. Verteidigung (Rüstung), ab −30 unbrauchbar; bleibt bis zur Reparatur"

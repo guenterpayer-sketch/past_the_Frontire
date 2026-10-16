@@ -202,6 +202,8 @@ func _run() -> void:
 	Stock.add(HubState.game, Equipment.SHIELD)
 	Stock.add(HubState.game, Stock.MEDKIT, 2)
 	Stock.add(HubState.game, "res://data/armor/leicht.tres")
+	Stock.add(HubState.game, "res://data/weapons/sturmgewehr.tres|+5")
+	Stock.add(HubState.game, "res://data/armor/leicht.tres|+5")
 	hub.ui.armory._mode = "stock"
 	hub.ui.armory._render()
 	await _frames(5)
@@ -212,6 +214,13 @@ func _run() -> void:
 	print("Lager-Reiter: Laserpistole (−30) als Waffe 2 angelegt ", Stock.count(HubState.game, "res://data/weapons/laserpistole.tres|-30") == before - 1, ", Platz ", Campaign.crew()[0].wear_of("w1"))
 	await _frames(5)
 	await _shot("h1d3_waffenkammer_lager_angelegt")
+	Equipment.set_weapon(Campaign.crew()[0], 0, load("res://data/weapons/sturmgewehr.tres"), HubState.game, Stock.BONUS)
+	print("Gutes Stück: Sturmgewehr (+5) als Waffe 1 ", Campaign.crew()[0].wear_of("w0"))
+	hub.ui.armory._mode = "equip"
+	hub.ui.armory._slot = "w0"
+	hub.ui.armory._render()
+	await _frames(5)
+	await _shot("h1d4_waffenkammer_gut")
 	hub.ui.armory._mode = "equip"
 	hub.ui.armory.hide()
 	# Werkstatt: über die Auswahl beim Raum, Material auffüllen, Bauen beginnen

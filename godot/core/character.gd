@@ -32,7 +32,8 @@ var new_list: StringName = &""
 var status := {}
 ## Verbrauch im letzten Einsatz ({medkits, ammo: {Waffen-ID: Schuss}}); wird noch nicht ausgewertet (kein Nachschub)
 var used := {}
-## Beschädigung der Ausrüstung je Platz ("w0"/"w1"/"armor" → Abzug, −10 je Schaden, ab −30 unbrauchbar;
+## Zustand der Ausrüstung je Platz ("w0"/"w1"/"armor" → Abzug, −10 je Schaden, ab −30 unbrauchbar; positiv = gutes
+## Stück aus dem Handwerk, Stock.BONUS = +5;
 ## docs/Skillsystem.md „Beute, Beschädigung und Verlust“). Der Kampf liest sie (Combatant.from_character).
 ## Der Schild ist ausgenommen (Entscheidung des Nutzers 16.10.2026).
 var wear := {}
@@ -96,8 +97,8 @@ func apply_result(r: Dictionary) -> void:
 		wear = {}
 		var w: Dictionary = r.wear
 		for k in w:
-			if int(w[k]) < 0:
-				wear[String(k)] = int(w[k])
+			if int(w[k]) != 0:
+				wear[String(k)] = _wear_value(int(w[k]))
 	for slot in r.get("lost", []):
 		lose(String(slot))
 
@@ -117,7 +118,12 @@ func lose(slot: String) -> void:
 			armor = load(Gear.FALLBACK_ARMOR)
 
 
-## Abzug eines Platzes (0 = heil)
+## gültiger Zustand: positiv → Stock.BONUS, negativ höchstens bis −30
+static func _wear_value(v: int) -> int:
+	return Stock.BONUS if v > 0 else maxi(v, Combatant.WEAR_BROKEN)
+
+
+## Zustand eines Platzes (0 = heil, negativ = Schaden, +5 = gutes Stück)
 func wear_of(slot: String) -> int:
 	return int(wear.get(slot, 0))
 
@@ -182,8 +188,8 @@ static func from_dict(d: Dictionary) -> Character:
 	# gelöschte eigene Ausrüstung (Gear): Waffe 1 → Fäuste, Waffe 2 entfällt, Rüstung → keine (Entscheidung des Nutzers)
 	var wr: Dictionary = d.get("wear", {})
 	for k in wr:
-		if int(wr[k]) < 0:
-			c.wear[String(k)] = int(wr[k])
+		if int(wr[k]) != 0:
+			c.wear[String(k)] = _wear_value(int(wr[k]))
 	var paths: Array = d.get("weapons", [])
 	for i in paths.size():
 		var w := _load(paths[i]) as WeaponData

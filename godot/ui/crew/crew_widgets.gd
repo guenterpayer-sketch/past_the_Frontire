@@ -78,6 +78,7 @@ static func summary(ch: Character) -> Control:
 			["TP / PP", "%d / %s" % [Rules.max_hp(ch), str(Rules.max_pp(ch)) if Rules.has_psi(ch) else "–"]],
 			["Psi-Listen", ", ".join(lists) if not lists.is_empty() else "–"],
 			["Ausrüstung", "%s · %s" % [", ".join(ch.weapons.map(func(w: WeaponData) -> String: return w.name)), ch.armor.name if ch.armor else "–"]],
+			["Gute Stücke", Equipment.wear_summary(ch, true) if Equipment.wear_summary(ch, true) != "" else "–"],
 			["Beschädigt", Equipment.wear_summary(ch) if Equipment.wear_summary(ch) != "" else "–"]]:
 		g.add_child(UiTheme.label(kv[0], 13, UiTheme.MUTED))
 		var l := UiTheme.label(kv[1], 13)

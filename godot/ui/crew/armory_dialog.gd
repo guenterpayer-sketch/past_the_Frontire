@@ -236,6 +236,8 @@ func _variants(u: Character, items: Array, slots: Array) -> Array:
 
 
 func _wear_col(d: int) -> Color:
+	if d > 0:
+		return UiTheme.GOOD
 	return UiTheme.BAD if d <= Combatant.WEAR_BROKEN else Color("ffb04d")
 
 
@@ -265,7 +267,7 @@ func _slot_button(key: String, title: String, value: String, sub: String, bonus:
 	vh.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vh.add_child(UiTheme.label(value, 14))
 	if wear != "":
-		vh.add_child(UiTheme.label(wear, 12, UiTheme.BAD if wear == "unbrauchbar" else Color("ffb04d")))
+		vh.add_child(UiTheme.label(wear, 12, UiTheme.GOOD if wear.begins_with("+") else UiTheme.BAD if wear == "unbrauchbar" else Color("ffb04d")))
 	v.add_child(vh)
 	var s := UiTheme.label(sub, 11, UiTheme.MUTED)
 	s.clip_text = true
@@ -328,7 +330,7 @@ func _weapon_list(u: Character, slot: int) -> void:
 		b.disabled = why != "" and not on
 		if on:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
-		elif d < 0 and not b.disabled:
+		elif d != 0 and not b.disabled:
 			b.add_theme_color_override("font_color", _wear_col(d))
 		b.custom_minimum_size.x = 190
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -353,7 +355,7 @@ func _weapon_list(u: Character, slot: int) -> void:
 			Equipment.set_weapon(u, 1, null, _g())
 			_render())
 		_right.add_child(none)
-	var note := UiTheme.label("Bonus = Gesamtbonus der Figur in der Fertigkeit der Waffe (Rang + Eigenschaften, abzüglich Beschädigung), ohne Lage und Ziel. Beschädigte Stücke (−10 je Schaden, ab −30 unbrauchbar) stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Schaden = Faktor auf das Tabellenergebnis. Keine Waffe doppelt; Schild nur mit einhändigen Waffen (eine zweihändige Waffe legt ihn ab). Angezeigt wird nur, was im Lager liegt oder getragen wird; Nachschub über den Handel im Raumhafen.", 11, UiTheme.MUTED)
+	var note := UiTheme.label("Bonus = Gesamtbonus der Figur in der Fertigkeit der Waffe (Rang + Eigenschaften, mit Zustand des Stücks), ohne Lage und Ziel. Beschädigte Stücke (−10 je Schaden, ab −30 unbrauchbar) und gute Stücke aus dem Handwerk (+5) stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Schaden = Faktor auf das Tabellenergebnis. Keine Waffe doppelt; Schild nur mit einhändigen Waffen (eine zweihändige Waffe legt ihn ab). Angezeigt wird nur, was im Lager liegt oder getragen wird; Nachschub über den Handel im Raumhafen.", 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_right.add_child(note)
 
@@ -373,7 +375,7 @@ func _armor_list(u: Character) -> void:
 		var b := UiTheme.button(("▸ " if on else "") + Equipment.label(a) + Stock.damage_text(d))
 		if on:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
-		elif d < 0:
+		elif d != 0:
 			b.add_theme_color_override("font_color", _wear_col(d))
 		b.custom_minimum_size.x = 220
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -388,7 +390,7 @@ func _armor_list(u: Character) -> void:
 		g.add_child(UiTheme.label(Dice.fmt(db) if db else "–", 13, _col(db)))
 		g.add_child(UiTheme.label(("%d Gratis-Feld" % a.move) if a.move else "–", 13, _col(a.move)))
 	_right.add_child(g)
-	var note := UiTheme.label("Die Klasse bestimmt die Spalte der Angriffstabelle. „Schaden erhalten“ gilt nicht gegen Psi. Verteidigung abzüglich Beschädigung (−10 je Schaden; ab −30 unbrauchbar, dann wie keine Rüstung); beschädigte Stücke stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Angezeigt wird nur, was im Lager liegt oder getragen wird.", 11, UiTheme.MUTED)
+	var note := UiTheme.label("Die Klasse bestimmt die Spalte der Angriffstabelle. „Schaden erhalten“ gilt nicht gegen Psi. Verteidigung mit Zustand des Stücks (−10 je Schaden, ab −30 unbrauchbar und wie keine Rüstung; gutes Stück +5); beschädigte und gute Stücke stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Angezeigt wird nur, was im Lager liegt oder getragen wird.", 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_right.add_child(note)
 
@@ -534,7 +536,7 @@ func _stock_view(u: Character) -> void:
 	gt.add_child(UiTheme.label(str(g.material), 13))
 	_stock_rest(gt, "für Reparaturen am Schiff; Handwerksmaterial folgt mit dem Handwerk")
 
-	var note := UiTheme.label("Anlegen gilt für die Figur im Reiter oben; gleiche Regeln wie über die Plätze (keine Waffe doppelt, Schild nur mit einhändigen Waffen). Das abgelegte Teil geht mit seinem Schaden ins Lager. Fäuste und „keine Rüstung“ sind immer da und stehen nicht in der Liste.", 11, UiTheme.MUTED)
+	var note := UiTheme.label("Anlegen gilt für die Figur im Reiter oben; gleiche Regeln wie über die Plätze (keine Waffe doppelt, Schild nur mit einhändigen Waffen). Das abgelegte Teil geht mit seinem Zustand (Schaden oder +5) ins Lager. Fäuste und „keine Rüstung“ sind immer da und stehen nicht in der Liste.", 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(note)
 
@@ -556,7 +558,7 @@ func _stock_group(v: VBoxContainer, title: String, tag: String, heads: Array) ->
 func _stock_name(text: String, damage: int, hint: String) -> Control:
 	var nv := VBoxContainer.new()
 	nv.add_theme_constant_override("separation", 0)
-	var l := UiTheme.label(text, 13, _wear_col(damage) if damage < 0 else UiTheme.TEXT)
+	var l := UiTheme.label(text, 13, _wear_col(damage) if damage != 0 else UiTheme.TEXT)
 	l.custom_minimum_size.x = 210
 	nv.add_child(l)
 	if hint != "":
