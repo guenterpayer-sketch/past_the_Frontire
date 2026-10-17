@@ -96,15 +96,9 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 
 - (17.10.2026) Auftrag 3: Zahlen per Simulation abgestimmt (`tests/sim_space.gd`, Ergebnisse und Änderungen in `docs/Planung_Raumkampf.md` 1c): Siege 87–91 / 67–70 / 47–49 %, 8–11 Runden. Crew-KI zielt mit der Bewegung auf Schussfeld, Trefferschwellen −25, Schaden ×0,9, Gegner schwächer besetzt, Aufstellungen schwer angepasst, **Waffenpreise geändert** (`ShipWeapons.price`), Gegnervorlagen als Ressourcen in `data/ships/`. Schnittstelle und Ausbaustufen unverändert.
 - Bis 16.10.2026 alles in `main` (`f0334fd`, mit dem Hub): Regelkern `core/space_*.gd` (Phasen Schilde → Bewegen → Schießen → Technik/Computer, Bord-KI +0, Doppelbesetzung −30, Energie, Schilde je Seite, Systemschäden A–E, Flucht, Kapitulation, Entern durch Gegner/selbst), Szene `space.tscn` (F6 = Schnellkampf), bis 3 Techniker, Umbesetzen zu Rundenbeginn (−10), Schieberegler je Schildseite, Test `tests/test_space.gd`, Selbsttest `-- --autotest-space`. Entscheidungen: `docs/Planung_Raumkampf.md` 1a/1b.
-- Offen: alle Zahlen Platzhalter (Abstimmung per Simulation), Gegnervorlagen als Konstanten statt `data/ships/`, eigene Jäger erst V2.
+- Offen: eigene Jäger erst V2. Neu abstimmen mit `tests/sim_space.gd`, wenn sich Regeln ändern.
 - Neue Fertigmeldungen hier kurz eintragen. Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator
 
-### Auftrag 3 (17.10.2026): Zahlenwerte per Simulation abstimmen
-
-Alle Zahlen des Raumkampfs sind Platzhalter (`docs/Planung_Raumkampf.md` 3). Betroffen: eigenes Schiff (`SpaceSetup`: `SHIELD_PER_SIDE`, `ARMOR_PER_HIT`, `REACTOR_ENERGY`, `OWN_*`, `START_AMMO`), Schiffswaffen (`ShipWeapons`: Energie, Schüsse, Reichweite, Schaden, Bonus, Preis), Gegnervorlagen und Aufstellungen je Schwierigkeit (`SpaceTemplates`), Kampfregeln (`SpaceCombat`: Trefferschwellen, Kritische, Systemschäden, Energie, Sprung, Boni/Abzüge).
-- **Erst klären** (Auswahl-Buttons, am Ende Freitext): Ziel-Siegquote der Crew je Schwierigkeit, typische Kampfdauer in Runden, wie oft Flucht/Kapitulation/Entern vorkommen sollen, welche Schiffsstufen (Ausbau 0 vs. voll) die Messung abdeckt, ob Preise mit abgestimmt werden.
-- Dann eine Simulation KI gegen KI bauen (z. B. `tests/test_space.gd -- sim N` oder eigenes Skript, nur eigene Dateien), Ergebnisse als Tabelle zeigen, Werte anpassen, Entscheidungen in `docs/Planung_Raumkampf.md` festhalten.
-- Gegnervorlagen dabei nach `data/ships/` (Ressourcen) überführen, wenn der Nutzer zustimmt.
-- **Schnittstelle bleibt**; ändern sich Preise oder Stufenzahlen, die der Hub anzeigt/verkauft (`ShipWeapons.price`, Ausbaustufen), in der Fertigmeldung nennen. `test_hub` rechnet Preise aus `ShipWeapons`, sollte also grün bleiben – vor der Fertigmeldung prüfen.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer. Schnittstellen nur ergänzen und dem Hub über den Nutzer melden.

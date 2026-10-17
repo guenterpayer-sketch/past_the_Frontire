@@ -12,12 +12,13 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`2bd5ced`) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`2876f93`), nichts offen |
-| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`f0334fd`, über den Hub) |
+| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`fcdbeba`), nichts offen |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 17.10.2026 | `fa52302` | Raumkampf `claude/raumkampf-modul` (`fcdbeba`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel; laut Modul `test_space`, `test_rules`, `test_hub`, `test_sim -- 10` OK). Zahlen per Simulation (`tests/sim_space.gd`): Siege 87–91/67–70/47–49 %, 8–11 Runden. Waffenpreise geändert (Hub liest sie aus `ShipWeapons`). Gegnervorlagen als Ressourcen `data/ships/`; `SpaceTemplates.SHIPS`/`FACTIONS` entfernt (kein anderes Modul nutzte sie, geprüft). |
 | 17.10.2026 | `f155ff3` | Hub `claude/happy-lamport-u4fvya` (`2876f93`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Raumkampf im Spiel (Teil 2): Feindkontakt, Auftragsarten Blockade/Abfangen/Eskorte, Auswertung `finish_space`, Notfall, Abwehr beim Entern. Keine Änderung an Raumkampf-Dateien. Szenenwechsel Schiff ↔ `space.tscn` vom Nutzer im Spiel getestet: funktioniert. |
 | 16.10.2026 | `d56de65` | Hub `claude/happy-lamport-u4fvya` (`5772000`) mit Raumkampf `f0334fd` | Konflikt nur in `docs/module/hub.md`, vom Koordinator gelöst. Raumkampf-Modul (Regelkern, `space.tscn`) und Hub-Anbindung (ShipArms liest `ShipWeapons`, Slots 0–5, Technik 2/3, selbst entern, „Schnellkampf im All“). Koordinator: `test_rules`, `test_hub`, `test_space` OK, `test_sim -- 10` 6 Siege / 0 hängengeblieben. |
 | 16.10.2026 | `3d633b0` | Hub `claude/happy-lamport-u4fvya` (`0bb6c64`) | Konflikt nur in `docs/module/hub.md` (Kürzung vs. Nachträge), vom Koordinator gelöst (Nachträge ins Archiv, kurz unter „Stand“; Nutzer-Entscheidung). Branch enthielt `main` nicht: Koordinator `test_rules`, `test_hub` OK. Startmenü-Block links oben, einheitliche Ergebnisfarben, Erfahrung je Figur. |

@@ -119,3 +119,14 @@ Planung V1 (`8bd0e3a`) ist in `main`. **Zuständigkeit (Entscheidung Koordinator
 - **Bodenkampf:** in V1 nichts (Entern startet die normale Lagerhalle über den Hub). Karte „Schiffsinneres“ später.
 - **Charakter:** nichts, solange das Ergebnis das `MissionResult`-Format hält.
 - **Reihenfolge:** Raumkampf zuerst Schnittstelle (`SpaceSetup`-Felder, Ergebnis-Felder, Einstiegsfunktion, Daten der Waffen-Keys für Slots) als festen Stand in diese Datei unter „Schnittstellen“ schreiben und pushen (vorab meldbar wie beim Hub +5). Erst dann beginnt der Hub. Offene Zahlen und Punkte (Planung 3, u. a. Energie für Strahlwaffen) vorher mit dem Nutzer klären.
+
+
+# Nachtrag Auftrag 3 (in `main` seit 17.10.2026, `fcdbeba`)
+
+### Auftrag 3 (17.10.2026): Zahlenwerte per Simulation abstimmen
+
+Alle Zahlen des Raumkampfs sind Platzhalter (`docs/Planung_Raumkampf.md` 3). Betroffen: eigenes Schiff (`SpaceSetup`: `SHIELD_PER_SIDE`, `ARMOR_PER_HIT`, `REACTOR_ENERGY`, `OWN_*`, `START_AMMO`), Schiffswaffen (`ShipWeapons`: Energie, Schüsse, Reichweite, Schaden, Bonus, Preis), Gegnervorlagen und Aufstellungen je Schwierigkeit (`SpaceTemplates`), Kampfregeln (`SpaceCombat`: Trefferschwellen, Kritische, Systemschäden, Energie, Sprung, Boni/Abzüge).
+- **Erst klären** (Auswahl-Buttons, am Ende Freitext): Ziel-Siegquote der Crew je Schwierigkeit, typische Kampfdauer in Runden, wie oft Flucht/Kapitulation/Entern vorkommen sollen, welche Schiffsstufen (Ausbau 0 vs. voll) die Messung abdeckt, ob Preise mit abgestimmt werden.
+- Dann eine Simulation KI gegen KI bauen (z. B. `tests/test_space.gd -- sim N` oder eigenes Skript, nur eigene Dateien), Ergebnisse als Tabelle zeigen, Werte anpassen, Entscheidungen in `docs/Planung_Raumkampf.md` festhalten.
+- Gegnervorlagen dabei nach `data/ships/` (Ressourcen) überführen, wenn der Nutzer zustimmt.
+- **Schnittstelle bleibt**; ändern sich Preise oder Stufenzahlen, die der Hub anzeigt/verkauft (`ShipWeapons.price`, Ausbaustufen), in der Fertigmeldung nennen. `test_hub` rechnet Preise aus `ShipWeapons`, sollte also grün bleiben – vor der Fertigmeldung prüfen.
