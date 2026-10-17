@@ -244,8 +244,10 @@ func _render_side() -> void:
 	_side.add_child(UiTheme.label(sys.name, 28, UiTheme.ACCENT))
 	var f := s.faction_of(selected)
 	_side.add_child(UiTheme.label("kontrolliert von: %s" % f.name if f else "neutral – Hafen, keine Aufträge", 14, f.color if f else UiTheme.MUTED))
-	_side.add_child(UiTheme.label("Feindkontakt auf der Reise: %d %% je Tag (%s)" % [roundi(SpaceEvents.contact_chance(game, selected) * 100),
-		SpaceTemplates.faction_name(SpaceEvents.faction_id(game, selected))], 13, UiTheme.MUTED))
+	var danger := UiTheme.label("Feindkontakt auf der Reise: %d %% je Tag (%s)" % [roundi(SpaceEvents.contact_chance(game, selected) * 100),
+		SpaceTemplates.faction_name(SpaceEvents.faction_id(game, selected))], 13, UiTheme.MUTED)
+	danger.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_side.add_child(danger)
 	var r := s.route(game.position, selected)
 	var route_text := "Hier liegt das Schiff."
 	if selected != game.position:
