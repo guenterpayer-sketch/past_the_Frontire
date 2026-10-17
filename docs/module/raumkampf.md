@@ -94,6 +94,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 
 ## Stand
 
+- (17.10.2026) Auftrag 3: Zahlen per Simulation abgestimmt (`tests/sim_space.gd`, Ergebnisse und Änderungen in `docs/Planung_Raumkampf.md` 1c): Siege 87–91 / 67–70 / 47–49 %, 8–11 Runden. Crew-KI zielt mit der Bewegung auf Schussfeld, Trefferschwellen −25, Schaden ×0,9, Gegner schwächer besetzt, Aufstellungen schwer angepasst, **Waffenpreise geändert** (`ShipWeapons.price`), Gegnervorlagen als Ressourcen in `data/ships/`. Schnittstelle und Ausbaustufen unverändert.
 - Bis 16.10.2026 alles in `main` (`f0334fd`, mit dem Hub): Regelkern `core/space_*.gd` (Phasen Schilde → Bewegen → Schießen → Technik/Computer, Bord-KI +0, Doppelbesetzung −30, Energie, Schilde je Seite, Systemschäden A–E, Flucht, Kapitulation, Entern durch Gegner/selbst), Szene `space.tscn` (F6 = Schnellkampf), bis 3 Techniker, Umbesetzen zu Rundenbeginn (−10), Schieberegler je Schildseite, Test `tests/test_space.gd`, Selbsttest `-- --autotest-space`. Entscheidungen: `docs/Planung_Raumkampf.md` 1a/1b.
 - Offen: alle Zahlen Platzhalter (Abstimmung per Simulation), Gegnervorlagen als Konstanten statt `data/ships/`, eigene Jäger erst V2.
 - Neue Fertigmeldungen hier kurz eintragen. Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.

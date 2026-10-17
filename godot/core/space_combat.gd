@@ -37,8 +37,10 @@ const JUMP_FUEL := 10
 const SHIELD_PER_ENERGY := 2
 const ENGINE_FREE := 2
 ## Angriff: Schwelle je Waffenart und Zielklasse (Jäger, leicht, mittel, schwer)
-const THRESHOLDS := {"strahl": [75, 65, 60, 60], "ballistik": [80, 65, 55, 50], "rakete": [85, 70, 60, 55],
-	"abwehr": [60, 80, 90, 100]}
+const THRESHOLDS := {"strahl": [50, 40, 35, 35], "ballistik": [55, 40, 30, 25], "rakete": [60, 45, 35, 30],
+	"abwehr": [35, 55, 65, 75]}
+## Schadensfaktor aller Waffen (Abstimmung per Simulation, tests/sim_space.gd)
+const DMG_SCALE := 0.9
 const CRIT_GAP := 40
 const CRIT_STEP := 15
 const FUMBLE := 2
@@ -830,7 +832,7 @@ func fire(s: SpaceShip, slot: String, t: SpaceShip) -> Dictionary:
 		if w.art == "rakete" and _intercept(t, s):
 			res.intercepted = true
 		else:
-			res.dmg = maxi(1, roundi((3.0 + (total - info.threshold) / 5.0) * float(w.dmg)))
+			res.dmg = maxi(1, roundi((3.0 + (total - info.threshold) / 5.0) * float(w.dmg) * DMG_SCALE))
 			if total >= info.threshold + CRIT_GAP:
 				res.severity = Tables.SEVERITIES[mini(4, (total - info.threshold - CRIT_GAP) / CRIT_STEP)]
 			_apply_hit(s, t, res)
@@ -1102,7 +1104,7 @@ func _roll_loot() -> void:
 	for e in enemies():
 		if not e.destroyed:
 			continue
-		var t: Dictionary = SpaceTemplates.SHIPS[e.template]
+		var t: Dictionary = SpaceTemplates.ship(e.template)
 		credits += roundi(int(t.credits) * rng.randf_range(0.6, 1.0))
 		material += int(t.material)
 		if e.is_fighter():
@@ -1120,7 +1122,7 @@ func _roll_loot() -> void:
 	loot = {"credits": credits, "material": material, "ship_ammo": am, "weapons": weapons}
 	if boarded:
 		# Beute des geenterten Schiffs: gilt erst, wenn die Crew den Bodenkampf gewinnt (bucht der Hub)
-		var t: Dictionary = SpaceTemplates.SHIPS[boarded.template]
+		var t: Dictionary = SpaceTemplates.ship(boarded.template)
 		var bw: Array = []
 		for sl in boarded.weapon_slots():
 			var key := String(boarded.slots[sl].key)

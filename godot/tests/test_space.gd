@@ -73,7 +73,7 @@ func _test_setup() -> void:
 
 
 func _test_build() -> void:
-	for f in SpaceTemplates.FACTIONS:
+	for f in SpaceTemplates.faction_ids():
 		for d in ["leicht", "mittel", "schwer"]:
 			var c := _combat(7, f, d)
 			check(c.active_enemies().size() > 0, "Gegner für %s/%s" % [f, d])
@@ -83,8 +83,14 @@ func _test_build() -> void:
 			for s in c.ships:
 				check(not seen.has(s.pos), "kein Feld doppelt")
 				seen[s.pos] = true
-	for t in SpaceTemplates.SHIPS:
-		for w in SpaceTemplates.SHIPS[t].weapons:
+	check(SpaceTemplates.ships().size() == 5 and SpaceTemplates.faction_ids().size() == 7, "Vorlagen aus data/ships geladen")
+	for f in SpaceTemplates.faction_ids():
+		for d in ["leicht", "mittel", "schwer"]:
+			for g in SpaceTemplates.faction(f).get("groups", SpaceTemplates.DEFAULT_GROUPS)[d]:
+				for t in g:
+					check(SpaceTemplates.ships().has(t), "Aufstellung %s/%s: Schiff %s" % [f, d, t])
+	for t in SpaceTemplates.ships():
+		for w in SpaceTemplates.ship(t).weapons:
 			check(ShipWeapons.has(w), "Waffe %s der Vorlage %s" % [w, t])
 
 

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SpaceFactionData" format=3]
+
+[ext_resource type="Script" path="res://data/ships/space_faction_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Drohnenschwarm"
+on_win = "abziehen"
+ransom = 0
+flee_at = 0.0
+leicht = PackedStringArray("drohne,drohne")
+mittel = PackedStringArray("drohne,drohne,drohne,drohne,drohne")
+schwer = PackedStringArray("fregatte,drohne,drohne")

@@ -3,6 +3,9 @@ extends RefCounted
 ## Einfache Steuerung für den Raumkampf: Gegner (enemy_orders) und die Crew im Selbstlauf (crew_orders, Test und
 ## Simulation). Liefert Befehle im Format von SpaceCombat.set_orders.
 
+## Antriebsenergie, die die Crew-KI je Runde einplant (siehe crew_orders)
+const ENGINE_SPARE := 2
+
 
 ## Befehle eines Gegnerschiffs für die Phase
 static func enemy_orders(c: SpaceCombat, s: SpaceShip, phase: int) -> Dictionary:
@@ -46,7 +49,7 @@ static func crew_orders(c: SpaceCombat, phase: int) -> Dictionary:
 				alloc[i] = mini(own.shield_max, pool * int(alloc[i]) / weight)
 			return {"energy": {"jump": jump, "shields": sh, "engine": eng, "weapons": rest - sh - eng}, "alloc": alloc}
 		SpaceCombat.Phase.MOVE:
-			return move_plan(c, own, _nearest(own, foes), 4)
+			return crew_move_plan(c)
 		SpaceCombat.Phase.FIRE:
 			var t := {}
 			for slot in own.weapon_slots():
@@ -107,11 +110,9 @@ static func _target_score(f: SpaceShip, abwehr: bool) -> float:
 	return s
 
 
-## Bewegungsplan: alle Tempi (±1) und Drehfolgen durchprobieren, bester Abstand und Bug zum Ziel
-static func move_plan(c: SpaceCombat, s: SpaceShip, target: SpaceShip, want_range: int) -> Dictionary:
-	var best := {"speed": s.speed, "steps": []}
-	var best_score := INF
-	var max_turns := s.turns + 1
+## Mögliche Bewegungspläne: Tempo ±1, Drehungen (eine Richtung) an einer Stelle des Wegs
+static func candidates(c: SpaceCombat, s: SpaceShip, max_turns: int) -> Array:
+	var out: Array = []
 	for spd in range(maxi(0, s.speed - 1), mini(c.max_speed_of(s), s.speed + 1) + 1):
 		for dir in ["L", "R"]:
 			for n in range(0, max_turns + 1):
@@ -125,16 +126,65 @@ static func move_plan(c: SpaceCombat, s: SpaceShip, target: SpaceShip, want_rang
 								steps.append(dir)
 						if i < spd:
 							steps.append("F")
-					var pv := c.plan_path(s, steps)
-					var end: Vector2i = pv.end
-					var d := Hex.distance(end, target.pos)
-					var ghost := SpaceShip.new()
-					ghost.pos = end
-					ghost.facing = pv.facing
-					var score := absf(d - want_range) * 2.0 + absf(ghost.bearing(target.pos)) / 60.0
-					if pv.blocked:
-						score += 5.0
-					if score < best_score:
-						best_score = score
-						best = {"speed": spd, "steps": steps}
+					out.append(steps)
+	return out
+
+
+## Bewegungsplan der Crew: so viele Waffen wie möglich feuerbereit gegen die geschätzten Gegnerpositionen
+## (wie der Ziel-Check der Oberfläche), dann nicht zu nah und nicht zu weit
+static func crew_move_plan(c: SpaceCombat) -> Dictionary:
+	var own := c.own
+	var foes := c.active_enemies()
+	var pred := c.predict_enemies()
+	var best := {"speed": own.speed, "steps": []}
+	var best_score := -INF
+	var spare := ENGINE_SPARE
+	for steps in candidates(c, own, own.turns):
+		if steps.count("F") > SpaceCombat.ENGINE_FREE + spare:
+			continue
+		var pv := c.plan_path(own, steps)
+		var pf := c.preview_fire(pv.end, pv.facing, pred)
+		var score := 0.0
+		for slot in pf:
+			var w := ShipWeapons.data(String(own.slots[slot].key))
+			for row in pf[slot]:
+				if row.why == "":
+					score += float(w.dmg) * int(w.shots)
+					break
+		var near := 99
+		for f in foes:
+			var p: Vector2i = pred.get(f.id, {}).get("pos", f.pos)
+			near = mini(near, Hex.distance(pv.end, p))
+		if near < 2:
+			score -= 1.0
+		score -= absf(near - 4) * 0.15
+		# keine Waffe frei: lieber annähern und in Bewegung bleiben als stehen (kein Patt hinter Asteroiden)
+		if score <= 0.0:
+			score -= near * 0.5 + (1.0 if steps.count("F") == 0 else 0.0)
+		if pv.blocked:
+			score -= 3.0
+		if score > best_score:
+			best_score = score
+			best = {"speed": steps.count("F"), "steps": steps}
+	return best
+
+
+## Bewegungsplan: alle Tempi (±1) und Drehfolgen durchprobieren, bester Abstand und Bug zum Ziel
+static func move_plan(c: SpaceCombat, s: SpaceShip, target: SpaceShip, want_range: int) -> Dictionary:
+	var best := {"speed": s.speed, "steps": []}
+	var best_score := INF
+	for steps in candidates(c, s, s.turns + 1):
+		var pv := c.plan_path(s, steps)
+		var end: Vector2i = pv.end
+		var ghost := SpaceShip.new()
+		ghost.pos = end
+		ghost.facing = pv.facing
+		var score := absf(Hex.distance(end, target.pos) - want_range) * 2.0 + absf(ghost.bearing(target.pos)) / 60.0
+		if pv.blocked:
+			score += 5.0
+		if not c.has_los(end, target.pos):
+			score += 3.0
+		if score < best_score:
+			best_score = score
+			best = {"speed": steps.count("F"), "steps": steps}
 	return best
