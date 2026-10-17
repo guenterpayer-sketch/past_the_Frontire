@@ -27,4 +27,10 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (17.10.2026): neue Kampfkarten und Karteneditor
+
+Grundlage: `docs/Planung_Kampfkarten.md` (Entscheidungen des Nutzers). **Zuständig: Bodenkampf allein** (Karten, Generatoren, Editor).
+1. **Kartentypen:** Bar, Straßenkampf, antiker Tempel, Büroräume, Raumschiff-Inneres als eigene Zufallsgeneratoren neben der Lagerhalle; Kartentyp vorerst unabhängig von der Fraktion. **Entern** (selbst entern über `HubState.start_boarding()`, Abwehr `active.defend`) nutzt das Raumschiff-Inneres – Erkennung möglichst über die `Mission`; ist dafür eine kleine Änderung in Hub-Dateien nötig, in „Stand“ vermerken.
+2. **Danach Karteneditor im Spiel** (Knopf im Startmenü wie der Ausrüstungs-Editor; die Änderung an `start.tscn`/Startmenü darf der Bodenkampf machen und vermerkt sie), eigene Karten gespeichert (Vorschlag `user://maps/`), im Spiel Pool fertiger Karten plus Zufallskarten.
+- **Erst die offenen Punkte der Planung mit dem Nutzer klären** (Auswahl-Buttons, am Ende Freitext), **dann Mockup**, dann bauen. Schritt 1 und 2 getrennt melden.
+- Fraktionen mit Ober-/Unterarten sind **nicht** Teil dieses Auftrags (Idee für später).
