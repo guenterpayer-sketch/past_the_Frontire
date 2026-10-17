@@ -60,6 +60,31 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Umbesetzen im Kampf | **Nur zu Rundenbeginn** (Schildphase) über den Knopf **„Posten umbesetzen“**; wer an eine Station neu kommt, hat dort in dieser Runde **−10**. |
 | Schildverteilung | Gab es schon (Auswahl in der Schilde-Karte), war aber leicht zu übersehen → deutlicher beschriftet, dazu **Schieberegler je Seite** (Schwerpunkt setzt sie vor; zu viel wird gekürzt, Rest geht auf die schwächsten Seiten). |
 
+## 1c. Abstimmung per Simulation (Auftrag 3, 17.10.2026)
+
+**Ziele des Nutzers:** Siegquote der Crew 90 / 70 / 45 % (leicht / mittel / schwer), Kampfdauer 8–12 Runden, Flucht unter 10 %; Kapitulation und eigenes Entern nur ausweisen; Entern durch Gegner folgt aus den Niederlagen. Crew-Seite = Vorschlag der Bord-KI, gemessen nur mit dem Startschiff und der Startcrew. Waffenpreise nach Stärke. Gegnervorlagen nach `data/ships/`.
+
+**Simulation:** `godot --headless --path godot --script res://tests/sim_space.gd -- 150` (Kämpfe je Schwierigkeit, alle Gegnerseiten reihum) und `… -- 200 waffen` (Wirkung je Waffe im Bug bzw. Turm, reichlich Munition).
+
+**Ergebnis** (3 Messreihen × 150 Kämpfe, Schwankung etwa ±4 %):
+
+| Schwierigkeit | Siege (Ziel) | Runden Ø | Flucht | Abbruch (40 R.) | geentert | Notfall | selbst entert |
+|---|---|---|---|---|---|---|---|
+| leicht | 87–91 % (90) | 7,6–8,1 | ≤ 1 % | 0 % | 5–8 % | 4–6 % | 0–2 % |
+| mittel | 67–70 % (70) | 11,0–11,1 | ≤ 1 % | 1–2 % | 15–19 % | 12–13 % | 0–2 % |
+| schwer | 47–49 % (45) | 11,0–11,9 | ≤ 1 % | 1–2 % | 29–32 % | 20 % | 3–5 % |
+
+**Geändert:**
+- **Crew-KI** (auch Knopf „Vorschlag“): wählt die Bewegung nach dem Ziel-Check (möglichst viele Waffen feuerbereit gegen die geschätzten Gegnerpositionen) statt nur den Bug zum Gegner; ohne Schussfeld nähert sie sich an. **Gegner-KI** meidet Endfelder ohne Sicht. Damit gibt es kaum noch Patts hinter Asteroiden (vorher 30 % Abbrüche an der Rundengrenze).
+- **Trefferschwellen** je um 25 gesenkt (`SpaceCombat.THRESHOLDS`), **Schaden** aller Waffen ×0,9 (`DMG_SCALE`).
+- **Gegner** (`data/ships/schiffe/`): Besatzung Jäger 20, Drohne 15, Korvette 25, Fregatte 20, Kreuzer 20 (vorher 35/30/35/45/50); Korvette Hülle 70, Fregatte Hülle 80 / Schild 10 / Aufladung 3 / Panzerung 1, Kreuzer Hülle 100 / Schild 14 / Aufladung 4 / Panzerung 2 mit 3 statt 4 Waffen.
+- **Aufstellungen:** schwer = Fregatte + 1 Jäger, Kreuzer, oder 2 Korvetten; Drohnen mittel 5 Drohnen, schwer Fregatte + 2 Drohnen.
+- **Waffenpreise** (`ShipWeapons`, ≈ 415 Cr je Schadenspunkt pro Runde, Laserbank = 900): Laserbank 900, Partikelkanone 1350 (vorher 1800), Massebeschleuniger 1050 (1200), Schnellfeuerkanone 1300 (1100), Raketenwerfer 2150 (1300), Raketenbatterie 2100 (2200), Abwehrgeschütz 1150 (800), Abwehrlaser 1150 (1000). Raketenwaffen sind mit genug Munition die stärksten, verbrauchen aber Raketen (60 Cr je Stück).
+- **Unverändert:** eigenes Schiff (`SpaceSetup`: Schilde, Panzerung, Reaktor, Startmunition 6/40), Ausbaustufen und ihre Zahl, Bord-KI +0. Eine höhere Startmunition (8/60) wurde gemessen, bringt aber nur wenige Prozent und würde `test_hub` (Hub-Datei) brechen – darum nicht übernommen.
+- **Gegnervorlagen** liegen jetzt als Ressourcen in `data/ships/schiffe/*.tres` (`ShipTemplateData`) und `data/ships/seiten/*.tres` (`SpaceFactionData`, Aufstellungen je Zeile „korvette,jaeger“), im Editor bearbeitbar.
+
+**Offen:** Ausbaustufen (halb/voll) sind nicht gemessen (Entscheidung: nur Startschiff); Menschen spielen vermutlich besser als die Crew-KI, die Quoten sind also eher untere Werte (Annahme, nicht gemessen).
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
@@ -75,8 +100,8 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 
 ## 3. Offene Punkte
 
-- Konkrete Zahlen: Struktur/Schild/VW der Schiffsklassen, Tabellen Strahl/Ballistik/Rakete mit Spalten Jäger/leicht/mittel/schwer, Systemkritische A–E.
-- Wie viele Gegner sind ein typischer Kampf je Schwierigkeit? (nach dem Bau per Simulation)
+- Zahlen: abgestimmt für das Startschiff (1c); Ausbaustufen noch nicht gemessen.
+
 - Energiewerte je Reaktorstufe und Verbrauch je Aktion (nach dem Bau per Simulation).
 
 ## 4. Schnittstelle

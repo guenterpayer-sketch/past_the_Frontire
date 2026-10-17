@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShipTemplateData" format=3]
+
+[ext_resource type="Script" path="res://data/ships/ship_template_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Kampfdrohne"
+cls = 0
+hull = 10
+shield = 0
+recharge = 0
+armor = 0
+vw = 15
+speed = 4
+max_speed = 5
+turns = 3
+weapons = PackedStringArray("jaegerkanone")
+skill = 15
+init = 8
+credits = 20
+material = 1

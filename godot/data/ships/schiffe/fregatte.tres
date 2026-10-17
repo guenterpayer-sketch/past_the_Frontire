@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShipTemplateData" format=3]
+
+[ext_resource type="Script" path="res://data/ships/ship_template_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Fregatte"
+cls = 2
+hull = 80
+shield = 10
+recharge = 3
+armor = 1
+vw = 0
+speed = 2
+max_speed = 3
+turns = 1
+weapons = PackedStringArray("partikelkanone", "massebeschleuniger", "abwehrgeschuetz")
+skill = 20
+init = 4
+credits = 700
+material = 6
