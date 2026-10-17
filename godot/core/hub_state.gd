@@ -89,6 +89,15 @@ var gun_posts := {}
 ## Selbst geentertes Gegnerschiff aus dem Raumkampf (board_*), bis der Bodenkampf gegen die Besatzung vorbei ist:
 ## {faction, ship, difficulty, loot: {credits, material, ship_ammo, weapons}}; leer = nichts offen
 var board_pending := {}
+## Raumkampf im Spiel (SpaceEvents, Teil 2): offener Feindkontakt {faction, difficulty, system, forced, escort},
+## unterbrochene Reise {target, days (noch), escort (Auftrags-ID oder −1), won}, laufender Raumkampf
+## {kind (reise/eskorte/auftrag/vor_einsatz), offer_id, faction, difficulty, mission}, Auftrag nach der Ankunft
+## (ID, −1 = keiner), Bericht des letzten Raumkampfs (leer = schon gezeigt)
+var contact := {}
+var travel_rest := {}
+var space_ctx := {}
+var pending_offer := -1
+var space_report := {}
 ## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
 var last_travel := {}
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
@@ -119,7 +128,7 @@ static func active_mission() -> Mission:
 
 
 func mission_of(offer: Dictionary) -> Mission:
-	if offer.get("board", false):
+	if offer.get("board", false) or offer.get("defend", false):
 		return Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
 	return Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
 
@@ -270,29 +279,88 @@ func can_travel(target: int) -> bool:
 
 
 ## Reisen: je Reisetag Reiseproben (Voyage.travel_day: Treibstoff, Hülle, EP), dann vergehen die Tage
-## (siehe advance_days). Liefert die Reisetage; den Bericht in last_travel.
-func travel_to(target: int) -> int:
+## (siehe advance_days). Feindkontakt nach Gebiet (SpaceEvents) unterbricht die Reise: das Schiff steht dann im System
+## des Kontakts, contact und travel_rest sind gesetzt. Eskorte (escort = Auftrags-ID): sicher ein Kontakt, kein Ausweichen.
+## Liefert die gereisten Tage; den Bericht in last_travel.
+func travel_to(target: int, escort := -1) -> int:
 	if target == position:
 		return 0
 	var r := sector.route(position, target)
 	if r.days < 0 or not can_travel(target):
 		return -1
-	var rep := {"from": sector.systems[position].name, "to": sector.systems[target].name, "days": r.days,
-		"day0": day, "fuel0": fuel, "hull0": hull, "rows": [], "emergency": fuel <= 0, "per_day": fuel_per_day()}
-	for i in r.days:
+	return _travel(target, r.days, r.path, escort, true)
+
+
+## Rest einer unterbrochenen Reise fliegen (ohne weiteren Kontakt), am Ziel Eskorte abrechnen. 0 = nichts offen.
+func resume_travel() -> int:
+	if travel_rest.is_empty() or not contact.is_empty() or stranded():
+		return 0
+	var t := travel_rest
+	travel_rest = {}
+	var days := int(t.days)
+	if days <= 0:
+		position = int(t.target)
+		last_travel = {"from": sector.systems[position].name, "to": sector.systems[position].name, "days": 0, "day0": day,
+			"fuel0": fuel, "fuel1": fuel, "hull0": hull, "hull1": hull, "rows": [], "emergency": false, "per_day": fuel_per_day()}
+		_arrive(t)
+		return 0
+	var done := _travel(int(t.target), days, [position, int(t.target)], -1, false)
+	_arrive(t)
+	return done
+
+
+func _travel(target: int, days: int, path: Array, escort: int, events: bool) -> int:
+	var rep := {"from": sector.systems[position].name, "to": sector.systems[target].name, "days": days,
+		"day0": day, "fuel0": fuel, "hull0": hull, "rows": [], "emergency": fuel <= 0, "per_day": fuel_per_day(), "contact": {}}
+	var forced := -1
+	if escort >= 0:
+		forced = mini(SpaceEvents.fixed_contact, days - 1) if SpaceEvents.fixed_contact >= 0 else randi_range(0, days - 1)
+	var done := days
+	var stop := -1
+	for i in days:
 		rep.rows.append(Voyage.travel_day(self, day + i + 1))
+		var sys: int = path[mini(path.size() - 1, ceili(float(i + 1) / days * (path.size() - 1)))]
+		var hit := i == forced if escort >= 0 else (events and SpaceEvents.roll_contact(self, sys, i))
+		if hit:
+			done = i + 1
+			stop = sys
+			var o := offer_by_id(escort)
+			contact = {"faction": SpaceEvents.faction_id(self, sys), "system": sys, "forced": escort >= 0, "escort": escort,
+				"difficulty": String(o.difficulty) if not o.is_empty() else SpaceEvents.roll_difficulty()}
+			travel_rest = {"target": target, "days": days - done, "escort": escort, "won": false}
+			break
+	rep.days = done
 	rep.fuel1 = fuel
 	rep.hull1 = hull
+	rep.contact = contact.duplicate()
+	if not contact.is_empty():
+		rep.to = sector.systems[stop].name
 	last_travel = rep
-	position = target
+	position = target if contact.is_empty() else stop
 	rep.prov0 = provisions
-	advance_days(r.days, true)
+	advance_days(done, true)
 	rep.prov1 = provisions
 	rep.cook = last_cook.duplicate(true)
 	rep.training = last_training
 	rep.upgrade = last_upgrade.duplicate()
 	rep.crafts = last_crafts.duplicate()
-	return r.days
+	return done
+
+
+## Ankunft nach unterbrochener Reise: Eskorte abrechnen (Lohn bei gewonnenem Kampf, sonst bleibt der Auftrag offen)
+func _arrive(t: Dictionary) -> void:
+	var o := offer_by_id(int(t.get("escort", -1)))
+	if o.is_empty():
+		return
+	if bool(t.get("won", false)):
+		var pay := SpaceEvents.offer_pay(self, o)
+		credits += pay
+		missions_done += 1
+		offers = offers.filter(func(x: Dictionary) -> bool: return x.id != o.id)
+		last_travel.escort = {"pay": pay, "title": offer_title(o)}
+	else:
+		o.retry = true
+		last_travel.escort = {"pay": 0, "title": offer_title(o)}
 
 
 ## Große Reparatur durch die Crew: 1 Tag, 1 Material, Reparaturprobe (Voyage.crew_repair). Leer = nicht möglich.
@@ -324,20 +392,181 @@ func arrival_day(system: int) -> int:
 	return day + r.days if r.days >= 0 else 1 << 30
 
 
-## Zum Auftrag fliegen und den Einsatz beginnen (danach in den Bodenkampf wechseln)
+## Zum Auftrag fliegen. Bodenauftrag ohne Blockade und ohne Feindkontakt: der Einsatz beginnt sofort (active, danach in
+## den Bodenkampf). Sonst bleibt er vorgemerkt (pending_offer) und beginnt nach der Reise über begin_offer().
 func start_mission(offer: Dictionary) -> bool:
 	if not reachable(offer):
 		return false
-	travel_to(offer.system)
+	pending_offer = int(offer.id)
+	if offer.system != position:
+		travel_to(offer.system)
+	if contact.is_empty() and travel_rest.is_empty() and offer_kind(offer) == "boden" and not offer.get("blockade", false):
+		return begin_offer() == "ground"
+	return true
+
+
+## Vorgemerkten Auftrag nach der Ankunft beginnen: "ground" (Bodenkampf, active gesetzt), "space" (Raumkampf, space_ctx
+## gesetzt), "escort" (Eskorte losgeflogen, Kontakt unterwegs), "" = nichts
+func begin_offer() -> String:
+	var o := offer_by_id(pending_offer)
+	pending_offer = -1
+	if o.is_empty() or int(o.system) != position or int(o.expires) < day:
+		return ""
+	match offer_kind(o):
+		"abfangen":
+			space_ctx = {"kind": "auftrag", "offer_id": o.id, "faction": SpaceEvents.faction_id(self, o.system),
+				"difficulty": String(o.difficulty), "mission": offer_title(o)}
+			return "space"
+		"eskorte":
+			travel_to(int(o.target), int(o.id))
+			return "escort"
+	if o.get("blockade", false):
+		space_ctx = {"kind": "vor_einsatz", "offer_id": o.id, "faction": SpaceEvents.faction_id(self, o.system),
+			"difficulty": String(o.difficulty), "mission": "Blockade: " + offer_title(o)}
+		return "space"
+	active = o
+	return "ground"
+
+
+func offer_by_id(id: int) -> Dictionary:
 	for o in offers:
-		if o.id == offer.id:
-			active = o
-			return true
-	return false
+		if int(o.id) == id:
+			return o
+	return {}
+
+
+static func offer_kind(o: Dictionary) -> String:
+	return String(o.get("kind", "boden"))
+
+
+## Titel eines Auftrags für Listen und Berichte
+func offer_title(o: Dictionary) -> String:
+	match offer_kind(o):
+		"abfangen":
+			return "Abfangen: %s" % SpaceTemplates.faction_name(SpaceEvents.faction_id(self, o.system))
+		"eskorte":
+			return "Eskorte nach %s" % sector.systems[int(o.target)].name
+	return mission_of(o).title
+
+
+# ---------------------------------------------------------------- Raumkampf im Spiel
+
+## Feindkontakt annehmen: Raumkampf vorbereiten (space_ctx)
+func fight_contact() -> void:
+	if contact.is_empty():
+		return
+	var esc := int(contact.get("escort", -1))
+	space_ctx = {"kind": "eskorte" if esc >= 0 else "reise", "offer_id": esc, "faction": String(contact.faction),
+		"difficulty": String(contact.difficulty), "mission": offer_title(offer_by_id(esc)) if esc >= 0 else
+		"Feindkontakt: %s" % SpaceTemplates.faction_name(String(contact.faction))}
+	contact = {}
+
+
+## Ausweichen versuchen (nur ohne Eskorte): Probe Navigation; gelingt sie, ist der Kontakt vorbei, sonst Raumkampf
+func dodge_contact() -> Dictionary:
+	if contact.is_empty() or contact.get("forced", false):
+		return {}
+	var r := SpaceEvents.dodge(self)
+	if r.dodged:
+		contact = {}
+	else:
+		fight_contact()
+	return r
+
+
+## Eingang für SpaceBattle.start() aus space_ctx
+func space_setup(return_scene := HUB_SCENE) -> Dictionary:
+	var src := {"reise": "reise", "eskorte": "auftrag", "auftrag": "auftrag", "vor_einsatz": "vor_einsatz"}
+	return ShipArms.setup(self, {"faction": String(space_ctx.faction), "difficulty": String(space_ctx.difficulty)},
+		String(src.get(String(space_ctx.kind), "reise")), String(space_ctx.get("mission", "")), return_scene)
+
+
+## Ergebnis des Raumkampfs auswerten (SpaceBattle.take_result; EP und Verwundung hat der Raumkampf schon gebucht).
+## Bucht Schiff, Lösegeld, Beute, Lohn; Notfall (Plünderung + Treiben). Bericht in space_report. Rückgabe, was danach
+## kommt: "board" (selbst entern → Bodenkampf), "defend" (Gegner entern → Bodenkampf an Bord), "ground" (Blockade
+## gewonnen → Bodeneinsatz), "" (zurück ins Schiff; eine unterbrochene Reise geht danach weiter).
+func finish_space(result: Dictionary) -> String:
+	var ctx := space_ctx
+	space_ctx = {}
+	var rep := SpaceEvents.book(self, result)
+	var kind := String(ctx.get("kind", "reise"))
+	var o := offer_by_id(int(ctx.get("offer_id", -1)))
+	var outcome := StringName(result.get("outcome", &"niederlage"))
+	rep.merge({"kind": kind, "title": String(ctx.get("mission", "")), "faction": SpaceTemplates.faction_name(String(ctx.get("faction", ""))),
+		"outcome": outcome, "retreated": bool(result.get("retreated", false)), "surrendered": bool(result.get("surrendered", false)),
+		"rounds": int(result.get("rounds", 0)), "units": _space_units(result), "pay": 0, "plunder": {}, "next": ""}, true)
+	var next := ""
+	if outcome == &"sieg":
+		match kind:
+			"auftrag":
+				rep.pay = SpaceEvents.offer_pay(self, o) if not o.is_empty() else 0
+				credits += int(rep.pay)
+				_drop_offer(o, true)
+			"vor_einsatz":
+				if not o.is_empty():
+					active = o
+					next = "ground"
+			"eskorte":
+				if not travel_rest.is_empty():
+					travel_rest.won = true
+		if next == "" and book_board(result, String(ctx.get("difficulty", "mittel"))):
+			next = "board"
+	elif rep.retreated:
+		if not o.is_empty():
+			o.retry = true
+	elif rep.surrendered:
+		if kind != "eskorte":
+			_drop_offer(o, false)
+	elif bool(result.get("boarding", false)):
+		_drop_offer(o, false)
+		active = {"id": -2, "system": position, "seed": randi() % 1000000, "difficulty": String(ctx.get("difficulty", "mittel")),
+			"expires": day, "retry": false, "defend": true, "faction": String(result.get("boarding_faction", ctx.get("faction", "")))}
+		next = "defend"
+	else:
+		_drop_offer(o, false)
+		rep.plunder = SpaceEvents.plunder(self)
+		travel_rest = {}
+	if kind == "auftrag" and next == "":
+		advance_days(MISSION_DAYS)
+	rep.next = next
+	rep.day = day
+	space_report = rep
+	return next
+
+
+func _drop_offer(o: Dictionary, done: bool) -> void:
+	if o.is_empty():
+		return
+	offers = offers.filter(func(x: Dictionary) -> bool: return x.id != o.id)
+	if done:
+		missions_done += 1
+
+
+## Figuren im Raumkampf für den Bericht: [{letter, name, state, xp}]
+func _space_units(result: Dictionary) -> Array:
+	var out := []
+	var states := {"ok": "kampffähig", "ko": "bewusstlos", "sterbend": "sterbend", "tot": "tot"}
+	var units: Dictionary = result.get("units", {})
+	for ch in Campaign.crew():
+		var r: Dictionary = units.get(ch.id, units.get(String(ch.id), {}))
+		if r.is_empty():
+			continue
+		var xp: Dictionary = r.get("xp", {})
+		var st := String(r.get("status", {}).get("state", "ok"))
+		out.append({"letter": ch.letter, "name": ch.name, "state": states.get(st, st) + (" · " + ch.injury_text() if ch.injury != "" else ""),
+			"xp": ", ".join(xp.keys().map(func(k) -> String: return "%s +%d" % [Rules.skill_name(k), xp[k]]))})
+	return out
 
 
 ## Einsatz abbrechen (zurück ins Schiff ohne Ergebnis, der Auftrag bleibt offen)
 func abort_mission() -> void:
+	if active.get("board", false):
+		board_pending = {}
+	elif active.get("defend", false):
+		# Abwehr nicht angetreten: wie verloren (Notfall)
+		space_report = {"kind": "abwehr", "title": "Entern abgewehrt?", "outcome": &"niederlage", "plunder": SpaceEvents.plunder(self),
+			"units": [], "day": day, "next": ""}
+		travel_rest = {}
 	active = {}
 
 
@@ -350,7 +579,15 @@ func finish_mission(rep: Dictionary) -> void:
 	if retreated:
 		rep.outcome = &"rueckzug"
 		rep.expires = int(active.get("expires", day))
-	if active.get("board", false):
+	if active.get("defend", false):
+		# Gegner entern: Sieg = abgewehrt; Niederlage = Notfall (Plünderung + Treiben)
+		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
+		rep.defend = true
+		if rep.get("outcome", &"") != &"sieg":
+			rep.plunder = SpaceEvents.plunder(self)
+			travel_rest = {}
+		rep.payout = {}
+	elif active.get("board", false):
 		# Entern: kein Lohn; Beute des Schiffs nur bei Sieg, sonst verloren
 		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
 		rep.board = String(board_pending.get("ship", ""))
@@ -371,7 +608,7 @@ func finish_mission(rep: Dictionary) -> void:
 			pay.difficulty = String(active.difficulty)
 			pay.medkits = set_loot(Campaign.last_result)
 		rep.payout = pay
-	if active.get("board", false):
+	if active.get("board", false) or active.get("defend", false):
 		pass
 	elif retreated:
 		for o in offers:
@@ -456,9 +693,16 @@ func refill_offers() -> void:
 		var sys: int = hostile[randi() % hostile.size()]
 		if offers.filter(func(o: Dictionary) -> bool: return o.system == sys).size() >= 2:
 			continue
-		offers.append({"id": next_id, "system": sys, "seed": randi() % 1000000,
+		var k := SpaceEvents.roll_kind()
+		var o := {"id": next_id, "system": sys, "seed": randi() % 1000000,
 			"difficulty": DIFFICULTY_ROLL[randi() % DIFFICULTY_ROLL.size()],
-			"expires": day + randi_range(OFFER_DAYS[0], OFFER_DAYS[1]), "retry": false})
+			"expires": day + randi_range(OFFER_DAYS[0], OFFER_DAYS[1]), "retry": false, "kind": k.kind, "blockade": k.blockade}
+		if k.kind == "eskorte":
+			o.target = SpaceEvents.escort_target(self, sys)
+			if int(o.target) < 0:
+				o.kind = "boden"
+				o.erase("target")
+		offers.append(o)
 		next_id += 1
 
 
@@ -479,7 +723,8 @@ func to_dict() -> Dictionary:
 		"loot_pending": loot_pending.duplicate(true), "craft_material": craft_material, "jobs": jobs.duplicate(true),
 		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true),
 		"ship_slots": ship_slots.duplicate(true), "ship_stock": ship_stock.duplicate(), "ship_ammo": ship_ammo.duplicate(),
-		"ship_damage": ship_damage.duplicate(), "gun_posts": gun_posts.duplicate(), "board_pending": board_pending.duplicate(true)}
+		"ship_damage": ship_damage.duplicate(), "gun_posts": gun_posts.duplicate(), "board_pending": board_pending.duplicate(true),
+		"contact": contact.duplicate(), "travel_rest": travel_rest.duplicate(), "pending_offer": pending_offer}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -488,8 +733,12 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.sector = Sector.from_dict(d.get("sector", {}))
 	g.position = int(d.get("position", g.sector.home))
 	for o in d.get("offers", []):
-		g.offers.append({"id": int(o.id), "system": int(o.system), "seed": int(o.seed), "difficulty": String(o.difficulty),
-			"expires": int(o.expires), "retry": bool(o.get("retry", false))})
+		var no := {"id": int(o.id), "system": int(o.system), "seed": int(o.seed), "difficulty": String(o.difficulty),
+			"expires": int(o.expires), "retry": bool(o.get("retry", false)), "kind": String(o.get("kind", "boden")),
+			"blockade": bool(o.get("blockade", false))}
+		if o.has("target"):
+			no.target = int(o.target)
+		g.offers.append(no)
 	g.next_id = int(d.get("next_id", 1))
 	g.missions_done = int(d.get("missions_done", 0))
 	g.berths = int(d.get("berths", BERTHS_START))
@@ -545,6 +794,14 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	for k in d.get("gun_posts", {}):
 		g.gun_posts[String(k)] = String(d.gun_posts[k])
 	g.board_pending = d.get("board_pending", {}).duplicate(true)
+	var ct: Dictionary = d.get("contact", {})
+	if not ct.is_empty():
+		g.contact = {"faction": String(ct.faction), "difficulty": String(ct.difficulty), "system": int(ct.system),
+			"forced": bool(ct.get("forced", false)), "escort": int(ct.get("escort", -1))}
+	var tr: Dictionary = d.get("travel_rest", {})
+	if not tr.is_empty():
+		g.travel_rest = {"target": int(tr.target), "days": int(tr.days), "escort": int(tr.get("escort", -1)), "won": bool(tr.get("won", false))}
+	g.pending_offer = int(d.get("pending_offer", -1))
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g

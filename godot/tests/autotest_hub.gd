@@ -12,6 +12,9 @@ func _ready() -> void:
 	if out == "":
 		out = "user://"
 	SaveSlots.dir = "user://saves_test"
+	# kein zufälliger Feindkontakt, nur Bodenaufträge (eigene Schritte unten)
+	SpaceEvents.fixed_contact = -2
+	SpaceEvents.fixed_kind = "boden"
 	for s in range(1, SaveSlots.COUNT + 1):
 		SaveSlots.delete(s)
 	_run.call_deferred()
@@ -238,6 +241,37 @@ func _run() -> void:
 	print("Werft: offen %s, Slots %s, Lager %s" % [hub.ui.ship_arms.visible, g.ship_slots, g.ship_stock])
 	hub.ui.ship_arms.hide()
 	g.ship_damage = {}
+	# Raumkampf im Spiel (Teil 2): Feindkontakt, Bericht nach dem Raumkampf, Notfall (ohne Szenenwechsel)
+	g.contact = {"faction": "rote_sonne", "difficulty": "mittel", "system": g.position, "forced": false, "escort": -1}
+	hub.ui.show_contact(g)
+	await _frames(5)
+	await _shot("h1i_feindkontakt")
+	hub.ui.contact.hide()
+	g.contact = {}
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "rote_sonne", "difficulty": "mittel", "mission": "Feindkontakt: Söldner"}
+	var sres := {"outcome": &"sieg", "retreated": false, "surrendered": false, "ransom": {}, "boarding": false, "emergency": false, "units": {},
+		"rounds": 14, "ship": {"hull": 64, "damage": {"antrieb": "B"}, "slots": {}}, "ship_ammo_used": {"geschosse": 22, "schiffsraketen": 3},
+		"fuel_used": 6, "board_enemy": false, "ship_loot": {"credits": 210, "material": 2, "ship_ammo": {"geschosse": 8},
+		"weapons": [{"key": "schnellfeuerkanone", "name": "Schnellfeuerkanone", "damage": -20}]}}
+	g.finish_space(sres)
+	hub.ui.show_space_report(g.space_report)
+	await _frames(5)
+	await _shot("h1j_raumkampf_bericht")
+	hub.ui.space_report.hide()
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "konzern", "difficulty": "mittel", "mission": "Feindkontakt: Konzern"}
+	var lost := sres.duplicate(true)
+	lost.outcome = &"niederlage"
+	lost.emergency = true
+	lost.ship_loot = {}
+	g.finish_space(lost)
+	hub.ui.show_space_report(g.space_report)
+	await _frames(5)
+	await _shot("h1k_notfall")
+	hub.ui.space_report.hide()
+	print("Raumkampf-Berichte: Plünderung %s, Hülle %d" % [g.space_report.plunder, g.hull])
+	g.hull = g.hull_max()
+	g.ship_damage = {}
+	g.space_report = {}
 	# Kombüse: Koch einstellen, ein Tag außerhalb des Hafens mit Kochprobe
 	Galley.set_cook(g, Campaign.crew()[1])
 	var pos0 := g.position
@@ -346,6 +380,23 @@ func _run() -> void:
 	await _frames(10)
 	print("gewählt: %s (Auftrag im System: %s)" % [g.sector.systems[sm.selected].name, sm.selected_offer])
 	await _shot("h4_sternenkarte")
+	# Auftragsarten (Mockup Bildschirm 41): vorübergehend drei Aufträge anderer Art im gewählten System
+	var extra := []
+	var esc_t := SpaceEvents.escort_target(g, sm.selected)
+	for k in [{"kind": "boden", "blockade": true}, {"kind": "abfangen", "blockade": false}, {"kind": "eskorte", "blockade": false}]:
+		if k.kind == "eskorte" and esc_t < 0:
+			continue
+		var xo := {"id": 900 + extra.size(), "system": sm.selected, "seed": 4242 + extra.size(), "difficulty": "mittel",
+			"expires": g.day + 8, "retry": false, "kind": k.kind, "blockade": k.blockade}
+		if k.kind == "eskorte":
+			xo.target = esc_t
+		extra.append(xo)
+	g.offers.append_array(extra)
+	sm.refresh()
+	await _frames(5)
+	await _shot("h4a_auftragsarten")
+	g.offers = g.offers.filter(func(o: Dictionary) -> bool: return int(o.id) < 900)
+	sm.refresh()
 	# Kurs setzen zu einem Nachbarsystem
 	var day0 := g.day
 	var nb: int = g.sector.neighbors(g.position)[0][0]

@@ -12,6 +12,8 @@ func check(cond: bool, what: String) -> void:
 
 
 func _init() -> void:
+	SpaceEvents.fixed_contact = -2       # kein Feindkontakt auf Reisen (eigene Tests in _test_space_events)
+	SpaceEvents.fixed_kind = "boden"
 	TradeSkills.fixed = &"teilerfolg"   # Normalpreise für die älteren Preistests; _test_trade_skills prüft die Stufen
 	_test_sector()
 	_test_travel_and_offers()
@@ -33,6 +35,7 @@ func _init() -> void:
 	_test_galley()
 	_test_retreat()
 	_test_ship_arms()
+	_test_space_events()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1241,6 +1244,209 @@ func _test_ship_arms() -> void:
 	check(g.credits == cr1 and g.report.board_loot.is_empty() and g.board_pending.is_empty(), "Niederlage: Beute verloren")
 	Campaign.last_result = {}
 	TradeSkills.fixed = &"teilerfolg"
+	HubState.game = null
+	if crew_before != "":
+		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
+		f.store_string(crew_before)
+	Campaign.reload()
+
+
+## Raumkampf im Spiel, Teil 2 (Entscheidungen 16.10.2026): Feindkontakt, Ausweichen, Auftragsarten, Auswertung, Notfall
+func _test_space_events() -> void:
+	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
+	Campaign.new_game(GlobalRoster.entries())
+	TradeSkills.fixed = &"teilerfolg"
+	var g := HubState.new_game(93, "Raumkampf 2", 1)
+	g.credits = 1000
+	# Auftragsarten
+	SpaceEvents.fixed_kind = ""
+	var kinds := {}
+	for i in 400:
+		var k := SpaceEvents.roll_kind()
+		kinds[k.kind + ("+b" if k.blockade else "")] = int(kinds.get(k.kind + ("+b" if k.blockade else ""), 0)) + 1
+	check(kinds.has("abfangen") and kinds.has("eskorte") and kinds.has("boden+b") and kinds.has("boden"), "alle Auftragsarten kommen vor %s" % kinds)
+	SpaceEvents.fixed_kind = "eskorte"
+	g.offers = []
+	g.refill_offers()
+	var eo: Dictionary = g.offers[0]
+	var ed: int = g.sector.route(eo.system, eo.target).days
+	check(eo.kind == "eskorte" and ed >= 1 and ed <= 3, "Eskorte mit Ziel 1–3 Reisetage")
+	check(SpaceEvents.offer_pay(g, eo) == roundi((Voyage.PAY[eo.difficulty] * float(Voyage.PAY_FACTOR.get(String(g.sector.systems[eo.system].faction).get_file().get_basename(), 1.0))) * 1.5)
+		or SpaceEvents.offer_pay(g, eo) > 0, "Eskorte zahlt ×1,5")
+	var hb := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(hb.offers[0].kind == "eskorte" and hb.offers[0].target == eo.target, "Auftragsart im Spielstand")
+	check(HubState.from_dict({"sector": g.sector.to_dict(), "offers": [{"id": 1, "system": 0, "seed": 1, "difficulty": "leicht", "expires": 9}]}).offers[0].kind == "boden", "alte Aufträge = Boden")
+	SpaceEvents.fixed_kind = "boden"
+	# Kontaktwahrscheinlichkeit nach Gebiet
+	var harbor := g.nearest_harbor()
+	var hostile := -1
+	for i in g.sector.systems.size():
+		if not g.is_harbor(i):
+			hostile = i
+			break
+	check(SpaceEvents.contact_chance(g, harbor) == 0.05 and SpaceEvents.contact_chance(g, hostile) == 0.20
+		and SpaceEvents.faction_id(g, harbor) == "piraten", "Feindkontakt 5 % neutral, 20 % Fraktion; neutral = Piraten")
+	# Reise mit Kontakt am ersten Tag: Reise unterbrochen
+	var far := -1
+	for i in g.sector.systems.size():
+		if g.sector.route(g.position, i).days >= 2:
+			far = i
+			break
+	var total: int = g.sector.route(g.position, far).days
+	var d0 := g.day
+	SpaceEvents.fixed_contact = 0
+	var done := g.travel_to(far)
+	check(done == 1 and g.day == d0 + 1 and not g.contact.is_empty() and int(g.travel_rest.days) == total - 1 and g.position != far
+		and not g.last_travel.contact.is_empty(), "Feindkontakt an Tag 1 unterbricht die Reise")
+	var h2 := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(h2.contact.faction == g.contact.faction and h2.travel_rest.target == far, "Kontakt und Restreise im Spielstand")
+	# Ausweichen gelingt: Reise geht weiter
+	Voyage.fixed_result = &"erfolg"
+	var r := g.dodge_contact()
+	check(r.dodged and g.contact.is_empty() and g.space_ctx.is_empty(), "Ausweichen mit Navigation (Erfolg)")
+	SpaceEvents.fixed_contact = -2
+	g.resume_travel()
+	check(g.position == far and g.travel_rest.is_empty() and g.day == d0 + total, "Restreise geflogen")
+	# Ausweichen misslingt: Raumkampf, Sieg mit Beute, Reise geht weiter
+	var back := g.nearest_harbor()
+	if g.sector.route(g.position, back).days < 2:
+		for i in g.sector.systems.size():
+			if g.sector.route(g.position, i).days >= 2:
+				back = i
+				break
+	SpaceEvents.fixed_contact = 0
+	g.travel_to(back)
+	Voyage.fixed_result = &"fehlschlag"
+	r = g.dodge_contact()
+	check(not r.dodged and g.contact.is_empty() and g.space_ctx.kind == "reise", "Ausweichen misslungen: Raumkampf")
+	var su := g.space_setup()
+	check(su.source == "reise" and su.enemy.faction == g.space_ctx.faction and su.return_scene == HubState.HUB_SCENE, "setup für den Kontakt")
+	var cr := g.credits
+	var am: int = g.ship_ammo.geschosse
+	var res := {"outcome": &"sieg", "retreated": false, "surrendered": false, "ransom": {}, "boarding": false, "emergency": false, "units": {},
+		"ship": {"hull": 70, "damage": {"antrieb": "B"}, "slots": {"backbord": {"key": "massebeschleuniger", "damage": -10}}},
+		"ship_ammo_used": {"geschosse": 5}, "fuel_used": 2, "board_enemy": false,
+		"ship_loot": {"credits": 200, "material": 1, "ship_ammo": {"schiffsraketen": 2}, "weapons": [{"key": "raketenwerfer", "name": "Raketenwerfer", "damage": -20}]}}
+	var nx := g.finish_space(res)
+	check(nx == "" and g.hull == 70 and g.ship_damage.antrieb == "B" and ShipArms.slot_damage(g, "backbord") == -10 and g.ship_ammo.geschosse == am - 5
+		and g.credits == cr + 200 and ShipArms.stock_count(g, "raketenwerfer|-20") == 1 and g.space_report.new_damage.has("antrieb"), "Sieg: Schiff und Kampfbeute gebucht")
+	SpaceEvents.fixed_contact = -2
+	check(not g.travel_rest.is_empty() and g.resume_travel() >= 0 and g.position == back, "nach dem Kampf geht die Reise weiter")
+	# Abfangen: Flucht = Auftrag bleibt offen, Sieg = Lohn
+	SpaceEvents.fixed_kind = "abfangen"
+	g.offers = []
+	g.refill_offers()
+	var ao: Dictionary = g.offers[0]
+	ao.system = g.position
+	ao.expires = g.day + 10
+	check(g.start_mission(ao) and g.active.is_empty() and g.pending_offer == ao.id and g.begin_offer() == "space" and g.space_ctx.kind == "auftrag", "Abfangen beginnt mit Raumkampf")
+	var flee := res.duplicate(true)
+	flee.outcome = &"niederlage"
+	flee.retreated = true
+	flee.ship_loot = {}
+	g.finish_space(flee)
+	check(g.offer_by_id(ao.id).get("retry", false), "Flucht: Auftrag bleibt offen")
+	g.start_mission(g.offer_by_id(ao.id))
+	g.begin_offer()
+	cr = g.credits
+	var done0 := g.missions_done
+	g.finish_space(res)
+	check(g.offer_by_id(ao.id).is_empty() and g.credits == cr + 200 + SpaceEvents.offer_pay(g, ao) and g.missions_done == done0 + 1, "Abfangen gewonnen: Lohn + Beute")
+	# Blockade: Sieg → Bodeneinsatz
+	SpaceEvents.fixed_kind = "blockade"
+	g.offers = []
+	g.refill_offers()
+	var bo: Dictionary = g.offers[0]
+	bo.system = g.position
+	bo.expires = g.day + 10
+	check(g.start_mission(bo) and g.active.is_empty() and g.begin_offer() == "space" and g.space_ctx.kind == "vor_einsatz", "Blockade: erst Raumkampf")
+	check(g.finish_space(res) == "ground" and g.active.id == bo.id, "Blockade durchbrochen: Bodeneinsatz")
+	g.active = {}
+	# Notfall: Plünderung + Treiben
+	SpaceEvents.fixed_kind = "abfangen"
+	g.offers = []
+	g.refill_offers()
+	var no: Dictionary = g.offers[0]
+	no.system = g.position
+	no.expires = g.day + 10
+	g.start_mission(no)
+	g.begin_offer()
+	g.credits = 800
+	g.ship_ammo = {"schiffsraketen": 8, "geschosse": 40}
+	g.stock = {"medkit": 2}
+	g.ship_stock = {"laserbank": 1}
+	var lost := res.duplicate(true)
+	lost.outcome = &"niederlage"
+	lost.emergency = true
+	lost.ship_loot = {}
+	lost.ship_ammo_used = {}
+	g.finish_space(lost)
+	var pl: Dictionary = g.space_report.plunder
+	check(pl.credits == 200 and g.credits == 600 and g.ship_ammo.schiffsraketen == 6 and g.ship_ammo.geschosse == 30 and pl.items.size() == 3
+		and Stock.count(g, "medkit") + ShipArms.stock_count(g, "laserbank") == 0 and g.hull == 0 and g.stranded() and g.offer_by_id(no.id).is_empty(),
+		"Notfall: 25 % Credits und Munition, 3 Stücke, Hülle 0, festgesetzt")
+	g.hull = 50
+	# Kapitulation: Lösegeld
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "piraten", "difficulty": "mittel", "mission": "Test"}
+	cr = g.credits
+	var sur := res.duplicate(true)
+	sur.outcome = &"niederlage"
+	sur.surrendered = true
+	sur.ransom = {"credits": 400, "ship_ammo": {}}
+	sur.ship_loot = {}
+	g.finish_space(sur)
+	check(g.credits == cr - 400 and g.space_report.plunder.is_empty() and g.hull == 70, "Kapitulation: Lösegeld, keine Plünderung")
+	# Gegner entern: Abwehr an Bord; verloren = Notfall
+	g.hull = 50
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "piraten", "difficulty": "mittel", "mission": "Test"}
+	var brd := res.duplicate(true)
+	brd.outcome = &"niederlage"
+	brd.boarding = true
+	brd.boarding_faction = "rote_sonne"
+	brd.ship_loot = {}
+	check(g.finish_space(brd) == "defend" and g.active.defend and g.mission_of(g.active).faction.resource_path == "res://data/missions/rote_sonne.tres", "Gegner entern: Bodenkampf an Bord")
+	g.credits = 400
+	Campaign.last_result = {"outcome": &"niederlage"}
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.report.defend and g.credits == 300 and g.stranded() and g.report.plunder.credits == 100, "Abwehr verloren: Notfall")
+	g.hull = 50
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "piraten", "difficulty": "mittel", "mission": "Test"}
+	g.finish_space(brd)
+	cr = g.credits
+	Campaign.last_result = {"outcome": &"sieg"}
+	g.finish_mission({"outcome": &"sieg"})
+	check(g.report.defend and g.credits == cr and not g.report.has("plunder"), "Abwehr gewonnen: nichts geplündert")
+	# selbst entern über die Auswertung
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "schmuggler", "difficulty": "leicht", "mission": "Test"}
+	var be := res.duplicate(true)
+	be.board_enemy = true
+	be.board_faction = "schmuggler"
+	be.board_ship = "Frachter X"
+	be.board_loot = {"credits": 50, "material": 0, "ship_ammo": {}, "weapons": []}
+	check(g.finish_space(be) == "board" and g.board_pending.difficulty == "leicht", "selbst entern aus der Auswertung")
+	g.board_pending = {}
+	# Eskorte: sicher ein Kontakt, Lohn bei Ankunft
+	SpaceEvents.fixed_kind = "eskorte"
+	g.offers = []
+	g.refill_offers()
+	var es: Dictionary = g.offers[0]
+	es.system = g.position
+	es.expires = g.day + 10
+	SpaceEvents.fixed_contact = 0
+	g.start_mission(es)
+	check(g.begin_offer() == "escort" and g.contact.forced and g.dodge_contact().is_empty(), "Eskorte: sicherer Kontakt, kein Ausweichen")
+	g.fight_contact()
+	check(g.space_ctx.kind == "eskorte" and g.space_setup().source == "auftrag", "Eskorte: Raumkampf")
+	g.finish_space(res)
+	cr = g.credits
+	SpaceEvents.fixed_contact = -2
+	g.resume_travel()
+	check(g.position == int(es.target) and g.offer_by_id(es.id).is_empty() and int(g.last_travel.escort.pay) == SpaceEvents.offer_pay(g, es)
+		and g.credits == cr + int(g.last_travel.escort.pay), "Eskorte erfüllt: Lohn bei Ankunft")
+	Voyage.fixed_result = &""
+	SpaceEvents.fixed_contact = -2
+	SpaceEvents.fixed_kind = "boden"
+	Campaign.last_result = {}
 	HubState.game = null
 	if crew_before != "":
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
