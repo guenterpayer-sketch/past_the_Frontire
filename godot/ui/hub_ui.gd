@@ -7,6 +7,10 @@ extends Control
 signal action(name: StringName, arg: Variant)
 ## Beuteauswahl abgeschlossen (HubState.take_loot), beim Schließen des Einsatzberichts
 signal loot_taken(result: Dictionary)
+## Feindkontakt: kämpfen (true) oder ausweichen versuchen (false)
+signal contact_choice(fight: bool)
+## Bericht nach dem Raumkampf geschlossen
+signal space_report_closed
 
 const MARGIN := 14.0
 const MENU := [[&"encyclopedia", "Enzyklopädie"], [&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
@@ -21,6 +25,9 @@ var crew: CrewOverview
 var sheet: SheetDialog
 var slots: SlotsDialog
 var report: Modal
+## Raumkampf im Spiel: Feindkontakt (Wahl kämpfen/ausweichen) und Bericht nach dem Raumkampf
+var contact: Modal
+var space_report: Modal
 var medbay: MedbayDialog
 var galley: GalleyDialog
 var armory: ArmoryDialog
@@ -136,6 +143,8 @@ func _ready() -> void:
 	sheet = SheetDialog.new()
 	slots = SlotsDialog.new()
 	report = Modal.new()
+	contact = Modal.new()
+	space_report = Modal.new()
 	medbay = MedbayDialog.new()
 	galley = GalleyDialog.new()
 	armory = ArmoryDialog.new()
@@ -147,7 +156,7 @@ func _ready() -> void:
 	port = PortDialog.new()
 	notice = Modal.new()
 	help = Modal.new()
-	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port]:
+	for d in [star_map, crew, sheet, slots, report, notice, help, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port, contact, space_report]:
 		add_child(d)
 	travel_report.max_size = Vector2(1100, 640)
 	notice.max_size = NOTICE_SIZE
@@ -391,6 +400,11 @@ func show_report(rep: Dictionary) -> void:
 		report.content.add_child(UiTheme.label("Proviant %d → %d%s" % [rep.prov0, rep.prov1, kt], 15, UiTheme.BAD if int(rep.prov1) <= 0 else UiTheme.TEXT))
 	if rep.has("board"):
 		report.content.add_child(_board_label(rep))
+	if rep.get("defend", false):
+		report.content.add_child(UiTheme.label("Entern abgewehrt." if rep.get("outcome", &"") == &"sieg" else "Die Gegner haben das Schiff übernommen.", 15,
+			UiTheme.GOOD if rep.get("outcome", &"") == &"sieg" else UiTheme.BAD))
+	if not rep.get("plunder", {}).is_empty():
+		_plunder_box(report.content, rep.plunder)
 	_payout(rep)
 	_loot(HubState.game)
 	var go := UiTheme.button("Zu den Crewquartieren")
@@ -563,6 +577,14 @@ func show_travel(rep: Dictionary) -> void:
 	if rep.has("prov0"):
 		sum += "   ·   Proviant %d → %d" % [rep.prov0, rep.prov1]
 	travel_report.content.add_child(UiTheme.label(sum, 16, UiTheme.ACCENT))
+	var ct: Dictionary = rep.get("contact", {})
+	if not ct.is_empty():
+		travel_report.content.add_child(UiTheme.label("Feindkontakt an Reisetag %d bei %s: %s%s" % [int(rep.days), rep.to,
+			SpaceTemplates.faction_name(String(ct.faction)), " (Eskorte)" if ct.get("forced", false) else ""], 15, UiTheme.BAD))
+	var esc: Dictionary = rep.get("escort", {})
+	if not esc.is_empty():
+		travel_report.content.add_child(UiTheme.label("%s: erfüllt, Lohn +%d Cr" % [esc.title, esc.pay] if int(esc.pay) > 0
+			else "%s: nicht erfüllt (Flucht), der Auftrag bleibt offen" % esc.title, 15, UiTheme.GOOD if int(esc.pay) > 0 else UiTheme.RETREAT))
 	var out_day := empty_day(cook)
 	if out_day > 0:
 		travel_report.content.add_child(UiTheme.label("Proviant aufgebraucht an Tag %d – ab jetzt %d auf Proben im Schiff, bis wieder Proviant gekauft ist." % [out_day, Galley.MALUS], 14, UiTheme.BAD))
@@ -701,7 +723,7 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 
 func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible \
+	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible or contact.visible or space_report.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
 
 
@@ -710,7 +732,7 @@ func close_dialogs() -> bool:
 	if enc and enc.visible:
 		enc.close()
 		return true
-	for d in [sheet, help, notice, slots, report, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port]:
+	for d in [sheet, help, notice, slots, report, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port, contact, space_report]:
 		if d.visible:
 			d.close()
 			return true
@@ -731,3 +753,149 @@ func covers(p: Vector2) -> bool:
 		if t.visible and t.get_global_rect().has_point(p):
 			return true
 	return false
+
+
+# ---------------------------------------------------------------- Raumkampf im Spiel (Mockup Bildschirme 42–44)
+
+## Feindkontakt auf der Reise: Gegner, Wahl ausweichen (Probe Navigation) oder kämpfen
+func show_contact(g: HubState) -> void:
+	var ct := g.contact
+	var f := SpaceTemplates.faction(String(ct.faction))
+	contact.max_size = Vector2(1100, 640)
+	contact.closable = false
+	contact.open("Feindkontakt bei %s" % g.sector.systems[int(ct.system)].name)
+	var head := UiTheme.label("Sensoren melden Schiffe: %s (%s). Feindkontakt %d %% je Reisetag in diesem Gebiet." % [f.name, ct.difficulty,
+		roundi(SpaceEvents.contact_chance(g, int(ct.system)) * 100)], 16, UiTheme.ACCENT)
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	contact.content.add_child(head)
+	contact.content.add_child(UiTheme.label("Nimmt Lösegeld: %s · Bei Niederlage der Crew: %s" % ["%d Cr" % int(f.ransom) if int(f.ransom) > 0 else "nein",
+		"entern → Bodenkampf an Bord" if String(f.on_win) == "entern" else "Plünderung, das Schiff treibt"], 14, UiTheme.MUTED))
+	var nav := SpaceEvents.navigator(g)
+	var bonus := Rules.skill_total(nav, SpaceEvents.DODGE_SKILL) + int(Rules.DIFFICULTY[Voyage.DIFF].mod) + g.travel_bonus() + Galley.malus(g) \
+		+ ShipArms.travel_malus(g, SpaceEvents.DODGE_SKILL) if nav else 0
+	_choice_box(contact.content, "Ausweichen: Probe Navigation (%s)" % ("%s, %s, mittel" % [nav.name, Dice.fmt(bonus)] if nav else "niemand"),
+		"Erfolg oder Herausragend: ausgewichen, die Reise geht weiter. Sonst: Raumkampf.", "Ausweichen versuchen", nav != null,
+		func() -> void:
+			contact.hide()
+			contact_choice.emit(false))
+	_choice_box(contact.content, "Kämpfen", "Raumkampf. Danach geht die Reise mit den übrigen Tagen weiter; Flucht per Sprung: Reise geht weiter, keine Beute.",
+		"Zum Raumkampf", true, func() -> void:
+			contact.hide()
+			contact_choice.emit(true))
+	contact.move_to_front()
+
+
+func _choice_box(parent: Control, title: String, text: String, action: String, ok: bool, act: Callable) -> void:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.LINE, 8, 12))
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	p.add_child(v)
+	v.add_child(UiTheme.label(title, 16))
+	var l := UiTheme.label(text, 13, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(l)
+	var b := UiTheme.button(action)
+	b.add_theme_color_override("font_color", UiTheme.ACCENT)
+	b.disabled = not ok
+	b.custom_minimum_size.y = 40
+	b.pressed.connect(act)
+	v.add_child(b)
+	parent.add_child(p)
+
+
+## Bericht nach dem Raumkampf: Ausgang, Schiff, Figuren, Lohn und Beute, Notfall
+func show_space_report(rep: Dictionary) -> void:
+	space_report.max_size = Vector2(1200, 760)
+	var out := StringName(rep.get("outcome", &"niederlage"))
+	var name := "Sieg" if out == &"sieg" else ("Flucht" if rep.get("retreated", false) else ("Kapitulation" if rep.get("surrendered", false)
+		else ("Niederlage – Entern" if rep.get("next", "") == "defend" else "Niederlage – Notfall")))
+	space_report.open("Einsatzbericht: %s – %s (Raumkampf)" % [name, rep.get("title", "")])
+	space_report.content.add_child(UiTheme.label("%s · %d Runden · Tag %d" % [rep.get("faction", ""), int(rep.get("rounds", 0)), int(rep.get("day", 0))], 14, UiTheme.MUTED))
+	var cols := HBoxContainer.new()
+	cols.add_theme_constant_override("separation", 24)
+	space_report.content.add_child(cols)
+	var left := VBoxContainer.new()
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cols.add_child(left)
+	var right := VBoxContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cols.add_child(right)
+	left.add_child(UiTheme.label("SCHIFF", 13, UiTheme.MUTED))
+	left.add_child(UiTheme.label("Hülle %d → %d" % [int(rep.get("hull0", 0)), int(rep.get("hull1", 0))], 15,
+		UiTheme.BAD if int(rep.get("hull1", 0)) < int(rep.get("hull0", 0)) else UiTheme.TEXT))
+	var nd: Dictionary = rep.get("new_damage", {})
+	if not nd.is_empty():
+		var l := UiTheme.label("Neue Systemschäden: " + ", ".join(nd.keys().map(func(k) -> String: return "%s %s" % [ShipArms.system_name(k), nd[k]]))
+			+ " · Reparatur im Maschinenraum oder in der Werft", 14, Color("ff8a3d"))
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		left.add_child(l)
+	var used: Dictionary = rep.get("ammo_used", {})
+	var parts := []
+	for t in used:
+		parts.append("%s −%d" % [ShipArms.AMMO_NAMES.get(t, t), int(used[t])])
+	if int(rep.get("fuel_used", 0)) > 0:
+		parts.append("Treibstoff −%d" % int(rep.fuel_used))
+	if not parts.is_empty():
+		left.add_child(UiTheme.label("Verbrauch: " + ", ".join(parts), 14))
+	left.add_child(UiTheme.label("FIGUREN", 13, UiTheme.MUTED))
+	for u in rep.get("units", []):
+		var ul := UiTheme.label("%s %s · %s%s" % [u.letter, u.name, u.state, (" · " + u.xp) if String(u.xp) != "" else ""], 14,
+			UiTheme.TEXT if String(u.state).begins_with("kampffähig") else Color("ff8a3d"))
+		ul.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		left.add_child(ul)
+	right.add_child(UiTheme.label("LOHN UND BEUTE", 13, UiTheme.MUTED))
+	if int(rep.get("pay", 0)) > 0:
+		right.add_child(UiTheme.label("Lohn +%d Cr" % int(rep.pay), 15, UiTheme.GOOD))
+	var loot: Dictionary = rep.get("loot", {})
+	if not loot.is_empty():
+		var lp := ["+%d Cr" % int(loot.get("credits", 0)), "+%d Schiffsmaterial" % int(loot.get("material", 0))]
+		var la: Dictionary = loot.get("ship_ammo", {})
+		for t in la:
+			lp.append("%s +%d" % [ShipArms.AMMO_NAMES.get(t, t), int(la[t])])
+		var ll := UiTheme.label("Kampfbeute: " + ", ".join(lp), 15, UiTheme.GOOD)
+		ll.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		right.add_child(ll)
+		for w in loot.get("weapons", []):
+			right.add_child(UiTheme.label("%s ins Schiffslager" % ShipArms.label(Stock.damaged_key(String(w.key), int(w.get("damage", 0)))), 15, UiTheme.GOOD))
+	var ransom: Dictionary = rep.get("ransom", {})
+	if not ransom.is_empty():
+		right.add_child(UiTheme.label("Lösegeld bezahlt: %d Cr" % int(ransom.get("credits", 0)), 15, UiTheme.BAD))
+	if rep.get("retreated", false):
+		right.add_child(UiTheme.label("Flucht per Sprung: keine Beute; ein Auftrag bleibt offen.", 15, UiTheme.RETREAT))
+	if int(rep.get("pay", 0)) == 0 and loot.is_empty() and ransom.is_empty() and not rep.get("retreated", false):
+		right.add_child(UiTheme.label("–", 14, UiTheme.MUTED))
+	if not rep.get("plunder", {}).is_empty():
+		_plunder_box(right, rep.plunder)
+	var nx := String(rep.get("next", ""))
+	if nx != "":
+		var nt: String = {"ground": "Die Blockade ist durchbrochen: weiter zum Bodeneinsatz.", "board": "Die Crew entert das Gegnerschiff: Bodenkampf gegen die Besatzung.",
+			"defend": "Die Gegner entern: Bodenkampf an Bord. Verliert die Crew, wird das Schiff geplündert und treibt."}[nx]
+		var nl := UiTheme.label(nt, 15, UiTheme.ACCENT)
+		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		space_report.content.add_child(nl)
+	var ok := UiTheme.button("Weiter")
+	ok.add_theme_color_override("font_color", UiTheme.ACCENT)
+	ok.pressed.connect(func() -> void:
+		space_report.hide()
+		space_report_closed.emit())
+	space_report.footer.add_child(ok)
+	space_report.closable = false
+	space_report.move_to_front()
+
+
+## Notfall: was geplündert wurde, das Schiff treibt
+func _plunder_box(parent: Control, p: Dictionary) -> void:
+	parent.add_child(UiTheme.label("PLÜNDERUNG", 13, UiTheme.MUTED))
+	var parts := ["−%d Cr" % int(p.get("credits", 0))]
+	var am: Dictionary = p.get("ship_ammo", {})
+	for t in am:
+		parts.append("%s −%d" % [ShipArms.AMMO_NAMES.get(t, t), int(am[t])])
+	for it in p.get("items", []):
+		parts.append(String(it))
+	var l := UiTheme.label(", ".join(parts), 15, UiTheme.BAD)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(l)
+	var t := UiTheme.label("Das Schiff treibt: Hülle 0, nur noch Kurs zum nächsten Hafen.", 15, UiTheme.BAD)
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(t)

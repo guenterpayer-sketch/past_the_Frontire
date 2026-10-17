@@ -244,6 +244,10 @@ func _render_side() -> void:
 	_side.add_child(UiTheme.label(sys.name, 28, UiTheme.ACCENT))
 	var f := s.faction_of(selected)
 	_side.add_child(UiTheme.label("kontrolliert von: %s" % f.name if f else "neutral – Hafen, keine Aufträge", 14, f.color if f else UiTheme.MUTED))
+	var danger := UiTheme.label("Feindkontakt auf der Reise: %d %% je Tag (%s)" % [roundi(SpaceEvents.contact_chance(game, selected) * 100),
+		SpaceTemplates.faction_name(SpaceEvents.faction_id(game, selected))], 13, UiTheme.MUTED)
+	danger.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_side.add_child(danger)
 	var r := s.route(game.position, selected)
 	var route_text := "Hier liegt das Schiff."
 	if selected != game.position:
@@ -314,7 +318,10 @@ func _render_side() -> void:
 	go.pressed.connect(func() -> void: travel.emit(selected))
 	row.add_child(go)
 	var offer := _selected_offer()
-	var brief := UiTheme.button("Briefing" if selected == game.position else "Hinfliegen & Briefing",
+	var what := "Briefing"
+	if not offer.is_empty():
+		what = {"abfangen": "Raumkampf", "eskorte": "Eskorte"}.get(HubState.offer_kind(offer), "Blockade" if offer.get("blockade", false) else "Briefing")
+	var brief := UiTheme.button(what if selected == game.position else "Hinfliegen & " + what,
 		"Auftrag annehmen: hinfliegen (Tage vergehen), dann Einsatzbesprechung und Bodenkampf")
 	brief.disabled = offer.is_empty() or not game.reachable(offer)
 	brief.custom_minimum_size.y = 48
@@ -375,6 +382,30 @@ func _selected_offer() -> Dictionary:
 	return {}
 
 
+## Art des Auftrags: Kennzeichen und Farbe (Mockup Bildschirm 41)
+func _kind_tag(o: Dictionary) -> Array:
+	match HubState.offer_kind(o):
+		"abfangen":
+			return ["ABFANGEN (RAUMKAMPF)", UiTheme.CREW]
+		"eskorte":
+			return ["ESKORTE (RAUMKAMPF UNTERWEGS)", UiTheme.RETREAT]
+	return ["BODEN + BLOCKADE", Color("ff8a3d")] if o.get("blockade", false) else ["BODEN", UiTheme.MUTED]
+
+
+func _kind_text(o: Dictionary, m: Mission) -> String:
+	var foe := SpaceTemplates.faction_name(SpaceEvents.faction_id(game, o.system))
+	match HubState.offer_kind(o):
+		"abfangen":
+			return "Raumkampf gegen %s · Lohn %d Cr + Kampfbeute" % [foe, SpaceEvents.offer_pay(game, o)]
+		"eskorte":
+			return "Frachter nach %s (%d Reisetage) · unterwegs sicher ein Raumkampf · Lohn bei Ankunft %d Cr" % [
+				game.sector.systems[int(o.target)].name, game.sector.route(int(o.system), int(o.target)).days, SpaceEvents.offer_pay(game, o)]
+	var t := "Gegner: %s" % m.enemy_summary()
+	if o.get("blockade", false):
+		t = "Erst Raumkampf gegen %s, dann Bodenkampf. Flucht im All: Auftrag bleibt offen · Niederlage: Notfall. %s" % [foe, t]
+	return t
+
+
 func _offer_card(o: Dictionary) -> Control:
 	var m := mission(o)
 	var sel: bool = o.id == selected_offer
@@ -391,7 +422,11 @@ func _offer_card(o: Dictionary) -> Control:
 	card.add_child(v)
 	var head := HBoxContainer.new()
 	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var t := UiTheme.label(m.title + ("  · erneuter Versuch" if o.get("retry", false) else ""), 16)
+	var tag := _kind_tag(o)
+	var tl := UiTheme.label(tag[0], 14, tag[1])
+	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(tl)
+	var t := UiTheme.label(game.offer_title(o) + ("  · erneuter Versuch" if o.get("retry", false) else ""), 16)
 	if o.get("retry", false):
 		t.tooltip_text = "Nach einem Rückzug weiter offen bis zum Ablaufdatum"
 		t.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -399,7 +434,7 @@ func _offer_card(o: Dictionary) -> Control:
 	head.add_child(t)
 	head.add_child(UiTheme.label(m.difficulty_name(), 15, {"leicht": UiTheme.GOOD, "mittel": UiTheme.ACCENT, "schwer": UiTheme.BAD}[m.difficulty]))
 	v.add_child(head)
-	var g := UiTheme.label("Gegner: %s" % m.enemy_summary(), 13)
+	var g := UiTheme.label(_kind_text(o, m), 13)
 	g.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(g)
 	var arr := game.arrival_day(o.system)
@@ -412,6 +447,6 @@ func _offer_card(o: Dictionary) -> Control:
 	var el := UiTheme.label(exp_text, 13, col)
 	el.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(el)
-	for c in [head, t, g, el]:
+	for c in [head, t, g, el, tl]:
 		c.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return card

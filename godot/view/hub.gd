@@ -24,6 +24,13 @@ func _ready() -> void:
 		HubState.new_game(randi() % 1000000)
 	game = HubState.game
 	game.abort_mission()
+	# Rückkehr aus dem Raumkampf: Ergebnis auswerten (Bericht nach dem Aufbau der Szene)
+	var space_result := SpaceBattle.take_result()
+	var space_next := ""
+	var from_space := not space_result.is_empty() and not game.space_ctx.is_empty()
+	if from_space:
+		space_next = game.finish_space(space_result)
+		Campaign.save()
 	ui.action.connect(_on_action)
 	ui.star_map.travel.connect(_travel)
 	ui.star_map.wait_day.connect(wait_day)
@@ -69,12 +76,26 @@ func _ready() -> void:
 	rig.camera.size = 34.0
 	rig.rotated.connect(func() -> void: ship.update_cutaway(rig.view_dir()))
 	ship.update_cutaway.call_deferred(rig.view_dir())
+	ui.contact_choice.connect(_on_contact)
+	ui.report.visibility_changed.connect(func() -> void:
+		if not ui.report.visible:
+			_continue_journey.call_deferred())
 	_refresh()
-	if not game.report.is_empty():
+	if from_space:
+		ui.space_report_closed.connect(func() -> void: _after_space(space_next), CONNECT_ONE_SHOT)
+		ui.show_space_report(game.space_report)
+		game.space_report = {}
+	elif not game.space_report.is_empty():
+		# Abwehr abgebrochen (Notfall)
+		ui.show_space_report(game.space_report)
+		game.space_report = {}
+	elif not game.report.is_empty():
 		ui.show_report(game.report)
 		game.report = {}
 	elif not game.loot_pending.is_empty():
 		ui.show_loot(game)
+	elif not game.contact.is_empty():
+		_after_leg.call_deferred()
 	var args := OS.get_cmdline_user_args()
 	if "--autotest-hub" in args and not get_tree().root.has_node("HubAutotest"):
 		var t: Node = load("res://tests/autotest_hub.gd").new()
@@ -172,11 +193,84 @@ func _after_days() -> void:
 
 
 func _travel(target: int) -> void:
+	game.pending_offer = -1
 	var days := game.travel_to(target)
 	if days > 0:
 		Sfx.play(&"schritt")
+		_after_travel = _after_leg
 		ui.show_travel(game.last_travel)
 	_after_days()
+
+
+# ---------------------------------------------------------------- Raumkampf im Spiel (SpaceEvents)
+
+## Nach einer Reiseetappe: Feindkontakt (Wahl bzw. Eskorte sofort Kampf) oder vorgemerkten Auftrag beginnen
+func _after_leg() -> void:
+	if not game.contact.is_empty():
+		if game.contact.get("forced", false):
+			game.fight_contact()
+			_go_space()
+		else:
+			ui.show_contact(game)
+		return
+	if game.pending_offer < 0:
+		return
+	match game.begin_offer():
+		"ground":
+			get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		"space":
+			_go_space()
+		"escort":
+			_refresh()
+			_after_travel = _after_leg
+			ui.show_travel(game.last_travel)
+
+
+## Feindkontakt: kämpfen oder ausweichen (Probe Navigation; misslingt sie, Kampf)
+func _on_contact(fight: bool) -> void:
+	if fight:
+		game.fight_contact()
+		_go_space()
+		return
+	var r := game.dodge_contact()
+	Sfx.play(&"wuerfel")
+	ui.show_toast("Ausweichen: %s %d → %s" % [r.name, int(r.total), "ausgewichen" if r.dodged else "misslungen, Raumkampf"])
+	if r.dodged:
+		_continue_journey()
+	else:
+		_go_space.call_deferred()
+
+
+func _go_space() -> void:
+	Campaign.save()
+	SpaceBattle.start(get_tree(), game.space_setup())
+
+
+## Nach dem Bericht des Raumkampfs: Bodenkampf (Blockade, Entern, Abwehr) oder Reise fortsetzen
+func _after_space(next: String) -> void:
+	match next:
+		"ground", "defend":
+			get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		"board":
+			game.start_boarding()
+			get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		_:
+			_continue_journey()
+
+
+## Unterbrochene Reise fortsetzen (Rest-Tage), danach ggf. den vorgemerkten Auftrag beginnen
+func _continue_journey() -> void:
+	if not game.active.is_empty() or not game.contact.is_empty():
+		return
+	if not game.travel_rest.is_empty() and not game.stranded():
+		game.resume_travel()
+		_refresh()
+		_after_days()
+		_after_travel = _after_leg
+		ui.show_travel(game.last_travel)
+	elif game.pending_offer >= 0:
+		_after_leg()
+	_refresh()
 
 
 ## Große Reparatur durch die Crew (1 Tag, 1 Material)
@@ -200,13 +294,18 @@ func _start_mission(offer: Dictionary) -> void:
 		return
 	Campaign.save()
 	Campaign.last_result = {}
+	var go := func() -> void:
+		if not game.active.is_empty():
+			get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		else:
+			_after_leg()
 	if game.day > day0:
 		Sfx.play(&"schritt")
 		_refresh()
-		_after_travel = func() -> void: get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		_after_travel = go
 		ui.show_travel(game.last_travel)
 		return
-	get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+	go.call()
 
 
 func _set_hover(id: StringName) -> void:
