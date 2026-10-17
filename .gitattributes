@@ -1,0 +1,2 @@
+# Zeilenenden: Textdateien überall mit LF (wie Godot sie schreibt), auch unter Windows.
+* text=auto eol=lf
