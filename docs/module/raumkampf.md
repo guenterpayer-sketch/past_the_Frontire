@@ -102,11 +102,4 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 
 ## Aufträge vom Koordinator
 
-### Auftrag 4 (18.10.2026): EP im Raumkampf begrenzen
-
-Befund (Spieltest des Nutzers, im Code geprüft): Bordschützen bekommen bis zu ~30 EP je Kampf in der Waffenfertigkeit, weil `SpaceCombat` **je Schuss** vergibt (`Rules.award_xp(gunner, …, 2 if hit else 1)`, dazu +1 je Abfangen), Waffen mit 2 Schuss pro Runde doppelt zählen und jede Runde geschossen wird (8–11 Runden). Rang kostet 10 + 2 × Rang → 2–3 Ränge je Kampf.
-Entscheidungen des Nutzers (18.10.2026):
-- **Schützen: EP je Runde statt je Schuss** – pro Geschützstation und Runde +1, wenn gefeuert (bzw. abgefangen), +1 zusätzlich, wenn mindestens ein Treffer; **höchstens 2 EP je Station und Runde**. Erwartung: ca. 10–20 EP je Kampf.
-- **Alle Stationen prüfen** (Steuer/Pilot, Navigation, Schilde, Technik inkl. 2./3. Techniker, Computer): EP je Station und Kampf messen (z. B. mit `tests/sim_space.gd`) und auf ein ähnliches Maß angleichen; Ergebnis als Tabelle in der Fertigmeldung und in `docs/Planung_Raumkampf.md`.
-- Doppelbesetzung: Eine Figur an zwei Stationen bekommt je Station ihre EP (nicht zusammengelegt), es sei denn, die Messung zeigt, dass das zu viel ist – dann mit dem Nutzer klären.
-- Regeltext in `docs/Skillsystem.md` 8 (Abschnitt Raumkampf) bzw. `docs/Raumkampf.md` nachtragen. Schnittstelle unverändert.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer. Schnittstellen nur ergänzen und dem Hub über den Nutzer melden.
