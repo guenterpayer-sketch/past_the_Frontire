@@ -241,7 +241,7 @@ func _render_yard() -> void:
 		_render_slots()
 	else:
 		_render_repair()
-	_note("Alles gegen Credits nach Verhandeln, nur im Hafen. Der Maschinenraum an Bord behält die Crew-Arbeit: Crew-Ausbau, Crew-Reparatur (1 Tag), Geschützposten.")
+	_note("Alles gegen Credits nach Verhandeln, nur im Hafen. Der Maschinenraum an Bord behält die Crew-Arbeit: Crew-Ausbau, Crew-Reparatur (Hülle, Systeme, Waffen), Geschützposten.")
 
 
 ## Werft, Reiter „Reparatur“: Hülle, Systemschäden, beschädigte Schiffswaffen
@@ -305,6 +305,7 @@ func _render_damage() -> void:
 		content.add_child(UiTheme.label("Schiffsmaterial %d · Werft-Reparatur gegen Credits: Raumhafen" % game.material, 15))
 		content.add_child(_fixer_row())
 		_running_repairs()
+		content.add_child(_hull_row(who))
 	var bonus := Dice.fmt(Rules.skill_total(who, ShipArms.SKILL) + int(Rules.DIFFICULTY[Voyage.DIFF].mod) + Galley.malus(game)) if who else ""
 	var grid := GridContainer.new()
 	grid.columns = 4
@@ -352,7 +353,7 @@ func _render_damage() -> void:
 	if _yard:
 		return
 	_note("Wirkung außerhalb des Kampfes: Antrieb → Pilot, Sensoren → Navigation, Reaktor → Computer, je Stufe −5 auf die Reiseprobe (A −5 … E −25). Antrieb E = keine Reise (nur Reparatur vor Ort), Lebenserhaltung E = Proviant doppelt. Schilde, Slots und Stationen wirken nur im Kampf.")
-	_note("Crew-Reparatur (überall, Station Technik, sonst die oder der Beste; mittel): Patzer +1 Stufe bzw. −10 mehr · Fehlschlag/Teilerfolg nichts · Erfolg −1 Stufe bzw. −10 weg · Herausragend −2 Stufen bzw. −20 weg. Die Reparatur ist eine Arbeit wie in der Werkstatt: 1 Material sofort, fertig nach 1 Spieltag (Warten, Reisen, Einsatz), eine Arbeit je Figur; Meldung im Bericht. Werft im Raumhafen: Systeme %d Cr + %d Material je Stufe, Waffen %d %% vom Kaufpreis je −10, jeweils nach Verhandeln." % [
+	_note("Crew-Reparatur (überall, Station Technik, sonst die oder der Beste; mittel): Patzer +1 Stufe bzw. −10 mehr · Fehlschlag/Teilerfolg nichts · Erfolg −1 Stufe bzw. −10 weg · Herausragend −2 Stufen bzw. −20 weg. Die Reparatur ist eine Arbeit wie in der Werkstatt: 1 Material sofort, fertig nach 1 Spieltag (Warten, Reisen, Einsatz), eine Arbeit je Figur; Meldung im Bericht. Hülle: täglich 1 Material und eine Probe bis voll (Reisetage pausieren). Schwer Verwundete arbeiten nicht, ihre Arbeit pausiert. Werft im Raumhafen: Systeme %d Cr + %d Material je Stufe, Waffen %d %% vom Kaufpreis je −10, jeweils nach Verhandeln." % [
 		ShipArms.YARD_STAGE_COST, ShipArms.YARD_STAGE_MATERIAL, roundi(ShipArms.YARD_WEAPON_SHARE * 100)])
 
 
@@ -388,12 +389,13 @@ func _fixer_row() -> Control:
 	var pick := OptionButton.new()
 	pick.custom_minimum_size = Vector2(520, 34)
 	var ids: Array[String] = []
-	for c in ShipArms.fixers(game):
+	for c in Campaign.crew():
 		var job := Crafting.job_of(game, c)
 		ids.append(String(c.id))
+		var st := Crafting.status_text(game, c)
 		pick.add_item("%s (Reparatur %s)%s%s" % [c.name, Dice.fmt(Rules.skill_total(c, ShipArms.SKILL)), " · Technik" if c.station == "Technik" else "",
-			"" if job.is_empty() else " – " + Crafting.job_text(job)])
-		pick.set_item_disabled(ids.size() - 1, not job.is_empty())
+			"" if st == "frei" else " – " + st])
+		pick.set_item_disabled(ids.size() - 1, not job.is_empty() or not Crafting.can_work(c))
 	var cur := _fixer_char()
 	pick.select(ids.find(String(cur.id)) if cur else -1)
 	pick.item_selected.connect(func(i: int) -> void:
@@ -402,6 +404,38 @@ func _fixer_row() -> Control:
 	row.add_child(pick)
 	if ids.is_empty():
 		row.add_child(UiTheme.label("niemand verfügbar", 14, UiTheme.MUTED))
+	return row
+
+
+## Hülle: Arbeit „Hülle reparieren“ (täglich bis voll, 1 Material je Tag, Reisetage pausieren) oder wer daran arbeitet
+func _hull_row(who: Character) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	var hl := UiTheme.label("Hülle %d / %d" % [game.hull, game.hull_max()], 15, UiTheme.GOOD if game.hull >= game.hull_max() else Color("ff8a3d"))
+	hl.custom_minimum_size.x = 160
+	row.add_child(hl)
+	var job := ShipArms.fix_job(game, ShipArms.HULL_TARGET)
+	if not job.is_empty():
+		row.add_child(UiTheme.label("in Arbeit: %s (täglich bis voll)" % job.get("name", "?"), 14, UiTheme.ACCENT))
+		var worker: Character = null
+		for c in Campaign.crew():
+			if Crafting.job_of(game, c) == job:
+				worker = c
+		var stop := UiTheme.button("Beenden", "Die Arbeit endet sofort; nichts geht verloren (Material wird je Arbeitstag verbraucht)")
+		stop.pressed.connect(func() -> void:
+			ShipArms.stop_fix(game, worker)
+			_again())
+		row.add_child(stop)
+		return row
+	var b := UiTheme.button("Reparieren lassen (täglich bis voll, 1 Material je Tag)",
+		"Arbeit ohne Reisetage: je Tag 1 Schiffsmaterial und eine Probe Reparatur (mittel): Teilerfolg +10, Erfolg +20, Herausragend +40, Fehlschlag ±0, Patzer −5. Endet bei voller Hülle, ohne Material oder mit „Beenden“.")
+	b.add_theme_color_override("font_color", UiTheme.ACCENT)
+	b.disabled = not ShipArms.can_start_fix(game, who, ShipArms.HULL_TARGET)
+	b.pressed.connect(func() -> void:
+		if ShipArms.start_fix(game, who, ShipArms.HULL_TARGET):
+			_fixer = ""
+			_again())
+	row.add_child(b)
 	return row
 
 

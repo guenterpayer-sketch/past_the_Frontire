@@ -244,9 +244,13 @@ static func yard_repair(g: HubState) -> bool:
 	return true
 
 
-## Wer die große Reparatur durch die Crew macht: Station Technik, sonst der Beste in Reparatur
+## Wer die Probe am Ende des Crew-Ausbaus macht: Station Technik, sonst der Beste in Reparatur; nicht schwer verwundet
+## (Crafting.can_work, Entscheidung des Nutzers 18.10.2026), nicht als Arzt eingeteilt
 static func repairer(g: HubState) -> Character:
-	var free := available(g)
+	var free: Array[Character] = []
+	for c in Campaign.crew():
+		if Crafting.can_work(c) and not String(c.id) in g.medics:
+			free.append(c)
 	for c in free:
 		if c.station == "Technik":
 			return c
@@ -255,22 +259,6 @@ static func repairer(g: HubState) -> Character:
 		if best == null or Rules.skill_total(c, &"rsReparatur") > Rules.skill_total(best, &"rsReparatur"):
 			best = c
 	return best
-
-
-static func can_crew_repair(g: HubState) -> bool:
-	return g.hull < g.hull_max() and g.material >= 1 and repairer(g) != null
-
-
-## Große Reparatur durch die Crew (überall): 1 Material, Reparaturprobe; der Tag vergeht im HubState (crew_repair)
-static func crew_repair(g: HubState) -> Dictionary:
-	if not can_crew_repair(g):
-		return {}
-	var r := check(repairer(g), &"rsReparatur", Galley.malus(g))
-	g.material -= 1
-	var h0 := g.hull
-	g.hull = clampi(g.hull + int(HULL_CREW[r.result]), 0, g.hull_max())
-	r.hull = g.hull - h0
-	return r
 
 
 ## Munition kaufen (nur im Hafen, nur mit genug Credits)

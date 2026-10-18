@@ -335,13 +335,6 @@ func _test_voyage() -> void:
 	g.credits = -10
 	check(not g.can_travel(g.sector.neighbors(g.position)[0][0]), "Hülle 0: festgesetzt")
 	check(Voyage.can_yard_repair(g) and Voyage.yard_repair(g) and g.hull == Voyage.YARD_HULL, "Hülle 0: Werft auch auf Notkredit")
-	# große Reparatur durch die Crew: 1 Tag, 1 Material
-	g.hull = 40
-	g.material = 1
-	var d0 := g.day
-	var r := g.crew_repair()
-	check(not r.is_empty() and g.day == d0 + 1 and g.material == 0 and g.hull == clampi(40 + int(Voyage.HULL_CREW[r.result]), 0, 100), "Crew-Reparatur (%s)" % r.get("result_name", ""))
-	check(g.crew_repair().is_empty(), "ohne Material keine Crew-Reparatur")
 	# Lohn und Beute
 	var po := Voyage.payout("mittel", "res://data/missions/rote_sonne.tres", true)
 	check(po.pay == 140 and po.bonus == 28 and is_equal_approx(po.factor, 1.2) and po.loot == 1 and po.ammo.size() == 1, "Lohn Rote Sonne mittel")
@@ -1059,6 +1052,66 @@ func _test_retreat() -> void:
 
 
 ## Anbindung Raumkampf, Teil 1 (Entscheidungen 16.10.2026): Slots, Lager, Handel, Posten, Systemschäden, Reparatur, setup
+## Hüllenreparatur als Arbeit und schwer Verwundete (Entscheidungen des Nutzers 18.10.2026)
+func _test_hull_job(g: HubState, fc: Character, other: Character) -> void:
+	g.jobs = {}
+	g.hull = 50
+	g.material = 3
+	var d0 := g.day
+	Voyage.fixed_result = &"erfolg"
+	check(ShipArms.start_fix(g, fc, ShipArms.HULL_TARGET) and g.day == d0 and g.material == 3 and Crafting.is_busy(g, fc)
+		and not ShipArms.can_start_fix(g, other, ShipArms.HULL_TARGET), "Hülle: angelegt ohne Tag und Material, nur einmal")
+	check(not Crafting.can_take_apart(g, fc, "medkit") and Crafting.job_text(Crafting.job_of(g, fc)).contains("Hülle"), "Hülle: eine Arbeit je Figur")
+	g.wait_days(1)
+	var e: Dictionary = g.last_crafts[0] if not g.last_crafts.is_empty() else {}
+	check(g.hull == 70 and g.material == 2 and Crafting.is_busy(g, fc) and e.get("label", "") == "Reparatur" and e.result == "erfolg"
+		and e.skill == String(ShipArms.SKILL), "Hülle: Tag 1 Erfolg +20, 1 Material, läuft weiter")
+	var hj := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(ShipArms.is_hull_job(hj.jobs[String(fc.id)]), "Hüllenarbeit im Spielstand")
+	# Reisetag: pausiert (keine Probe, kein Material)
+	g.advance_days(1, true)
+	check(g.hull == 70 and g.material == 2 and Crafting.is_busy(g, fc) and g.last_crafts.is_empty(), "Hülle: Reisetag pausiert")
+	g.wait_days(2)
+	check(g.hull == 100 and g.material == 0 and not Crafting.is_busy(g, fc), "Hülle: täglich bis voll, dann beendet")
+	# Material leer: Arbeit endet
+	g.hull = 50
+	g.material = 1
+	ShipArms.start_fix(g, fc, ShipArms.HULL_TARGET)
+	g.wait_days(1)
+	check(g.hull == 70 and g.material == 0 and not Crafting.is_busy(g, fc) and not ShipArms.can_start_fix(g, fc, ShipArms.HULL_TARGET), "Hülle: Material leer, Arbeit endet")
+	# Beenden von Hand
+	g.material = 2
+	ShipArms.start_fix(g, fc, ShipArms.HULL_TARGET)
+	check(ShipArms.stop_fix(g, fc) and not Crafting.is_busy(g, fc) and g.material == 2, "Hülle: Beenden, nichts verloren")
+	# schwer Verwundete arbeiten nicht; kampfunfähig darf
+	fc.injury = Injury.DOWN
+	fc.injury_days = 30
+	check(ShipArms.can_start_fix(g, fc, ShipArms.HULL_TARGET) and fc in ShipArms.fixers(g), "kampfunfähig: darf reparieren")
+	ShipArms.start_fix(g, fc, ShipArms.HULL_TARGET)
+	fc.injury = Injury.SEVERE
+	g.craft_material = 50
+	check(not Crafting.can_build(g, fc, Stock.MEDKIT) and not fc in ShipArms.fixers(g) and Crafting.status_text(g, fc).begins_with("schwer verwundet"),
+		"schwer verwundet: kein Handwerk, keine Reparatur")
+	var h0 := g.hull
+	g.wait_days(1)
+	check(g.hull == h0 and g.material == 2 and Crafting.is_busy(g, fc), "schwer verwundet: laufende Arbeit pausiert")
+	var techs := Campaign.crew().filter(func(c: Character) -> bool: return c.station == "Technik")
+	if not techs.is_empty():
+		techs[0].injury = Injury.SEVERE
+		techs[0].injury_days = 30
+		check(Voyage.repairer(g) != techs[0], "Crew-Ausbau: schwer Verwundete machen die Probe nicht")
+		techs[0].injury = Injury.DOWN
+		check(Voyage.repairer(g) == techs[0] or String(techs[0].id) in g.medics, "Crew-Ausbau: kampfunfähig darf")
+		techs[0].injury = ""
+		techs[0].injury_days = 0
+	fc.injury = ""
+	fc.injury_days = 0
+	g.wait_days(1)
+	check(g.hull > h0 or g.hull == g.hull_max(), "nach der Genesung läuft die Arbeit weiter")
+	g.jobs = {}
+	g.material = 0
+
+
 func _test_ship_arms() -> void:
 	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
 	Campaign.new_game(GlobalRoster.entries())
@@ -1197,6 +1250,7 @@ func _test_ship_arms() -> void:
 	g.wait_days(1)
 	check(g.material == mat0 + 1 and ShipArms.stock_count(g, "laserbank|-20") == 1 and String(g.last_crafts[0].text).contains("abgebrochen"), "Abbruch: Material und Stück zurück")
 	ShipArms.stock_take(g, "laserbank|-20")
+	_test_hull_job(g, fc, other)
 	Voyage.fixed_result = &""
 	check(ShipArms.damage_count(g) == 2, "offene Schäden: Station Computer, Massebeschleuniger")
 	# Werft: nur im Hafen

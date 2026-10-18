@@ -188,7 +188,7 @@ func advance_days(n: int, traveling := false) -> void:
 		var msg := ShipUpgrades.work_day(self)
 		if not msg.is_empty():
 			last_upgrade.append(msg)
-		last_crafts.append_array(Crafting.work_day(self))
+		last_crafts.append_array(Crafting.work_day(self, traveling))
 		var d := day + i + 1
 		var e := Galley.pass_day(self, d, not traveling and is_harbor(position))
 		if not e.is_empty():
@@ -365,13 +365,6 @@ func _arrive(t: Dictionary) -> void:
 		o.retry = true
 		last_travel.escort = {"pay": 0, "title": offer_title(o)}
 
-
-## Große Reparatur durch die Crew: 1 Tag, 1 Material, Reparaturprobe (Voyage.crew_repair). Leer = nicht möglich.
-func crew_repair() -> Dictionary:
-	var r := Voyage.crew_repair(self)
-	if not r.is_empty():
-		advance_days(1)
-	return r
 
 
 

@@ -111,11 +111,17 @@ static func skill_row(game: HubState, sk: StringName, after: Callable) -> Contro
 			Sfx.play(&"wuerfel")
 			after.call())
 		row.add_child(b)
-		row.add_child(UiTheme.label("noch nicht gewürfelt – " + TradeSkills.effect_text(sk, TradeSkills.NONE), 14, UiTheme.MUTED))
+		var nl := UiTheme.label("noch nicht gewürfelt – " + TradeSkills.effect_text(sk, TradeSkills.NONE), 14, UiTheme.MUTED)
+		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		nl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(nl)
 	else:
 		var res := StringName(r.result)
 		var col := UiTheme.GOOD if res in [&"erfolg", &"herausragend"] else (UiTheme.TEXT if res == &"teilerfolg" else Color("ff8a3d"))
-		row.add_child(UiTheme.label("%s: %s %d → %s" % [r.name, r.result_name, int(r.total), TradeSkills.effect_text(sk, res)], 14, col))
+		var rl := UiTheme.label("%s: %s %d → %s" % [r.name, r.result_name, int(r.total), TradeSkills.effect_text(sk, res)], 14, col)
+		rl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		rl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(rl)
 	return p
 
 
@@ -127,6 +133,9 @@ func _row(name: String, count: String, price: String, action: String, ok: bool, 
 	p.add_child(row)
 	var n := UiTheme.label(name, 15)
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Name darf umbrechen, damit die Zeile schmaler werden kann (lange Liste mit Bildlaufleiste)
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	n.custom_minimum_size.x = 120
 	row.add_child(n)
 	if count != "":
 		row.add_child(UiTheme.label(count, 15, UiTheme.ACCENT))

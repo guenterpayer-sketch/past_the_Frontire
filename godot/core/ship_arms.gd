@@ -348,10 +348,6 @@ static func effect_text(sys: String, n: int) -> String:
 
 # ---------------------------------------------------------------- Reparatur
 
-static func repairer(g: HubState) -> Character:
-	return Voyage.repairer(g)
-
-
 ## Wo eine beschädigte Waffe liegt: "slot:<Slot-ID>" oder ein Lagerschlüssel mit Schaden
 static func weapon_damage(g: HubState, where: String) -> int:
 	if where.begins_with("slot:"):
@@ -367,10 +363,19 @@ static func weapon_damage(g: HubState, where: String) -> int:
 
 const FIX_KIND := "ship"
 const FIX_DAYS := 1
+## Hüllenreparatur als Arbeit (Entscheidungen des Nutzers 18.10.2026): Ziel "hull", täglich eine Probe (Voyage.HULL_CREW)
+## und 1 Schiffsmaterial, bis die Hülle voll ist, das Material fehlt oder die Arbeit beendet wird; Reisetage pausieren
+const HULL_TARGET := "hull"
+
+
+static func is_hull_job(job: Dictionary) -> bool:
+	return String(job.get("kind", "")) == FIX_KIND and String(job.get("key", "")) == HULL_TARGET
 
 
 ## Anzeigename eines Reparaturziels
 static func fix_label(target: String) -> String:
+	if target == HULL_TARGET:
+		return "Hülle"
 	if target.begins_with("slot:"):
 		return "Waffe im Slot " + String(SLOT_NAMES.get(target.trim_prefix("slot:"), target))
 	if SYSTEMS.has(target) or target.begins_with("slot_") or target.begins_with("station_"):
@@ -391,11 +396,11 @@ static func fix_job(g: HubState, target: String) -> Dictionary:
 	return {}
 
 
-## Wer reparieren kann: Crew an Bord, nicht gesperrt (verwundet)
+## Wer reparieren kann: Crew an Bord, nicht schwer verwundet (Crafting.can_work)
 static func fixers(g: HubState) -> Array[Character]:
 	var out: Array[Character] = []
 	for c in Campaign.crew():
-		if not c.is_locked():
+		if Crafting.can_work(c):
 			out.append(c)
 	return out
 
@@ -414,8 +419,10 @@ static func default_fixer(g: HubState) -> Character:
 
 
 static func can_start_fix(g: HubState, c: Character, target: String) -> bool:
-	if c == null or c.is_locked() or Crafting.is_busy(g, c) or not fix_job(g, target).is_empty() or g.material < CREW_MATERIAL:
+	if not Crafting.can_work(c) or Crafting.is_busy(g, c) or not fix_job(g, target).is_empty() or g.material < CREW_MATERIAL:
 		return false
+	if target == HULL_TARGET:
+		return g.hull < g.hull_max()
 	return stage(g, target) > 0 if _is_system(target) else weapon_damage(g, target) < 0
 
 
@@ -423,11 +430,47 @@ static func can_start_fix(g: HubState, c: Character, target: String) -> bool:
 static func start_fix(g: HubState, c: Character, target: String) -> bool:
 	if not can_start_fix(g, c, target):
 		return false
+	if target == HULL_TARGET:
+		# kein Material und kein Tag beim Anlegen; beides je Arbeitstag (hull_day)
+		g.jobs[String(c.id)] = {"kind": FIX_KIND, "key": HULL_TARGET, "days": 1, "material": 0, "name": c.name}
+		return true
 	g.material -= CREW_MATERIAL
 	if not _is_system(target) and not target.begins_with("slot:"):
 		stock_take(g, target)
 	g.jobs[String(c.id)] = {"kind": FIX_KIND, "key": target, "days": FIX_DAYS, "material": CREW_MATERIAL, "name": c.name}
 	return true
+
+
+## Laufende Arbeit einer Figur beenden (nur die Hüllenreparatur; nichts geht verloren)
+static func stop_fix(g: HubState, c: Character) -> bool:
+	if c == null or not is_hull_job(Crafting.job_of(g, c)):
+		return false
+	g.jobs.erase(String(c.id))
+	return true
+
+
+## Ein Arbeitstag der Hüllenreparatur (aus Crafting.work_day, nicht an Reisetagen): 1 Material, Probe Reparatur (mittel),
+## Hülle nach Voyage.HULL_CREW. Eintrag wie Werkstatt-Meldungen, dazu done = Arbeit endet (voll, kein Material, Figur weg).
+static func hull_day(g: HubState, c: Character) -> Dictionary:
+	var e := {"result": "", "name": c.name if c else "?", "skill": "", "xp": 0, "label": "Reparatur", "done": true}
+	if c == null:
+		e.text = "Hüllenreparatur beendet (nicht mehr an Bord)"
+		return e
+	if g.hull >= g.hull_max():
+		e.text = "%s: Hülle voll, Reparatur beendet" % c.name
+		return e
+	if g.material < 1:
+		e.text = "%s: kein Schiffsmaterial, Hüllenreparatur beendet" % c.name
+		return e
+	var r := Voyage.check(c, SKILL, Galley.malus(g))
+	g.material -= 1
+	var h0 := g.hull
+	g.hull = clampi(g.hull + int(Voyage.HULL_CREW[r.result]), 0, g.hull_max())
+	var full := g.hull >= g.hull_max()
+	e.merge({"result": String(r.result), "skill": String(SKILL), "xp": int(r.xp), "done": full or g.material < 1}, true)
+	e.text = "%s repariert die Hülle: %s (%d) → %+d (Hülle %d / %d)%s" % [c.name, r.result_name, int(r.total), g.hull - h0, g.hull, g.hull_max(),
+		" · voll, Reparatur beendet" if full else (" · kein Material mehr, Reparatur beendet" if g.material < 1 else "")]
+	return e
 
 
 ## Ende der Arbeit (aus Crafting.work_day): Probe Reparatur (mittel), Wirkung je Ergebnis. Eintrag {text, result, name,

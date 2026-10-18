@@ -110,8 +110,10 @@ func _medkits() -> Control:
 	var sel: Character = null
 	for c in crew:
 		var job := Crafting.job_of(game, c)
-		pick.add_item("%s (%+d)%s" % [c.name, Crafting.check_bonus(game, c, key), "" if job.is_empty() else " – " + Crafting.job_text(job)])
-		if c.id == _maker or (sel == null and _maker == &"" and job.is_empty()):
+		var st := Crafting.status_text(game, c)
+		pick.add_item("%s (%+d)%s" % [c.name, Crafting.check_bonus(game, c, key), "" if st == "frei" else " – " + st])
+		pick.set_item_disabled(pick.item_count - 1, not Crafting.can_work(c))
+		if c.id == _maker or (sel == null and _maker == &"" and job.is_empty() and Crafting.can_work(c)):
 			sel = c
 	if sel == null and not crew.is_empty():
 		sel = crew[0]

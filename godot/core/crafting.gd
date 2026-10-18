@@ -2,7 +2,7 @@ class_name Crafting
 extends RefCounted
 ## Handwerk (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026, Mockup „Schiff-Hub Mockup“
 ## Bildschirme 29–31): Bauen, Zerlegen und Reparieren in der Werkstatt (Waffenkammer), Medikits in der Krankenstation.
-## Eine Arbeit je Figur (HubState.jobs {Figur-ID: Arbeit}; auch die Crew-Reparatur des Schiffs, ShipArms.start_fix), der Handwerker ist nicht gesperrt. Probe „mittel“ am Ende
+## Eine Arbeit je Figur (HubState.jobs {Figur-ID: Arbeit}; auch die Crew-Reparatur des Schiffs, ShipArms.start_fix), der Handwerker ist nicht gesperrt; schwer Verwundete arbeiten nicht (can_work). Probe „mittel“ am Ende
 ## der Arbeit (Voyage.check, EP für die Fertigkeit); Bauen und Reparieren von Waffen/Rüstungen schwerer nach Kaufpreis. Handwerksmaterial HubState.craft_material, 1 Einheit = 10 Cr.
 ## Material: Bauen/Reparieren aufgerundet und sofort verbraucht, Zerlegen abgerundet am Ende.
 
@@ -155,16 +155,30 @@ static func is_busy(g: HubState, c: Character) -> bool:
 	return not job_of(g, c).is_empty()
 
 
+## Darf arbeiten (Handwerk und alle Arbeiten): nicht schwer verwundet (Entscheidung des Nutzers 18.10.2026);
+## kampfunfähig und angeschlagen dürfen
+static func can_work(c: Character) -> bool:
+	return c != null and c.injury != Injury.SEVERE
+
+
+## Kurzer Stand einer Figur für Auswahllisten: schwer verwundet, laufende Arbeit oder frei
+static func status_text(g: HubState, c: Character) -> String:
+	var job := job_of(g, c)
+	if not can_work(c):
+		return "schwer verwundet: arbeitet nicht" + ("" if job.is_empty() else " (pausiert: %s)" % job_text(job))
+	return "frei" if job.is_empty() else job_text(job)
+
+
 static func can_build(g: HubState, c: Character, key: String) -> bool:
-	return c != null and not is_busy(g, c) and unlocked(g, key) and g.craft_material >= build_material(key)
+	return can_work(c) and not is_busy(g, c) and unlocked(g, key) and g.craft_material >= build_material(key)
 
 
 static func can_take_apart(g: HubState, c: Character, key: String) -> bool:
-	return c != null and not is_busy(g, c) and key != Stock.MEDKIT and key != Equipment.SHIELD and Stock.count(g, key) > 0
+	return can_work(c) and not is_busy(g, c) and key != Stock.MEDKIT and key != Equipment.SHIELD and Stock.count(g, key) > 0
 
 
 static func can_repair(g: HubState, c: Character, key: String) -> bool:
-	return c != null and not is_busy(g, c) and Stock.damage_of(key) < 0 and Stock.count(g, key) > 0 \
+	return can_work(c) and not is_busy(g, c) and Stock.damage_of(key) < 0 and Stock.count(g, key) > 0 \
 		and g.craft_material >= repair_material(key)
 
 
@@ -206,24 +220,38 @@ static func _start(g: HubState, c: Character, job: Dictionary) -> void:
 ## Kurztext einer laufenden Arbeit
 static func job_text(job: Dictionary) -> String:
 	var what: String = {"build": "baut", "take": "zerlegt", "repair": "repariert", ShipArms.FIX_KIND: "repariert"}.get(String(job.kind), "")
+	if ShipArms.is_hull_job(job):
+		return "repariert die Hülle – täglich bis voll"
 	var d := int(job.days)
 	var thing := ShipArms.fix_label(String(job.key)) if String(job.kind) == ShipArms.FIX_KIND else name_of(String(job.key))
 	return "%s %s – noch %d %s" % [what, thing, d, "Tag" if d == 1 else "Tage"]
 
 
-## Ein Spieltag: Arbeiten laufen weiter, fertige werden gewürfelt; Meldungen zurück
-static func work_day(g: HubState) -> Array[Dictionary]:
+## Ein Spieltag: Arbeiten laufen weiter, fertige werden gewürfelt; Meldungen zurück. Schwer Verwundete: Arbeit pausiert.
+## Hüllenreparatur: täglich eine Probe bis voll, an Reisetagen (traveling) pausiert.
+static func work_day(g: HubState, traveling := false) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id in g.jobs.keys():
 		var job: Dictionary = g.jobs[id]
-		job.days = int(job.days) - 1
-		if int(job.days) > 0:
-			continue
-		g.jobs.erase(id)
 		var c: Character = null
 		for x in Campaign.crew():
 			if String(x.id) == String(id):
 				c = x
+		if c != null and not can_work(c):
+			continue
+		if ShipArms.is_hull_job(job):
+			if traveling and c != null:
+				continue
+			var e := ShipArms.hull_day(g, c)
+			if bool(e.get("done", false)):
+				g.jobs.erase(id)
+			e.erase("done")
+			out.append(e)
+			continue
+		job.days = int(job.days) - 1
+		if int(job.days) > 0:
+			continue
+		g.jobs.erase(id)
 		out.append(_finish(g, c, job))
 	return out
 

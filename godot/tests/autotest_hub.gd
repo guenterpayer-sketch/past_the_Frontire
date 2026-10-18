@@ -160,6 +160,15 @@ func _run() -> void:
 	# Werkstatt: beschädigtes Stück im Lager reparieren
 	Stock.add(g, Stock.damaged_key("res://data/weapons/sturmgewehr.tres", -20))
 	Stock.add(g, Stock.damaged_key("res://data/armor/mittel.tres", -30))
+	# lange Lagerliste (Bildlaufleiste): nichts darf rechts überlaufen
+	var long_stock := g.stock.duplicate()
+	for f in ResourceLoader.list_directory("res://data/weapons").slice(0, 12):
+		if f.ends_with(".tres"):
+			Stock.add(g, Stock.damaged_key("res://data/weapons/" + f, -10))
+	hub.ui.trade.show_trade(g)
+	await _frames(5)
+	await _shot("h1a4_handel_lang")
+	g.stock = long_stock
 	hub.ui.trade.show_trade(g)
 	await _frames(5)
 	await _shot("h1a3_werkstatt")
@@ -216,6 +225,7 @@ func _run() -> void:
 	await _shot("h1f1_waffenslots")
 	hub.ui.ship_arms.hide()
 	g.material = 8
+	g.hull = mini(g.hull, 60)
 	hub.open_room(&"hangar")
 	await _frames(5)
 	await _click_button(hub.ui.notice, "Systemschäden")

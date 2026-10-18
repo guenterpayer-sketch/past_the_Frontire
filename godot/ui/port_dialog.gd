@@ -207,6 +207,8 @@ func _item(name: String, price: String, action: String, ok: bool, act: Callable)
 	p.add_child(row)
 	var n := UiTheme.label(name, 15)
 	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	n.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	n.custom_minimum_size.x = 120
 	row.add_child(n)
 	var pl := UiTheme.label(price, 14, UiTheme.MUTED)
 	pl.custom_minimum_size.x = 70
