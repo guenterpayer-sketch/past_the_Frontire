@@ -153,3 +153,10 @@ Das Handwerk (Hub) baut bei „Herausragend“ Stücke mit **+5** (Waffe auf Ang
 
 Entscheidung des Nutzers: Die Fertigkeit **„Raketen“** (Gruppe Raumschiff-Kampf, ID `raketen`) heißt künftig **„Raketen-Geschütze“** – **nur der angezeigte Name**, die ID `raketen` bleibt (alte Spielstände gültig). Ändern in `core/rules.gd`, ggf. `core/skill_texts.gd`, `docs/Skillsystem.md`, `docs/Charakterbogen_Grundgeruest.md`. Klein, kann sofort beginnen.
 - (16.10.2026) → gebaut (siehe Stand).
+
+
+# Nachtrag (in `main` seit 18.10.2026)
+
+### Auftrag (18.10.2026): Fertigkeitstexte „ohne Wirkung“ korrigieren
+
+In `core/skill_texts.gd` tragen 9 Fertigkeiten noch `SOON` („Im Spiel noch ohne Wirkung.“), werden aber benutzt (vom Koordinator im Code geprüft): `strahlGeschuetze`, `ballistikGeschuetze`, `raketen` (Schiffswaffen, `ShipWeapons.skill`), `schutzschild` (Station Schilde), `panzerung` (Station Technik, Aufgabe „Hülle flicken“: Probe mittel, Erfolg 2W6 Hülle, Herausragend +5), `notReparatur` (Station Technik, Systemschaden im Kampf beheben, schwer), `handeln`, `gassenwissen`, `verhandeln` (Raumhafen, `TradeSkills`). `SOON` dort entfernen und je Text kurz sagen, wo die Fertigkeit wirkt (Wunsch des Nutzers). Prüfen, ob danach noch Fertigkeiten mit `SOON` übrig sind, die tatsächlich unbenutzt sind. Keine Schnittstellenänderung.

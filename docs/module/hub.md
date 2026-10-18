@@ -36,6 +36,9 @@
 - Danach (`2876f93`): **Raumkampf im Spiel (Teil 2)** – `SpaceEvents` (`core/space_events.gd`), Feindkontakt auf der Reise (5 %/20 % je Tag nach Gebiet, kämpfen oder ausweichen per Navigation), Auftragsarten Boden (25 % mit Blockade)/Abfangen/Eskorte, `HubState.finish_space(result)` als Auswertung, Notfall = Plünderung + Treiben („festgesetzt“), Abwehr beim Entern. Details und Entscheidungen im Archiv. Szenenwechsel Schiff → `space.tscn` → Schiff im laufenden Spiel vom Nutzer getestet (17.10.2026): funktioniert.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
+- Danach (`4b16e4e`): Crew-Reparatur des Schiffs als Arbeit wie Handwerk (`ShipArms.start_fix/finish_fix`, Arbeit in `HubState.jobs`, eine Arbeit je Figur für Handwerk und Reparatur, Figur im Maschinenraum wählbar); `HubState.ship_fix()` entfällt.
+- Danach: Ausbau `armor` heißt jetzt **„Schiffspanzerung“** (Wahl des Nutzers 18.10.2026; vorher „Panzerung“ wie die Fertigkeit). Nur der Name in `ShipUpgrades.AREAS` und in der Doku; ID `armor` und Schnittstelle `levels.armor` unverändert. Dateien des Raumkampfs nicht geändert (dort wird der Ausbau-Name nicht angezeigt).
+
 ## Aufträge vom Koordinator
 
 - Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

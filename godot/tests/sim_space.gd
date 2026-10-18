@@ -14,6 +14,8 @@ func _init() -> void:
 	Dice.set_seed(20261017)
 	if "waffen" in args:
 		_weapons(n)
+	elif "ep" in args:
+		_xp(n)
 	else:
 		_battles(n)
 	quit()
@@ -84,6 +86,66 @@ func _weapons(n: int) -> void:
 		print("%-18s | %s | %5d | %3d %% | %4.1f | %4.2f | %3d %%" % [ShipWeapons.name(key), "Turm" if turret else "normal",
 			ShipWeapons.price(key), _pct(st.hits, st.shots), float(st.dmg) / maxi(1, st.shots),
 			float(st.dmg) / maxi(1, st.rounds) / count, _pct(st.win, n)])
+
+
+## EP je Station und Kampf (nur von Crew besetzte Stationen), zwei Aufstellungen der Startcrew:
+## A = Posten nach Fähigkeit (SpaceSetup.quick), B = Technik-Team (Steuer, Navigation, Schilde, Technik 1–3, Computer
+## mit Crew, Geschütze Bord-KI), damit auch die weiteren Techniker gemessen werden, C = alle Geschütze mit Crew
+func _xp(n: int) -> void:
+	print("Station | besetzt in Kämpfen | EP Ø je Kampf | EP höchstens | Ø je Runde")
+	var factions := _factions()
+	var sum := {}
+	var per_char := {"sum": 0, "max": 0, "n": 0}
+	for variant in ["A", "B", "C"]:
+		for d in DIFFS:
+			for i in n:
+				var s := _setup(d, factions[i % factions.size()])
+				if variant == "B":
+					var crew: Array = s.crew
+					var order := ["steuer", "navigation", "schilde", "technik", "technik_2", "technik_3"]
+					var posts: Dictionary = s.posts
+					for st in posts:
+						posts[st] = SpaceSetup.KI
+					for k in order.size():
+						posts[order[k]] = String(crew[k % crew.size()].id)
+					posts["computer"] = String(crew[0].id)   # Doppelbesetzung (Steuer + Computer)
+				if variant == "C":
+					var crew: Array = s.crew
+					var posts: Dictionary = s.posts
+					for st in posts:
+						posts[st] = SpaceSetup.KI
+					var k := 0
+					for st in ["geschuetz_bug", "geschuetz_backbord", "geschuetz_steuerbord", "geschuetz_turm", "steuer", "schilde"]:
+						posts[st] = String(crew[k % crew.size()].id)
+						k += 1
+				var c := SpaceCombat.new(s, 7000 + i + 1000 * DIFFS.find(d))
+				c.run_auto()
+				var rounds := mini(c.round_no, SpaceCombat.MAX_ROUNDS)
+				for st in c.posts:
+					if String(c.posts[st]) == SpaceSetup.KI:
+						continue
+					var key := String(st)
+					if not sum.has(key):
+						sum[key] = {"n": 0, "xp": 0, "max": 0, "rounds": 0}
+					var x := int(c.station_xp.get(st, 0))
+					sum[key].n += 1
+					sum[key].xp += x
+					sum[key].max = maxi(sum[key].max, x)
+					sum[key].rounds += rounds
+				for ch in c.crew:
+					var t := 0
+					for k in ch.xp_log:
+						t += int(ch.xp_log[k])
+					per_char.sum += t
+					per_char.max = maxi(per_char.max, t)
+					per_char.n += 1
+	for key in ["steuer", "navigation", "schilde", "technik", "technik_2", "technik_3", "computer", "geschuetz_bug",
+			"geschuetz_backbord", "geschuetz_steuerbord", "geschuetz_turm"]:
+		if not sum.has(key):
+			continue
+		var r: Dictionary = sum[key]
+		print("%-20s | %4d | %5.1f | %3d | %4.2f" % [key, r.n, float(r.xp) / r.n, r.max, float(r.xp) / maxi(1, r.rounds)])
+	print("je Figur (alle Stationen zusammen): Ø %.1f EP, höchstens %d" % [float(per_char.sum) / per_char.n, per_char.max])
 
 
 func _pct(a: int, b: int) -> int:

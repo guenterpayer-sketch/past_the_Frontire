@@ -45,9 +45,6 @@ func _ready() -> void:
 	ui.trade.changed.connect(_refresh)
 	ui.craft.changed.connect(_refresh)
 	ui.ship_arms.changed.connect(_refresh)
-	ui.ship_arms.day_passed.connect(func() -> void:
-		_after_days()
-		_training_toast())
 	ui.medbay.changed.connect(_refresh)
 	ui.loot_taken.connect(func(r: Dictionary) -> void:
 		_refresh()

@@ -2,17 +2,15 @@ class_name ShipArmsDialog
 extends Modal
 ## Schiff für den Raumkampf (Mockup „Schiff-Hub Mockup“ Bildschirme 33–34, 39). Maschinenraum (nur Crew-Arbeit):
 ## Waffenslots mit Geschützposten, feste Posten aus Character.station; Systemschäden und beschädigte Schiffswaffen mit
-## Crew-Reparatur (1 Tag). Werft im Hafen (show_yard, alles gegen Credits nach Verhandeln): große Reparatur der Hülle,
+## Crew-Reparatur als Arbeit wie Handwerk (Figur wählbar, fertig nach 1 Spieltag). Werft im Hafen (show_yard, alles gegen Credits nach Verhandeln): große Reparatur der Hülle,
 ## Ausbau, Systemschäden und Waffen reparieren, Schiffswaffen ein- und ausbauen. Regeln: ShipArms, ShipUpgrades, Voyage.
 
 signal changed
-## Crew-Reparatur: ein Tag ist vergangen (das Schiff zeigt Geheilte, Training usw.)
-signal day_passed
 
 var game: HubState
 var _mode := &"slots"
 var _pick := ""               # Slot, für den gerade eine Waffe gewählt wird
-var _last := ""               # Ergebnis der letzten Crew-Reparatur
+var _fixer := ""              # Figur-ID, die die nächste Crew-Reparatur übernimmt (frei wählbar)
 var _yard := false            # Werft (Hafen) statt Maschinenraum
 var _yard_tab := 0            # Werft: 0 = Reparatur, 1 = Ausbau, 2 = Waffenslots (bleibt beim nächsten Öffnen)
 
@@ -29,7 +27,6 @@ func show_damage(g: HubState) -> void:
 	game = g
 	_yard = false
 	_mode = &"damage"
-	_last = ""
 	_render()
 
 
@@ -39,7 +36,6 @@ func show_yard(g: HubState) -> void:
 	_yard = true
 	_mode = &"yard"
 	_pick = ""
-	_last = ""
 	_render()
 
 
@@ -304,21 +300,18 @@ func _render_upgrades() -> void:
 # ---------------------------------------------------------------- Systemschäden
 
 func _render_damage() -> void:
-	var who := ShipArms.repairer(game)
+	var who := _fixer_char()
 	if not _yard:
-		content.add_child(UiTheme.label("Material %d · Technik: %s · Werft-Reparatur gegen Credits: Raumhafen" % [game.material,
-			"%s (Reparatur %s)" % [who.name, Dice.fmt(Rules.skill_total(who, ShipArms.SKILL))] if who else "niemand verfügbar"], 15))
-	if _last != "":
-		var res := UiTheme.label(_last, 15, UiTheme.ACCENT)
-		res.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		content.add_child(res)
+		content.add_child(UiTheme.label("Schiffsmaterial %d · Werft-Reparatur gegen Credits: Raumhafen" % game.material, 15))
+		content.add_child(_fixer_row())
+		_running_repairs()
 	var bonus := Dice.fmt(Rules.skill_total(who, ShipArms.SKILL) + int(Rules.DIFFICULTY[Voyage.DIFF].mod) + Galley.malus(game)) if who else ""
 	var grid := GridContainer.new()
 	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 6)
 	content.add_child(grid)
-	for h in ["System", "Schaden", "Wirkung außerhalb des Kampfes", "Werft (sofort)" if _yard else "Crew (1 Tag, 1 Material, Probe)"]:
+	for h in ["System", "Schaden", "Wirkung außerhalb des Kampfes", "Werft (sofort)" if _yard else "Crew (Arbeit 1 Tag, 1 Material, Probe am Ende)"]:
 		grid.add_child(UiTheme.label(h, 12, UiTheme.MUTED))
 	var dmg := ShipArms.damaged(game)
 	for s in dmg:
@@ -327,13 +320,12 @@ func _render_damage() -> void:
 		grid.add_child(UiTheme.label(ShipArms.stage_text(n), 15, UiTheme.BAD if n >= ShipArms.BROKEN else Color("ff8a3d")))
 		grid.add_child(UiTheme.label(ShipArms.effect_text(s, n), 14, UiTheme.BAD if n >= ShipArms.BROKEN and ShipArms.effect_text(s, n) != "nur im Kampf" else UiTheme.MUTED))
 		if not _yard:
-			grid.add_child(_fix_button("Reparieren (%s)" % bonus, ShipArms.can_crew_fix_system(game, s), s))
+			grid.add_child(_fix_button(bonus, s))
 			continue
 		var y := UiTheme.button("1 Stufe: %d Cr + %d Mat." % [ShipArms.yard_stage_cost(game), ShipArms.YARD_STAGE_MATERIAL])
 		y.disabled = not ShipArms.can_yard_system(game, s)
 		y.pressed.connect(func() -> void:
 			ShipArms.yard_system(game, s)
-			_last = ""
 			_again())
 		grid.add_child(y)
 	content.add_child(UiTheme.label("Alle Systeme heil." if dmg.is_empty() else "Übrige Systeme heil.", 14, UiTheme.GOOD))
@@ -344,7 +336,7 @@ func _render_damage() -> void:
 	wg.add_theme_constant_override("h_separation", 12)
 	wg.add_theme_constant_override("v_separation", 6)
 	content.add_child(wg)
-	for h in ["Waffe", "Ort", "Werft (%d %% vom Kaufpreis je −10)" % roundi(ShipArms.YARD_WEAPON_SHARE * 100) if _yard else "Crew (1 Tag, 1 Material, Probe)"]:
+	for h in ["Waffe", "Ort", "Werft (%d %% vom Kaufpreis je −10)" % roundi(ShipArms.YARD_WEAPON_SHARE * 100) if _yard else "Crew (Arbeit 1 Tag, 1 Material, Probe am Ende)"]:
 		wg.add_child(UiTheme.label(h, 12, UiTheme.MUTED))
 	var any := false
 	for s in ShipArms.armed(game):
@@ -360,7 +352,7 @@ func _render_damage() -> void:
 	if _yard:
 		return
 	_note("Wirkung außerhalb des Kampfes: Antrieb → Pilot, Sensoren → Navigation, Reaktor → Computer, je Stufe −5 auf die Reiseprobe (A −5 … E −25). Antrieb E = keine Reise (nur Reparatur vor Ort), Lebenserhaltung E = Proviant doppelt. Schilde, Slots und Stationen wirken nur im Kampf.")
-	_note("Crew-Reparatur (überall, Station Technik, sonst die oder der Beste; mittel): Patzer +1 Stufe bzw. −10 mehr · Fehlschlag/Teilerfolg nichts · Erfolg −1 Stufe bzw. −10 weg · Herausragend −2 Stufen bzw. −20 weg. 1 Tag vergeht. Werft im Raumhafen: Systeme %d Cr + %d Material je Stufe, Waffen %d %% vom Kaufpreis je −10, jeweils nach Verhandeln." % [
+	_note("Crew-Reparatur (überall, Station Technik, sonst die oder der Beste; mittel): Patzer +1 Stufe bzw. −10 mehr · Fehlschlag/Teilerfolg nichts · Erfolg −1 Stufe bzw. −10 weg · Herausragend −2 Stufen bzw. −20 weg. Die Reparatur ist eine Arbeit wie in der Werkstatt: 1 Material sofort, fertig nach 1 Spieltag (Warten, Reisen, Einsatz), eine Arbeit je Figur; Meldung im Bericht. Werft im Raumhafen: Systeme %d Cr + %d Material je Stufe, Waffen %d %% vom Kaufpreis je −10, jeweils nach Verhandeln." % [
 		ShipArms.YARD_STAGE_COST, ShipArms.YARD_STAGE_MATERIAL, roundi(ShipArms.YARD_WEAPON_SHARE * 100)])
 
 
@@ -368,39 +360,78 @@ func _weapon_row(grid: GridContainer, text: String, where_text: String, where: S
 	grid.add_child(UiTheme.label(text, 15, Color("ff8a3d")))
 	grid.add_child(UiTheme.label(where_text, 14, UiTheme.MUTED))
 	if not _yard:
-		grid.add_child(_fix_button("Reparieren (%s)" % bonus, ShipArms.can_crew_fix_weapon(game, where), where))
+		grid.add_child(_fix_button(bonus, where))
 		return
 	var y := UiTheme.button("ganz: %d Cr" % ShipArms.yard_weapon_cost(game, where))
 	y.disabled = not ShipArms.can_yard_weapon(game, where)
 	y.pressed.connect(func() -> void:
 		ShipArms.yard_weapon(game, where)
-		_last = ""
 		_again())
 	grid.add_child(y)
 
 
-## Crew-Reparatur: 1 Tag vergeht, Ergebnis oben im Dialog
-func _fix_button(text: String, ok: bool, target: String) -> Button:
-	var b := UiTheme.button(text, "1 Tag, 1 Material, Reparaturprobe (mittel)")
+## Gewählte Figur für die nächste Crew-Reparatur; ohne Wahl (oder beschäftigt) der Vorschlag ShipArms.default_fixer
+func _fixer_char() -> Character:
+	for c in ShipArms.fixers(game):
+		if String(c.id) == _fixer:
+			return c
+	var d := ShipArms.default_fixer(game)
+	_fixer = String(d.id) if d else ""
+	return d
+
+
+## Auswahl, wer repariert (Reparatur-Wert; Beschäftigte mit ihrer Arbeit, nicht wählbar)
+func _fixer_row() -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.add_child(UiTheme.label("Repariert:", 15))
+	var pick := OptionButton.new()
+	pick.custom_minimum_size = Vector2(520, 34)
+	var ids: Array[String] = []
+	for c in ShipArms.fixers(game):
+		var job := Crafting.job_of(game, c)
+		ids.append(String(c.id))
+		pick.add_item("%s (Reparatur %s)%s%s" % [c.name, Dice.fmt(Rules.skill_total(c, ShipArms.SKILL)), " · Technik" if c.station == "Technik" else "",
+			"" if job.is_empty() else " – " + Crafting.job_text(job)])
+		pick.set_item_disabled(ids.size() - 1, not job.is_empty())
+	var cur := _fixer_char()
+	pick.select(ids.find(String(cur.id)) if cur else -1)
+	pick.item_selected.connect(func(i: int) -> void:
+		_fixer = ids[i]
+		_render())
+	row.add_child(pick)
+	if ids.is_empty():
+		row.add_child(UiTheme.label("niemand verfügbar", 14, UiTheme.MUTED))
+	return row
+
+
+## Laufende Reparaturen (Arbeiten der Art „Schiff“)
+func _running_repairs() -> void:
+	var lines := []
+	for id in game.jobs:
+		var j: Dictionary = game.jobs[id]
+		if String(j.kind) == ShipArms.FIX_KIND:
+			lines.append("%s %s" % [j.get("name", "?"), Crafting.job_text(j)])
+	if not lines.is_empty():
+		var l := UiTheme.label("In Arbeit: " + " · ".join(lines), 14, UiTheme.ACCENT)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		content.add_child(l)
+
+
+## Crew-Reparatur als Arbeit beginnen (gewählte Figur); läuft das Ziel schon, steht dort, wer daran arbeitet
+func _fix_button(bonus: String, target: String) -> Control:
+	var job := ShipArms.fix_job(game, target)
+	if not job.is_empty():
+		return UiTheme.label("in Arbeit: %s" % job.get("name", "?"), 14, UiTheme.ACCENT)
+	var who := _fixer_char()
+	var b := UiTheme.button("Reparieren lassen (%s)" % bonus, "Arbeit: 1 Material sofort, fertig nach 1 Spieltag, Probe Reparatur (mittel) am Ende")
 	b.add_theme_color_override("font_color", UiTheme.ACCENT)
-	b.disabled = not ok
+	b.disabled = not ShipArms.can_start_fix(game, who, target)
 	b.pressed.connect(func() -> void:
-		var r := game.ship_fix(target)
-		if r.is_empty():
-			return
-		_last = "%s: %s, Reparatur %s %s = %d → %s · %s · 1 Material · +%d EP" % [r.what, r.name, Dice.format_roll(r.roll),
-			Dice.fmt(r.bonus), r.total, r.result_name, _change_text(target, r), r.xp]
-		day_passed.emit()
-		_again())
+		if ShipArms.start_fix(game, who, target):
+			_fixer = ""
+			_again())
 	return b
-
-
-func _change_text(target: String, r: Dictionary) -> String:
-	if int(r.before) == int(r.after):
-		return "keine Änderung"
-	if ShipArms.SYSTEMS.has(target) or not (target.begins_with("slot:") or "|" in target):
-		return "%s → %s" % [ShipArms.stage_text(int(r.before)), ShipArms.stage_text(int(r.after))]
-	return "%s → %s" % [Stock.damage_text(int(r.before)).strip_edges(), "heil" if int(r.after) == 0 else Stock.damage_text(int(r.after)).strip_edges()]
 
 
 # ---------------------------------------------------------------- Hilfen

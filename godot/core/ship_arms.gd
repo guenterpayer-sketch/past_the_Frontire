@@ -352,10 +352,6 @@ static func repairer(g: HubState) -> Character:
 	return Voyage.repairer(g)
 
 
-static func can_crew_fix_system(g: HubState, sys: String) -> bool:
-	return stage(g, sys) > 0 and g.material >= CREW_MATERIAL and repairer(g) != null
-
-
 ## Wo eine beschädigte Waffe liegt: "slot:<Slot-ID>" oder ein Lagerschlüssel mit Schaden
 static func weapon_damage(g: HubState, where: String) -> int:
 	if where.begins_with("slot:"):
@@ -363,40 +359,106 @@ static func weapon_damage(g: HubState, where: String) -> int:
 	return Stock.damage_of(where) if stock_count(g, where) > 0 else 0
 
 
-static func can_crew_fix_weapon(g: HubState, where: String) -> bool:
-	return weapon_damage(g, where) < 0 and g.material >= CREW_MATERIAL and repairer(g) != null
+# ---------------------------------------------------------------- Crew-Reparatur als Arbeit (wie Handwerk)
+## Entscheidungen des Nutzers 18.10.2026: Arbeit in HubState.jobs {Figur-ID: {kind "ship", key = Ziel, days 1,
+## material 1, name}}, eine Arbeit je Figur (gemeinsam mit Crafting), Figur frei wählbar, Probe und Wirkung am Ende
+## (Crafting.work_day beim Warten/Reisen). Ziel: System-ID, "slot:<Slot-ID>" oder Schiffslager-Schlüssel (das Stück
+## liegt während der Arbeit in der Werkstatt). Abbruch (Figur nicht mehr an Bord): Material und Stück zurück.
+
+const FIX_KIND := "ship"
+const FIX_DAYS := 1
 
 
-## Crew-Reparatur eines Systems: 1 Material, Probe; der Tag vergeht im HubState (ship_fix). Leer = nicht möglich.
-static func crew_fix_system(g: HubState, sys: String) -> Dictionary:
-	if not can_crew_fix_system(g, sys):
-		return {}
-	var r := _roll(g)
-	r.before = stage(g, sys)
-	set_stage(g, sys, r.before + int(CREW_STAGES[r.result]))
-	r.after = stage(g, sys)
-	r.what = system_name(sys)
-	return r
+## Anzeigename eines Reparaturziels
+static func fix_label(target: String) -> String:
+	if target.begins_with("slot:"):
+		return "Waffe im Slot " + String(SLOT_NAMES.get(target.trim_prefix("slot:"), target))
+	if SYSTEMS.has(target) or target.begins_with("slot_") or target.begins_with("station_"):
+		return system_name(target)
+	return label(target)
 
 
-## Crew-Reparatur einer Waffe (Slot oder Lager): je Stufe 10 Punkte Schaden, nicht über −30
-static func crew_fix_weapon(g: HubState, where: String) -> Dictionary:
-	if not can_crew_fix_weapon(g, where):
-		return {}
-	var r := _roll(g)
-	var d0 := weapon_damage(g, where)
-	var d1 := clampi(d0 + int(CREW_STAGES[r.result]) * Combatant.WEAR_STEP, Combatant.WEAR_BROKEN, 0)
-	_set_weapon_damage(g, where, d1)
-	r.before = d0
-	r.after = d1
-	r.what = label(Stock.damaged_key(_weapon_key(g, where), d1))
-	return r
+static func _is_system(target: String) -> bool:
+	return not target.begins_with("slot:") and (SYSTEMS.has(target) or target.begins_with("slot_") or target.begins_with("station_"))
 
 
-static func _roll(g: HubState) -> Dictionary:
-	var r := Voyage.check(repairer(g), SKILL, Galley.malus(g))
+## Laufende Reparatur an diesem Ziel (Figur-ID → Arbeit) oder {}
+static func fix_job(g: HubState, target: String) -> Dictionary:
+	for id in g.jobs:
+		var j: Dictionary = g.jobs[id]
+		if String(j.kind) == FIX_KIND and String(j.key) == target:
+			return j
+	return {}
+
+
+## Wer reparieren kann: Crew an Bord, nicht gesperrt (verwundet)
+static func fixers(g: HubState) -> Array[Character]:
+	var out: Array[Character] = []
+	for c in Campaign.crew():
+		if not c.is_locked():
+			out.append(c)
+	return out
+
+
+## Vorschlag: Station Technik, sonst die Beste in Reparatur – jeweils unter den Freien (ohne Arbeit)
+static func default_fixer(g: HubState) -> Character:
+	var free := fixers(g).filter(func(c: Character) -> bool: return not Crafting.is_busy(g, c))
+	for c in free:
+		if c.station == "Technik":
+			return c
+	var best: Character = null
+	for c in free:
+		if best == null or Rules.skill_total(c, SKILL) > Rules.skill_total(best, SKILL):
+			best = c
+	return best
+
+
+static func can_start_fix(g: HubState, c: Character, target: String) -> bool:
+	if c == null or c.is_locked() or Crafting.is_busy(g, c) or not fix_job(g, target).is_empty() or g.material < CREW_MATERIAL:
+		return false
+	return stage(g, target) > 0 if _is_system(target) else weapon_damage(g, target) < 0
+
+
+## Reparatur beginnen: 1 Material sofort, ein Stück aus dem Schiffslager kommt in die Werkstatt
+static func start_fix(g: HubState, c: Character, target: String) -> bool:
+	if not can_start_fix(g, c, target):
+		return false
 	g.material -= CREW_MATERIAL
-	return r
+	if not _is_system(target) and not target.begins_with("slot:"):
+		stock_take(g, target)
+	g.jobs[String(c.id)] = {"kind": FIX_KIND, "key": target, "days": FIX_DAYS, "material": CREW_MATERIAL, "name": c.name}
+	return true
+
+
+## Ende der Arbeit (aus Crafting.work_day): Probe Reparatur (mittel), Wirkung je Ergebnis. Eintrag {text, result, name,
+## skill, xp, label} wie Werkstatt-Meldungen; c == null: abgebrochen, Material und Stück zurück
+static func finish_fix(g: HubState, c: Character, job: Dictionary) -> Dictionary:
+	var target := String(job.key)
+	var stock_piece := not _is_system(target) and not target.begins_with("slot:")
+	if c == null:
+		g.material += int(job.get("material", 0))
+		if stock_piece:
+			stock_add(g, target)
+		return {"text": "%s: Reparatur %s abgebrochen (nicht mehr an Bord), Material zurück" % [job.get("name", "?"), fix_label(target)],
+			"result": "", "name": String(job.get("name", "?")), "skill": "", "xp": 0, "label": "Reparatur"}
+	var r := Voyage.check(c, SKILL, Galley.malus(g))
+	var steps := int(CREW_STAGES[r.result])
+	var change := ""
+	if _is_system(target):
+		var s0 := stage(g, target)
+		set_stage(g, target, s0 + steps)
+		change = "%s → %s" % [stage_text(s0), stage_text(stage(g, target))]
+	else:
+		var d0 := Stock.damage_of(target) if stock_piece else weapon_damage(g, target)
+		var d1 := clampi(d0 + steps * Combatant.WEAR_STEP, Combatant.WEAR_BROKEN, 0)
+		var base := Stock.base_of(target) if stock_piece else slot_key(g, target.trim_prefix("slot:"))
+		if stock_piece:
+			stock_add(g, Stock.damaged_key(base, d1))
+		elif base != "":
+			g.ship_slots[target.trim_prefix("slot:")].damage = d1
+		change = "%s → %s" % [label(Stock.damaged_key(base, d0)), "heil" if d1 == 0 else Stock.damage_text(d1).strip_edges()]
+	return {"text": "%s repariert %s: %s (%d) → %s" % [c.name, fix_label(target), r.result_name, int(r.total), change],
+		"result": String(r.result), "name": c.name, "skill": String(SKILL), "xp": int(r.xp), "label": "Reparatur"}
 
 
 static func _weapon_key(g: HubState, where: String) -> String:

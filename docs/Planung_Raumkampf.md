@@ -21,7 +21,7 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 | Entern in V1 | Übergang in den Bodenkampf mit der **Lagerhalle als Platzhalter**; Karte „Schiffsinneres“ als späterer Auftrag an das Bodenkampf-Modul. |
 | Schaden danach | **Hüllenschaden geht auf `HubState.hull`**, **Systemschäden bleiben** bis zur Reparatur. |
 | Crew-Verletzung | **Ja**, über den Kritischen „Crew-Station“ (Verwundung wie am Boden, `core/injury.gd`). |
-| Ausbau | **Mischung**: Schiffswaffen in **Slots** (konkrete Waffen), **Schilde und Panzerung als Ausbau-Stufen**. |
+| Ausbau | **Mischung**: Schiffswaffen in **Slots** (konkrete Waffen), **Schilde und Schiffspanzerung als Ausbau-Stufen**. |
 | Munition | **Eigene Schiffsmunition**, getrennt vom Bodenvorrat `HubState.ammo`. |
 | Beute bei Sieg | **Credits, Schiffsmaterial, Schiffsmunition, Schiffswaffen** (ggf. beschädigt, ins Lager). |
 | Umfang V1 bei Ausbau/Handel | **Alles in V1**: Slots, Kauf im Hafen, Beute ins Lager, Munitionskauf. |
@@ -80,17 +80,39 @@ Kennzeichnung: **Entscheidung** = vom Nutzer gewählt. **Vorschlag** = von Claud
 - **Gegner** (`data/ships/schiffe/`): Besatzung Jäger 20, Drohne 15, Korvette 25, Fregatte 20, Kreuzer 20 (vorher 35/30/35/45/50); Korvette Hülle 70, Fregatte Hülle 80 / Schild 10 / Aufladung 3 / Panzerung 1, Kreuzer Hülle 100 / Schild 14 / Aufladung 4 / Panzerung 2 mit 3 statt 4 Waffen.
 - **Aufstellungen:** schwer = Fregatte + 1 Jäger, Kreuzer, oder 2 Korvetten; Drohnen mittel 5 Drohnen, schwer Fregatte + 2 Drohnen.
 - **Waffenpreise** (`ShipWeapons`, ≈ 415 Cr je Schadenspunkt pro Runde, Laserbank = 900): Laserbank 900, Partikelkanone 1350 (vorher 1800), Massebeschleuniger 1050 (1200), Schnellfeuerkanone 1300 (1100), Raketenwerfer 2150 (1300), Raketenbatterie 2100 (2200), Abwehrgeschütz 1150 (800), Abwehrlaser 1150 (1000). Raketenwaffen sind mit genug Munition die stärksten, verbrauchen aber Raketen (60 Cr je Stück).
-- **Unverändert:** eigenes Schiff (`SpaceSetup`: Schilde, Panzerung, Reaktor, Startmunition 6/40), Ausbaustufen und ihre Zahl, Bord-KI +0. Eine höhere Startmunition (8/60) wurde gemessen, bringt aber nur wenige Prozent und würde `test_hub` (Hub-Datei) brechen – darum nicht übernommen.
+- **Unverändert:** eigenes Schiff (`SpaceSetup`: Schilde, Schiffspanzerung, Reaktor, Startmunition 6/40), Ausbaustufen und ihre Zahl, Bord-KI +0. Eine höhere Startmunition (8/60) wurde gemessen, bringt aber nur wenige Prozent und würde `test_hub` (Hub-Datei) brechen – darum nicht übernommen.
 - **Gegnervorlagen** liegen jetzt als Ressourcen in `data/ships/schiffe/*.tres` (`ShipTemplateData`) und `data/ships/seiten/*.tres` (`SpaceFactionData`, Aufstellungen je Zeile „korvette,jaeger“), im Editor bearbeitbar.
 
 **Offen:** Ausbaustufen (halb/voll) sind nicht gemessen (Entscheidung: nur Startschiff); Menschen spielen vermutlich besser als die Crew-KI, die Quoten sind also eher untere Werte (Annahme, nicht gemessen).
+
+## 1d. EP im Raumkampf begrenzt (Auftrag 4, 18.10.2026)
+
+Befund: Schützen bekamen EP je Schuss (bis ~30 je Kampf). **Entscheidungen des Nutzers:** Schützen +1 je Runde mit Schuss/Abfangen, +1 bei Treffer; **höchstens 2 EP je Station und Runde für alle Stationen**; Navigation würfelt jede Runde eine Initiative-Probe (mittel, Erfolg +2/Herausragend +4 Initiative); Doppelbesetzung: EP je Station; **keine** Obergrenze je Kampf.
+
+Messung `tests/sim_space.gd -- 60 ep` (Startcrew, 3 Aufstellungen × 3 Schwierigkeiten × 60 Kämpfe; nur von Crew besetzte Stationen; Ø 7–11 Runden je Kampf):
+
+| Station | vorher Ø je Kampf | vorher höchstens | vorher je Runde | nachher Ø je Kampf | nachher höchstens | nachher je Runde |
+|---|---|---|---|---|---|---|
+| Steuer | 9,8 | 73 | 1,30 | 10,0 | 75 | 1,30 |
+| Navigation | 0,3 | 5 | 0,05 | 8,4 | 54 | 1,40 |
+| Schilde | 9,0 | 63 | 1,18 | 9,1 | 61 | 1,19 |
+| Technik | 6,6 | 62 | 0,81 | 5,9 | 55 | 0,71 |
+| Technik 2 | 2,8 | 13 | 0,46 | 3,1 | 32 | 0,51 |
+| Technik 3 | 2,4 | 11 | 0,39 | 2,4 | 11 | 0,40 |
+| Computer | 7,1 | 48 | 0,88 | 7,2 | 49 | 0,87 |
+| Geschütz Bug | 3,5 | 13 | 0,53 | 3,1 | 10 | 0,48 |
+| Geschütz Backbord | 3,9 | 24 | 0,47 | 4,1 | 23 | 0,48 |
+| Geschütz Steuerbord | 4,5 | 10 | 0,70 | 4,3 | 9 | 0,67 |
+| Punktverteidigung Turm | 12,3 | 35 | 1,89 | 6,7 | 20 | 1,04 |
+
+Lesart: Alle Stationen liegen jetzt bei höchstens 2 EP je Runde, also höchstens etwa 16–22 EP in einem Kampf von 8–11 Runden. Die Höchstwerte über 40 stammen aus sehr langen Kämpfen (bis 40 Runden, keine Obergrenze je Kampf gewünscht). Die Schützen liegen in der Simulation niedriger als im Spieltest des Nutzers, weil die Crew-KI die Seitengeschütze seltener in den Bogen bringt (Annahme; ein Mensch, der jede Runde feuert und trifft, kommt auf 2 EP je Runde). Siegquoten nach der Änderung unverändert im Ziel (91 / 67 / 47 %).
 
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
 - **Phasen im Detail:** 0 Initiative (Navigation) → 1 Schilde (Schutzschild) → 2 Bewegen (Pilot; gegnerische Jäger ziehen hier ebenfalls) → 3 Schießen (Geschützstationen, Punktverteidigung) → 4 Technik/Computer (Not-Reparatur, Panzerung, Zielerfassung/Störsender wirken ab der nächsten Runde).
 - **Slots des Startschiffs:** 2 Bug, 1 je Seite, 1 Turm (Punktverteidigung). Startbewaffnung: 2× Laserbank (Strahl), 1× Massebeschleuniger (Ballistik), 1× Raketenwerfer, 1× Abwehrgeschütz.
-- **Neue Ausbau-Bereiche:** „Schilde“ (Schildpunkte je Seite) und „Panzerung“ (Abzug je Treffer), je Stufe 0–3 wie die übrigen Bereiche in `ShipUpgrades`.
+- **Neue Ausbau-Bereiche:** „Schilde“ (Schildpunkte je Seite) und „Schiffspanzerung“ (Abzug je Treffer; bis 18.10.2026 „Panzerung“), je Stufe 0–3 wie die übrigen Bereiche in `ShipUpgrades`.
 - **Schiffsmunition:** Arten „Schiffsraketen“ und „Geschosse (Schiff)“; Strahlwaffen ohne Munition (verbrauchen nichts, evtl. später Energie).
 - **Systemschäden:** Antrieb, Waffen-Slot, Schilde, Sensoren, Lebenserhaltung, Station. Reparatur im Hub mit Schiffsmaterial und Probe `rsReparatur` (wie Crew-Ausbau) oder in der Werft gegen Credits.
 - **Flucht:** Navigation bereitet den Sprung vor (2 Runden, Probe mittel), kostet Treibstoff; bei Erfolg Ende ohne Beute, Auftrag bleibt offen (wie `retreated` am Boden).
