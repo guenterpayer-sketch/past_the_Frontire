@@ -77,7 +77,9 @@ Alle Felder von `MissionResult` (`outcome`, `retreated`, `mission`, `rounds`, `r
 {"space": true,
  "retreated": true bei Flucht per Sprung (outcome "niederlage", keine Beute, Auftrag bleibt offen),
  "surrendered": bool, "ransom": {"credits": int, "ship_ammo": {Art: int}},   # bezahlt bei Kapitulation
- "boarding": bool, "boarding_faction": Fraktions-ID,     # Niederlage gegen enternde Gegner → Hub startet Bodenkampf
+ "boarding": bool, "boarding_faction": Fraktions-ID,     # Gegner entern (ab eigener Hülle < 25 % oder bei 0) → Hub startet Bodenkampf
+                                                         # (neu 18.10.2026: dann auch board_ship = Enterschiff und board_loot = dessen Beute,
+                                                         #  vom Hub zu buchen, wenn die Crew das Entern abwehrt)
  "emergency": bool,                                      # Niederlage gegen abziehende Gegner → Notfall-Regel des Hubs
  "ship": {"hull": int,                                   # neuer Stand (0 bei Niederlage möglich)
           "damage": {System-ID: "A"–"E"},                # neuer Gesamtstand der Systemschäden
@@ -96,6 +98,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 
 - (17.10.2026) Auftrag 3: Zahlen per Simulation abgestimmt (`tests/sim_space.gd`, Ergebnisse und Änderungen in `docs/Planung_Raumkampf.md` 1c): Siege 87–91 / 67–70 / 47–49 %, 8–11 Runden. Crew-KI zielt mit der Bewegung auf Schussfeld, Trefferschwellen −25, Schaden ×0,9, Gegner schwächer besetzt, Aufstellungen schwer angepasst, **Waffenpreise geändert** (`ShipWeapons.price`), Gegnervorlagen als Ressourcen in `data/ships/`. Schnittstelle und Ausbaustufen unverändert.
 - (18.10.2026) Auftrag 4: EP im Raumkampf je Station und Runde höchstens 2; Schützen je Runde (+1 gefeuert/abgefangen, +1 Treffer) statt je Schuss; Navigation würfelt jede Runde die Initiative; Messung vorher/nachher in `docs/Planung_Raumkampf.md` 1d (`tests/sim_space.gd -- ep`), Regel in `docs/Raumkampf.md` 5 und `docs/Skillsystem.md` 8. Schnittstelle unverändert.
+- (18.10.2026) Auftrag 5: Entern neu (Entscheidungen des Nutzers, `docs/Raumkampf.md` 4c, Messung `docs/Planung_Raumkampf.md` 1e): Wracks statt Zerstörung bei Schiffen, selbst entern bei Antrieb E / Hülle < 25 % / Wrack in jeder Entfernung mit Pilotenprobe (Frage „Entern ja/nein“), Gegner entern ab eigener Hülle < 25 % mit Anflug. **Für den Hub:** `boarding` kommt jetzt oft vor Hülle 0 (eigene Hülle 1–24 %); bei `boarding` liegen neu `board_ship` und `board_loot` (Enterschiff) im Ergebnis – bei abgewehrtem Entern soll der Raumkampf als gewonnen gelten und `board_loot` gebucht werden (Wunsch des Nutzers). Sonst Schnittstelle unverändert.
 - Bis 16.10.2026 alles in `main` (`f0334fd`, mit dem Hub): Regelkern `core/space_*.gd` (Phasen Schilde → Bewegen → Schießen → Technik/Computer, Bord-KI +0, Doppelbesetzung −30, Energie, Schilde je Seite, Systemschäden A–E, Flucht, Kapitulation, Entern durch Gegner/selbst), Szene `space.tscn` (F6 = Schnellkampf), bis 3 Techniker, Umbesetzen zu Rundenbeginn (−10), Schieberegler je Schildseite, Test `tests/test_space.gd`, Selbsttest `-- --autotest-space`. Entscheidungen: `docs/Planung_Raumkampf.md` 1a/1b.
 - Offen: eigene Jäger erst V2. Neu abstimmen mit `tests/sim_space.gd`, wenn sich Regeln ändern.
 - Neue Fertigmeldungen hier kurz eintragen. Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.

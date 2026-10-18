@@ -54,7 +54,17 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 
 - Sieg: Beute aus Credits, Schiffsmaterial, Schiffsmunition, Schiffswaffen.
 - **Flucht per Sprung** (Navigation bereitet vor, kostet Treibstoff), **Kapitulation/Lösegeld** (nur bei passenden Gegnern).
-- Niederlage **je nach Gegner**: **Entern** (Übergang in den Bodenkampf; vorerst Lagerhalle als Platzhalter) oder **Notfall** wie bei Hülle 0 auf der Reise.
+- Niederlage **je nach Gegner**: **Entern** (Übergang in den Bodenkampf an Bord) oder **Notfall** wie bei Hülle 0 auf der Reise.
+
+## 4c. Entern (Entscheidungen des Nutzers 18.10.2026)
+
+Grundidee: Schiffe sind kostbar und werden nicht bis zum Letzten zerstört; eine Niederlage ist nicht endgültig – ein gewonnener Enterkampf wendet das Blatt (für beide Seiten).
+- **Wrack:** Ein Schiff mit Besatzung bei Hülle 0 wird nicht zerstört, sondern zum Wrack (manövrierunfähig, kämpft nicht mehr, bleibt enterbar). Jäger und Drohnen werden weiter zerstört.
+- **Selbst entern:** möglich, wenn ein Gegnerschiff **Antrieb E**, **Hülle unter 25 %** oder **Wrack** ist und **kein anderes Gegnerschiff mehr kämpft** (Jäger dürfen übrig sein und ziehen beim Entern ab). Die Entfernung ist egal. Das Spiel fragt „Entern ja/nein“.
+- **Pilotenprobe zum Andocken** (Station Steuer, ein Versuch je Runde): Nachbarfeld leicht, 2–3 Felder mittel, 4–6 schwer, 7+ sehr schwer; **+20**, wenn das Ziel Antrieb E hat oder ein Wrack ist. Erfolg = angedockt, der Raumkampf endet, es folgt ein Bodenkampf an Bord des Gegners. Fehlschlag = der Kampf geht weiter. **Patzer = Kollision** (beide Schiffe 2W6 Hülle).
+- Kämpft kein Gegner mehr und nur Wracks/angeschlagene Schiffe sind übrig, wartet der Kampf auf die Entscheidung: „Nein“ = Sieg ohne Entern; nach 3 Fehlversuchen endet er als Sieg.
+- **Gegner entern früher:** Seiten mit `on_win = "entern"` versuchen anzulegen, sobald die Frontire **Hülle unter 25 %** oder **Antrieb E** hat: das Schiff fliegt heran und würfelt dieselbe Probe mit dem Bonus seiner Besatzung (statt seiner Bewegung, ein Versuch je Runde). Gelingt sie, folgt der Bodenkampf an Bord der Frontire. Bei Hülle 0 entern sie wie bisher.
+- **Blatt wenden:** Gewinnt die Crew den Bodenkampf, gilt der Raumkampf als gewonnen – beim eigenen Entern mit der Beute an Bord, beim abgewehrten Entern mit der Beute des Enterschiffs (`board_loot`, bucht der Hub).
 
 ## 5. Erfahrung
 

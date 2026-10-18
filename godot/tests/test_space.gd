@@ -133,7 +133,8 @@ func _test_hit() -> void:
 	e.shields = [0, 0, 0, 0, 0, 0]
 	e.armor = 0
 	c._apply_hit(o, e, {"dmg": 5, "severity": ""})
-	check(e.destroyed and not e.is_active(), "Gegner zerstört")
+	check(not e.is_active() and (e.destroyed if e.is_fighter() else (e.wreck and e.is_present())),
+		"Hülle 0: Jäger zerstört, Schiff wird Wrack")
 
 
 func _test_systems() -> void:
@@ -285,39 +286,96 @@ func _test_tech() -> void:
 
 func _test_board() -> void:
 	var c := _combat(12, "piraten", "leicht")
-	var e: SpaceShip = null
 	for s in c.enemies():
-		if not s.is_fighter() and e == null:
-			e = s
-		elif s != e:
-			s.destroyed = true
-	if e == null:
-		e = SpaceTemplates.make("korvette", 0)
-		e.id = "gx"
-		c.ships.append(e)
-		for s in c.enemies():
-			if s != e:
-				s.destroyed = true
-	e.pos = c.own.pos + Hex.DIRS[0]
-	check(not c.can_board(e), "heile Schiffe nicht enterbar")
+		s.destroyed = true
+	var e := SpaceTemplates.make("korvette", 0)
+	e.id = "gx"
+	e.pos = c.own.pos + Hex.DIRS[0] * 5
+	c.ships.append(e)
+	check(c.boardable() == null, "heile Schiffe nicht enterbar")
 	e.hull = e.hull_max / 5
-	check(c.can_board(e), "Hülle unter 25 % und benachbart: enterbar")
-	e.pos = c.own.pos + Hex.DIRS[0] * 3
-	check(not c.can_board(e), "nicht benachbart")
+	check(c.can_board(e), "Hülle unter 25 %: enterbar, Entfernung egal")
+	check(SpaceCombat.board_difficulty(c.own.pos, e) == "schwer", "5 Felder: Pilotenprobe schwer")
 	e.pos = c.own.pos + Hex.DIRS[0]
+	check(SpaceCombat.board_difficulty(c.own.pos, e) == "leicht", "Nachbarfeld: leicht")
 	e.hull = e.hull_max
 	e.damage["antrieb"] = "E"
-	check(c.can_board(e), "Antrieb E: enterbar")
+	check(c.can_board(e) and SpaceCombat.board_mods(e).size() == 1, "Antrieb E: enterbar, +20")
 	var j := SpaceTemplates.make("jaeger", 1)
 	j.id = "gj"
 	j.pos = c.own.pos + Hex.DIRS[2] * 4
 	c.ships.append(j)
-	check(not c.can_board(e), "nur wenn kein anderer Gegner mehr kämpft")
+	check(c.can_board(e), "Jäger dürfen übrig sein")
 	check(not c.can_board(j), "Jäger nicht enterbar")
-	j.destroyed = true
-	check(c.board(e) and c.result == &"sieg", "Entern beendet den Raumkampf")
+	var k := SpaceTemplates.make("korvette", 2)
+	k.id = "gk"
+	k.pos = c.own.pos + Hex.DIRS[3] * 4
+	c.ships.append(k)
+	check(not c.can_board(e), "nicht, solange ein anderes Schiff kämpft")
+	k.hull = 0
+	k.wreck = true
+	check(c.can_board(e) and not k.is_active() and k.is_present(), "Wrack kämpft nicht, blockiert das Entern nicht")
+	check(not c.can_board(k), "Wrack nicht enterbar, solange ein anderes Schiff noch schießt")
+	# Versuch: ein je Runde; Erfolg beendet den Kampf
+	var tries := 0
+	while c.result == &"" and tries < 40:
+		c.board_tried_round = 0
+		c.round_no = tries + 1
+		c.board_fails = 0
+		c.board(e)
+		tries += 1
+	check(c.result == &"sieg" and c.boarded == e, "Andocken gelingt irgendwann, Raumkampf endet")
+	check(not c.can_board(k), "nach Ende kein weiterer Versuch")
 	var r := c.to_result()
 	check(r.board_enemy and r.board_faction == "piraten" and r.board_loot.has("credits"), "Entern im Ergebnis")
+	# ein Versuch je Runde
+	c = _combat(16, "piraten", "leicht")
+	for s in c.enemies():
+		s.wreck = true
+		s.hull = 0
+	c.board_tried_round = c.round_no
+	check(c.boardable() == null, "nur ein Enterversuch je Runde")
+	# nur noch Wracks: Kampf wartet auf die Entscheidung
+	c = _combat(17, "piraten", "leicht")
+	for s in c.enemies():
+		if s.is_fighter():
+			s.destroyed = true
+		else:
+			s.wreck = true
+			s.hull = 0
+	c._check_end()
+	if c.boardable() != null:
+		check(c.result == &"" and c.board_wait, "nur Wracks: Frage statt Kampfende")
+		c.decline_board()
+		check(c.result == &"sieg" and c.boarded == null, "Nein: Sieg ohne Entern")
+	# Kollision bei Patzer
+	c = _combat(18)
+	var t2: SpaceShip = c.active_enemies()[0]
+	var h1 := c.own.hull
+	var h2 := t2.hull
+	c._collide(c.own, t2)
+	check(c.own.hull < h1 and t2.hull < h2, "Kollision: beide nehmen Hüllenschaden")
+	# Gegner entern früher
+	c = _combat(19, "piraten", "mittel")
+	var g: SpaceShip = null
+	for s in c.active_enemies():
+		if not s.is_fighter():
+			g = s
+	if g:
+		check(not c.enemy_wants_board(g), "volle Hülle: Gegner entern nicht")
+		c.own.hull = c.own.hull_max / 5
+		check(c.enemy_wants_board(g), "Hülle < 25 %: Piraten wollen entern")
+		var n := 0
+		while c.result == &"" and n < 60:
+			c.enemy_board_round = 0
+			c.own.hull = c.own.hull_max / 5
+			c._enemy_board(g)
+			n += 1
+		check(c.result == &"niederlage" and c.boarding and c.to_result().board_loot.has("credits")
+			and c.to_result().board_ship == g.name, "Gegner legen an: Entern mit Beute des Enterschiffs (Abwehr)")
+	c = _combat(20, "militaer", "mittel")
+	c.own.hull = 1
+	check(c.active_enemies().all(func(s: SpaceShip) -> bool: return not c.enemy_wants_board(s)), "Militär entert nicht")
 
 
 func _test_preview() -> void:
