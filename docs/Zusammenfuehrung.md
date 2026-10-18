@@ -11,13 +11,14 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`7f95a11`), nichts offen |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`608be25`), nichts offen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`a9ef9fc`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 18.10.2026 | `83c5582` | Hub `claude/happy-lamport-u4fvya` (`a9ef9fc`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Hüllenreparatur als Arbeit im Maschinenraum (Knopf in der Sternenkarte entfällt, täglich bis voll, Pause an Reisetagen), schwer Verwundete arbeiten nicht (Arbeit pausiert), Händler ohne Überlauf. |
 | 18.10.2026 | `7381fd9` | Bodenkampf `claude/confident-edison-6mxzke` (`7f95a11`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Karteneditor (Draufsicht und 3D, eigene Karten im Spiel, je Karte an/aus, Pool-Chance 30 %). Änderungen in Hub-Dateien: `start_screen.gd` (Knopf), `test_hub.gd` (Testordner für eigene Karten), vermerkt. |
 | 18.10.2026 | `cabec57` | Bodenkampf `claude/confident-edison-6mxzke` (`16ac931`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Wände sperren Sicht und Druckwelle immer (`battle_map.gd`, `combat.gd`, Test in `test_rules`). |
 | 18.10.2026 | `e485e7d` | Bodenkampf `claude/confident-edison-6mxzke` (`e931e13`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Truppgröße: schwer bis 8 (`core/campaign.gd` minimal geändert, vermerkt), Budget schwer 88. |
