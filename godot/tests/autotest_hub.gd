@@ -508,6 +508,13 @@ func _run() -> void:
 	await _frames(5)
 	await _shot("h9c_bericht_rueckzug")
 	hub.ui.report.hide()
+	# Einsatzbericht: Entern abgewehrt in einer Blockade (Beispiel)
+	hub.ui.show_report({"outcome": &"sieg", "defend": true, "title": "Abwehr an Bord", "system": "Kessra IV", "faction": "Rote Sonne",
+		"rounds": 6, "reward_xp": 0, "free_xp": MissionResult.FREE_XP, "units": [], "day": g.day, "payout": {}, "medkits": 1, "next": "ground",
+		"board": "Korvette Ash", "board_loot": {"credits": 120, "material": 2, "ship_ammo": {"geschosse": 10}, "weapons": [{"key": "raketenwerfer", "damage": -10}]}})
+	await _frames(5)
+	await _shot("h9d_bericht_abwehr")
+	hub.ui.report.hide()
 	await _frames(2)
 	print("Beute übernommen: offen %s, Lager %s -> %s" % [g.loot_pending, stock0, g.stock])
 	hub.open_room(&"quarters")

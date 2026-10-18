@@ -142,3 +142,14 @@ Entscheidungen des Nutzers (18.10.2026):
 - **Alle Stationen prüfen** (Steuer/Pilot, Navigation, Schilde, Technik inkl. 2./3. Techniker, Computer): EP je Station und Kampf messen (z. B. mit `tests/sim_space.gd`) und auf ein ähnliches Maß angleichen; Ergebnis als Tabelle in der Fertigmeldung und in `docs/Planung_Raumkampf.md`.
 - Doppelbesetzung: Eine Figur an zwei Stationen bekommt je Station ihre EP (nicht zusammengelegt), es sei denn, die Messung zeigt, dass das zu viel ist – dann mit dem Nutzer klären.
 - Regeltext in `docs/Skillsystem.md` 8 (Abschnitt Raumkampf) bzw. `docs/Raumkampf.md` nachtragen. Schnittstelle unverändert.
+
+
+# Nachtrag Auftrag 5 (in `main` seit 18.10.2026, `c0e578c`)
+
+### Auftrag 5 (18.10.2026): Entern häufiger möglich machen – erst besprechen
+
+Meldung des Nutzers: Er hat noch nie selbst geentert und wurde noch nie geentert. Befund des Koordinators (Code gelesen, **nicht gemessen**):
+- Selbst entern (`SpaceCombat.can_board`): nur ein Gegner übrig (keine Jäger), kein Jäger, Nachbarfeld, Antrieb ausgefallen **oder** Hülle < 25 % (`BOARD_HULL`).
+- Fluchtgrenzen der Seiten (`data/ships/seiten/*.tres`, `flee_at`): Piraten 0,25 (= Entergrenze), Schmuggler 0,35 (darüber), Rote Sonne 0,2 → Entern über die Hülle bei diesen Seiten kaum möglich, praktisch nur über Antrieb E.
+- Geentert werden: nur bei eigener Hülle 0 gegen Seiten mit `on_win = "entern"`; bei Siegquoten 90/70/47 % selten.
+Vorgehen (Wunsch des Nutzers): **zuerst mit dem Nutzer die Möglichkeiten besprechen** (z. B. Entergrenze über die Fluchtgrenze heben, fliehende Schiffe eine Runde enterbar lassen, Entern auch mit verbliebenen Jägern, Entern als eigene Aktion mit Probe, Gegner entern schon bei niedriger Hülle statt erst bei 0), dazu messen (`tests/sim_space.gd`), wie oft Entern heute möglich ist und wie oft es nach jeder Variante wäre. Erst nach Entscheidung bauen. Schnittstelle (`boarding`, `board_*`) möglichst unverändert; sonst Hub über den Nutzer informieren.

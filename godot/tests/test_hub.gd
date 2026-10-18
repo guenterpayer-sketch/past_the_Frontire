@@ -1261,8 +1261,12 @@ func _test_ship_arms() -> void:
 	var m1 := g.material
 	var ga: int = g.ship_ammo.geschosse
 	var offers_before := g.offers.size()
-	Campaign.last_result = {"outcome": &"sieg"}
+	Campaign.last_result = {"outcome": &"sieg", "units": {"a": {}}, "loot": [{"key": "res://data/weapons/raketenwerfer.tres", "damage": -20},
+		{"key": Stock.MEDKIT, "count": 1}]}
+	g.loot_pending = {}
 	g.finish_mission({"outcome": &"sieg", "title": "Entern"})
+	check(g.report.medkits == 1 and g.loot_pending.items.size() == 1, "Entern gewonnen: Beuteauswahl aus dem Bodenkampf")
+	g.loot_pending = {}
 	check(g.credits == cr1 + 300 and g.material == m1 + 4 and g.ship_ammo.geschosse == ga + 20 and ShipArms.stock_count(g, "raketenbatterie|-20") == 1
 		and g.board_pending.is_empty() and g.report.board == "Korvette Ash" and g.report.payout.is_empty(), "Sieg: Beute des Schiffs verbucht, kein Lohn")
 	check(not HubState.in_mission() and g.offers.size() >= offers_before, "kein Einsatz mehr offen, Aufträge unberührt")
@@ -1441,11 +1445,70 @@ func _test_space_events() -> void:
 	check(g.report.defend and g.credits == 300 and g.stranded() and g.report.plunder.credits == 100, "Abwehr verloren: Notfall")
 	g.hull = 50
 	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "piraten", "difficulty": "mittel", "mission": "Test"}
+	brd.board_ship = "Enterschiff Y"
+	brd.board_loot = {"credits": 120, "material": 2, "ship_ammo": {"geschosse": 10}, "weapons": [{"key": "raketenwerfer", "damage": -10}]}
 	g.finish_space(brd)
+	check(g.space_report.next == "defend" and g.active.ship == "Enterschiff Y", "Enterschiff und Beute vorgemerkt")
 	cr = g.credits
+	var mt := g.material
+	var gs: int = g.ship_ammo.get("geschosse", 0)
+	var day0 := g.day
+	g.loot_pending = {}
+	Campaign.last_result = {"outcome": &"sieg", "units": {"a": {}}, "loot": [{"key": "res://data/weapons/raketenwerfer.tres", "damage": 0}]}
+	g.finish_mission({"outcome": &"sieg"})
+	check(g.report.defend and g.credits == cr + 120 and g.material == mt + 2 and g.ship_ammo.geschosse == gs + 10
+		and ShipArms.stock_count(g, "raketenwerfer|-10") >= 1 and not g.report.has("plunder") and g.report.board == "Enterschiff Y"
+		and g.loot_pending.items.size() == 1 and g.day == day0 + HubState.MISSION_DAYS, "Abwehr gewonnen: Beute des Enterschiffs, Beuteauswahl")
+	g.loot_pending = {}
+	# Abwehr im Abfang-Auftrag: gewonnen = Lohn, verloren = Auftrag weg
+	SpaceEvents.fixed_kind = "abfangen"
+	g.offers = []
+	g.refill_offers()
+	var dao: Dictionary = g.offers[0]
+	dao.system = g.position
+	dao.expires = g.day + 10
+	g.start_mission(dao)
+	g.begin_offer()
+	g.finish_space(brd)
+	check(not g.offer_by_id(dao.id).is_empty(), "Gegner entern: Auftrag noch offen bis zur Abwehr")
+	cr = g.credits
+	var done1 := g.missions_done
 	Campaign.last_result = {"outcome": &"sieg"}
 	g.finish_mission({"outcome": &"sieg"})
-	check(g.report.defend and g.credits == cr and not g.report.has("plunder"), "Abwehr gewonnen: nichts geplündert")
+	check(g.offer_by_id(dao.id).is_empty() and g.credits == cr + 120 + SpaceEvents.offer_pay(g, dao) and g.missions_done == done1 + 1
+		and int(g.report.pay) == SpaceEvents.offer_pay(g, dao), "Abwehr im Abfangen gewonnen: Lohn wie im Raumkampf")
+	g.refill_offers()
+	var dao2: Dictionary = g.offers[0]
+	dao2.system = g.position
+	dao2.expires = g.day + 10
+	g.start_mission(dao2)
+	g.begin_offer()
+	g.finish_space(brd)
+	g.hull = 50
+	Campaign.last_result = {"outcome": &"niederlage"}
+	g.finish_mission({"outcome": &"niederlage"})
+	check(g.offer_by_id(dao2.id).is_empty() and g.report.has("plunder"), "Abwehr im Abfangen verloren: Auftrag weg, Notfall")
+	g.hull = 50
+	g.travel_rest = {}
+	# Abwehr in der Blockade gewonnen: Bodeneinsatz folgt gleich (Truppwahl), keine Zeit vergeht
+	SpaceEvents.fixed_kind = "blockade"
+	g.offers = []
+	g.refill_offers()
+	var dbo: Dictionary = g.offers[0]
+	dbo.system = g.position
+	dbo.expires = g.day
+	g.start_mission(dbo)
+	g.begin_offer()
+	g.finish_space(brd)
+	day0 = g.day
+	Campaign.last_result = {"outcome": &"sieg"}
+	g.finish_mission({"outcome": &"sieg"})
+	var hb2 := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(g.report.next == "ground" and g.day == day0 and g.pending_offer == dbo.id and hb2.offer_by_id(dbo.id).get("blockade_done", false),
+		"Abwehr in der Blockade gewonnen: Bodeneinsatz vorgemerkt")
+	check(g.begin_offer() == "ground" and g.active.id == dbo.id, "Bodeneinsatz ohne neue Blockade")
+	g.active = {}
+	Campaign.last_result = {}
 	# selbst entern über die Auswertung
 	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "schmuggler", "difficulty": "leicht", "mission": "Test"}
 	var be := res.duplicate(true)
@@ -1467,7 +1530,12 @@ func _test_space_events() -> void:
 	check(g.begin_offer() == "escort" and g.contact.forced and g.dodge_contact().is_empty(), "Eskorte: sicherer Kontakt, kein Ausweichen")
 	g.fight_contact()
 	check(g.space_ctx.kind == "eskorte" and g.space_setup().source == "auftrag", "Eskorte: Raumkampf")
-	g.finish_space(res)
+	# Gegner entern, die Crew wehrt sie ab: zählt wie ein gewonnener Raumkampf
+	check(g.finish_space(brd) == "defend" and not g.travel_rest.won, "Eskorte: Gegner entern")
+	g.loot_pending = {}
+	Campaign.last_result = {"outcome": &"sieg"}
+	g.finish_mission({"outcome": &"sieg"})
+	check(g.travel_rest.won and not g.offer_by_id(es.id).is_empty(), "Eskorte: Abwehr gewonnen = Kampf gewonnen")
 	cr = g.credits
 	SpaceEvents.fixed_contact = -2
 	g.resume_travel()

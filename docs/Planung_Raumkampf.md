@@ -107,6 +107,14 @@ Messung `tests/sim_space.gd -- 60 ep` (Startcrew, 3 Aufstellungen × 3 Schwierig
 
 Lesart: Alle Stationen liegen jetzt bei höchstens 2 EP je Runde, also höchstens etwa 16–22 EP in einem Kampf von 8–11 Runden. Die Höchstwerte über 40 stammen aus sehr langen Kämpfen (bis 40 Runden, keine Obergrenze je Kampf gewünscht). Die Schützen liegen in der Simulation niedriger als im Spieltest des Nutzers, weil die Crew-KI die Seitengeschütze seltener in den Bogen bringt (Annahme; ein Mensch, der jede Runde feuert und trifft, kommt auf 2 EP je Runde). Siegquoten nach der Änderung unverändert im Ziel (91 / 67 / 47 %).
 
+## 1e. Entern (Auftrag 5, 18.10.2026)
+
+Meldung des Nutzers: nie selbst geentert, nie geentert worden. **Messung vorher** (`tests/sim_space.gd`-Umgebung, 3 × 150 Kämpfe, Entern-Bedingung nach jeder Phase geprüft): selbst entern möglich in **1 / 0 / 1 %** der Kämpfe (leicht/mittel/schwer) – Hauptgrund: Nachbarfeld nötig, die Gegner halten ~4 Felder Abstand; geentert werden bei **9 / 41 / 58 %** der Kämpfe gegen enternde Seiten (jede Niederlage dort). Varianten gemessen: Grenze 40/50 % kaum Wirkung, 2 Felder Reichweite +5–7 Punkte, Kombinationen 11–20 %, „einholbar“ (≤ 5 Felder) 37–59 %.
+
+**Entscheidungen des Nutzers** (Grundidee: Schiffe sind kostbar, Niederlage nicht endgültig): Wrack statt Zerstörung; selbst entern bei Antrieb E / Hülle < 25 % / Wrack, Entfernung egal, Pilotenprobe nach Entfernung (+20 bei hilflosem Ziel), Frage „Entern ja/nein“, nur wenn kein anderes Schiff mehr kämpft (Jäger ziehen ab); Patzer = Kollision; Gegner entern früher mit Anflug (ab eigener Hülle < 25 %); gewonnener Enterkampf = Raumkampf gewonnen (beide Richtungen). Regeln: `docs/Raumkampf.md` 4c.
+
+**Messung nachher:** selbst entern möglich in **35 / 49 / 49 %** der Kämpfe (davon erst als Wrack 9 / 18 / 13 %); Gegner können entern in **13 / 47 / 68 %** der Kämpfe gegen enternde Seiten. In der Simulation (Crew-KI entert immer, wenn möglich) endeten **30–34 / 62–65 / 79–83 %** der Siege mit Andocken; Siegquoten 91 / 67–78 / 47–55 % – dabei zählt ein gelungenes Andocken als Sieg, der Bodenkampf an Bord ist nicht mitgerechnet.
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).

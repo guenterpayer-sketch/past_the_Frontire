@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqod0s5rvy28x"
 path.s3tc="res://.godot/imported/colormap.png-80b4a81a5eb14aa8d7de3c077500a6e8.s3tc.ctex"
+path.etc2="res://.godot/imported/colormap.png-80b4a81a5eb14aa8d7de3c077500a6e8.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/weapons/blaster/Textures/colormap.png"
-dest_files=["res://.godot/imported/colormap.png-80b4a81a5eb14aa8d7de3c077500a6e8.s3tc.ctex"]
+dest_files=["res://.godot/imported/colormap.png-80b4a81a5eb14aa8d7de3c077500a6e8.s3tc.ctex", "res://.godot/imported/colormap.png-80b4a81a5eb14aa8d7de3c077500a6e8.etc2.ctex"]
 
 [params]
 

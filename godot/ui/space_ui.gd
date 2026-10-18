@@ -27,6 +27,9 @@ var _exec: Button
 var _auto: Button
 var _surrender: Button
 var _board: Button
+var _board_q: Modal
+var _asked := {}
+var _asked_wait := false
 var _posts: Button
 var _defaults := {}
 var _w := {}                      # Bedienelemente der laufenden Phase
@@ -204,9 +207,47 @@ func refresh() -> void:
 	var b := combat.boardable()
 	_board.visible = b != null
 	if b:
-		_board.text = "Entern: %s (Raumkampf endet, Bodenkampf folgt)" % b.name
+		_board.text = "Entern: %s" % combat.board_text(b)
+		_board.tooltip_text = "Gelingt die Pilotenprobe, legt die Frontire an: der Raumkampf endet, es folgt ein Bodenkampf an Bord. Misslingt sie, geht der Kampf weiter (ein Versuch je Runde); Patzer = Kollision."
+		# Frage einmal je Ziel (bzw. sofort, wenn nur noch Wracks übrig sind)
+		if not _asked.has(b.id) or (combat.board_wait and not _asked_wait):
+			_asked[b.id] = true
+			if combat.board_wait:
+				_asked_wait = true
+			_ask_board(b)
 	refresh_ships()
 	_build_cards()
+
+
+## Frage „Entern ja/nein“ (Wunsch des Nutzers: Meldung, sobald ein Gegner angeschlagen ist)
+func _ask_board(t: SpaceShip) -> void:
+	if view.autotest:
+		return
+	if _board_q == null:
+		_board_q = Modal.new()
+		add_child(_board_q)
+		_board_q.max_size = Vector2(640, 320)
+	_board_q.closable = not combat.board_wait
+	_board_q.open("Entern?")
+	var txt := "%s ist %s." % [t.name, "ein Wrack" if t.wreck else ("manövrierunfähig" if t.is_out("antrieb") else "schwer angeschlagen")]
+	txt += "\n%s." % combat.board_text(t)
+	txt += "\nGelingt die Probe, endet der Raumkampf und die Crew kämpft an Bord. Misslingt sie, geht der Kampf weiter."
+	if combat.board_wait:
+		txt += "\n\nKein Gegner kämpft mehr. „Nein“ beendet den Kampf als Sieg ohne Entern."
+	var l := UiTheme.label(txt, 15)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_board_q.content.add_child(l)
+	var no := UiTheme.button("Nein")
+	no.pressed.connect(func() -> void:
+		_board_q.hide()
+		if combat.board_wait:
+			view.decline_board())
+	_board_q.footer.add_child(no)
+	var yes := UiTheme.button("Ja, entern")
+	yes.pressed.connect(func() -> void:
+		_board_q.hide()
+		view.board())
+	_board_q.footer.add_child(yes)
 
 
 func _active_stations() -> Array:

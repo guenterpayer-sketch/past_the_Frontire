@@ -130,10 +130,11 @@ func select(on: bool) -> void:
 
 ## Schildring und Hüllenbalken neu zeichnen
 func refresh() -> void:
-	visible = ship.is_active()
+	visible = ship.is_present()
+	_set_wreck(ship.wreck)
 	var im := ImmediateMesh.new()
 	var r: float = LENGTH[ship.cls] * 0.75 + 0.5
-	if ship.shield_max > 0:
+	if ship.shield_max > 0 and not ship.wreck:
 		for i in 6:
 			var v := float(ship.shields[i]) / ship.shield_max
 			if v <= 0.0:
@@ -163,4 +164,17 @@ func refresh() -> void:
 	for sys in ship.damage:
 		if Tables.SEVERITIES.find(String(ship.damage[sys])) >= 2:
 			warn = " ⚠"
-	_name.text = ship.name + warn
+	_name.text = ship.name + (" (Wrack)" if ship.wreck else warn)
+
+
+var _wreck_shown := false
+
+
+## Wrack: grau, leicht gekippt
+func _set_wreck(on: bool) -> void:
+	if on == _wreck_shown:
+		return
+	_wreck_shown = on
+	if on:
+		_tint(_body, Color(0.45, 0.45, 0.45))
+		_body.rotation.z = deg_to_rad(12.0)

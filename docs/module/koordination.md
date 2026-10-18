@@ -39,22 +39,23 @@ Weitere Tests der Module (z. B. `tests/test_hub.gd`, Selbsttests mit `--autotest
 
 Es gelten die Regeln aus `CLAUDE.md` (Deutsch, Wissen und Annahme trennen, erst klären dann handeln, Auswahl-Buttons).
 
-## Übergabe (16.10.2026)
+## Übergabe (18.10.2026)
 
-Der zweite Koordinations-Chat wurde zum Neustart beendet (langer Verlauf). Alles Nötige steht in `main`; ein neuer Koordinations-Chat startet nur von diesen Dateien aus.
+Dritter Koordinations-Chat beendet (langer Verlauf). Ein neuer Chat startet nur von diesen Dateien aus.
 
-**Stand:** `main` = Zusammenführung Bodenkampf `8b5a91f` (Waffen-Reparatur) + Doku. Bodenkampf (`claude/confident-edison-6mxzke`), Charakter (`claude/elegant-gauss-hq5bus`) und Hub (`claude/happy-lamport-u4fvya`) sind vollständig in `main`; keine offenen Aufträge. Verlauf: `docs/Zusammenfuehrung.md`. Planungen (alle gebaut): `docs/Planung_Ausbau_Lager_Handwerk.md`, `docs/Planung_Rueckzug_Proviant_Kochen.md`, `docs/Planung_Munition.md`, `docs/Planung_Ausruestungs_Editor.md`, `docs/Planung_Waffenmodelle_Klaenge.md`, `docs/Planung_Enzyklopaedie.md`, `docs/Planung_Reise_Schiff.md` u. a.
+**Stand `main`:** alle Module zusammengeführt; Raumkampf V1 inkl. Wracks/Entern (`c0e578c`), Hub bis `608be25` (Abwehr als Sieg), Charakter bis `9228e24` (Farb-Absturz behoben), Bodenkampf bis `bb89c03` (Kartentypen, Startlagen). Verlauf: `docs/Zusammenfuehrung.md`.
 
 **Offen:**
-- **Raumkampf:** neues Modul, `docs/module/raumkampf.md` mit Auftrag 1 (nur Planung mit dem Nutzer). Branch `claude/raumkampf-modul`, Planung V1 in `main`; Raumkampf V1 und Anbindung im Spiel in `main`. Bodenkampf: Kartentypen in `main`, Karteneditor ruht; Auftrag Truppgröße. Charakter: Auftrag Farb-Absturz.
-- Fertigkeiten ohne Wirkung: nur noch Raumschiff-Kampf (für den Raumkampf). „Geschütze“ nur im Ausrüstungs-Editor wählbar.
-- Noch nicht gebaut: Story/Kampagne, Hangar.
+- **Bodenkampf:** Auftrag „Truppgröße nach Schwierigkeit“ (schwer bis 8, per Simulation nachjustieren) läuft – `docs/module/bodenkampf.md`, `docs/Planung_Truppgroesse.md`. Karteneditor **ruht** (Fragen in `bodenkampf.md`).
+- Alle anderen Module: keine offenen Aufträge.
+- Ideen für später: Fraktionen mit Ober-/Unterarten (`docs/Planung_Kampfkarten.md`), eigene Jäger/Hangar (V2), Story/Kampagne, Balancing Boden/Charakter (`docs/Skillsystem.md` 9).
 
-**Branches:** `claude/inspiring-cannon-tbk2pt` ist der Branch des alten Koordinations-Chats (kein Modul, steht auf `main`, kann gelöscht werden). Immer `git fetch origin` ohne Branch-Angabe, sonst fehlen Branches in `git branch -r`.
+**Branches:** `claude/confident-edison-6mxzke` (Bodenkampf), `claude/elegant-gauss-hq5bus` (Charakter), `claude/happy-lamport-u4fvya` (Hub), `claude/raumkampf-modul` (Raumkampf). Immer `git fetch origin` ohne Branch-Angabe.
 
 **Arbeitsweise, die sich bewährt hat:**
-- Pro Fertigmeldung: `git fetch origin`; prüfen, ob der Branch `main` enthält (`git rev-list --count <branch>..main` = 0) und `git merge-tree --write-tree --name-only main <branch>` konfliktfrei ist; `git merge --no-ff`; eigene Tests (`test_rules.gd` + `test_hub.gd`, Godot 4.7.2 unter `~/godot/`, vorher `--headless --import`) nur, wenn der Branch `main` nicht enthielt (Testregel). Dann Zeile in `docs/Zusammenfuehrung.md` (Verlauf + Branch-Tabelle), ggf. `CLAUDE.md` „Stand“, pushen.
-- Moduldateien nur ändern, wenn der betreffende Branch keine ungemergten Commits hat (sonst Konflikte am Dateiende); sonst Hinweise ins Planungsdokument schreiben.
-- Gemeinsame Funktionen immer genau **einem** Modul zuteilen (beim Roster hatten Hub und Charakter beide gebaut).
-- Nutzer-Rückmeldungen aus dem Spieltest: erst Fakten im Code prüfen, Fragen mit Auswahl-Buttons, dann Planungsdokument + Aufträge in die Moduldateien, dazu kurze Prompts für die Chats.
-- **Antworten kurz halten** (Limit des Nutzers). Lange Chats (Koordination und Module) bei Bedarf durch neue ersetzen; die Moduldateien tragen den Stand.
+- Pro Fertigmeldung: `git fetch origin`; `git rev-list --count <branch>..main` (0 = enthält `main`); `git merge-tree --write-tree --name-only main <branch>` auf Konflikte; `git merge --no-ff`. Eigene Tests (`test_rules`, `test_hub`, bei Raumkampf `test_space`, bei Kampf-Änderungen `test_sim -- 10`; Godot 4.7.2 unter `~/godot/`, vorher `--headless --import`) nur, wenn der Branch `main` nicht enthielt. Dann Zeile in `docs/Zusammenfuehrung.md`, erledigten Auftrag der Moduldatei ins Archiv (`docs/module/archiv/`), pushen.
+- Konflikt nur in der eigenen Moduldatei (Doku) darf der Koordinator lösen (Nutzer einverstanden); Code-Konflikte nie.
+- Moduldateien nur ändern, wenn der Branch keine ungemergten Commits hat; sonst Planungsdokument und Prompt an den Nutzer.
+- Nutzer-Rückmeldungen: erst im Code prüfen, Fragen mit Auswahl-Buttons + Freitext am Ende, dann Auftrag in die Moduldatei und kurzer Prompt.
+- Lokale Probleme beim Nutzer (Windows): Scheinänderungen sind über `.gitattributes` und `import_etc2_astc` gelöst; bei Skriptfehlern nach Pull zuerst „Godot schließen, Discard, Pull, neu öffnen“. Godot-Log: `%APPDATA%\Godot\app_userdata\Past the Frontire\logs\godot.log`.
+- **Antworten kurz halten**, Chat bei langem Verlauf ersetzen.
