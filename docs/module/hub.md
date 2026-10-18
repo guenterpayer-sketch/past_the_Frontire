@@ -42,4 +42,11 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (18.10.2026): Hüllenreparatur als Arbeit im Maschinenraum
+
+Befund (im Code geprüft): Die Crew-Hüllenreparatur gibt es nur als Knopf „Große Reparatur (1 Tag)“ in der Sternenkarte (`ui/star_map.gd`, `HubState.crew_repair()` → `Voyage.crew_repair`): sofortige Probe, verbraucht sofort einen Tag. Auf Reisen gibt es zusätzlich die tägliche Reparatur-Reiseprobe.
+Entscheidungen des Nutzers (18.10.2026):
+- **Knopf in der Sternenkarte entfällt**, ersetzt durch eine **Arbeit „Hülle reparieren“ im Maschinenraum** wie die Systemreparatur (`ShipArms.start_fix`/`HubState.jobs`): Figur wählbar (Vorschlag Station Technik bzw. Beste), **eine Arbeit je Figur** (gemeinsam mit Handwerk/Systemreparatur).
+- **Täglich bis voll:** an jedem Tag **ohne Reise** eine Reparaturprobe (Werte wie bisher `Voyage.HULL_CREW`: Teilerfolg +10, Erfolg +20, Herausragend +40, Fehlschlag 0, Patzer −5), **1 Schiffsmaterial je Tag**; die Arbeit läuft weiter, bis die Hülle voll ist, das Material fehlt oder sie abgebrochen wird. Kein Tag wird beim Anlegen verbraucht. Meldung je Tag wie Werkstatt-Einträge (`{text, result, name, skill, xp}`).
+- **Reisetage: Arbeit pausiert** (zählt nicht, keine Probe, kein Material); nach der Reise läuft sie weiter. Unterwegs gilt nur die normale Reiseprobe.
+- Die Werft-Reparatur gegen Credits bleibt unverändert. Spielstand verträglich; Tests in `test_hub` (Anlegen ohne Tag, täglich bis voll, Material leer, Pause bei Reise, eine Arbeit je Figur).
