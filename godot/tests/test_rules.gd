@@ -43,6 +43,7 @@ func _init() -> void:
 	_test_map_types()
 	_test_lagen()
 	_test_squad_size()
+	_test_walls()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1251,3 +1252,42 @@ func _test_squad_size() -> void:
 			for u in c.crew():
 				tiles[u.pos] = true
 			check(tiles.size() == 8 and c.crew().all(func(u: Combatant) -> bool: return c.deploy_tiles().has(u.pos)), "8 Figuren aufgestellt (%s, %s)" % [ty, lage])
+
+
+## Wände sperren immer (Fehlerbericht des Nutzers 18.10.2026): keine Sichtlinie, deren Mittellinie
+## mitten durch ein Wandfeld führt, auch nicht über Herausschauen
+func _test_walls() -> void:
+	for ty in [MapTypes.SHIP, &"buero"]:
+		var m := MapGenerator.generate(4242, "mittel", ty, false)
+		var walk := m.list.filter(func(t: BattleMap.Tile) -> bool: return m.walkable(t))
+		var walls := m.list.filter(func(t: BattleMap.Tile) -> bool: return t.terrain in BattleMap.WALLS)
+		var bad := 0
+		var seen := 0
+		for i in range(0, walk.size(), 7):
+			for j in range(3, walk.size(), 11):
+				var a: BattleMap.Tile = walk[i]
+				var b: BattleMap.Tile = walk[j]
+				if Hex.distance(a.pos, b.pos) > 14 or not m.line_of_sight(a, b):
+					continue
+				seen += 1
+				var pa := Hex.to_world(a.pos)
+				var ab := Hex.to_world(b.pos) - pa
+				for w: BattleMap.Tile in walls:
+					var pw := Hex.to_world(w.pos)
+					var k := clampf((pw - pa).dot(ab) / ab.length_squared(), 0.0, 1.0)
+					if (pa + ab * k).distance_to(pw) < Hex.RADIUS_M * 0.35:
+						bad += 1
+						break
+		check(seen > 100 and bad == 0, "%s: keine Sicht mitten durch Wände (%d von %d)" % [ty, bad, seen])
+	# neben einer Wand kein Herausschauen, neben einer Säule schon
+	var m2 := BattleMap.new(8, 3)
+	for r in 3:
+		for q in 8:
+			m2.add_floor(q, r)
+	var at := func(c: int, r: int) -> BattleMap.Tile: return m2.at_offset(c, r)
+	at.call(2, 1).terrain = &"innenwand"
+	m2.clear_cache()
+	check(m2.peek_tiles(at.call(1, 1)).size() == 1, "an der Wand kein Herauslehnen")
+	at.call(2, 1).terrain = &"saeule"
+	m2.clear_cache()
+	check(m2.peek_tiles(at.call(1, 1)).size() > 1, "an der Säule Herauslehnen")

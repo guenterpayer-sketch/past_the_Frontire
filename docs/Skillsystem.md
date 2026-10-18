@@ -232,7 +232,7 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Figur an der Kante der **Galerie** gegen tiefer stehende Schützen | **Geländer**: halbe Deckung (+40 VW) |
 | Niedrige Deckung direkt neben Schütze oder Ziel | wird überschossen – aber nur, wenn das Auge des Schützen über ihrer Oberkante liegt (von unten blockiert sie) |
 
-**Um die Ecke schießen:** Wer direkt neben voller Deckung steht, darf die Sichtlinie auch von einem benachbarten Feld derselben Höhe aus ziehen (seitlich herauslehnen). Das gilt für Angreifer und Ziel gleichermaßen. Wird ein Ziel so gesehen, steht es in voller Deckung.
+**Um die Ecke schießen:** Wer direkt neben voller Deckung steht, darf die Sichtlinie auch von einem benachbarten Feld derselben Höhe aus ziehen (seitlich herauslehnen). Das gilt für Angreifer und Ziel gleichermaßen. Wird ein Ziel so gesehen, steht es in voller Deckung. Herauslehnen geht nur um das Hindernis direkt daneben herum: Die eigentliche Linie darf sonst nirgends gesperrt sein. **Wände** (Hallenwand, Innenwand, Außenhaut, Hauswand, Außenraum) erlauben kein Herauslehnen und sperren die Sicht immer (Fehlerbericht des Nutzers 18.10.2026). Auch die **Druckwelle** (Raketenwerfer) erreicht nur Figuren, die vom Einschlagsfeld aus frei zu sehen sind; Wände und volle Deckung halten sie auf.
 
 **Reichweitenstufen:** Jede Fernkampfwaffe hat eine Grundreichweite in Metern (eine Stufe) und eine Anzahl Stufen.
 

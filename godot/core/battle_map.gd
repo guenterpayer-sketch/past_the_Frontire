@@ -210,7 +210,13 @@ func reachable(start: Vector2i, mp: float, blocked := Callable(), pass_only := C
 	return res
 
 
-## Wer neben voller Deckung steht, kann seitlich herausschauen ("um die Ecke schießen")
+## Wände (auch Außenhaut, Hauswand, Außenraum) erlauben kein Herausschauen: durch sie schießt niemand
+## (Fehlerbericht des Nutzers 18.10.2026, Raumschiff).
+const WALLS := [&"wand", &"innenwand", &"gebaeude", &"leer"]
+
+
+## Wer neben voller Deckung steht, kann seitlich herausschauen ("um die Ecke schießen") –
+## nur an hohen Gegenständen (Säule, Regal, Container …), nicht an Wänden
 func peek_tiles(t: Tile) -> Array[Tile]:
 	if _peek_cache.has(t):
 		return _peek_cache[t]
@@ -222,7 +228,7 @@ func peek_tiles(t: Tile) -> Array[Tile]:
 		if nt == null:
 			continue
 		ns.append(nt)
-		if block_top(nt) - t.h >= FULL:
+		if block_top(nt) - t.h >= FULL and not nt.terrain in WALLS:
 			high = true
 	if high:
 		for nt in ns:
@@ -241,7 +247,12 @@ func line_of_sight(a: Tile, b: Tile) -> bool:
 	if not vis:
 		for x in peek_tiles(a):
 			for y in peek_tiles(b):
-				if (x != a or y != b) and _clear(x, y):
+				if (x == a and y == b) or not _clear(x, y):
+					continue
+				# Herausschauen hilft nur um das Hindernis direkt neben Schütze/Ziel herum,
+				# die eigentliche Linie a→b darf sonst nirgends gesperrt sein
+				var skip := (1 if x != a else 0) | (2 if y != b else 0)
+				if _line(a, b, 1, skip) or _line(a, b, -1, skip):
 					vis = true
 					break
 			if vis:
@@ -263,7 +274,9 @@ static func _line_point(a: Vector2i, b: Vector2i, i: int, n: int, nudge: int) ->
 
 ## Kistenstapel sperren nur als Wand: ein einzelnes Kistenfeld auf der Linie nicht, erst das zweite
 ## (Entscheidung Nutzer 15.10.2026, Variante C; einzelne Kisten bleiben Deckung, siehe cover()).
-func _line(x: Tile, y: Tile, nudge: int) -> bool:
+## skip: 1 = das erste Feld nach dem Schützen, 2 = das letzte vor dem Ziel nicht prüfen (Herausschauen),
+## außer es ist eine Wand.
+func _line(x: Tile, y: Tile, nudge: int, skip := 0) -> bool:
 	var n := Hex.distance(x.pos, y.pos)
 	var h0 := x.h + EYE
 	var h1 := y.h + AIM
@@ -274,6 +287,8 @@ func _line(x: Tile, y: Tile, nudge: int) -> bool:
 			continue
 		var top := block_top(t)
 		if top <= h0 + (h1 - h0) * (float(i) / n):
+			continue
+		if ((i == 1 and skip & 1) or (i == n - 1 and skip & 2)) and not t.terrain in WALLS:
 			continue
 		# niedrige Deckung direkt neben Schütze oder Ziel: darüber schießt man hinweg –
 		# aber nur, wenn das Auge des Schützen über der Oberkante liegt
