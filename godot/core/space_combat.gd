@@ -63,6 +63,12 @@ const SYSTEM_NAMES := {"antrieb": "Antrieb", "sensoren": "Sensoren", "lebenserha
 	"schilde": "Schildgeneratoren", "reaktor": "Reaktor"}
 ## Entern möglich unter diesem Hüllenanteil (oder Antrieb E)
 const BOARD_HULL := 0.25
+## EP im Raumkampf (Entscheidungen des Nutzers 18.10.2026, docs/Raumkampf.md 5): höchstens 2 EP je Station und
+## Runde; Schützen +1, wenn die Station in der Runde gefeuert oder abgefangen hat, +1 bei mindestens einem Treffer.
+## Eine Figur an zwei Stationen bekommt je Station ihre EP. Keine Obergrenze je Kampf.
+const XP_PER_ROUND := 2
+## Navigation: Initiative-Probe zu Rundenbeginn (mittel), Erfolg +2, Herausragend +4 auf die Initiative
+const NAV_INIT := {&"erfolg": 2, &"herausragend": 4}
 ## Umbesetzen während des Kampfs: nur zu Rundenbeginn (Phase Schilde), −10 an der neuen Station in dieser Runde
 const SWITCH_MALUS := -10
 const LOCK_BONUS := 15
@@ -105,6 +111,11 @@ var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Gru
 var intercepts := {}
 ## in dieser Runde umbesetzte Stationen (Malus SWITCH_MALUS bis Rundenende)
 var switched := {}
+## vergebene EP je Station in diesem Kampf (Messung, tests/sim_space.gd -- ep)
+var station_xp := {}
+## EP je Station in dieser Runde (Deckel XP_PER_ROUND) und Schützen-Merker {Station: {fired, hit}}
+var _round_xp := {}
+var _gun_round := {}
 var boarded: SpaceShip = null     # selbst geentertes Gegnerschiff
 var board_loot := {}               # Schiffs-ID → Abfangversuche in dieser Runde
 
@@ -311,6 +322,7 @@ func check(st: String, skill: StringName, diff: String, extra: Array = []) -> Di
 	var r: Dictionary
 	if ch:
 		r = Rules.maneuver(ch, skill, diff, mods)
+		r.xp = _cap_xp(st, ch, skill, int(r.xp))
 	else:
 		var d: Dictionary = Rules.DIFFICULTY[diff]
 		var roll := Dice.open_d100()
@@ -320,6 +332,48 @@ func check(st: String, skill: StringName, diff: String, extra: Array = []) -> Di
 		r = {"roll": roll, "mods": all, "total": total, "result": Rules.maneuver_result(total), "xp": 0}
 	rolled.emit(r.roll, "%s: %s" % [SpaceSetup.station_name(st), Rules.skill_name(skill)])
 	return r
+
+
+## Bereits vergebene Probe-EP auf den Rest bis zum Deckel der Runde kürzen; gibt die behaltenen EP zurück
+func _cap_xp(st: String, ch: Character, skill: StringName, n: int) -> int:
+	var keep := clampi(XP_PER_ROUND - int(_round_xp.get(st, 0)), 0, n)
+	var excess := n - keep
+	if excess > 0 and ch.skills.has(skill):
+		ch.skills[skill].xp = int(ch.skills[skill].xp) - excess
+		ch.xp_log[skill] = int(ch.xp_log.get(skill, 0)) - excess
+		if int(ch.xp_log[skill]) <= 0:
+			ch.xp_log.erase(skill)
+	_round_xp[st] = int(_round_xp.get(st, 0)) + keep
+	station_xp[st] = int(station_xp.get(st, 0)) + keep
+	return keep
+
+
+## EP an die Figur einer Station geben (höchstens bis zum Deckel der Runde) und je Station mitzählen
+func _give_xp(st: String, ch: Character, skill: StringName, n: int) -> void:
+	if ch == null:
+		return
+	n = clampi(XP_PER_ROUND - int(_round_xp.get(st, 0)), 0, n)
+	if n <= 0:
+		return
+	Rules.award_xp(ch, skill, n)
+	_round_xp[st] = int(_round_xp.get(st, 0)) + n
+	station_xp[st] = int(station_xp.get(st, 0)) + n
+
+
+## Schützen-EP je Runde: +1 beim ersten Schuss oder Abfangen, +1 beim ersten Treffer (je Station und Runde)
+func _gun_xp(st: String, ch: Character, skill: StringName, hit: bool) -> void:
+	if ch == null:
+		return
+	var g: Dictionary = _gun_round.get(st, {"fired": false, "hit": false})
+	var n := 0
+	if not g.fired:
+		g.fired = true
+		n += 1
+	if hit and not g.hit:
+		g.hit = true
+		n += 1
+	_gun_round[st] = g
+	_give_xp(st, ch, skill, n)
 
 
 func who_name(st: String) -> String:
@@ -360,6 +414,8 @@ func start() -> void:
 func _start_round() -> void:
 	round_no += 1
 	switched = {}
+	_round_xp = {}
+	_gun_round = {}
 	if round_no > MAX_ROUNDS:
 		log_text("Die Gegner drehen ab – der Kampf endet ohne Entscheidung.", &"round")
 		retreated = true
@@ -374,7 +430,14 @@ func _start_round() -> void:
 			continue
 		var init_b := s.init_bonus + s.crew_skill / 10
 		if s == own:
-			init_b = station_bonus("navigation", &"navigation") / 5 if station_usable("navigation") else 0
+			init_b = 0
+			if station_usable("navigation"):
+				init_b = station_bonus("navigation", &"navigation") / 5
+				var nr := check("navigation", &"navigation", DIFF)
+				init_b += int(NAV_INIT.get(nr.result.id, 0))
+				if NAV_INIT.has(nr.result.id):
+					log_text("%s plottet den Kurs (%s): Initiative +%d." % [who_name("navigation"), nr.result.name,
+						NAV_INIT[nr.result.id]])
 		s.initiative = Dice.d(10) + Dice.d(10) + init_b
 	order.assign(ships.filter(func(s: SpaceShip) -> bool: return s.is_active()))
 	order.sort_custom(func(a: SpaceShip, b: SpaceShip) -> bool: return a.initiative > b.initiative)
@@ -837,7 +900,7 @@ func fire(s: SpaceShip, slot: String, t: SpaceShip) -> Dictionary:
 				res.severity = Tables.SEVERITIES[mini(4, (total - info.threshold - CRIT_GAP) / CRIT_STEP)]
 			_apply_hit(s, t, res)
 	if gunner:
-		Rules.award_xp(gunner, ShipWeapons.skill(info.key), 2 if res.hit else 1)
+		_gun_xp(SpaceSetup.gun_station(slot), gunner, ShipWeapons.skill(info.key), bool(res.hit))
 	if not res.hit and not roll.fumble:
 		log_text("%s → %s: %s verfehlt (%d gegen %d)." % [s.name, t.name, w.name, total, info.threshold])
 	ship_fired.emit(s, t, slot, res)
@@ -867,7 +930,7 @@ func _intercept(t: SpaceShip, from: SpaceShip) -> bool:
 		var total: int = roll.total + bonus + int(w.mod) + int(t.slots[slot].get("damage", 0))
 		rolled.emit(roll, "%s fängt ab" % w.name)
 		if gunner:
-			Rules.award_xp(gunner, ShipWeapons.skill(key), 1)
+			_gun_xp(SpaceSetup.gun_station(slot), gunner, ShipWeapons.skill(key), total >= INTERCEPT_AT)
 		if total >= INTERCEPT_AT:
 			log_text("%s: %s fängt die Rakete von %s ab." % [t.name, w.name, from.name])
 			return true

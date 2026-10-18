@@ -455,6 +455,8 @@ Jede Fertigkeit hat ein eigenes Erfahrungskonto. Erfahrung (EP) bekommt eine Fer
 | Angegriffen und nicht getroffen | +1 Ausweichen (bzw. Psi-Verteidigung, mit Schild zusätzlich +1 Schild) |
 | Kampfrunde handlungsfähig überstanden | +1 Kampfsinn |
 
+**Raumkampf** (Entscheidungen des Nutzers 18.10.2026, `docs/Raumkampf.md` 5): je Station und Runde **höchstens 2 EP**. Schützen bekommen **+1, wenn ihre Station in der Runde gefeuert oder abgefangen hat, +1 bei mindestens einem Treffer** (gelungenes Abfangen zählt als Treffer) – nicht mehr je Schuss. Andere Stationen bekommen die normalen Probe-EP, gekürzt auf den Deckel (z. B. Techniker mit 2. Baustelle). Die Navigation würfelt jede Runde eine Initiative-Probe (mittel). Wer zwei Stationen bedient, bekommt die EP je Station. Keine Obergrenze je Kampf.
+
 **Rangsteigerung:** Hat das Konto genug EP, kann ein Rang gekauft werden.
 Kosten für den nächsten Rang = **10 + 2 × aktueller Rang** (Rang 0→1: 10 EP, 5→6: 20 EP, 10→11: 30 EP).
 
