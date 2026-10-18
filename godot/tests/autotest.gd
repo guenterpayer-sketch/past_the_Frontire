@@ -237,6 +237,17 @@ func _screenshot(path: String) -> void:
 func _run_player() -> void:
 	var out := OS.get_environment("PTF_OUT")
 	b.new_battle(4711, "klein", "", false)
+	for i in 10:
+		await get_tree().process_frame
+	# Aufstellung: Tab wählt die nächste Figur, Shift+Tab die vorige
+	var first := b.deploy_sel
+	b.ui.briefing.hide()   # im Spiel ist das Briefing in der Aufstellung geschlossen
+	_key(KEY_TAB)
+	await get_tree().create_timer(0.2).timeout
+	var second := b.deploy_sel
+	_key(KEY_TAB, true)
+	await get_tree().create_timer(0.2).timeout
+	print("Tab in der Aufstellung: %s → %s → zurück %s" % [first.name, second.name, b.deploy_sel.name])
 	b.begin_combat()
 	for i in 30:
 		await get_tree().process_frame
@@ -272,6 +283,24 @@ func _run_player() -> void:
 		await get_tree().process_frame
 	print("bewegt nach ", u.pos, " (Ziel ", best, "), Aktivität ", u.act)
 	await get_tree().create_timer(0.3).timeout
+	# F: sichtbare Gegner durchschalten (Vorschau im Infokasten)
+	_key(KEY_F)
+	await get_tree().create_timer(0.5).timeout
+	print("F: Ziel %s | %s" % [b._target.name if b._target else "keins", b.ui.info.text().replace("\n", " | ").left(200)])
+	await _screenshot(out + "/p1b_ziel_f.png")
+	_key(KEY_F)
+	await get_tree().process_frame
+	print("F nochmal: Ziel %s" % (b._target.name if b._target else "keins"))
+	# Leertaste greift das gewählte Ziel an (nur wenn angreifbar; sonst passiert nichts)
+	var sel := b._target
+	var w0 := b.player.weapon_of(u)
+	var ok: bool = sel != null and b.combat.attack_info(u, sel, w0, {"pct": b.player.attack_pct(u, w0)}).valid
+	var act0 := u.act
+	_key(KEY_SPACE)
+	await get_tree().create_timer(0.3).timeout
+	while not b.events.is_idle():
+		await get_tree().process_frame
+	print("Leertaste: Ziel %s angreifbar %s, Aktivität %d → %d" % [sel.name if sel else "-", ok, act0, u.act])
 	# angreifbaren Gegner suchen
 	var target: Combatant = null
 	for e in b.combat.opponents(u):
@@ -299,6 +328,10 @@ func _run_player() -> void:
 		print("kein Gegner angreifbar")
 	await _repair_shot(out, u)
 	await _status_shot(out, u)
+	# Tab beendet den Zug
+	_key(KEY_TAB)
+	await get_tree().process_frame
+	print("Tab im Kampf: am Zug jetzt %s (vorher %s)" % [b.combat.current.name if b.combat.current else "-", u.name])
 	print("AUTOTEST FERTIG")
 	get_tree().quit()
 
@@ -408,6 +441,18 @@ func _run_psi() -> void:
 
 
 ## Bildschirmkoordinaten der Szene in Fensterkoordinaten (Skalierung durch stretch/canvas_items)
+## Taste drücken (wie vom Spieler)
+func _key(code: Key, shift := false) -> void:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.shift_pressed = shift
+	e.pressed = true
+	Input.parse_input_event(e)
+	var r := e.duplicate() as InputEventKey
+	r.pressed = false
+	Input.parse_input_event(r)
+
+
 func _to_window(p: Vector2) -> Vector2:
 	return get_viewport().get_final_transform() * p
 

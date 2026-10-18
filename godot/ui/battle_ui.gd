@@ -181,7 +181,7 @@ func show_help() -> void:
 	var l := UiTheme.label("""Maus über ein blaues Feld: Vorschau im Infokasten oben (links neben der Seitenleiste). Grüne Linien/Ringe = von dort treffbar, rote = wer dich dort treffen kann.
 Blaues Feld anklicken: bewegen (Gangart in der Seitenleiste rechts; Abschnitte per Klick auf die Überschrift ein-/ausklappen, „›“ klappt die ganze Leiste ein). Rot umrandeten Gegner anklicken: angreifen (Aktivität 20–100 %).
 Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.
-Kamera: ziehen (links/Mitte), WASD/Pfeile, Mausrad = Zoom, Q/E = um 90° drehen. Enter = Zug beenden, R = Reichweite, G = Raster, Esc = abbrechen.
+Kamera: ziehen (links/Mitte), WASD/Pfeile, Mausrad = Zoom, Q/E = um 90° drehen. Enter oder Tab = Zug beenden (Aufstellung: Tab/Shift+Tab = nächste/vorige Figur, Enter = Kampf beginnen), F/Shift+F = sichtbare Gegner durchschalten, Leertaste = gewählten Gegner angreifen, R = Reichweite, G = Raster, Esc = abbrechen.
 Handy/Tablet: ziehen = verschieben, zwei Finger = zoomen, antippen = Vorschau, „Ausführen“ im Infokasten oder nochmal antippen = ausführen, lange drücken = drehen.""", 15)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.content.add_child(l)
