@@ -142,6 +142,14 @@ func _run_ai() -> void:
 	print("KON %d -> %d, freie EP jetzt %d" % [kon_before, cu.attrs.KON, cu.free_xp])
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04b_uebersicht.png")
+	# Farbe ändern: Farbwahl öffnen, Farbe wählen, Popup schließen (stürzte in der Übersicht ab, 18.10.2026)
+	print("Farbe Übersicht: %s, Figur rot %s" % [await _pick_color(ed, Color.RED), ed.current().color == Color.RED])
+	var red := RosterEditDialog.new()
+	cs.add_child(red)
+	red.edit(cu)
+	print("Farbe Roster-Dialog: %s, Kopie grün %s" % [await _pick_color(red, Color.GREEN), red._ch.color == Color.GREEN])
+	red.close()
+	red.queue_free()
 	await _click_button("+5")
 	print("Eingezahlt: freie EP jetzt %d" % cu.free_xp)
 	await _click_button("Charakterbogen")
@@ -181,6 +189,7 @@ func _run_ai() -> void:
 		Creation.raise(ce._ch, id)
 	ce._ch.name = "Testfigur"
 	ce._render()
+	print("Farbe Editor: %s, Figur blau %s" % [await _pick_color(ce, Color.BLUE), ce._ch.color == Color.BLUE])
 	await get_tree().create_timer(0.3).timeout
 	await _screenshot(out + "/04e_editor.png")
 	ce._finish()
@@ -474,6 +483,24 @@ func _mouse_click(p: Vector2) -> void:
 		e.button_index = MOUSE_BUTTON_LEFT
 		e.pressed = pressed
 		Input.parse_input_event(e)
+
+
+## Farbknopf in root anklicken, Farbe c wählen, Popup schließen; true = Popup war offen und ist wieder zu
+func _pick_color(root: Node, c: Color) -> bool:
+	await get_tree().process_frame
+	var col := root.find_children("*", "ColorPickerButton", true, false)[0] as ColorPickerButton
+	_mouse_click(col.get_global_rect().get_center())
+	await get_tree().create_timer(0.2).timeout
+	var opened := col.get_popup().visible
+	col.get_picker().color = c
+	col.get_picker().color_changed.emit(c)
+	await get_tree().process_frame
+	var popup := col.get_popup()
+	popup.hide()
+	for i in 5:
+		await get_tree().process_frame
+	# die Übersicht baut den Knopf danach neu (alter Knopf samt Popup freigegeben)
+	return opened and (not is_instance_valid(popup) or not popup.visible)
 
 
 ## Sichtbaren Button mit passendem Text suchen und mit der Maus anklicken
