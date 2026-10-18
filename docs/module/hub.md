@@ -37,6 +37,7 @@
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 - Danach (`4b16e4e`): Crew-Reparatur des Schiffs als Arbeit wie Handwerk (`ShipArms.start_fix/finish_fix`, Arbeit in `HubState.jobs`, eine Arbeit je Figur für Handwerk und Reparatur, Figur im Maschinenraum wählbar); `HubState.ship_fix()` entfällt.
+- Danach: Ausbau `armor` heißt jetzt **„Schiffspanzerung“** (Wahl des Nutzers 18.10.2026; vorher „Panzerung“ wie die Fertigkeit). Nur der Name in `ShipUpgrades.AREAS` und in der Doku; ID `armor` und Schnittstelle `levels.armor` unverändert. Dateien des Raumkampfs nicht geändert (dort wird der Ausbau-Name nicht angezeigt).
 
 ## Aufträge vom Koordinator
 
