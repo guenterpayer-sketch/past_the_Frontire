@@ -40,4 +40,6 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (18.10.2026): Ausbau „Panzerung“ umbenennen
+
+Der Ausbau-Bereich `&"armor"` heißt in `core/ship_upgrades.gd` „Panzerung“ – gleich wie die Fertigkeit „Panzerung“ (Hülle flicken an Station Technik). Wunsch des Nutzers: **Ausbau umbenennen**, damit nichts verwechselt wird (Vorschlag „Panzerplatten“; Namen mit dem Nutzer per Auswahl-Buttons klären). Nur der angezeigte Name, ID `armor` bleibt (Spielstände, Schnittstelle `levels.armor`). Alle Anzeigen im Hub (Werft, Maschinenraum, Berichte) und Doku (`docs/Raumkampf.md`, `docs/Planung_Raumkampf.md` nur wo der Ausbau gemeint ist) anpassen; Dateien des Raumkampfs nur, wenn dort der Ausbau-Name angezeigt wird – dann in „Stand“ vermerken.
