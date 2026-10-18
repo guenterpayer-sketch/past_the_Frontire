@@ -85,7 +85,7 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 | Fertigkeit | Eigenschaften | Einsatz |
 |---|---|---|
 | Erste Hilfe | INT + KOO | im Kampf: Blutung stoppen, Bewusstlose stabilisieren |
-| Zweite Hilfe | INT + EMP | **Annahme:** Behandlung nach dem Kampf (Operation, Heilung schwerer Wunden) |
+| Zweite Hilfe | INT + EMP | Ärztliche Behandlung nach dem Kampf: tägliche Heilprobe des Arztes in der Krankenstation (`core/medbay.gd`, 8a) |
 | Psi wirken | MEN + EMP | **Annahme:** unterstützende Psi-Kräfte (Schild, Heilung), keine Angriffe |
 | Waffen-Reparatur | INT + KOO | im Kampf: beschädigte Waffen instand setzen (eigene oder im Nachbarfeld) |
 
@@ -597,7 +597,7 @@ Umgesetzt im Hub (`godot/core/galley.gd`, Werte im `HubState`; Planung `docs/Pla
 Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leicht zu ändern:
 
 1. **Eigenschaftspaare** der Fertigkeiten (Abschnitt 3.2) sind mein Vorschlag.
-2. **„Zweite Hilfe“**: Die Bedeutung weiß ich nicht; angenommen ist Behandlung nach dem Kampf.
+2. **„Zweite Hilfe“**: geklärt – Arzt-Fertigkeit der Krankenstation (tägliche Heilprobe, 8a).
 3. **„Psi wirken“ vs. „Psi-Angriffe“**: angenommen ist, dass „Psi wirken“ für unterstützende Kräfte steht.
 4. **„Panzerung“ (Raumschiff-Kampf)**: angenommen ist Schadenskontrolle / Panzerung umleiten.
 5. **Zahlenwerte** (TP-Formel, Tabellen-Schwellen, Schadensfaktoren, EP-Kosten) sind ein erster Entwurf und noch nicht ausbalanciert.
