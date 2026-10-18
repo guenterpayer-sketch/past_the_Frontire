@@ -41,4 +41,10 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (18.10.2026): abgewehrtes Entern als Sieg werten
+
+Raumkampf Auftrag 5 ist in `main` (`c0e578c`, Regeln `docs/Raumkampf.md` 4c, Messung `docs/Planung_Raumkampf.md` 1e). Für den Hub geändert:
+- `boarding` kommt jetzt oft schon bei eigener Hülle 1–24 % (nicht erst bei 0) – Anzeigen/Texte im Hub prüfen, die von „Hülle 0“ ausgehen.
+- Bei `boarding` liegen neu `board_ship` (Enterschiff) und `board_loot` (dessen Beute) im Ergebnis.
+- **Wunsch des Nutzers:** Gewinnt die Crew die **Abwehr an Bord** (`active.defend`), gilt der **Raumkampf als gewonnen**: `board_loot` buchen (wie beim selbst Entern, `book_board`/Beuteauswahl), Einsatzbericht „Sieg (Entern abgewehrt)“ statt nur „abgewehrt“; Auftrag (Abfangen/Eskorte/Blockade) wie bei einem gewonnenen Raumkampf weiterführen. Verlorene Abwehr bleibt wie bisher (wie Notfall).
+- Tests in `test_hub` (Abwehr gewonnen mit Beute, verloren) ergänzen.
