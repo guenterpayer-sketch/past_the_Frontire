@@ -36,17 +36,8 @@
 - Danach (`2876f93`): **Raumkampf im Spiel (Teil 2)** – `SpaceEvents` (`core/space_events.gd`), Feindkontakt auf der Reise (5 %/20 % je Tag nach Gebiet, kämpfen oder ausweichen per Navigation), Auftragsarten Boden (25 % mit Blockade)/Abfangen/Eskorte, `HubState.finish_space(result)` als Auswertung, Notfall = Plünderung + Treiben („festgesetzt“), Abwehr beim Entern. Details und Entscheidungen im Archiv. Szenenwechsel Schiff → `space.tscn` → Schiff im laufenden Spiel vom Nutzer getestet (17.10.2026): funktioniert.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
-- **Crew-Reparatur des Schiffs als Arbeit** (Auftrag 18.10.2026, noch nicht in `main`): `ShipArms.start_fix(g, c, ziel)` legt eine Arbeit `{kind: "ship", key: Ziel, days: 1, material: 1, name}` in `HubState.jobs` an (1 Schiffsmaterial sofort, kein Tag; Stück aus dem Schiffslager liegt solange in der Werkstatt), `Crafting.work_day` ruft am Ende `ShipArms.finish_fix()` (Probe Reparatur mittel, Wirkung wie bisher, Eintrag `{text, result, name, skill, xp, label: "Reparatur"}`; Figur nicht mehr an Bord: Material und Stück zurück). Eine Arbeit je Figur gilt für Handwerk und Reparatur gemeinsam. `HubState.ship_fix()` und die sofortige Reparatur entfallen. Maschinenraum: Auswahl „Repariert:“ (Vorschlag Station Technik bzw. Beste, Beschäftigte ausgegraut), „In Arbeit: …“, je Schaden „Reparieren lassen“ bzw. „in Arbeit: Name“. Alte Spielstände bleiben verträglich (keine neue Speicherstelle).
-  Tests: `test_rules`, `test_hub` (Reparatur als Arbeit: kein Tag beim Anlegen, eine Arbeit je Figur auch gegen Handwerk, Ziel nur einmal, Spielstand, alle Ergebnisse, Stück aus dem Lager, Abbruch), `test_space`, `test_sim -- 10` OK; `--autotest-hub` durchgelaufen (Screenshot `h1f2_systemschaeden` geprüft).
+- Danach (`4b16e4e`): Crew-Reparatur des Schiffs als Arbeit wie Handwerk (`ShipArms.start_fix/finish_fix`, Arbeit in `HubState.jobs`, eine Arbeit je Figur für Handwerk und Reparatur, Figur im Maschinenraum wählbar); `HubState.ship_fix()` entfällt.
 
 ## Aufträge vom Koordinator
 
-### Auftrag (18.10.2026): Crew-Reparatur des Schiffs als Arbeit wie Handwerk
-
-Befund (Spieltest des Nutzers, im Code geprüft): `HubState.ship_fix()` (`core/hub_state.gd`) repariert Systemschäden/Schiffswaffen **sofort** und ruft selbst `advance_days(1)` – anders als Handwerk (`Crafting`, Arbeit je Figur in `HubState.jobs`, läuft über `work_day` beim Warten/Reisen).
-Entscheidungen des Nutzers (18.10.2026):
-- Crew-Reparatur wird **als Arbeit angelegt wie beim Handwerk**: kein Tag wird sofort verbraucht; die Arbeit läuft beim Warten/Reisen, Probe und Wirkung (Patzer +1 Stufe, Fehlschlag/Teilerfolg nichts, Erfolg −1, Herausragend −2; Waffen je Stufe −10) am Ende, Meldung in Reise-/Einsatzbericht und nach „1 Tag warten“ wie Werkstatt-Einträge (`{text, result, name, skill, xp}`).
-- **Figur frei wählbar** (Vorschlag: Station Technik bzw. die Beste in Reparatur).
-- **Eine Arbeit je Figur**: Reparatur und Handwerk teilen sich die Regel aus `Crafting` (wer repariert, kann nicht zugleich bauen/zerlegen).
-- Dauer und Material wie bisher (1 Tag, 1 Material); Abbruch, wenn die Figur nicht mehr an Bord ist (wie Handwerk: Material zurück). Spielstand mit alten Ständen verträglich.
-- Kleine UI-Änderung im Maschinenraum (Figur wählen, laufende Arbeit anzeigen); bei größerer Änderung erst Mockup. Tests in `test_hub` anpassen.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

@@ -11,13 +11,14 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`0736fda`); Auftrag Kampfkarten läuft |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`2876f93`), nichts offen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`4b16e4e`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`fcdbeba`), nichts offen |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 18.10.2026 | `ac7b351` | Hub `claude/happy-lamport-u4fvya` (`4b16e4e`) | ohne Konflikte; es fehlte nur ein Doku-Commit, Code identisch mit dem getesteten Stand, keine eigenen Tests. Crew-Reparatur des Schiffs als Arbeit wie Handwerk (kein Tag sofort, Figur wählbar, eine Arbeit je Figur). |
 | 18.10.2026 | `7d03a47` | Bodenkampf `claude/confident-edison-6mxzke` (`0736fda`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Zwischenstand: Steuerung Tab (Aufstellung Figur wechseln, Kampf Zug beenden), F/Shift+F Ziele durchschalten, Leertaste angreifen. Klärung Kampfkarten Runde 1 in `bodenkampf.md`. |
 | 17.10.2026 | `fa52302` | Raumkampf `claude/raumkampf-modul` (`fcdbeba`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel; laut Modul `test_space`, `test_rules`, `test_hub`, `test_sim -- 10` OK). Zahlen per Simulation (`tests/sim_space.gd`): Siege 87–91/67–70/47–49 %, 8–11 Runden. Waffenpreise geändert (Hub liest sie aus `ShipWeapons`). Gegnervorlagen als Ressourcen `data/ships/`; `SpaceTemplates.SHIPS`/`FACTIONS` entfernt (kein anderes Modul nutzte sie, geprüft). |
 | 17.10.2026 | `f155ff3` | Hub `claude/happy-lamport-u4fvya` (`2876f93`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Raumkampf im Spiel (Teil 2): Feindkontakt, Auftragsarten Blockade/Abfangen/Eskorte, Auswertung `finish_space`, Notfall, Abwehr beim Entern. Keine Änderung an Raumkampf-Dateien. Szenenwechsel Schiff ↔ `space.tscn` vom Nutzer im Spiel getestet: funktioniert. |
