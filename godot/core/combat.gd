@@ -926,6 +926,9 @@ func _resolve_splash(att: Combatant, target: Combatant, roll: Dictionary, info: 
 		var d := Hex.distance(v.pos, target.pos)
 		if d < 1 or d > w.splash.size():
 			continue
+		# Wände und volle Deckung halten die Druckwelle auf
+		if not map._clear(tile_of(target), tile_of(v)):
+			continue
 		var total := mini(roll.total + _sum(info.ob) + w.splash[d - 1], w.max_result)
 		var res := Tables.lookup_attack(w.table, total, v.armor_cls(), w.damage)
 		if not res.hit:
