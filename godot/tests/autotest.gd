@@ -3,6 +3,7 @@ extends Node
 ##   godot --path godot -- --autotest          KI gegen KI, Kampfende, Charakterbogen, Tabellen
 ##   godot --path godot -- --autotest-player   Bedienung mit simulierten Mausklicks
 ##   godot --path godot -- --autotest-psi      Psi-Zeile und Kontextmenü (Nyx)
+##   godot --path godot -- --autotest-maps     alle Kartentypen aufbauen (Übersicht und Nahansicht je Typ)
 ## Optional: PTF_SECONDS = maximale Kampfdauer im KI-Test.
 
 var battle: Battle
@@ -16,6 +17,8 @@ func _ready() -> void:
 		_run_player.call_deferred()
 	elif "--autotest-psi" in OS.get_cmdline_user_args():
 		_run_psi.call_deferred()
+	elif "--autotest-maps" in OS.get_cmdline_user_args():
+		_run_maps.call_deferred()
 	else:
 		_run_ai.call_deferred()
 
@@ -441,6 +444,29 @@ func _run_psi() -> void:
 
 
 ## Bildschirmkoordinaten der Szene in Fensterkoordinaten (Skalierung durch stretch/canvas_items)
+## Kartentypen: jeden Typ (und die Abwehr an Bord) aufbauen, Übersicht und Nahansicht fotografieren
+func _run_maps() -> void:
+	var out := OS.get_environment("PTF_OUT")
+	var i := 0
+	for ty in MapTypes.GROUND + [MapTypes.SHIP]:
+		b.new_battle(4711 + i, "mittel", "", false, null, ty)
+		b.ui.briefing.hide()
+		for k in 20:
+			await get_tree().process_frame
+		var m := b.combat.map
+		print("Karte %s: %d×%d, Crew-Start %d, Gegner-Start %d, Titel „%s“" % [ty, m.cols, m.rows, m.crew_start.size(), m.enemy_start.size(), b.mission.title])
+		b.rig.focus(b.map_view.center(), true)
+		b.rig.zoom_at(get_viewport().get_visible_rect().size / 2.0, 1 / 1.6)
+		await get_tree().create_timer(0.5).timeout
+		await _screenshot(out + "/m%d_%s.png" % [i, ty])
+		b.rig.zoom_at(get_viewport().get_visible_rect().size / 2.0, 2.6)
+		await get_tree().create_timer(0.5).timeout
+		await _screenshot(out + "/m%d_%s_nah.png" % [i, ty])
+		i += 1
+	print("AUTOTEST FERTIG")
+	get_tree().quit()
+
+
 ## Taste drücken (wie vom Spieler)
 func _key(code: Key, shift := false) -> void:
 	var e := InputEventKey.new()

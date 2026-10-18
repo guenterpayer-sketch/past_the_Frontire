@@ -2,7 +2,7 @@ class_name StartScreen
 extends Node3D
 ## Startmenü: Fortsetzen (zuletzt gespeicherter Slot), Neues Spiel, Laden, Schnellkampf (Bodenkampf ohne Schiff), Schnellkampf im All,
 ## Einstellungen, Beenden. Im Hintergrund dreht sich das Schiff der Crew.
-## --autotest / --autotest-player / --autotest-psi springen direkt in den Bodenkampf, --autotest-hub ins Schiff.
+## --autotest / --autotest-player / --autotest-psi / --autotest-maps springen direkt in den Bodenkampf, --autotest-hub ins Schiff.
 
 const SHIP_MODEL := "res://assets/ship/ship_imperial.glb"
 
@@ -20,7 +20,7 @@ func _ready() -> void:
 	UiScale.apply(get_tree())
 	HubState.quick_battle = false
 	var args := OS.get_cmdline_user_args()
-	if "--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args:
+	if "--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args or "--autotest-maps" in args:
 		HubState.game = null
 		get_tree().change_scene_to_file.call_deferred(HubState.BATTLE_SCENE)
 		return

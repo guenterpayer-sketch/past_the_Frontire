@@ -1,11 +1,27 @@
 class_name MapView
 extends Node3D
-## Baut die Lagerhalle als 3D-Szene aus einer BattleMap. Das Hexraster ist nur Spielmechanik
-## (einblendbar), Objekte werden als ganze Körper gezeichnet. Wände zur Kamera hin werden niedrig geschnitten.
+## Baut die Karte als 3D-Szene aus einer BattleMap (Lagerhalle und weitere Kartentypen, MapTypes). Das Hexraster
+## ist nur Spielmechanik (einblendbar), Objekte werden als ganze Körper gezeichnet. Außenwände zur Kamera hin
+## werden niedrig geschnitten; Innenwände sind niedriger (INNER_H), damit man in die Räume sieht.
 
 const L := BattleMap.LEVEL_M
 const WALL_H := 7.5
 const WALL_LOW := 0.9
+const INNER_H := 2.4
+const MAX_LAMPS := 12
+const BUILDING_H := 3.6
+## Sichtbare Höhe (m) der Objekte der neuen Kartentypen; true = ganzes Objekt (Gruppe) als ein Modell
+const PROP_H := {&"theke": 1.15, &"tisch": 0.8, &"sofa": 0.9, &"schrank": 2.4, &"server": 2.2, &"auto": 2.0,
+	&"laterne": 5.0, &"tonne": 1.3, &"steinsaeule": 6.0, &"bruch": 1.5, &"geroell": 0.9, &"altar": 1.2,
+	&"statue": 3.0, &"schreibtisch": 0.78, &"konsole": 1.1, &"tank": 3.2}
+const PROP_GROUP := [&"theke", &"schrank", &"server", &"auto", &"sofa"]
+## Grundkörperfarben, wenn kein Modell da ist
+const PROP_COLOR := {&"theke": Color(0.45, 0.28, 0.18), &"tisch": Color(0.5, 0.34, 0.2), &"sofa": Color(0.5, 0.18, 0.28),
+	&"schrank": Color(0.42, 0.3, 0.2), &"server": Color(0.15, 0.17, 0.2), &"auto": Color(0.6, 0.2, 0.18),
+	&"laterne": Color(0.25, 0.27, 0.3), &"tonne": Color(0.2, 0.4, 0.25), &"steinsaeule": Color(0.6, 0.55, 0.45),
+	&"bruch": Color(0.58, 0.52, 0.42), &"geroell": Color(0.5, 0.45, 0.38), &"altar": Color(0.62, 0.56, 0.45),
+	&"statue": Color(0.55, 0.52, 0.48), &"schreibtisch": Color(0.55, 0.45, 0.32), &"konsole": Color(0.3, 0.36, 0.45),
+	&"tank": Color(0.45, 0.5, 0.56)}
 
 var map: BattleMap
 ## Modelle für die Halle (leere Einträge: Grundkörper)
@@ -19,6 +35,10 @@ var _rng := RandomNumberGenerator.new()
 var _batches := {}
 var _groups := {}
 var _box_meshes := {}
+## Kartentyp (MapTypes.info) und Modelle der Typen (Pfad → VisualSlot)
+var _type: Dictionary = {}
+var _hall := true
+static var _slots := {}
 
 
 func build(m: BattleMap) -> void:
@@ -26,6 +46,8 @@ func build(m: BattleMap) -> void:
 		c.queue_free()
 	_walls.clear()
 	map = m
+	_type = MapTypes.info(m.map_type)
+	_hall = m.map_type == &"halle"
 	_rng.seed = m.map_seed
 	_groups.clear()
 	_build_floor()
@@ -68,7 +90,7 @@ func _build_floor() -> void:
 	var pm := PlaneMesh.new()
 	pm.size = Vector2(sx + 6.0, sz + 6.0)
 	floor_mi.mesh = pm
-	floor_mi.position = Vector3(sx / 2.0 - 0.75, 0, sz / 2.0 - 0.65)
+	floor_mi.position = Vector3(sx / 2.0 - 0.75, 0.0 if _hall else -0.04, sz / 2.0 - 0.65)
 	var fm := StandardMaterial3D.new()
 	var nt := NoiseTexture2D.new()
 	var noise := FastNoiseLite.new()
@@ -83,11 +105,14 @@ func _build_floor() -> void:
 	grad.set_color(1, Color(1, 1, 1))
 	nt.color_ramp = grad
 	fm.albedo_texture = nt
-	fm.albedo_color = Color(0.37, 0.38, 0.41)
+	fm.albedo_color = Color(0.37, 0.38, 0.41) if _hall else (_type.bg as Color).lightened(0.06)
 	fm.roughness = 0.92
 	fm.uv1_scale = Vector3(pm.size.x / 10.0, pm.size.y / 10.0, 1)
 	floor_mi.material_override = fm
 	add_child(floor_mi)
+	if not _hall:
+		_type_floor()
+		return
 	if theme and theme.floor_tile:
 		_floor_tiles(sx, sz)
 	# Fahrspuren und Markierungen
@@ -111,6 +136,18 @@ func _floor_tiles(sx: float, sz: float) -> void:
 		for iz in nz:
 			var c := Vector3(-0.75 + (ix + 0.5) * tx, -a.size.y, -0.65 + (iz + 0.5) * tz)
 			_models.add(slot, _models.fit_box(slot, c, a.size))
+
+
+## Neue Kartentypen: Boden je Feld als flache Sechseckplatte (Farbe je Typ, Gehweg heller, leichte Streuung)
+func _type_floor() -> void:
+	var base: Color = _type.floor
+	for t in map.list:
+		if t.terrain == &"leer" or t.terrain == &"gebaeude" or t.terrain == &"podest":
+			continue
+		var c: Color = _type.get("gehweg", base) if t.terrain == &"gehweg" else base
+		var k := (hash(t.pos) % 5) * 0.012
+		_hex_slab(Vector3(Hex.to_world(t.pos).x, 0.0 if t.terrain != &"gehweg" else 0.08, Hex.to_world(t.pos).y),
+			0.05 if t.terrain != &"gehweg" else 0.13, c.darkened(k))
 
 
 func _build_grid() -> void:
@@ -139,6 +176,9 @@ func _build_grid() -> void:
 
 
 func _build_lights() -> void:
+	if not _hall:
+		_type_lights()
+		return
 	var nx := clampi(map.cols / 12, 2, 4)
 	var nz := clampi(map.rows / 14, 1, 2)
 	for ix in nx:
@@ -150,6 +190,31 @@ func _build_lights() -> void:
 			lamp.light_energy = 1.1
 			lamp.light_color = Color(1.0, 0.92, 0.78)
 			add_child(lamp)
+
+
+## Licht der neuen Kartentypen: Lampen im Raster (Farben im Wechsel) oder an den Laternen (Straße)
+func _type_lights() -> void:
+	var colors: Array = _type.lamps
+	var spots: Array = []
+	if _type.has("lamps_at"):
+		for t in map.list:
+			if t.terrain == _type.lamps_at:
+				spots.append(Vector3(Hex.to_world(t.pos).x, _type.lamp_h, Hex.to_world(t.pos).y))
+	else:
+		var nx := clampi(map.cols / 9, 2, 4)
+		var nz := clampi(map.rows / 9, 2, 3)
+		for ix in nx:
+			for iz in nz:
+				spots.append(Vector3((ix + 0.5) * map.cols * Hex.SIZE_M / nx, _type.lamp_h, (iz + 0.5) * map.rows * Hex.ROW_M / nz))
+	while spots.size() > MAX_LAMPS:   # höchstens MAX_LAMPS Lichter (Leistung), gleichmäßig ausgedünnt
+		spots = spots.filter(func(_p: Vector3) -> bool: return true).slice(0, spots.size(), 2)
+	for i in spots.size():
+		var lamp := OmniLight3D.new()
+		lamp.position = spots[i]
+		lamp.omni_range = _type.lamp_range
+		lamp.light_energy = _type.lamp_energy
+		lamp.light_color = colors[i % colors.size()]
+		add_child(lamp)
 
 
 # ---------------------------------------------------------------- Objekte
@@ -186,6 +251,20 @@ func _build_objects() -> void:
 				_stairs(ts[0])
 			&"leiter":
 				_ladder(ts[0])
+			&"innenwand":
+				for t in ts:
+					_hex_slab(tile_top(t.pos) + Vector3(0, INNER_H, 0), INNER_H, _type.get("inner", Color(0.3, 0.33, 0.38)))
+			&"gebaeude":
+				for t in ts:
+					_hex_slab(tile_top(t.pos) + Vector3(0, BUILDING_H, 0), BUILDING_H, _type.get("wall", Color(0.3, 0.3, 0.3)).darkened((hash(t.col / 4) % 4) * 0.06))
+			&"podest":
+				for t in ts:
+					_hex_slab(tile_top(t.pos), t.h * L, _type.get("podest", Color(0.4, 0.4, 0.42)))
+			&"boden", &"gehweg", &"leer":
+				pass
+			_:
+				if PROP_H.has(ts[0].terrain):
+					_prop(ts)
 
 
 ## Umriss einer Feldgruppe: Mitte und Größe (x, z) eines achsenparallelen Quaders
@@ -372,17 +451,17 @@ func _wall(ts: Array) -> void:
 	else:
 		normal = Vector3(1, 0, 0)
 	var size := Vector3(b.sx, WALL_H, b.sz)
-	var c := Color(0.24, 0.27, 0.32)
+	var c: Color = _type.get("wall", Color(0.24, 0.27, 0.32))
 	var gid := "wall_%d" % _walls.size()
 	var full := _group(gid + "_full")
-	if theme and theme.wall:
+	if theme and theme.wall and _hall:
 		_models.fill_repeat(theme.wall, b.c, Vector3(size.x, WALL_H, size.z), gid + "_full")
 	else:
 		_box(b.c + Vector3(0, WALL_H / 2.0, 0), size, c, gid + "_full", 0.0, _mat(c, 0.85, 0.1))
 	# senkrechte Paneele
 	var long_x := size.x > size.z
 	var length := size.x if long_x else size.z
-	for i in (0 if theme and theme.wall else int(length / 3.0)):
+	for i in (0 if theme and theme.wall and _hall else int(length / 3.0)):
 		var off := -length / 2.0 + 1.5 + i * 3.0
 		var p: Vector3 = b.c + (Vector3(off, WALL_H / 2.0, -normal.z * (size.z / 2.0 + 0.03)) if long_x else Vector3(-normal.x * (size.x / 2.0 + 0.03), WALL_H / 2.0, off))
 		_box(p, Vector3(0.12, WALL_H, 0.12), c.lightened(0.08), gid + "_full")
@@ -454,6 +533,96 @@ func _ladder(t: BattleMap.Tile) -> void:
 	while y < hgt:
 		_box(origin + basis * Vector3(0, y, 0), Vector3(0.5, 0.04, 0.04), yellow, "", rot)
 		y += 0.32
+
+
+## Objekt eines neuen Kartentyps: Modell(e) aus MapTypes (zufällig je Objekt), sonst Grundkörper.
+## Gruppen (Theke, Regal, Fahrzeug …) als ein Modell entlang der langen Seite, sonst je Feld.
+func _prop(ts: Array) -> void:
+	var terrain: StringName = ts[0].terrain
+	var hgt: float = PROP_H[terrain]
+	var paths: Array = _type.get("props", {}).get(terrain, [])
+	var color: Color = PROP_COLOR.get(terrain, Color(0.5, 0.5, 0.5))
+	if terrain == &"schreibtisch":
+		_desks(ts)
+		return
+	if terrain in PROP_GROUP and ts.size() > 1:
+		var b := _bounds(ts)
+		var base: Vector3 = b.c + Vector3(0, ts[0].h * L, 0)
+		var size := Vector3(b.sx - 0.15, hgt, b.sz - 0.15)
+		if paths.is_empty():
+			_box(base + Vector3(0, hgt / 2.0, 0), size, color)
+		elif terrain in [&"theke", &"schrank", &"server"]:
+			_models.fill_repeat(_slot(paths[_rng.randi() % paths.size()], VisualSlot.Fit.STRETCH, 1.5), base, size)
+		else:
+			_fit_uniform(_slot(paths[_rng.randi() % paths.size()]), base, size)
+		return
+	for t in ts:
+		var top := tile_top(t.pos)
+		var size := Vector3(1.25, hgt, 1.1)
+		if paths.is_empty():
+			_box(top + Vector3(0, hgt / 2.0, 0), size if terrain != &"laterne" else Vector3(0.25, hgt, 0.25), color)
+			continue
+		var slot := _slot(paths[_rng.randi() % paths.size()])
+		_fit_uniform(slot, top, size, _rng.randi_range(0, 5) * PI / 3.0)
+	if terrain == &"tisch" and _type.get("props", {}).has(&"hocker"):
+		_stools(ts[0])
+
+
+## Schreibtische: Platte als Grundkörper, je Feld ein Bildschirm und ein Stuhl daneben (Büro)
+func _desks(ts: Array) -> void:
+	var b := _bounds(ts)
+	var top := 0.78
+	var wood: Color = PROP_COLOR[&"schreibtisch"]
+	_box(b.c + Vector3(0, top - 0.03, 0), Vector3(b.sx - 0.2, 0.06, b.sz - 0.2), wood)
+	_box(b.c + Vector3(0, (top - 0.06) / 2.0, 0), Vector3(b.sx - 0.5, top - 0.06, b.sz - 0.5), wood.darkened(0.35))
+	var props: Dictionary = _type.get("props", {})
+	for t in ts:
+		var p := tile_top(t.pos)
+		if props.has(&"computer"):
+			_fit_uniform(_slot(props[&"computer"][0]), Vector3(p.x, top, p.z), Vector3(0.6, 0.5, 0.45), PI if t.row % 2 else 0.0)
+		elif map.map_type == &"schiff":
+			_box(Vector3(p.x, top + 0.2, p.z), Vector3(0.5, 0.35, 0.06), Color(0.2, 0.6, 0.9))
+
+
+## Hocker an freie Nachbarfelder eines Bartischs (nur Grafik)
+func _stools(t: BattleMap.Tile) -> void:
+	var slot := _slot(_type.props[&"hocker"][0])
+	var k := 0
+	for n in Hex.neighbors(t.pos):
+		var nt := map.tile(n)
+		if nt == null or nt.terrain != &"boden" or k >= 2 or _rng.randf() < 0.5:
+			continue
+		var a := Hex.to_world(t.pos)
+		var c := Hex.to_world(n)
+		var p := a.lerp(c, 0.55)
+		_fit_uniform(slot, Vector3(p.x, 0, p.y), Vector3(0.45, 0.7, 0.45))
+		k += 1
+
+
+## Modell gleichmäßig in einen Quader einpassen (Seitenverhältnis bleibt), lange Seite an die lange Seite
+func _fit_uniform(slot: VisualSlot, center_bottom: Vector3, size: Vector3, rot := 0.0) -> void:
+	var a := _models.aabb(slot)
+	var model_long_x := a.size.x >= a.size.z
+	var box_long_x := size.x >= size.z
+	var r := rot + (0.0 if model_long_x == box_long_x or absf(size.x - size.z) < 0.3 else PI / 2.0)
+	var turned := absf(sin(r)) > 0.5
+	var mx := a.size.z if turned else a.size.x
+	var mz := a.size.x if turned else a.size.z
+	var k := minf(size.y / maxf(a.size.y, 0.001), minf(size.x / maxf(mx, 0.001), size.z / maxf(mz, 0.001)) * 1.15)
+	var basis := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(k, k, k))
+	var anchor := Vector3(a.get_center().x, a.position.y, a.get_center().z)
+	_models.add(slot, Transform3D(basis, center_bottom - basis * anchor))
+
+
+static func _slot(path: String, fit := VisualSlot.Fit.HEIGHT, repeat_m := 2.0) -> VisualSlot:
+	var key := "%s|%d|%.1f" % [path, fit, repeat_m]
+	if not _slots.has(key):
+		var s := VisualSlot.new()
+		s.model = load(path)
+		s.fit = fit
+		s.repeat_m = repeat_m
+		_slots[key] = s
+	return _slots[key]
 
 
 # ---------------------------------------------------------------- Bausteine

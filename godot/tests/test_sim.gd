@@ -17,9 +17,12 @@ func _init() -> void:
 		if missions:
 			diff = ["leicht", "mittel", "schwer"][i % 3]
 			var mi := Mission.generate(5000 + i, diff)
-			c = Combat.new(MapGenerator.generate(mi.map_seed, mi.size_id), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(mi.enemies, &"enemy"))
+			c = Combat.new(MapGenerator.for_mission(mi.map_seed, mi), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(mi.enemies, &"enemy"))
 		else:
-			var m := MapGenerator.generate(5000 + i, BattleMap.SIZES[i % 3].id)
+			# alle Kartentypen reihum, abwechselnd quadratisch; Raumschiff jedes zweite Mal als Abwehr
+			var types: Array = MapTypes.GROUND + [MapTypes.SHIP]
+			var ty: StringName = types[i % types.size()]
+			var m := MapGenerator.generate(5000 + i, BattleMap.SIZES[i % 3].id, ty, i % 2 == 1, ty == MapTypes.SHIP and i % 4 >= 2)
 			c = Combat.new(m, Roster.build_team(GameData.crew(), &"crew"), Roster.build_team(GameData.enemies(), &"enemy"))
 		var ai := CombatAI.new()
 		c.start()

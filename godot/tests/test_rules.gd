@@ -40,6 +40,7 @@ func _init() -> void:
 	_test_loot_wear()
 	_test_char_wear()
 	_test_weapon_repair()
+	_test_map_types()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1146,3 +1147,37 @@ func _test_weapon_repair() -> void:
 	u.act = 100
 	var step := CombatAI.new().plan_step(c, u)
 	check(step.type == &"repair" and step.target == u and step.slot == "w0", "KI repariert unbrauchbare Waffe (%s)" % step.type)
+
+
+## Kartentypen (17.10.2026): jeder Typ in allen Größen und Formen begehbar, genug Startfelder, Abwehr seitenverkehrt;
+## Mission würfelt Typ und Form mit eigenem Zufall (übrige Mission unverändert), Entern = Raumschiff
+func _test_map_types() -> void:
+	var types: Array = MapTypes.GROUND + [MapTypes.SHIP]
+	for ty in types:
+		for sz in BattleMap.SIZES:
+			for sq in [false, true]:
+				var m := MapGenerator.generate(77, sz.id, ty, sq)
+				check(m != null and m.map_type == ty, "Karte %s %s%s erzeugt" % [ty, sz.id, " quadr." if sq else ""])
+				if m == null:
+					continue
+				check(m.cols == (sz.sq if sq else sz.cols) and m.rows == (sz.sq if sq else sz.rows), "Größe %s %s" % [ty, sz.id])
+				check(m.crew_start.size() >= 6 and m.enemy_start.size() >= Mission.MAX_ENEMIES, "Startfelder %s %s" % [ty, sz.id])
+				var reach := m.reachable(m.crew_start[0].pos, INF)
+				check(m.list.all(func(t: BattleMap.Tile) -> bool: return not m.walkable(t) or reach.all.has(t.pos)), "alles erreichbar %s %s" % [ty, sz.id])
+	var d := MapGenerator.generate(78, "mittel", MapTypes.SHIP, false, true)
+	check(d.crew_start.all(func(t: BattleMap.Tile) -> bool: return t.col > d.cols / 2) and d.enemy_start.all(func(t: BattleMap.Tile) -> bool: return t.col < d.cols / 2),
+		"Abwehr an Bord: Crew rechts, Gegner links (Schleuse)")
+	var seen := {}
+	var squares := 0
+	for i in 200:
+		var mi := Mission.generate(9000 + i)
+		seen[mi.map_type] = seen.get(mi.map_type, 0) + 1
+		squares += 1 if mi.square else 0
+	check(seen.size() == MapTypes.GROUND.size() and not seen.has(MapTypes.SHIP), "Missionen: alle Bodentypen, kein Raumschiff (%s)" % seen)
+	check(squares > 60 and squares < 140, "rund die Hälfte quadratisch (%d von 200)" % squares)
+	var a := Mission.generate(4711)
+	var b := Mission.generate(4711)
+	b.set_map_type(MapTypes.SHIP, "defend")
+	check(a.enemies.size() == b.enemies.size() and a.difficulty == b.difficulty and b.title == "Abwehr an Bord", "Entern ändert nur Ort und Text")
+	var mp := MapGenerator.for_mission(4711, b)
+	check(mp.map_type == MapTypes.SHIP and mp.terrain_name(mp.crew_start[0]) == "Deckplatten", "for_mission: Raumschiff, Bodenname")

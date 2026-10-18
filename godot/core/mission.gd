@@ -15,14 +15,52 @@ const DIFFICULTIES := {
 	"schwer": {"name": "schwer", "budget": 76, "reward": 5},
 }
 
-## Aufträge: Titel und Einsatzbeschreibung (%s = Fraktion)
-const JOBS := [
-	["Lagerhalle räumen", "Der Hafenmeister will seine Halle zurück. Dort haben sich %s eingenistet."],
-	["Fracht zurückholen", "Eine gestohlene Ladung liegt in einer Lagerhalle, bewacht von %s."],
-	["Hinterhalt im Depot", "Ein Informant hat euch in eine Halle bestellt. Statt ihm warten %s."],
-	["Säuberung", "Ein Auftraggeber zahlt dafür, dass %s aus seinem Depot verschwinden."],
-	["Rettungsauftrag", "Ein Frachterpilot hat sich in einer Halle verschanzt. Draußen: %s."],
-]
+## Aufträge je Kartentyp: Titel und Einsatzbeschreibung (%s = Fraktion), je 5 (Index aus dem Missionszufall)
+const JOBS := {
+	&"halle": [
+		["Lagerhalle räumen", "Der Hafenmeister will seine Halle zurück. Dort haben sich %s eingenistet."],
+		["Fracht zurückholen", "Eine gestohlene Ladung liegt in einer Lagerhalle, bewacht von %s."],
+		["Hinterhalt im Depot", "Ein Informant hat euch in eine Halle bestellt. Statt ihm warten %s."],
+		["Säuberung", "Ein Auftraggeber zahlt dafür, dass %s aus seinem Depot verschwinden."],
+		["Rettungsauftrag", "Ein Frachterpilot hat sich in einer Halle verschanzt. Draußen: %s."],
+	],
+	&"bar": [
+		["Schulden eintreiben", "Der Wirt zahlt nicht mehr an seine Beschützer, seit %s die Bar übernommen haben."],
+		["Treffen geplatzt", "Euer Kontaktmann wartet in einer Hafenbar. An den Tischen sitzen %s."],
+		["Kneipenschlägerei", "In einer Bar am Raumhafen haben %s das Kommando übernommen. Der Besitzer will sie raus."],
+		["Zeugen schützen", "Eine Zeugin hat sich im Hinterzimmer einer Bar versteckt. Vorne warten %s."],
+		["Letzte Runde", "Ein Auftraggeber will, dass %s ihre Stammkneipe verlieren."],
+	],
+	&"strasse": [
+		["Straßensperre", "%s haben eine Straße im Hafenviertel abgeriegelt. Der Konvoi muss durch."],
+		["Hinterhalt im Viertel", "Auf dem Weg zum Treffpunkt stellen sich euch %s in den Weg."],
+		["Revierkampf", "%s beanspruchen eine Straße im Hafenviertel. Die Anwohner zahlen für Ruhe."],
+		["Lieferung abfangen", "Ein Lieferwagen mit Ware steht in einer Seitenstraße, bewacht von %s."],
+		["Flucht decken", "Ein Informant muss durch eine Straße voller %s zum Schiff."],
+	],
+	&"tempel": [
+		["Ruinen sichern", "In einem alten Tempel graben %s nach Artefakten. Ein Sammler will sie zuerst."],
+		["Verlorene Expedition", "Eine Forschergruppe ist in einer Tempelruine verschwunden. Dort lagern jetzt %s."],
+		["Heiliger Boden", "%s halten in einem verlassenen Tempel ihre Treffen ab. Jemand will das beenden."],
+		["Altar räumen", "Auf dem Altar eines alten Tempels liegt eine Datenkapsel. Bewacht von %s."],
+		["Grabräuber", "%s plündern eine Tempelruine. Der Auftraggeber zahlt für jedes gerettete Stück."],
+	],
+	&"buero": [
+		["Daten stehlen", "Im Serverraum eines Bürogebäudes liegen Daten, die ein Auftraggeber will. Dort sitzen %s."],
+		["Feindliche Übernahme", "%s haben ein Büro besetzt. Die Eigentümer wollen es zurück."],
+		["Geisel befreien", "Eine Angestellte wird in einem Bürotrakt festgehalten, bewacht von %s."],
+		["Aktenvernichtung", "Belastende Akten liegen in einem Büro. %s sollen sie nicht bekommen."],
+		["Nachtschicht", "In einem leeren Bürogebäude treffen sich %s. Ein Konkurrent will das stören."],
+	],
+	&"schiff": [
+		["Entern", "Ihr seid an Bord des gegnerischen Schiffs. Die Besatzung (%s) verteidigt sich."],
+		["Entern", "Die Luftschleuse ist offen. Drinnen warten %s."],
+		["Entern", "Das Schiff ist gestellt. Jetzt muss die Besatzung (%s) aufgeben oder fallen."],
+		["Entern", "Ihr kämpft euch durch die Gänge. An Bord: %s."],
+		["Entern", "Brücke und Laderaum müssen genommen werden. Gegner: %s."],
+	],
+}
+const DEFEND_TEXT := "%s entern euer Schiff! Sie kommen durch die Luftschleuse."
 
 var map_seed := 0
 var title := ""
@@ -32,6 +70,12 @@ var difficulty := "mittel"
 var size_id := "mittel"
 var enemies: Array[UnitData] = []
 var reward_xp := 0
+## Kartentyp (MapTypes), quadratische Form, Entern: "" / "board" (selbst entern) / "defend" (Abwehr an Bord).
+## Typ und Form werden mit eigenem Zufall (seed + 2) gewürfelt, damit der Rest der Mission gleich bleibt.
+var map_type: StringName = &"halle"
+var square := false
+var boarding := ""
+var job_index := 0
 
 
 ## faction_path: feste Fraktion (z. B. die des Systems auf der Sternenkarte), leer = zufällig
@@ -50,9 +94,12 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)
 	m.enemies = _compose(rng, m.faction, diff.budget)
-	var job: Array = JOBS[rng.randi_range(0, JOBS.size() - 1)]
-	m.title = job[0]
-	m.text = job[1] % m.faction.name
+	m.job_index = rng.randi_range(0, 4)
+	var r2 := RandomNumberGenerator.new()
+	r2.seed = seed_value + 2
+	m.map_type = MapTypes.GROUND[r2.randi_range(0, MapTypes.GROUND.size() - 1)]
+	m.square = r2.randf() < 0.5
+	m._set_texts()
 	var n := m.enemies.size()
 	if n <= 4:
 		m.size_id = "klein"
@@ -62,6 +109,19 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 		m.size_id = "mittel" if rng.randf() < 0.4 else "gross"
 	_custom_gear(m, seed_value)
 	return m
+
+
+## Kartentyp festlegen (Schnellkampf-Auswahl, Entern) und Auftragstext dazu wählen
+func set_map_type(t: StringName, board := "") -> void:
+	map_type = t
+	boarding = board
+	_set_texts()
+
+
+func _set_texts() -> void:
+	var job: Array = JOBS.get(map_type, JOBS[&"halle"])[job_index]
+	title = "Abwehr an Bord" if boarding == "defend" else job[0]
+	text = (DEFEND_TEXT if boarding == "defend" else job[1]) % faction.name
 
 
 ## Eigene Ausrüstung aus dem Editor (Gear) für Gegner, wenn für diese Fraktion freigegeben

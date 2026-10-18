@@ -257,7 +257,7 @@ func tooltip(u: Combatant, player_turn: bool, tile_pos: Variant, o: Combatant) -
 				h += "\n" + attack_breakdown(info)
 		h += "\n"
 	var info_t := t.info()
-	var line := "%s · Höhe %d (%s m) · %s" % [info_t.name, t.h, Combat._m(t.h * BattleMap.LEVEL_M),
+	var line := "%s · Höhe %d (%s m) · %s" % [combat.map.terrain_name(t), t.h, Combat._m(t.h * BattleMap.LEVEL_M),
 		("Kosten %d" % info_t.cost) if info_t.walk else "nicht begehbar"]
 	if u and not o and player_turn:
 		line += " · %s m entfernt" % Combat._m(Hex.distance(u.pos, tile_pos) * BattleMap.HEX_M)
