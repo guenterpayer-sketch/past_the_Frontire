@@ -516,6 +516,20 @@ func _test_encyclopedia() -> void:
 	check(Encyclopedia.md_to_bb("**fett** und *kursiv*") == "[b]fett[/b] und [i]kursiv[/i]", "Markdown fett/kursiv")
 	check(Encyclopedia.md_to_bb("| a | b |\n|---|---|\n| 1 | 2 |").begins_with("[table=2]"), "Markdown-Tabelle")
 	check(Encyclopedia._plain("[b]Deckung[/b] x").to_lower().contains("deckung"), "Suche im Klartext")
+	# Raumkampf (Entscheidungen des Nutzers 19.10.2026)
+	var sw: Array = e.entries(&"s_waffen")
+	check(sw[0].name == Encyclopedia.OVERVIEW and sw.size() == ShipWeapons.CATALOG.size() + 1 and String(sw[0].text).contains("[table=9]"), "Schiffswaffen: Übersicht + je Waffe")
+	var lb: Array = sw.filter(func(x: Dictionary) -> bool: return x.name == "Laserbank")
+	check(lb.size() == 1 and String(lb[0].text).contains("900 Cr") and String(lb[0].text).contains("s_schiffe:"), "Laserbank mit Preis und Gegnern")
+	check(e.entries(&"s_schiffe").size() == SpaceTemplates.ships().size() + 1 and e.entries(&"s_seiten").size() == SpaceTemplates.factions().size() + 1, "Gegnerschiffe und -seiten vollständig")
+	var ar: Array = e.entries(&"s_ausbau").filter(func(x: Dictionary) -> bool: return x.name == "Schiffspanzerung")
+	check(ar.size() == 1 and String(ar[0].text).contains("%d Abzug" % SpaceSetup.ARMOR_PER_HIT[3]), "Schiffspanzerung je Stufe")
+	var st: Array = e.entries(&"s_stationen").filter(func(x: Dictionary) -> bool: return x.name == "Steuer")
+	check(st.size() == 1 and String(st[0].text).contains("VW"), "Station mit Aufgabe aus Raumkampf.md")
+	for r in Encyclopedia.SPACE_RULES:
+		var rt := Encyclopedia.rule_text(r[1], Encyclopedia.SPACE_RULES_FILE)
+		check(rt.length() > 100 and not rt.contains("nicht gefunden"), "Kurzregel aus Raumkampf.md: %s" % r[0])
+	check(not Encyclopedia.rule_text("## 4.", Encyclopedia.SPACE_RULES_FILE).contains("4a."), "Raumregel endet vor 4a")
 	e.free()
 
 

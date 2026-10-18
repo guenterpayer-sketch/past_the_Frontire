@@ -3,12 +3,26 @@ extends Modal
 ## Enzyklopädie (docs/Planung_Enzyklopaedie.md): ein Dialog für alle Module. Links Suche und Bereiche, in der Mitte die
 ## Einträge, rechts der Text. Verweise im Text sind anklickbar ([url=bereich:eintrag]).
 ## Öffnen: Encyclopedia.show_on(control, &"waffen", "Sturmgewehr") – legt den Dialog bei Bedarf unter control an.
-## Bereiche: waffen, ruestungen, tabellen, kritische, patzer, psi, fertigkeiten, regeln.
+## Bereiche Bodenkampf: waffen, ruestungen, tabellen, kritische, patzer, psi, fertigkeiten, regeln.
+## Bereiche Raumkampf (Entscheidungen des Nutzers 19.10.2026, Daten nur gelesen aus ShipWeapons, SpaceTemplates,
+## SpaceSetup, ShipUpgrades, ShipArms, docs/Raumkampf.md): s_waffen, s_schiffe, s_seiten, s_ausbau, s_munition,
+## s_stationen, s_regeln. Leiste mit zwei Gruppen, Werte als Einzelseiten mit „Übersicht“ als Vergleichstabelle.
 
 const SECTIONS := [
 	[&"waffen", "Waffen"], [&"ruestungen", "Rüstungen"], [&"tabellen", "Angriffstabellen"], [&"kritische", "Kritische Treffer"],
 	[&"patzer", "Patzer"], [&"psi", "Psi-Listen"], [&"fertigkeiten", "Fertigkeiten"], [&"regeln", "Kurzregeln"],
+	[&"s_waffen", "Schiffswaffen"], [&"s_schiffe", "Gegnerschiffe"], [&"s_seiten", "Gegnerseiten"], [&"s_ausbau", "Schiffsausbau"],
+	[&"s_munition", "Schiffsmunition"], [&"s_stationen", "Stationen"], [&"s_regeln", "Kurzregeln Raumkampf"],
 ]
+## Zwischenüberschriften der Leiste: vor diesem Bereich beginnt die Gruppe
+const GROUPS := {&"waffen": "BODENKAMPF", &"s_waffen": "RAUMKAMPF"}
+## Kurzregeln Raumkampf: Eintrag → Überschrift-Anfang in docs/Raumkampf.md (ohne „Offene Fragen“)
+const SPACE_RULES := [
+	["Karte und Ablauf", "## 1."], ["Stationen (Regel)", "## 2."], ["Jäger", "## 3."], ["Treffer und Schaden", "## 4."],
+	["Waffen, Schilde, Munition", "## 4a."], ["Kampfende", "## 4b."], ["Entern", "## 4c."], ["Erfahrung im Raumkampf", "## 5."],
+]
+const SPACE_RULES_FILE := "../docs/Raumkampf.md"
+const OVERVIEW := "Übersicht"
 ## Kurzregeln: Eintrag → Überschrift-Anfang in docs/Skillsystem.md
 const RULES := [
 	["Der offene W100", "## 1."], ["Proben", "## 4."], ["Angriff", "### 5.1"], ["Kritische Treffer (Regel)", "### 5.3"],
@@ -28,7 +42,7 @@ var _list: VBoxContainer
 var _text: RichTextLabel
 var _search: LineEdit
 var _cache := {}             # Bereich → [{name, text}]
-static var _rules_md := ""
+static var _rules_md := {}       # Datei → Markdown
 
 
 ## Dialog unter parent (einmal angelegt) an der Stelle öffnen
@@ -97,10 +111,13 @@ func _render_side() -> void:
 	gap.custom_minimum_size.y = 8
 	_side.add_child(gap)
 	for s in SECTIONS:
-		var b := UiTheme.button("%s   (%d)" % [s[1], entries(s[0]).size()], "", true)
+		if GROUPS.has(s[0]):
+			_side.add_child(UiTheme.label(GROUPS[s[0]], 12, UiTheme.MUTED))
+		var n := entries(s[0]).filter(func(e: Dictionary) -> bool: return not e.get("head", false) and e.name != OVERVIEW).size()
+		var b := UiTheme.button("%s   (%d)" % [s[1], n], "", true)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.button_pressed = s[0] == section and query == ""
-		b.custom_minimum_size.y = 40
+		b.custom_minimum_size.y = 34
 		var id: StringName = s[0]
 		b.pressed.connect(func() -> void:
 			section = id
@@ -223,6 +240,11 @@ func _build(sec: StringName) -> Array:
 		&"regeln":
 			for r in RULES:
 				out.append({"name": r[0], "text": rule_text(r[1])})
+		&"s_regeln":
+			for r in SPACE_RULES:
+				out.append({"name": r[0], "text": rule_text(r[1], SPACE_RULES_FILE)})
+		_:
+			out = space_entries(sec)
 	return out
 
 
@@ -329,10 +351,10 @@ static func skill_text(g: Dictionary, s: Array) -> String:
 # ---------------------------------------------------------------- Kurzregeln aus docs/Skillsystem.md
 
 ## Text eines Abschnitts (bis zur nächsten Überschrift gleicher oder höherer Ebene) als BBCode
-static func rule_text(head: String) -> String:
-	var md := _rules()
+static func rule_text(head: String, file := RULES_FILE) -> String:
+	var md := _rules(file)
 	if md == "":
-		return "[color=%s]docs/Skillsystem.md nicht gefunden (die Kurzregeln werden aus dem Regeldokument im Projektordner gelesen).[/color]" % MUTED
+		return "[color=%s]%s nicht gefunden (die Kurzregeln werden aus dem Regeldokument im Projektordner gelesen).[/color]" % [MUTED, file.trim_prefix("../")]
 	var lines := md.split("\n")
 	var level := head.split(" ")[0].length()
 	var out := PackedStringArray()
@@ -349,12 +371,12 @@ static func rule_text(head: String) -> String:
 	return md_to_bb("\n".join(out))
 
 
-static func _rules() -> String:
-	if _rules_md == "":
-		var p := ProjectSettings.globalize_path("res://").path_join(RULES_FILE)
+static func _rules(file := RULES_FILE) -> String:
+	if String(_rules_md.get(file, "")) == "":
+		var p := ProjectSettings.globalize_path("res://").path_join(file)
 		if FileAccess.file_exists(p):
-			_rules_md = FileAccess.get_file_as_string(p)
-	return _rules_md
+			_rules_md[file] = FileAccess.get_file_as_string(p)
+	return String(_rules_md.get(file, ""))
 
 
 ## Einfaches Markdown → BBCode (Überschriften, fett, kursiv, Code, Listen, Tabellen)
@@ -403,3 +425,236 @@ static func _inline(s: String) -> String:
 	r.compile("`([^`]+)`")
 	s = r.sub(s, "[code]$1[/code]", true)
 	return s
+
+
+# ---------------------------------------------------------------- Raumkampf (nur lesen)
+
+const SHIP_CLASSES := ["Jäger", "leicht", "mittel", "schwer"]
+const DIFF_NAMES := {"leicht": "Leicht", "mittel": "Mittel", "schwer": "Schwer"}
+
+
+## Einträge der Raumkampf-Bereiche (außer Kurzregeln)
+static func space_entries(sec: StringName) -> Array:
+	var out := []
+	match sec:
+		&"s_waffen":
+			out.append({"name": OVERVIEW, "text": ship_weapons_overview()})
+			for k in ShipWeapons.CATALOG:
+				out.append({"name": ShipWeapons.name(k), "text": ship_weapon_text(k)})
+		&"s_schiffe":
+			var ships := SpaceTemplates.ships()
+			out.append({"name": OVERVIEW, "text": enemy_ships_overview()})
+			for id in ships:
+				out.append({"name": String(ships[id].name), "text": enemy_ship_text(id)})
+		&"s_seiten":
+			var sides := SpaceTemplates.factions()
+			for id in sides:
+				out.append({"name": String(sides[id].name), "text": side_text(id)})
+			out.append({"name": "Standardaufstellungen", "text": "[font_size=24][b]Standardaufstellungen[/b][/font_size]\n\n"
+				+ "[color=%s]Für Gegnerseiten ohne eigene Aufstellungen; je Kampf wird eine Zeile der Schwierigkeit gewürfelt.[/color]\n\n" % MUTED
+				+ _groups_table(SpaceTemplates.DEFAULT_GROUPS)})
+		&"s_ausbau":
+			out.append({"name": "Frontire (Grundwerte)", "text": own_ship_text()})
+			for id in [&"shields", &"armor", &"reactor", &"slots"]:
+				out.append({"name": String(ShipUpgrades.AREAS[id].name), "text": upgrade_text(id)})
+		&"s_munition":
+			for t in ShipWeapons.AMMO_TYPES:
+				out.append({"name": String(ShipWeapons.AMMO_TYPES[t]), "text": ship_ammo_text(t)})
+			out.append({"name": "Energie", "text": energy_text()})
+		&"s_stationen":
+			for st in SpaceSetup.BASE_STATIONS:
+				out.append({"name": SpaceSetup.station_name(st), "text": station_text(SpaceSetup.station_name(st), SpaceSetup.STATION_SKILL.get(st, &""))})
+			out.append({"name": "Geschütze", "text": station_text("Geschütze", &"", "Geschütze")})
+			out.append({"name": "Punktverteidigung", "text": station_text("Punktverteidigung", &"", "Punktverteidigung")})
+			out.append({"name": "Technik 2 und 3", "text": station_text("Technik 2 und 3", &"", "Technik")})
+			out.append({"name": "Freie Stationen", "text": free_stations_text()})
+	return out
+
+
+static func _num(v: float) -> String:
+	return str(v).replace(".", ",")
+
+
+static func _page(title: String, rows: Array, tail := "") -> String:
+	var s := "[font_size=24][b]%s[/b][/font_size]\n\n[table=2]" % title
+	for r in rows:
+		s += "[cell][color=%s]%s[/color]   [/cell][cell]%s[/cell]" % [MUTED, r[0], r[1]]
+	return s + "[/table]\n" + (("\n" + tail) if tail != "" else "")
+
+
+## Tabelle mit Kopfzeile (Übersichten)
+static func _grid(head: Array, rows: Array) -> String:
+	var s := "[table=%d]" % head.size()
+	for h in head:
+		s += "[cell][b]%s[/b]   [/cell]" % h
+	for r in rows:
+		for v in r:
+			s += "[cell]%s   [/cell]" % v
+	return s + "[/table]"
+
+
+static func _weapon_use(w: Dictionary) -> String:
+	return "%d Energie je Schuss" % int(w.energy) if String(w.ammo) == "" else _link("s_munition", String(ShipWeapons.AMMO_TYPES[w.ammo]))
+
+
+static func ship_weapons_overview() -> String:
+	var rows := []
+	for k in ShipWeapons.CATALOG:
+		var w: Dictionary = ShipWeapons.CATALOG[k]
+		rows.append([_link("s_waffen", String(w.name)), ShipWeapons.ART_NAMES[w.art], "Turm" if w.slot == "turm" else "normal",
+			_weapon_use(w), str(w.shots), str(w.range), "×" + _num(w.dmg), Dice.fmt(int(w.mod)),
+			("%d Cr" % int(w.price)) if w.trade else "nur Gegner"])
+	return "[font_size=24][b]Schiffswaffen[/b][/font_size]\n\n" + _grid(["Waffe", "Art", "Slot", "Munition", "Schuss", "Reichw.", "Schaden", "Bonus", "Preis"], rows) \
+		+ "\n\n[color=%s]Reichweite in Feldern, darüber −10 je Feld. Schaden = Faktor auf den Treffer. Preise: Grundpreis, im Hafen nach Verhandeln.[/color]" % MUTED
+
+
+static func ship_weapon_text(k: String) -> String:
+	var w := ShipWeapons.data(k)
+	var used := []
+	var ships := SpaceTemplates.ships()
+	for id in ships:
+		if k in ships[id].weapons:
+			used.append(_link("s_schiffe", String(ships[id].name)))
+	var rows := [["Art", ShipWeapons.ART_NAMES[w.art]], ["Fertigkeit", Rules.skill_name(ShipWeapons.skill(k))],
+		["Slot", "nur Turm-Slots (Punktverteidigung)" if w.slot == "turm" else "alle Slots außer Turm"], ["Munition", _weapon_use(w)],
+		["Schüsse je Runde", str(w.shots)], ["Reichweite", "%d Felder (darüber −10 je Feld)" % int(w.range)],
+		["Schaden", "×" + _num(w.dmg)], ["Angriffsbonus", Dice.fmt(int(w.mod))],
+		["Preis", ("%d Cr (Grundpreis, im Hafen nach Verhandeln)" % int(w.price)) if w.trade else "kein Handel, nur bei Gegnern"],
+		["Bei Gegnern", ", ".join(used) if not used.is_empty() else "–"]]
+	return _page(String(w.name), rows)
+
+
+static func _weapons_links(list: Array) -> String:
+	return ", ".join(list.map(func(k) -> String: return _link("s_waffen", ShipWeapons.name(String(k))))) if not list.is_empty() else "–"
+
+
+static func enemy_ships_overview() -> String:
+	var rows := []
+	var ships := SpaceTemplates.ships()
+	for id in ships:
+		var t: Dictionary = ships[id]
+		rows.append([_link("s_schiffe", String(t.name)), SHIP_CLASSES[int(t.cls)], str(t.hull), "%d / %d" % [int(t.shield), int(t.recharge)],
+			str(t.armor), str(t.vw), "%d (max. %d)" % [int(t.speed), int(t.max_speed)], _weapons_links(t.weapons), Dice.fmt(int(t.skill)),
+			"%d Cr, %d Mat." % [int(t.credits), int(t.material)]])
+	return "[font_size=24][b]Gegnerschiffe[/b][/font_size]\n\n" + _grid(["Schiff", "Klasse", "Hülle", "Schild/Aufl.", "Panz.", "VW", "Tempo",
+		"Waffen", "Besatz.", "Beute"], rows)
+
+
+static func enemy_ship_text(id: String) -> String:
+	var t := SpaceTemplates.ship(id)
+	var where := []
+	var sides := SpaceTemplates.factions()
+	for f in sides:
+		var groups: Dictionary = sides[f].get("groups", SpaceTemplates.DEFAULT_GROUPS)
+		for d in groups:
+			if groups[d].any(func(g: Array) -> bool: return id in g):
+				where.append(_link("s_seiten", String(sides[f].name)))
+				break
+	var rows := [["Klasse", SHIP_CLASSES[int(t.cls)]], ["Hülle", str(t.hull)],
+		["Schild", "%d je Seite, Aufladung %d je Seite und Runde" % [int(t.shield), int(t.recharge)]],
+		["Panzerung", "%d Abzug je Treffer auf die Hülle" % int(t.armor)], ["Verteidigung", "VW %d + halbe Besatzung" % int(t.vw)],
+		["Tempo", "%d, höchstens %d · %d %s je Runde" % [int(t.speed), int(t.max_speed), int(t.turns), "Drehung" if int(t.turns) == 1 else "Drehungen"]],
+		["Waffen", _weapons_links(t.weapons)], ["Besatzung", "%s auf Geschütze, Pilot, Schilde · Initiative %d" % [Dice.fmt(int(t.skill)), int(t.init)]],
+		["Beute", "%d Cr (×0,6–1,0), %d Schiffsmaterial" % [int(t.credits), int(t.material)]],
+		["Kommt vor bei", ", ".join(where) if not where.is_empty() else "–"]]
+	return _page(String(t.name), rows)
+
+
+static func _groups_table(groups: Dictionary) -> String:
+	var rows := []
+	for d in SpaceTemplates.DIFFS:
+		for g in groups.get(d, []):
+			rows.append([DIFF_NAMES[d], ", ".join(g.map(func(s) -> String: return _link("s_schiffe", String(SpaceTemplates.ship(String(s)).get("name", s)))))])
+	return _grid(["Schwierigkeit", "Aufstellung"], rows)
+
+
+static func side_text(id: String) -> String:
+	var f := SpaceTemplates.faction(id)
+	var rows := [["Gewinnt die Seite", "entert die Frontire (Bodenkampf an Bord)" if f.on_win == "entern" else "zieht ab (Notfall: Plünderung, Schiff treibt)"],
+		["Lösegeld", ("%d Cr bei Kapitulation" % int(f.ransom)) if int(f.ransom) > 0 else "nimmt keins"],
+		["Fluchtgrenze", ("Schiffe drehen unter %d %% Hülle ab (Jäger nie)" % roundi(float(f.flee_at) * 100)) if float(f.flee_at) > 0 else "flieht nie"]]
+	var groups: Dictionary = f.get("groups", {})
+	var tail := "[color=%s]AUFSTELLUNGEN%s[/color]\n" % [MUTED, "" if not groups.is_empty() else " (Standard)"]
+	return _page(String(f.name), rows, tail + _groups_table(groups if not groups.is_empty() else SpaceTemplates.DEFAULT_GROUPS))
+
+
+static func own_ship_text() -> String:
+	var rows := [["Klasse", SHIP_CLASSES[SpaceSetup.OWN_CLASS]], ["Verteidigung", "VW %d + halber Pilot-Bonus" % SpaceSetup.OWN_VW],
+		["Tempo", "höchstens %d · %d Drehung je Runde" % [SpaceSetup.OWN_MAX_SPEED, SpaceSetup.OWN_TURNS]],
+		["Startslots", ", ".join(SpaceSetup.START_SLOTS.keys().map(func(s) -> String: return "%s: %s" % [SpaceSetup.SLOT_NAMES[s], _link("s_waffen", ShipWeapons.name(String(SpaceSetup.START_SLOTS[s])))]))],
+		["Startmunition", ", ".join(SpaceSetup.START_AMMO.keys().map(func(t) -> String: return "%d %s" % [int(SpaceSetup.START_AMMO[t]), ShipWeapons.AMMO_TYPES[t]]))],
+		["Ausbau", ", ".join([&"shields", &"armor", &"reactor", &"slots"].map(func(id) -> String: return _link("s_ausbau", String(ShipUpgrades.AREAS[id].name))))]]
+	return _page("Frontire (Grundwerte)", rows)
+
+
+## Ausbau-Stufen mit Wirkung im Raumkampf und Kosten (Werft / Crew)
+static func upgrade_text(id: StringName) -> String:
+	var rows := []
+	for lv in ShipUpgrades.max_level(id) + 1:
+		var eff := ""
+		match id:
+			&"shields":
+				eff = "%d Schildpunkte je Seite" % SpaceSetup.SHIELD_PER_SIDE[lv]
+			&"armor":
+				eff = "%d Abzug je Treffer auf die Hülle" % SpaceSetup.ARMOR_PER_HIT[lv]
+			&"reactor":
+				eff = "%d Energie je Runde" % SpaceSetup.REACTOR_ENERGY[lv]
+			&"slots":
+				eff = ", ".join(SpaceSetup.slots_for(lv).map(func(s) -> String: return String(SpaceSetup.SLOT_NAMES[s])))
+		var cost := "Start" if lv == 0 else "Werft %d Cr · Crew %d Material, %d Tage" % [ShipUpgrades.YARD_COST[lv - 1], ShipUpgrades.CREW_MATERIAL[lv - 1], ShipUpgrades.CREW_DAYS[lv - 1]]
+		rows.append(["Stufe %d" % lv, eff, cost])
+	return "[font_size=24][b]%s[/b][/font_size]\n\n" % ShipUpgrades.AREAS[id].name + _grid(["Stufe", "Wirkung im Raumkampf", "Kosten"], rows) \
+		+ "\n\n[color=%s]Ausbau im Maschinenraum (Crew, Probe Reparatur am Ende) oder in der Werft im Raumhafen (Credits nach Verhandeln).[/color]" % MUTED
+
+
+static func ship_ammo_text(t: String) -> String:
+	var used := []
+	for k in ShipWeapons.CATALOG:
+		if String(ShipWeapons.CATALOG[k].ammo) == t:
+			used.append(_link("s_waffen", ShipWeapons.name(k)))
+	var rows := [["Preis", "%d Cr je Stück (Grundpreis, nach Verhandeln)" % int(ShipArms.AMMO_PRICE[t])],
+		["Packungen im Handel", " / ".join(ShipArms.AMMO_PACKS[t].map(func(n) -> String: return str(n)))],
+		["Startvorrat", str(SpaceSetup.START_AMMO.get(t, 0))], ["Für", ", ".join(used) if not used.is_empty() else "–"]]
+	return _page(String(ShipWeapons.AMMO_TYPES[t]), rows, "[color=%s]Kauf und Verkauf beim Schiffshändler im Raumhafen; Beute aus dem Raumkampf.[/color]" % MUTED)
+
+
+static func energy_text() -> String:
+	var used := []
+	for k in ShipWeapons.CATALOG:
+		if String(ShipWeapons.CATALOG[k].ammo) == "":
+			used.append("%s (%d)" % [_link("s_waffen", ShipWeapons.name(k)), int(ShipWeapons.CATALOG[k].energy)])
+	var rows := [["Quelle", "%s: %s Energie je Runde" % [_link("s_ausbau", "Reaktor"), " / ".join(SpaceSetup.REACTOR_ENERGY.map(func(n) -> String: return str(n)))]],
+		["Waffen (Energie je Schuss)", ", ".join(used)]]
+	return _page("Energie", rows)
+
+
+## Zeile der Stationstabelle aus docs/Raumkampf.md (Abschnitt 2), die mit key beginnt: [Station, Fertigkeit, Aktion]
+static func _station_row(key: String) -> Array:
+	var md := _rules(SPACE_RULES_FILE)
+	for ln in md.split("\n"):
+		if ln.begins_with("|"):
+			var c := ln.strip_edges().trim_prefix("|").trim_suffix("|").split("|")
+			if c.size() >= 3 and String(c[0]).strip_edges().begins_with(key):
+				return [String(c[0]).strip_edges(), String(c[1]).strip_edges(), String(c[2]).strip_edges()]
+	return []
+
+
+static func station_text(title: String, skill: StringName, key := "") -> String:
+	var r := _station_row(key if key != "" else title)
+	var rows := []
+	rows.append(["Fertigkeit", Rules.skill_name(skill) if skill != &"" else (r[1] if not r.is_empty() else "–")])
+	if not r.is_empty():
+		rows.append(["Aufgabe", _inline(r[2])])
+	match key:
+		"Geschütze":
+			rows.append(["Anzahl", "je bestücktem Slot eine Geschützstation (Fertigkeit nach Art der %s)" % _link("s_waffen", OVERVIEW, "Waffe")])
+		"Punktverteidigung":
+			rows.append(["Anzahl", "je bestücktem Turm-Slot"])
+		"Technik":
+			rows.append(["Hinweis", "weitere Techniker an Bord; arbeiten wie die Station Technik"])
+	return _page(title, rows, "[color=%s]Regel: %s[/color]" % [MUTED, _link("s_regeln", "Stationen (Regel)")])
+
+
+static func free_stations_text() -> String:
+	var rows := [["Bord-KI", "fester Bonus %s" % Dice.fmt(SpaceSetup.KI_BONUS)], ["Doppelbesetzung", "eine Person an zwei Stationen, beide Würfe %d" % SpaceSetup.DOUBLE_MALUS]]
+	return _page("Freie Stationen", rows)
