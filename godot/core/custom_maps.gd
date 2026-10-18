@@ -167,6 +167,7 @@ static func build(d: Dictionary, lage: StringName = &"standard", seed_value := 0
 	if use_painted:
 		_painted(m, d)
 		gen._shuffle(m.enemy_start)
+	m.lage = lage
 	return m
 
 

@@ -151,7 +151,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 		roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed])
 	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s). Ort: %s (%s%s)." % [
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), place_name, sz.name, form], &"round")
-	var zone: String = {&"verteidigung": "rechten Bereich", &"hinterhalt": "mittleren Bereich"}.get(mission.lage, "Eingangsbereich")
+	var zone: String = {&"verteidigung": "rechten Bereich", &"hinterhalt": "mittleren Bereich", &"ueberfall": "freien Bereich rund um die Gegner"}.get(mission.lage, "Eingangsbereich")
 	ui.combat_log.add("Lage: %s." % mission.lage_text(), &"round")
 	ui.combat_log.add("Runde 0: Crew im %s aufstellen (blaue Felder), dann „Kampf beginnen“." % zone, &"")
 	deploy_sel = combat.crew()[0] if not combat.crew().is_empty() else null
@@ -650,6 +650,8 @@ func _deploy_click(p: Vector2) -> void:
 			views[deploy_sel].position = map_view.tile_top(deploy_sel.pos)
 			if other:
 				views[other].position = map_view.tile_top(other.pos)
+			for u in views:   # Aufstellen richtet neu aus (Combat.deploy)
+				views[u].set_facing(u.facing)
 	_dirty = true
 
 

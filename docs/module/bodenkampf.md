@@ -27,9 +27,8 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (19.10.2026): Startausrichtung nach Startlage
+### Fertig (19.10.2026): Startausrichtung nach Startlage, neue Lage „Überfall“
 
-Befund (Spieltest des Nutzers, im Code geprüft): `Combatant.from_*` setzt die Ausrichtung fest (`core/combatant.gd:130`: Crew `facing = 0`, Gegner `3`), unabhängig von der Startlage. Bei **Verteidigung** (Crew rechts, Gegner links) schauen beide Seiten voneinander weg; die Crew hat meist die bessere Initiative → in Runde 1 Schüsse in den Rücken.
-- **Alle Figuren zu Kampfbeginn zum Gegner ausrichten** (z. B. zur nächsten gegnerischen Figur oder zum Schwerpunkt der Gegenseite), für **alle Startlagen** (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Entern/Abwehr und eigene Karten. Die Crew kann in Runde 0 wie bisher selbst drehen.
-- Ob es bei **Hinterhalt** absichtlich anders sein soll (Gegner überrascht, Rücken zur Crew?), mit dem Nutzer klären.
-- Test in `test_rules` (je Lage: Figuren schauen zur Gegenseite).
+- Alle Figuren schauen zu Kampfbeginn zum nächsten Gegner (`Combat.face_start`, alle Lagen, Entern/Abwehr, eigene Karten); `Combat.deploy` richtet in Runde 0 neu aus, danach dreht die Crew selbst. Hinterhalt wie alle anderen (Nutzer).
+- Neue Lage **Überfall** (Nutzer): Gegner in der Mitte, Crew frei aufstellbar (mit Abstand, auch erhöht), Gegner schauen von der Crew weg und handeln in Runde 1 nicht. In `Mission.LAGEN`/`OTHER_LAGEN`, je Bodentyp ein sechster Auftrag mit Überfall (`job_index` 0–5, Entern weiter 5 Texte). Schnittstelle: `BattleMap.lage` (gesetzt von `MapGenerator._finish` und `CustomMaps.build`), `Combat.surprised(u)`.
+- Tests: `test_rules` `_test_start_facing`; `--autotest-maps` zeigt auch Überfall.

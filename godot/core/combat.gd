@@ -82,6 +82,31 @@ func _init(battle_map: BattleMap, crew: Array[Combatant], enemies: Array[Combata
 		crew[i].pos = map.crew_start[i].pos
 	for i in enemies.size():
 		enemies[i].pos = map.enemy_start[i].pos
+	face_start()
+
+
+## Ausrichtung zu Kampfbeginn (Auftrag 19.10.2026): alle schauen zum nächsten Gegner; beim Überfall schauen die
+## Gegner von der nächsten Figur der Crew weg (in Runde 0 nach jedem Aufstellen neu, siehe deploy)
+func face_start() -> void:
+	for u in units:
+		var near := _nearest_opponent(u)
+		if near == null:
+			continue
+		var dir := Hex.dir_toward(u.pos, near.pos)
+		u.facing = posmod(dir + 3, 6) if surprised(u) else dir
+
+
+func _nearest_opponent(u: Combatant) -> Combatant:
+	var best: Combatant = null
+	for o in units:
+		if o.team != u.team and not o.is_dead() and (best == null or Hex.distance(u.pos, o.pos) < Hex.distance(u.pos, best.pos)):
+			best = o
+	return best
+
+
+## Überfall: Gegner sind überrascht (schauen weg, handeln in Runde 1 nicht)
+func surprised(u: Combatant) -> bool:
+	return map.lage == &"ueberfall" and not u.is_crew and round_no <= 1
 
 
 func log_text(text: String, kind: StringName = &"") -> void:
@@ -147,6 +172,13 @@ func deploy(u: Combatant, p: Vector2i) -> Combatant:
 	if o and o != u:
 		o.pos = u.pos
 	u.pos = p
+	# neu ausrichten: die Gestellten zum nächsten Gegner, beim Überfall auch die Gegner (von der Crew weg)
+	for x in units:
+		if x == u or x == o or surprised(x):
+			var near := _nearest_opponent(x)
+			if near:
+				var dir := Hex.dir_toward(x.pos, near.pos)
+				x.facing = posmod(dir + 3, 6) if surprised(x) else dir
 	return o if o != u else null
 
 
@@ -181,6 +213,9 @@ func _start_round() -> void:
 	if check_end():
 		return
 	var ready := units.filter(func(u: Combatant) -> bool: return u.is_ok())
+	if round_no == 1 and map.lage == &"ueberfall":
+		ready = ready.filter(func(u: Combatant) -> bool: return u.is_crew)
+		log_text("Überfall: Die Gegner sind überrascht und handeln in Runde 1 nicht.", &"round")
 	for u in ready:
 		var a := Dice.d(10)
 		var b := Dice.d(10)
