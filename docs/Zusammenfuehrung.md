@@ -9,7 +9,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`16ac931`), nichts offen (Editor ruht) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`7f95a11`), nichts offen |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`608be25`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
@@ -18,6 +18,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 18.10.2026 | `7381fd9` | Bodenkampf `claude/confident-edison-6mxzke` (`7f95a11`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Karteneditor (Draufsicht und 3D, eigene Karten im Spiel, je Karte an/aus, Pool-Chance 30 %). Änderungen in Hub-Dateien: `start_screen.gd` (Knopf), `test_hub.gd` (Testordner für eigene Karten), vermerkt. |
 | 18.10.2026 | `cabec57` | Bodenkampf `claude/confident-edison-6mxzke` (`16ac931`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Wände sperren Sicht und Druckwelle immer (`battle_map.gd`, `combat.gd`, Test in `test_rules`). |
 | 18.10.2026 | `e485e7d` | Bodenkampf `claude/confident-edison-6mxzke` (`e931e13`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Truppgröße: schwer bis 8 (`core/campaign.gd` minimal geändert, vermerkt), Budget schwer 88. |
 | 18.10.2026 | `da5886b` | Hub `claude/happy-lamport-u4fvya` (`608be25`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Gewonnene Abwehr an Bord = gewonnener Raumkampf: Beute des Enterschiffs mit Beuteauswahl, Auftrag läuft weiter. |

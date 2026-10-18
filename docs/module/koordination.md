@@ -46,7 +46,7 @@ Dritter Koordinations-Chat beendet (langer Verlauf). Ein neuer Chat startet nur 
 **Stand `main`:** alle Module zusammengeführt; Raumkampf V1 inkl. Wracks/Entern (`c0e578c`), Hub bis `608be25` (Abwehr als Sieg), Charakter bis `9228e24` (Farb-Absturz behoben), Bodenkampf bis `bb89c03` (Kartentypen, Startlagen). Verlauf: `docs/Zusammenfuehrung.md`.
 
 **Offen:**
-- **Bodenkampf:** Truppgröße in `main` (`e931e13`). Karteneditor **ruht** (Fragen in `bodenkampf.md`).
+- **Bodenkampf:** Truppgröße in `main` (`e931e13`). Karteneditor in `main` (`7f95a11`).
 - Alle anderen Module: keine offenen Aufträge.
 - Ideen für später: Fraktionen mit Ober-/Unterarten (`docs/Planung_Kampfkarten.md`), eigene Jäger/Hangar (V2), Story/Kampagne, Balancing Boden/Charakter (`docs/Skillsystem.md` 9).
 

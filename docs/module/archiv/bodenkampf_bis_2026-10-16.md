@@ -219,3 +219,12 @@ Grundlage: `docs/Planung_Truppgroesse.md` (Entscheidungen des Nutzers). **Zustä
   - **Fehler gefunden und behoben:** `BattleMap.reachable(…, INF)` nahm unerreichbare Felder mit Kosten INF auf; die Erreichbarkeitsprüfung aller Generatoren war damit wirkungslos (im Büro blieb ein Raum ohne Tür, der letzte Gegner unerreichbar → Kampf hing). Jetzt werden INF-Kosten nicht aufgenommen; Büro-Generator gibt dem Rest neben dem letzten Raum eine Tür.
   - `test_sim`: Optionen `leicht|mittel|schwer`, `trupp=N`, `ab=K`, `budget=N` (nur Messung, `Mission.budget_override`); Grenze 100 Runden statt 60 (lange Kämpfe mit 8 gegen 9 sind kein Hänger, z. B. Kampf 15 endet in Runde 63).
   - **Simulation „schwer“, je 60 Kämpfe:** 6 Figuren, Budget 76: 29/60 (48 %) · 8 Figuren, 76: 50/60 (83 %) · 8, 84: 41/60 (68 %) · **8, 88: 34/60 (57 %)** · 8, 92: 33/60 (55 %) · 8, 108: 32/60 (53 %; ab etwa 92 begrenzt die Höchstzahl von 9 Gegnern). Gewählt: 88.
+
+
+# Nachtrag Karteneditor (in `main` seit 18.10.2026, `7f95a11`)
+
+### Fertig: Karteneditor (Schritt 2 aus `docs/Planung_Kampfkarten.md`, 18.10.2026)
+
+- Entscheidungen des Nutzers: Bedienung Draufsicht **und** 3D umschaltbar; neue Karte leer, aus Zufallskarte oder als Kopie; im Spiel **je Karte an/aus**. Übrige Fragen hat der Nutzer dem Bodenkampf-Chat überlassen („so selbstständig wie möglich“); gewählt: Startfelder gezeichnet für „Standard“, sonst automatisch je Lage; Pool-Chance 30 %; Größen wie die Zufallskarten (6 Varianten); Probekampf aus dem Editor; Speicherort `user://maps/*.json`.
+- Neu: `map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, `tests/autotest_editor.gd`; Startmenü „Karteneditor“. Schnittstellen: `Mission.custom_map`/`custom_name`, `BattleMap.custom_name`, `MapGenerator.for_mission` fragt zuerst `CustomMaps.for_mission`; Briefing (Schnellkampf) „Ort: Eigene: …“ (`BriefingDialog.place_choices()`). Tests setzen `CustomMaps.dir` auf Testordner. Beschreibung in `godot/README.md` („Karteneditor“).
+

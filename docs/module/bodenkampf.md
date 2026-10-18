@@ -22,14 +22,9 @@
 
 ## Stand
 
-- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Danach (`16ac931`): Wände sperren Sicht und Druckwelle immer. Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
+- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Danach (`16ac931`): Wände sperren Sicht und Druckwelle immer. Danach (`7f95a11`): **Karteneditor** (`map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, Startmenü „Karteneditor“, Draufsicht/3D, eigene Karten in `user://maps/`, je Karte an/aus, Pool-Chance 30 %; Schnittstellen `Mission.custom_map`, `CustomMaps.for_mission`). Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator
-
-### Fertig: Karteneditor (Schritt 2 aus `docs/Planung_Kampfkarten.md`, 18.10.2026)
-
-- Entscheidungen des Nutzers: Bedienung Draufsicht **und** 3D umschaltbar; neue Karte leer, aus Zufallskarte oder als Kopie; im Spiel **je Karte an/aus**. Übrige Fragen hat der Nutzer dem Bodenkampf-Chat überlassen („so selbstständig wie möglich“); gewählt: Startfelder gezeichnet für „Standard“, sonst automatisch je Lage; Pool-Chance 30 %; Größen wie die Zufallskarten (6 Varianten); Probekampf aus dem Editor; Speicherort `user://maps/*.json`.
-- Neu: `map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, `tests/autotest_editor.gd`; Startmenü „Karteneditor“. Schnittstellen: `Mission.custom_map`/`custom_name`, `BattleMap.custom_name`, `MapGenerator.for_mission` fragt zuerst `CustomMaps.for_mission`; Briefing (Schnellkampf) „Ort: Eigene: …“ (`BriefingDialog.place_choices()`). Tests setzen `CustomMaps.dir` auf Testordner. Beschreibung in `godot/README.md` („Karteneditor“).
 
 - Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
