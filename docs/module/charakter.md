@@ -75,4 +75,9 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (18.10.2026): Absturz beim Ändern der Farbe
+
+Meldung des Nutzers: Beim Ändern der Farbe einer Figur („im Charakter“, Farbauswahl offen, Farbe gewählt) beendet sich das Spiel sofort. Log noch nicht vorhanden (Nutzer sucht `%APPDATA%\Godot\app_userdata\Past the Frontire\logs\godot.log` bzw. die Ausgabe im Godot-Editor).
+- Betroffene Stellen mit `ColorPickerButton`: `ui/crew/crew_overview.gd` (~Z. 229, `popup_closed` → `_render()`), `ui/crew/roster_edit_dialog.gd` (~Z. 42, `popup_closed`), `ui/crew/character_editor.gd` (~Z. 161, `color_changed`).
+- **Vermutung des Koordinators (nicht geprüft):** In `crew_overview.gd` baut `_render()` im Signal `popup_closed` die ganze Seite neu (`UiTheme.clear` entfernt den `ColorPickerButton` aus dem Baum, während er noch sein eigenes Signal sendet). Das könnte Godot zum Absturz bringen. Möglicher Weg: `_render.call_deferred()` oder nur die Farbe setzen, ohne den Knopf neu zu bauen.
+- Bitte nachstellen (mit Grafik, alle drei Stellen), Ursache belegen, beheben, im Autotest abdecken (Farbe wählen und Popup schließen). Log des Nutzers kommt ggf. über den Nutzer nach.
