@@ -596,23 +596,23 @@ Umgesetzt im Hub (`godot/core/galley.gd`, Werte im `HubState`; Planung `docs/Pla
 
 Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leicht zu ändern:
 
-1. **Eigenschaftspaare** der Fertigkeiten (Abschnitt 3.2) sind mein Vorschlag.
+1. **Eigenschaftspaare** der Fertigkeiten (Abschnitt 3.2) sind mein Vorschlag. **Vom Nutzer bestätigt (19.10.2026).**
 2. **„Zweite Hilfe“**: geklärt – Arzt-Fertigkeit der Krankenstation (tägliche Heilprobe, 8a).
 3. **„Psi wirken“ vs. „Psi-Angriffe“**: umgesetzt – „Psi wirken“ ist die Probe für unterstützende Kräfte, „Psi-Angriffe“ für Angriffe.
 4. **„Panzerung“ (Raumschiff-Kampf)**: umgesetzt – Hülle flicken an der Station Technik (`docs/Raumkampf.md`). Nicht verwechseln mit dem Ausbau „Schiffspanzerung“.
-5. **Zahlenwerte** (TP-Formel, Tabellen-Schwellen, Schadensfaktoren, EP-Kosten) sind ein erster Entwurf und noch nicht ausbalanciert.
+5. **Zahlenwerte** (TP-Formel, Tabellen-Schwellen, Schadensfaktoren, EP-Kosten) sind ein erster Entwurf und noch nicht ausbalanciert. **Vom Nutzer bestätigt (19.10.2026).**
 6. **Munition (Entscheidungen 15.10.2026, `docs/Planung_Munition.md`):** Waffen mit Magazin brauchen Munition einer **Munitionsart** (Energiezellen, Projektil, Raketen; Schiffsvorrat je Art). Jede Figur nimmt je Waffe **3 Magazine** mit (Zweitwaffe **1 Magazin**), höchstens „Munition gesamt“ der Waffe, solange der Vorrat reicht; ohne Vorrat ist die Waffe im Kampf nicht nutzbar. **Feuerstoß:** Waffenwert *Schuss pro Angriff*; ab 2 Schuss ein Angriffswurf mit **+5 je Kugel** (MG: 3 Schuss = +15); reicht das Magazin nicht, mit dem Rest und anteiligem Bonus. Magazine der Standardwaffen (16.10.2026): Laserpistole 12, Laserkarabiner 20, Sturmgewehr 30, MG 60, Raketenwerfer 1 (2 insgesamt). Waffen ohne Magazinwert sind unbegrenzt.
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
 8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
-9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert.
+9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert. **Vom Nutzer bestätigt (19.10.2026).**
 10. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m.
 11. **Aktivitätssystem:** Prinzip nach RMSS/RMFRP, alle Werte (Gangarten, Angriffsmodifikatoren, Kosten, Reserve 50 % vor dem ersten Zug, Feuerbereitschaft) sind eigene Vorschläge, nicht aus dem Regelwerk.
-12. **Charaktererschaffung (7a):** Faktor 1,2, Ranggrenzen 5/8 und „niedrigster Wurf → 90“ sind festgelegt, aber noch nicht im Kampf getestet. Beliebig oftes Neuwürfeln erlaubt sehr starke Figuren (Eigenschaftssumme 600 und mehr in ca. 1 % der Würfe).
-13. **Psi-Punkte:** Die neue Formel ergibt mehr PP als die alte (MEN 98: 19 statt 13 ohne Entwicklungsränge). Ob das mit „Kosten = Stufe“ passt, ist im Kampf zu prüfen.
+12. **Charaktererschaffung (7a):** Faktor 1,2, Ranggrenzen 5/8 und „niedrigster Wurf → 90“ sind festgelegt, aber noch nicht im Kampf getestet. Beliebig oftes Neuwürfeln erlaubt sehr starke Figuren (Eigenschaftssumme 600 und mehr in ca. 1 % der Würfe). **Vom Nutzer bestätigt (19.10.2026).**
+13. **Psi-Punkte:** Die neue Formel ergibt mehr PP als die alte (MEN 98: 19 statt 13 ohne Entwicklungsränge). Ob das mit „Kosten = Stufe“ passt, ist im Kampf zu prüfen. **Vom Nutzer bestätigt (19.10.2026).**
 14. **Psi-Listen (6.1)** sind im Kampf umgesetzt (`core/psi_combat.gd`, alle Listen außer Telekinese „Heranziehen“ und „Schweben“, Entscheidung des Nutzers). Die Werte der einzelnen Kräfte sind noch nicht ausbalanciert.
 15. **Startcrew** hat in Körperentwicklung und Psi-Punkte-Entwicklung keine Ränge; Psi-Listen nur Nyx (Angriff 4, Schutz 4).
-16. **Hülle 0 im Hafen ohne Credits** (8b): damit das Spiel nicht festsitzt, gehen Werft und Materialkauf bei Hülle 0 auch auf Notkredit. Vom Hub-Chat festgelegt, nicht vom Nutzer entschieden.
-17. **Unbesetzter Reiseposten** (8b; zu wenig verfügbare Crew): keine Probe, keine Ersparnis beim Treibstoff, Hülle unverändert.
+16. **Hülle 0 im Hafen ohne Credits** (8b): damit das Spiel nicht festsitzt, gehen Werft und Materialkauf bei Hülle 0 auch auf Notkredit. Vom Hub-Chat festgelegt, nicht vom Nutzer entschieden. **Vom Nutzer bestätigt (19.10.2026).**
+17. **Unbesetzter Reiseposten** (8b; zu wenig verfügbare Crew): keine Probe, keine Ersparnis beim Treibstoff, Hülle unverändert. **Vom Nutzer bestätigt (19.10.2026).**
 
 ## Beute, Beschädigung und Verlust (Entscheidungen 16.10.2026)
 
