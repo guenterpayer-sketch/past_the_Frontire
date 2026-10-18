@@ -605,8 +605,8 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
 8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
 9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert. **Vom Nutzer bestätigt (19.10.2026).**
-10. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m.
-11. **Aktivitätssystem:** Prinzip nach RMSS/RMFRP, alle Werte (Gangarten, Angriffsmodifikatoren, Kosten, Reserve 50 % vor dem ersten Zug, Feuerbereitschaft) sind eigene Vorschläge, nicht aus dem Regelwerk.
+10. **Höhen der Hallenobjekte** sind auf ganze Stufen (1,5 m) gerundet: Container 3 m statt real ca. 2,6 m. **Vom Nutzer bestätigt (19.10.2026).**
+11. **Aktivitätssystem:** Prinzip nach RMSS/RMFRP, alle Werte (Gangarten, Angriffsmodifikatoren, Kosten, Reserve 50 % vor dem ersten Zug, Feuerbereitschaft) sind eigene Vorschläge, nicht aus dem Regelwerk. **Vom Nutzer bestätigt (19.10.2026).**
 12. **Charaktererschaffung (7a):** Faktor 1,2, Ranggrenzen 5/8 und „niedrigster Wurf → 90“ sind festgelegt, aber noch nicht im Kampf getestet. Beliebig oftes Neuwürfeln erlaubt sehr starke Figuren (Eigenschaftssumme 600 und mehr in ca. 1 % der Würfe). **Vom Nutzer bestätigt (19.10.2026).**
 13. **Psi-Punkte:** Die neue Formel ergibt mehr PP als die alte (MEN 98: 19 statt 13 ohne Entwicklungsränge). Ob das mit „Kosten = Stufe“ passt, ist im Kampf zu prüfen. **Vom Nutzer bestätigt (19.10.2026).**
 14. **Psi-Listen (6.1)** sind im Kampf umgesetzt (`core/psi_combat.gd`, alle Listen außer Telekinese „Heranziehen“ und „Schweben“, Entscheidung des Nutzers). Die Werte der einzelnen Kräfte sind noch nicht ausbalanciert.
