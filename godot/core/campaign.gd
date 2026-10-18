@@ -11,6 +11,13 @@ const ROSTER_SCENE := "res://roster.tscn"
 const START_SEATS := 8
 ## höchstens so viele Figuren gehen in einen Einsatz
 const MAX_SQUAD := 6
+## Truppgröße bei „schwer“ (Entscheidung des Nutzers 18.10.2026; Bodenkampf, gilt für jeden schweren Bodenkampf)
+const HARD_SQUAD := 8
+
+
+## Höchste Truppgröße für eine Schwierigkeit: schwer 8, sonst MAX_SQUAD
+static func max_squad(difficulty: String) -> int:
+	return HARD_SQUAD if difficulty == "schwer" else MAX_SQUAD
 
 static var _crew: Array[Character] = []
 ## Entlassene mit ihrem Fortschritt; warten „im Hafen“ und können in diesem Spiel wieder angeheuert werden
@@ -18,7 +25,7 @@ static var _harbor: Array[Character] = []
 static var _loaded := false
 ## Ergebnis des letzten Einsatzes (leer, wenn die Crew-Szene nicht nach einem Kampf geöffnet wurde)
 static var last_result := {}
-## im Briefing gewählter Trupp (leer = die ersten MAX_SQUAD nicht gesperrten der Crew); wird mit der Crew gespeichert
+## im Briefing gewählter Trupp (bis HARD_SQUAD; leer = die ersten nicht gesperrten der Crew); wird mit der Crew gespeichert
 static var chosen_squad: Array[Character] = []
 ## Schnellkampf: Kopien aus dem globalen Roster (gehen nicht in die Crew, nichts wird verbucht); leer = kein Schnellkampf
 static var quick_squad: Array[Character] = []
@@ -110,14 +117,14 @@ static func candidates(quick := false, blocked_ids: Array = []) -> Array[Diction
 
 
 ## Vorbelegung der Truppwahl: der letzte Trupp ohne Gesperrte, freie Plätze aus der Reserve aufgefüllt
-static func suggested_squad(cands: Array[Dictionary]) -> Array[Character]:
+static func suggested_squad(cands: Array[Dictionary], limit := MAX_SQUAD) -> Array[Character]:
 	var free := cands.filter(func(k: Dictionary) -> bool: return not k.locked).map(func(k: Dictionary) -> Character: return k.ch)
 	var out: Array[Character] = []
 	for c in chosen_squad:
-		if c in free and out.size() < MAX_SQUAD:
+		if c in free and out.size() < limit:
 			out.append(c)
 	for c in free:
-		if not c in out and out.size() < MAX_SQUAD:
+		if not c in out and out.size() < limit:
 			out.append(c)
 	return out
 
@@ -177,19 +184,20 @@ static func is_aboard(roster_id: StringName) -> bool:
 	return crew().any(func(c: Character) -> bool: return c.roster_id == roster_id)
 
 
-## Figuren für den nächsten Einsatz: Schnellkampf-Trupp, sonst der gewählte Trupp, sonst die ersten MAX_SQUAD nicht gesperrten
-static func squad() -> Array[Character]:
+## Figuren für den nächsten Einsatz: Schnellkampf-Trupp, sonst der gewählte Trupp, sonst die ersten nicht gesperrten;
+## höchstens limit (max_squad(Schwierigkeit), Standard MAX_SQUAD)
+static func squad(limit := MAX_SQUAD) -> Array[Character]:
 	if not quick_squad.is_empty():
-		return quick_squad.slice(0, MAX_SQUAD)
+		return quick_squad.slice(0, limit)
 	var s: Array[Character] = chosen_squad.filter(func(c: Character) -> bool: return c in crew() and not c.is_locked())
 	if s.is_empty():
 		s = crew().filter(func(c: Character) -> bool: return not c.is_locked())
-	return s.slice(0, MAX_SQUAD)
+	return s.slice(0, limit)
 
 
 ## Trupp aus der Truppwahl übernehmen und speichern (im Schnellkampf: quick_squad setzen statt dieser Funktion)
 static func set_squad(chars: Array[Character]) -> void:
-	chosen_squad = chars.slice(0, MAX_SQUAD)
+	chosen_squad = chars.slice(0, HARD_SQUAD)
 	save()
 
 

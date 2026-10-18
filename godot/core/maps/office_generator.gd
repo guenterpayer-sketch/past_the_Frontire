@@ -23,6 +23,9 @@ func _layout(cols: int, rows: int) -> void:
 		if end < cols - 2:
 			_vwall(end, wall_r + 1, rows - 2)
 		c = end
+	# Rest rechts neben dem letzten Raum (ohne eigene Trennwand) braucht auch eine Tür
+	if not rooms.is_empty() and rooms[-1][1] < cols - 3:
+		doors.append([rooms[-1][1] + 1, 2])
 	_hwall(wall_r, 1, cols - 2, doors)
 	_vwall(5, wall_r + 1, rows - 2, [[rows - 4, 2]])
 	# Besprechungsraum (erster Raum): langer Tisch

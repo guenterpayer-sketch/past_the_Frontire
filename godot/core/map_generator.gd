@@ -325,7 +325,7 @@ func _finish(cols: int, rows: int) -> BattleMap:
 			_:
 				if t.h == 0 and in_cols.call(t, 1, BattleMap.DEPLOY_COLS):
 					crew.append(t)
-	if crew.size() < 6:
+	if crew.size() < Campaign.HARD_SQUAD:
 		return null
 	if lage == &"hinterhalt":
 		crew.sort_custom(func(a: T, b: T) -> bool:
@@ -374,7 +374,7 @@ func _finish(cols: int, rows: int) -> BattleMap:
 					enemy.append(t)
 		_:
 			enemy = _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t))
-	if crew.size() < 6 or enemy.size() < Mission.MAX_ENEMIES:
+	if crew.size() < Campaign.HARD_SQUAD or enemy.size() < Mission.MAX_ENEMIES:
 		return null
 	m.crew_start = crew
 	m.enemy_start = enemy

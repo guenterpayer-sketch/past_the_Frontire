@@ -163,21 +163,27 @@ func _apply_light(map_type: StringName) -> void:
 	$Sun.light_energy = info.sun_energy
 
 
-## Kandidaten und Vorbelegung (Charakter-Modul): im Spiel neu aus der Crew (letzter Trupp, Gesperrte heraus, aufgefüllt);
+## Kandidaten und Vorbelegung (Charakter-Modul): im Spiel neu aus der Crew (letzter Trupp, Gesperrte heraus, aufgefüllt
+## bis Campaign.max_squad: schwer 8, sonst 6);
 ## Schnellkampf: Roster-Kopien einmal holen, Auswahl bleibt bei „Andere Mission“ erhalten.
 ## Arzt der Krankenstation gesperrt über HubState.blocked_ids() (Hub).
 func _pick_squad() -> void:
 	if _keep_squad:
 		_keep_squad = false
 		return
+	var limit := Campaign.max_squad(mission.difficulty)   # schwer bis 8, sonst 6
 	if HubState.quick_battle:
 		if candidates.is_empty():
 			candidates = Campaign.candidates(true)
-			squad = Campaign.suggested_squad(candidates)
-			Campaign.quick_squad = squad.duplicate()
+			Campaign.quick_squad = Campaign.suggested_squad(candidates, Campaign.HARD_SQUAD)
+		# bisherige Auswahl zuerst, bis zur Höchstzahl dieser Mission mit freien Figuren aufgefüllt
+		squad = []
+		for ch in Campaign.quick_squad + candidates.filter(func(k: Dictionary) -> bool: return not k.locked).map(func(k: Dictionary) -> Character: return k.ch):
+			if squad.size() < limit and not ch in squad:
+				squad.append(ch)
 		return
 	candidates = Campaign.candidates(false, HubState.blocked_ids())
-	squad = Campaign.suggested_squad(candidates)
+	squad = Campaign.suggested_squad(candidates, limit)
 
 
 ## Briefing geschlossen: Trupp ans Charakter-Modul (Campaign.set_squad, Schnellkampf quick_squad);

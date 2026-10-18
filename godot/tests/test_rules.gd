@@ -42,6 +42,7 @@ func _init() -> void:
 	_test_weapon_repair()
 	_test_map_types()
 	_test_lagen()
+	_test_squad_size()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1162,7 +1163,7 @@ func _test_map_types() -> void:
 				if m == null:
 					continue
 				check(m.cols == (sz.sq if sq else sz.cols) and m.rows == (sz.sq if sq else sz.rows), "Größe %s %s" % [ty, sz.id])
-				check(m.crew_start.size() >= 6 and m.enemy_start.size() >= Mission.MAX_ENEMIES, "Startfelder %s %s" % [ty, sz.id])
+				check(m.crew_start.size() >= Campaign.HARD_SQUAD and m.enemy_start.size() >= Mission.MAX_ENEMIES, "Startfelder %s %s" % [ty, sz.id])
 				var reach := m.reachable(m.crew_start[0].pos, INF)
 				check(m.list.all(func(t: BattleMap.Tile) -> bool: return not m.walkable(t) or reach.all.has(t.pos)), "alles erreichbar %s %s" % [ty, sz.id])
 	var d := MapGenerator.generate(78, "mittel", MapTypes.SHIP, false, &"verteidigung")
@@ -1227,3 +1228,26 @@ func _test_lagen() -> void:
 	var b := Mission.generate(4711)
 	b.set_map_type(MapTypes.SHIP, "defend")
 	check(b.lage == &"verteidigung" and b.lage_text().begins_with("Verteidigung"), "Abwehr an Bord = Verteidigung")
+
+
+## Truppgröße nach Schwierigkeit (18.10.2026): schwer bis 8, sonst 6; Startfelder für 8 in allen Typen und Lagen
+func _test_squad_size() -> void:
+	check(Campaign.max_squad("schwer") == 8 and Campaign.max_squad("mittel") == 6 and Campaign.max_squad("leicht") == 6, "max_squad: schwer 8, sonst 6")
+	var cands: Array[Dictionary] = []
+	for i in 10:
+		var ch := Character.new()
+		ch.id = "t%d" % i
+		cands.append({"ch": ch, "locked": i == 3, "reason": "", "marked": false, "note": ""})
+	check(Campaign.suggested_squad(cands, 8).size() == 8 and Campaign.suggested_squad(cands).size() == 6, "Vorschlag bis 8 bzw. 6")
+	check(not Campaign.suggested_squad(cands, 8).has(cands[3].ch), "Gesperrte nicht im Vorschlag")
+	var crew8: Array[Character] = []
+	for i in 8:
+		crew8.append(Roster.start_crew()[i % 6])
+	for ty in MapTypes.GROUND + [MapTypes.SHIP]:
+		for lage in Mission.LAGEN:
+			var m := MapGenerator.generate(91, "klein", ty, true, lage)
+			var c := Combat.new(m, Roster.build_crew(crew8), Roster.build_units(Mission.generate(91, "schwer").enemies, &"enemy"))
+			var tiles := {}
+			for u in c.crew():
+				tiles[u.pos] = true
+			check(tiles.size() == 8 and c.crew().all(func(u: Combatant) -> bool: return c.deploy_tiles().has(u.pos)), "8 Figuren aufgestellt (%s, %s)" % [ty, lage])
