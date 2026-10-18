@@ -13,6 +13,8 @@ const LONG_PRESS := 0.55
 var combat: Combat
 var mission: Mission
 var deploy_sel: Combatant = null   # Runde 0: gewählte Figur
+var _target: Combatant = null      # mit F gewähltes Ziel (Leertaste greift an)
+var _target_by: Combatant = null   # für wen das Ziel gewählt wurde (gilt nur in dessen Zug)
 var ai := CombatAI.new()
 var player: PlayerController
 var views := {}                  # Combatant -> UnitView
@@ -464,6 +466,74 @@ func _pick(screen_pos: Vector2) -> Dictionary:
 
 # ---------------------------------------------------------------- Eingabe
 
+## Tab und Leertaste vor der Oberfläche abfangen (sonst wechselt Tab den Knopf-Fokus bzw. die Leertaste drückt
+## den fokussierten Knopf). Offene Dialoge behalten beide Tasten.
+func _input(e: InputEvent) -> void:
+	if not (e is InputEventKey and e.pressed and not e.echo) or combat == null or ui.any_dialog_open():
+		return
+	if e.keycode == KEY_TAB:
+		get_viewport().set_input_as_handled()
+		_tab(e.shift_pressed)
+	elif e.keycode == KEY_SPACE and _target != null and _target_by == combat.current:
+		get_viewport().set_input_as_handled()
+		_attack_target()
+
+
+## Tab: in der Aufstellung nächste (Shift: vorige) Figur der Crew wählen, im Kampf Zug beenden bzw. Banner bestätigen
+func _tab(back: bool) -> void:
+	if ui.result_banner.visible:
+		ui.result_banner.confirm()
+	elif combat.deploying:
+		var crew := combat.crew()
+		if crew.is_empty():
+			return
+		var i := crew.find(deploy_sel)
+		deploy_sel = crew[posmod(i + (-1 if back else 1), crew.size())]
+		_mark_current(deploy_sel)
+		rig.focus(views[deploy_sel].position, false)
+		_update_overlay()
+		_dirty = true
+	elif player_turn():
+		combat.end_turn()
+
+
+## F: nächster (Shift: voriger) sichtbarer Gegner der Figur am Zug, nach Entfernung sortiert
+func _cycle_target(back: bool) -> void:
+	if combat.deploying or not player_turn():
+		return
+	var u := combat.current
+	var here := combat.tile_of(u)
+	var foes := combat.opponents(u).filter(func(o: Combatant) -> bool:
+		return o.is_ok() and combat.map.line_of_sight(here, combat.tile_of(o)))
+	if foes.is_empty():
+		_target = null
+		ui.show_tip("[color=#ff8a8a]Kein Gegner in Sicht[/color]")
+		return
+	foes.sort_custom(func(a: Combatant, b: Combatant) -> bool: return Hex.distance(a.pos, u.pos) < Hex.distance(b.pos, u.pos))
+	var i := foes.find(_target) if _target_by == u else -1
+	_target_by = u
+	_target = foes[posmod(i + (-1 if back else 1), foes.size())] if i >= 0 else foes[foes.size() - 1 if back else 0]
+	player.mode = PlayerController.Mode.MOVE
+	_hover = _target.pos
+	_hover_unit = _target
+	rig.focus(views[_target].position, false)
+	_update_overlay()
+	ui.show_tip(player.tooltip(u, true, _hover, _hover_unit) + "\n[color=#8291ad]Leertaste = angreifen · F / Shift+F = weiter[/color]")
+	_dirty = true
+
+
+## Leertaste: das mit F gewählte Ziel angreifen (wie ein Klick auf den Gegner)
+func _attack_target() -> void:
+	var t := _target
+	_target = null
+	if t == null or not player_turn() or not t.is_ok():
+		return
+	player.mode = PlayerController.Mode.MOVE
+	player.click(combat.current, t.pos, t)
+	ui.hide_tip()
+	_dirty = true
+
+
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventScreenTouch or e is InputEventScreenDrag:
 		_touch_input(e)
@@ -476,7 +546,11 @@ func _unhandled_input(e: InputEvent) -> void:
 			if _drag_moved or _drag_accum.length() > 6.0:
 				_drag_moved = true
 				rig.pan(e.relative)
-		_update_hover(e.position)
+		if _target == null or _drag_moved:
+			_update_hover(e.position)
+		elif e.relative.length() > 3.0:
+			_target = null   # Maus bewegt: wieder die Maus bestimmt Vorschau und Ziel
+			_update_hover(e.position)
 	elif e is InputEventMouseButton:
 		_mouse_button(e)
 	elif e is InputEventKey and e.pressed and not e.echo:
@@ -586,6 +660,8 @@ func _key(e: InputEventKey) -> void:
 				begin_combat()
 			elif player_turn():
 				combat.end_turn()
+		KEY_F:
+			_cycle_target(e.shift_pressed)
 		KEY_R:
 			player.show_range = not player.show_range
 		KEY_G:

@@ -47,11 +47,12 @@ Oben links Spielstand, Tag, Position und offene Aufträge, darunter **Credits, T
 | Aktion | Maus / Tastatur | Handy / Tablet |
 |---|---|---|
 | Bewegen | Gangart wählen, blaues Feld anklicken | Feld antippen (Vorschau), nochmal antippen |
-| Angreifen | Aktivität wählen (20–100 %), rot umrandeten Gegner anklicken | Gegner antippen, nochmal antippen |
+| Angreifen | Aktivität wählen (20–100 %), rot umrandeten Gegner anklicken; oder F / Shift+F = sichtbare Gegner durchschalten (Kamera und Vorschau), Leertaste = angreifen | Gegner antippen, nochmal antippen |
 | Vorschau | Maus über ein blaues Feld: grüner Ring + ◎ = von dort treffbar, roter Ring + ⚠ = wer dich dort trifft | erstes Antippen |
 | Drehen | Rechtsklick auf ein Feld oder „Ausrichten“ | lange drücken |
 | Kamera | Ziehen (links/Mitte), WASD/Pfeile, Mausrad = Zoom, Q/E = um 90° drehen | ein Finger ziehen, zwei Finger zoomen |
-| Zug beenden | Enter oder Button | Button |
+| Zug beenden | Enter, Tab oder Button | Button |
+| Aufstellung | Tab / Shift+Tab = nächste/vorige Figur, Enter = Kampf beginnen | Figur antippen |
 | Reichweite / Raster | R / G | Buttons |
 | Abbrechen | Esc | – |
 
