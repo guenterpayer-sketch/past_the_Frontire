@@ -27,7 +27,7 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 - Eigenes Verhalten ohne Formulierungen mit unterstelltem innerem Erleben beschreiben.
 - Größere UI-Änderungen erst als Mockup zeigen, dann in Godot bauen.
 - **Branches und Module:** `main` ist der gemeinsame Hauptbranch, gepflegt vom Koordinations-Chat. Jedes Modul (Bodenkampf, Charakter, Hub, …) arbeitet in einem eigenen Chat auf einem eigenen Branch. **Zu Beginn die eigene Moduldatei in `main` lesen** (`docs/module/`, Übersicht und Ablauf in `docs/module/README.md`); vor der Fertigmeldung `main` in den eigenen Branch holen und Konflikte dort lösen. Der Koordinator führt nur konfliktfreie Branches zusammen. Verlauf: `docs/Zusammenfuehrung.md`. Moduldateien enthalten nur Offenes und Gültiges; Erledigtes liegt in `docs/module/archiv/` (nur bei Bedarf lesen).
-- Der Nutzer arbeitet unter Windows 11 mit GitHub Desktop und startet das Spiel lokal im Godot-Editor (F5). `.gitattributes` (`* text=auto eol=lf`) hält Zeilenenden auch unter Windows bei LF, `godot/project.godot` liegt in der Fassung, die der Editor schreibt (17.10.2026). Ändert Godot sie trotzdem lokal, diese Änderungen nicht committen.
+- Der Nutzer arbeitet unter Windows 11 mit GitHub Desktop und startet das Spiel lokal im Godot-Editor (F5). `.gitattributes` (`* text=auto eol=lf`) hält Zeilenenden auch unter Windows bei LF, `godot/project.godot` liegt in der Fassung, die der Editor schreibt (17.10.2026); `import_etc2_astc=true`, damit Windows- und Linux-Editor Texturen gleich importieren (18.10.2026). Ändert Godot sie trotzdem lokal, diese Änderungen nicht committen.
 
 ## Code (godot/)
 

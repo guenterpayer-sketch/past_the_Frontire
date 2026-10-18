@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3pn7grqicgdi"
 path.s3tc="res://.godot/imported/mech_leela_Leela_Texture.png-e3b7f074d0ee388ab57ee26d246c9411.s3tc.ctex"
+path.etc2="res://.godot/imported/mech_leela_Leela_Texture.png-e3b7f074d0ee388ab57ee26d246c9411.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/models/mech_leela_Leela_Texture.png"
-dest_files=["res://.godot/imported/mech_leela_Leela_Texture.png-e3b7f074d0ee388ab57ee26d246c9411.s3tc.ctex"]
+dest_files=["res://.godot/imported/mech_leela_Leela_Texture.png-e3b7f074d0ee388ab57ee26d246c9411.s3tc.ctex", "res://.godot/imported/mech_leela_Leela_Texture.png-e3b7f074d0ee388ab57ee26d246c9411.etc2.ctex"]
 
 [params]
 
