@@ -684,7 +684,7 @@ static func xp_list(xp: Dictionary) -> Control:
 static func add_events(parent: Control, rep: Dictionary, xp: Dictionary) -> void:
 	for spec in [["upgrade", "Schiffsausbau"], ["crafts", "Werkstatt"]]:
 		for e in rep.get(spec[0], []):
-			var l := UiTheme.label("%s: %s" % [spec[1], e.get("text", "")], 15, result_color(StringName(e.get("result", ""))))
+			var l := UiTheme.label("%s: %s" % [e.get("label", spec[1]), e.get("text", "")], 15, result_color(StringName(e.get("result", ""))))
 			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			parent.add_child(l)
 			add_xp(xp, String(e.get("name", "")), StringName(e.get("skill", "")), int(e.get("xp", 0)))
@@ -693,7 +693,14 @@ static func add_events(parent: Control, rep: Dictionary, xp: Dictionary) -> void
 ## Meldung nach „1 Tag warten“ oder Crew-Reparatur: Schiffsausbau und Werkstatt farbig, mit Erfahrung
 func show_events(upgrade: Array, crafts: Array) -> void:
 	notice.max_size = Vector2(1180, 640)
-	notice.open("Werkstatt und Schiffsausbau" if not upgrade.is_empty() and not crafts.is_empty() else ("Schiffsausbau" if crafts.is_empty() else "Werkstatt"))
+	var labels := []
+	if not upgrade.is_empty():
+		labels.append("Schiffsausbau")
+	for e in crafts:
+		var lb := String(e.get("label", "Werkstatt"))
+		if not lb in labels:
+			labels.append(lb)
+	notice.open(" und ".join(labels))
 	var xp := {}
 	add_events(notice.content, {"upgrade": upgrade, "crafts": crafts}, xp)
 	if not xp.is_empty():

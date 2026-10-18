@@ -371,14 +371,6 @@ func crew_repair() -> Dictionary:
 	return r
 
 
-## Reparatur durch die Crew am Schiff (ShipArms): System-ID, "slot:<Slot-ID>" oder Lagerschlüssel einer Schiffswaffe.
-## 1 Tag, 1 Material, Probe. Leer = nicht möglich.
-func ship_fix(target: String) -> Dictionary:
-	var r := ShipArms.crew_fix_system(self, target) if ShipArms.SYSTEMS.has(target) or ship_damage.has(target) else ShipArms.crew_fix_weapon(self, target)
-	if not r.is_empty():
-		advance_days(1)
-	return r
-
 
 ## Ein Auftrag ist noch zu schaffen, wenn das Schiff vor Ablauf dort ist
 func reachable(offer: Dictionary) -> bool:

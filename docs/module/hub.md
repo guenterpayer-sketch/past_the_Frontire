@@ -36,6 +36,8 @@
 - Danach (`2876f93`): **Raumkampf im Spiel (Teil 2)** – `SpaceEvents` (`core/space_events.gd`), Feindkontakt auf der Reise (5 %/20 % je Tag nach Gebiet, kämpfen oder ausweichen per Navigation), Auftragsarten Boden (25 % mit Blockade)/Abfangen/Eskorte, `HubState.finish_space(result)` als Auswertung, Notfall = Plünderung + Treiben („festgesetzt“), Abwehr beim Entern. Details und Entscheidungen im Archiv. Szenenwechsel Schiff → `space.tscn` → Schiff im laufenden Spiel vom Nutzer getestet (17.10.2026): funktioniert.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
+- **Crew-Reparatur des Schiffs als Arbeit** (Auftrag 18.10.2026, noch nicht in `main`): `ShipArms.start_fix(g, c, ziel)` legt eine Arbeit `{kind: "ship", key: Ziel, days: 1, material: 1, name}` in `HubState.jobs` an (1 Schiffsmaterial sofort, kein Tag; Stück aus dem Schiffslager liegt solange in der Werkstatt), `Crafting.work_day` ruft am Ende `ShipArms.finish_fix()` (Probe Reparatur mittel, Wirkung wie bisher, Eintrag `{text, result, name, skill, xp, label: "Reparatur"}`; Figur nicht mehr an Bord: Material und Stück zurück). Eine Arbeit je Figur gilt für Handwerk und Reparatur gemeinsam. `HubState.ship_fix()` und die sofortige Reparatur entfallen. Maschinenraum: Auswahl „Repariert:“ (Vorschlag Station Technik bzw. Beste, Beschäftigte ausgegraut), „In Arbeit: …“, je Schaden „Reparieren lassen“ bzw. „in Arbeit: Name“. Alte Spielstände bleiben verträglich (keine neue Speicherstelle).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (18.10.2026): Crew-Reparatur des Schiffs als Arbeit wie Handwerk
