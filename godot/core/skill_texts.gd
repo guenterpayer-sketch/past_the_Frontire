@@ -1,8 +1,6 @@
 class_name SkillTexts
 extends RefCounted
-## Kurzbeschreibung je Fertigkeit für die Enzyklopädie. „Noch ohne Wirkung“ = im Spiel bisher nicht benutzt.
-
-const SOON := " (Im Spiel noch ohne Wirkung.)"
+## Kurzbeschreibung je Fertigkeit für die Enzyklopädie, mit dem Ort, an dem sie im Spiel wirkt.
 
 const TEXT := {
 	&"waffenlos": "Kämpfen mit Fäusten, Tritten und Griffen. Nahkampf ohne Waffe.",
@@ -26,15 +24,15 @@ const TEXT := {
 	&"navigation": "Kurs und Sprünge berechnen. Reiseprobe je Reisetag, Erfolge sparen Treibstoff.",
 	&"pilot": "Das Schiff fliegen. Reiseprobe je Reisetag, Erfolge sparen Treibstoff.",
 	&"computer": "Schiffssysteme und Rechner bedienen. Reiseprobe je Reisetag, Erfolge sparen Treibstoff.",
-	&"strahlGeschuetze": "Strahlwaffen des Schiffs im Raumkampf." + SOON,
-	&"ballistikGeschuetze": "Kanonen und Massebeschleuniger des Schiffs im Raumkampf." + SOON,
-	&"raketen": "Raketen-Geschütze des Schiffs im Raumkampf." + SOON,
-	&"schutzschild": "Schutzschild des Schiffs im Raumkampf steuern." + SOON,
-	&"panzerung": "Schadenskontrolle und Panzerung im Raumkampf." + SOON,
-	&"notReparatur": "Schnelle Reparaturen unter Beschuss im Raumkampf." + SOON,
-	&"handeln": "Feilschen um Preise beim Kaufen und Verkaufen." + SOON,
-	&"gassenwissen": "Kontakte, Gerüchte und Wege abseits des Offiziellen." + SOON,
-	&"verhandeln": "Verträge und Bedingungen aushandeln." + SOON,
+	&"strahlGeschuetze": "Raumkampf, Geschützstation: Schießen mit Strahlwaffen des Schiffs (z. B. Laser).",
+	&"ballistikGeschuetze": "Raumkampf, Geschützstation: Schießen mit Kanonen und Massebeschleunigern des Schiffs, auch mit Abwehrgeschützen.",
+	&"raketen": "Raumkampf, Geschützstation: Abfeuern der Raketen des Schiffs.",
+	&"schutzschild": "Raumkampf, Station Schilde: Probe je Runde lädt die Schilde mit der zugeteilten Energie auf; bei Teilerfolg oder besser lassen sie sich auf die Seiten verteilen.",
+	&"panzerung": "Raumkampf, Station Technik: Hülle flicken (Mittel). Erfolg 2W6 Hülle zurück, Herausragend +5.",
+	&"notReparatur": "Raumkampf, Station Technik: ausgefallene oder beschädigte Systeme unter Beschuss reparieren (Schwer). Erfolg eine Schadensstufe weniger, Herausragend zwei.",
+	&"handeln": "Raumhafen, Händler: eine Probe pro Tag und Hafen. Bestimmt Kauf- und Verkaufspreise von Waffen, Rüstungen, Schilden, Munition, Medikits und Handwerksmaterial.",
+	&"gassenwissen": "Raumhafen, Händler und Schiffshändler: eine Probe pro Tag und Hafen. Bestimmt, wie groß das Sortiment ist.",
+	&"verhandeln": "Raumhafen, Schiffshändler: eine Probe pro Tag und Hafen. Bestimmt die Preise fürs Schiff: Treibstoff, Proviant, Werft, Schiffsmaterial, Ausbau, Schiffswaffen und Schiffsmunition.",
 	&"hwRuestung": "Rüstungen in der Werkstatt bauen, zerlegen und reparieren.",
 	&"hwWaffen": "Waffen und Munition in der Werkstatt bauen, zerlegen und reparieren.",
 	&"kochen": "Versorgung der Crew an Bord: der Koch in der Kombüse würfelt jeden Tag außerhalb des Hafens; das Ergebnis senkt oder erhöht den Proviantverbrauch (Patzer +25 %, Teilerfolg −10 %, Erfolg −20 %, Herausragend −30 %). Ein Herausragend bis zum Training gibt dort +1 freie EP.",
