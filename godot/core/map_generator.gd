@@ -1,30 +1,59 @@
 class_name MapGenerator
 extends RefCounted
-## Lagerhallen-Generator: Galerie, Treppen, Leitern, Hochregale, Container, Kisten, Fässer, Barrieren, Säulen.
-## Jede Halle wird geprüft: alle Bodenfelder müssen vom Eingang aus erreichbar sein.
+## Kartengenerator. Die Basis baut die Lagerhalle (Galerie, Treppen, Leitern, Hochregale, Container, Kisten,
+## Fässer, Barrieren, Säulen); die anderen Kartentypen sind Unterklassen in core/maps/ (MapTypes).
+## Jede Karte wird geprüft: alle begehbaren Felder müssen vom Eingang aus erreichbar sein.
 
 const CONTAINER_COLORS := ["#9a4a3a", "#3f6f9a", "#4f7f4a", "#b07a2a", "#6a5a8a", "#8a8a8a"]
 const T := BattleMap.Tile
+## Generatoren der weiteren Kartentypen
+const GENERATORS := {
+	&"bar": "res://core/maps/bar_generator.gd",
+	&"strasse": "res://core/maps/street_generator.gd",
+	&"tempel": "res://core/maps/temple_generator.gd",
+	&"buero": "res://core/maps/office_generator.gd",
+	&"schiff": "res://core/maps/ship_generator.gd",
+}
+## Bodenarten (frei für Objekte)
+const FLOORS := [&"boden", &"gehweg"]
 
 var m: BattleMap
 var rng := RandomNumberGenerator.new()
 var size: Dictionary
 var _obj := 0
+## Startlage (Mission.LAGEN): standard, hinterhalt, zange, verteilt, verteidigung (Crew rechts, Gegner links)
+var lage: StringName = &"standard"
+## auch erhöhte Felder müssen erreichbar sein (neue Kartentypen; die Halle prüft nur den Boden)
+var check_all := false
 
 
-static func generate(seed_value: int, size_id: String) -> BattleMap:
+## Karte zum Einsatz: Typ, Größe, Form und Startlage aus der Mission (Mission.map_type, size_id, square, lage)
+static func for_mission(seed_value: int, mission: Mission) -> BattleMap:
+	return generate(seed_value, mission.size_id, mission.map_type, mission.square, mission.lage)
+
+
+static func generate(seed_value: int, size_id: String, map_type: StringName = &"halle", square := false, start_lage: StringName = &"standard") -> BattleMap:
 	var sz: Dictionary = BattleMap.SIZES[1]
 	for s in BattleMap.SIZES:
 		if s.id == size_id:
 			sz = s
+	sz = sz.duplicate()
+	if square:
+		sz.cols = sz.sq
+		sz.rows = sz.sq
+		sz.square = true
 	for attempt in 60:
 		var s := seed_value + attempt * 7919
-		var map := MapGenerator.new()._try(s, sz)
+		var gen: MapGenerator = load(GENERATORS[map_type]).new() if GENERATORS.has(map_type) else MapGenerator.new()
+		gen.lage = start_lage
+		var map := gen._try(s, sz)
 		if map:
 			map.map_seed = s
 			map.size_info = sz
+			map.map_type = map_type if GENERATORS.has(map_type) else &"halle"
+			map.floor_name = MapTypes.info(map.map_type).floor_name
 			return map
-	push_error("Keine begehbare Halle gefunden")
+	push_error("Keine begehbare Karte gefunden (%s)" % map_type)
 	return null
 
 
@@ -38,7 +67,7 @@ func _next_obj() -> int:
 
 
 func _free(t: T) -> bool:
-	return t != null and t.terrain == &"boden" and not t.reserved and t.col > 0 and t.col < m.cols - 1
+	return t != null and t.terrain in FLOORS and not t.reserved and t.col > 0 and t.col < m.cols - 1
 
 
 func _put(t: T, terrain: StringName, h: int, obj := 0, color := Color()) -> void:
@@ -86,9 +115,14 @@ func _shuffle(a: Array) -> void:
 func _try(seed_value: int, sz: Dictionary) -> BattleMap:
 	rng.seed = seed_value
 	size = sz
-	var cols: int = sz.cols
-	var rows: int = sz.rows
-	m = BattleMap.new(cols, rows)
+	m = BattleMap.new(sz.cols, sz.rows)
+	_layout(sz.cols, sz.rows)
+	_group_walls(sz.cols, sz.rows)
+	return _finish(sz.cols, sz.rows)
+
+
+## Grundriss der Lagerhalle (Unterklassen überschreiben das)
+func _layout(cols: int, rows: int) -> void:
 	for row in rows:
 		for col in cols:
 			var edge := row == 0 or row == rows - 1 or col == 0 or col == cols - 1
@@ -104,8 +138,6 @@ func _try(seed_value: int, sz: Dictionary) -> BattleMap:
 	_build_shelves(cols, rows)
 	_build_containers(cols, rows)
 	_build_scatter(cols, rows)
-	_group_walls(cols, rows)
-	return _finish(cols, rows, mid)
 
 
 ## 1. Galerie an der Rückwand (Reihen 1–2), bei mittel/groß auch an der rechten Wand; Aufstieg nur über Leitern
@@ -265,37 +297,206 @@ func _group_walls(cols: int, rows: int) -> void:
 				id = 0
 
 
-## Erreichbarkeit prüfen und Startfelder festlegen
-func _finish(cols: int, rows: int, mid: int) -> BattleMap:
-	var start := m.at_offset(1, mid)
-	if not m.walkable(start):
-		return null
-	var reach := m.reachable(start.pos, INF)
-	for t in m.list:
-		if m.walkable(t) and t.h == 0 and not reach.all.has(t.pos):
-			return null
+## Erreichbarkeit prüfen und Startfelder festlegen (je Lage, Mockup „Frontire Aufstellungen“ 18.10.2026):
+## standard: Crew links (Spalten 1 bis DEPLOY_COLS), Gegner rechts (letzte 5 Spalten, erhöhte Felder zuerst);
+## hinterhalt: Crew mittig, Gegner abwechselnd links und rechts mit Abstand; zange: 2 von 3 Gegnern rechts, 1 an
+## einer Flanke; verteilt: Gegner einzeln über die rechten zwei Drittel; verteidigung: Crew rechts (auch erhöht),
+## Gegner links. enemy_start ist so sortiert, dass die ersten n Felder die Lage ergeben.
+func _finish(cols: int, rows: int) -> BattleMap:
 	var mid_row := (rows - 1) / 2.0
-	var crew: Array[T] = []
-	for t in m.list:
-		if t.col >= 1 and t.col <= BattleMap.DEPLOY_COLS and m.walkable(t) and t.h == 0:
-			crew.append(t)
-	crew.sort_custom(func(a: T, b: T) -> bool:
+	var mid_col := (cols - 1) / 2.0
+	var by_row := func(a: T, b: T) -> bool:
 		var da := absf(a.row - mid_row)
 		var db := absf(b.row - mid_row)
-		return da < db if da != db else a.col < b.col)
-	var high: Array[T] = []
-	var low: Array[T] = []
+		return da < db if da != db else a.col < b.col
+	var in_cols := func(t: T, c0: int, c1: int) -> bool: return t.col >= c0 and t.col <= c1
+	# Crew-Bereich
+	var crew: Array[T] = []
 	for t in m.list:
-		if t.col >= cols - 5 and t.col < cols - 1 and m.walkable(t) and reach.all.has(t.pos):
-			(high if t.h > 0 else low).append(t)
-	_shuffle(high)
-	_shuffle(low)
+		if not m.walkable(t):
+			continue
+		match lage:
+			&"verteidigung":
+				if in_cols.call(t, cols - 1 - BattleMap.DEPLOY_COLS - 1, cols - 2):
+					crew.append(t)
+			&"hinterhalt":
+				if t.h == 0 and absf(t.col - mid_col) <= 3.0 and absf(t.row - mid_row) <= 4.0:
+					crew.append(t)
+			_:
+				if t.h == 0 and in_cols.call(t, 1, BattleMap.DEPLOY_COLS):
+					crew.append(t)
+	if crew.size() < 6:
+		return null
+	if lage == &"hinterhalt":
+		crew.sort_custom(func(a: T, b: T) -> bool:
+			return absf(a.col - mid_col) + absf(a.row - mid_row) < absf(b.col - mid_col) + absf(b.row - mid_row))
+	else:
+		crew.sort_custom(by_row)
+	var reach := m.reachable(crew[0].pos, INF)
+	for t in m.list:
+		if m.walkable(t) and (t.h == 0 or check_all) and not reach.all.has(t.pos):
+			return null
+	crew = crew.filter(func(t: T) -> bool: return reach.all.has(t.pos))
+	var ok := func(t: T) -> bool: return m.walkable(t) and reach.all.has(t.pos) and not crew.has(t)
+	# Gegner
 	var enemy: Array[T] = []
-	enemy.append_array(high.slice(0, 2))
-	enemy.append_array(low)
-	enemy.append_array(high.slice(2))
+	match lage:
+		&"verteidigung":
+			enemy = _side(func(t: T) -> bool: return in_cols.call(t, 1, 5) and ok.call(t))
+		&"hinterhalt":
+			var gap := mini(6, cols / 4)
+			var far := func(t: T) -> bool:
+				for c in crew:
+					if Hex.distance(c.pos, t.pos) < gap:
+						return false
+				return true
+			var left := _side(func(t: T) -> bool: return in_cols.call(t, 1, 5) and ok.call(t) and far.call(t))
+			var right := _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t) and far.call(t))
+			enemy = _mix([left, right], [1, 1])
+		&"zange":
+			var right := _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t))
+			var top := rng.randf() < 0.5
+			var flank := _side(func(t: T) -> bool:
+				return in_cols.call(t, int(mid_col) - 3, int(mid_col) + 4) and ok.call(t) \
+					and (t.row <= 4 if top else t.row >= rows - 5))
+			enemy = _mix([right, flank], [2, 1])
+		&"verteilt":
+			var pool: Array[T] = []
+			for t in m.list:
+				if t.col >= cols / 3 and t.col < cols - 1 and ok.call(t):
+					pool.append(t)
+			_shuffle(pool)
+			for t in pool:
+				if enemy.all(func(o: T) -> bool: return Hex.distance(o.pos, t.pos) >= 3):
+					enemy.append(t)
+			for t in pool:
+				if not enemy.has(t):
+					enemy.append(t)
+		_:
+			enemy = _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t))
 	if crew.size() < 6 or enemy.size() < Mission.MAX_ENEMIES:
 		return null
 	m.crew_start = crew
 	m.enemy_start = enemy
 	return m
+
+
+## Felder einer Seite, gemischt: zwei erhöhte zuerst (Schützen oben), dann Boden, dann übrige erhöhte
+func _side(pick: Callable) -> Array[T]:
+	var high: Array[T] = []
+	var low: Array[T] = []
+	for t in m.list:
+		if pick.call(t):
+			(high if t.h > 0 else low).append(t)
+	_shuffle(high)
+	_shuffle(low)
+	var out: Array[T] = []
+	out.append_array(high.slice(0, 2))
+	out.append_array(low)
+	out.append_array(high.slice(2))
+	return out
+
+
+## Listen im Verhältnis weights abwechselnd zusammenführen (z. B. 2 rechts, 1 Flanke, 2 rechts, …)
+func _mix(lists: Array, weights: Array) -> Array[T]:
+	var out: Array[T] = []
+	var idx := []
+	for l in lists:
+		idx.append(0)
+	var any := true
+	while any:
+		any = false
+		for i in lists.size():
+			for k in weights[i]:
+				if idx[i] < lists[i].size():
+					out.append(lists[i][idx[i]])
+					idx[i] += 1
+					any = true
+	return out
+
+
+# ---------------------------------------------------------------- Bausteine für die Kartentypen
+
+## Rechteck aus Feldern anlegen (alle Felder der Karte zuerst als Boden)
+func _ground(cols: int, rows: int, terrain: StringName = &"boden") -> void:
+	for row in rows:
+		for col in cols:
+			m.add_floor(col, row, terrain)
+
+
+## Außenwand rundum, Eingang links in der Mitte (n Felder hoch)
+func _border(cols: int, rows: int, door := 4) -> void:
+	for col in cols:
+		m.at_offset(col, 0).terrain = &"wand"
+		m.at_offset(col, rows - 1).terrain = &"wand"
+	for row in rows:
+		m.at_offset(0, row).terrain = &"wand"
+		m.at_offset(cols - 1, row).terrain = &"wand"
+	var mid := rows / 2
+	for row in range(mid - door / 2, mid - door / 2 + door):
+		m.at_offset(0, row).terrain = &"boden"
+
+
+## Feld setzen (ohne Prüfung); obj > 0 verbindet Felder zu einem Objekt
+func _cell(col: int, row: int, terrain: StringName, h := 0, obj := 0) -> T:
+	var t := m.at_offset(col, row)
+	if t == null:
+		return null
+	_put(t, terrain, h, obj)
+	return t
+
+
+## Rechteck mit einem Gelände füllen
+func _rect(c0: int, r0: int, w: int, h: int, terrain: StringName, hh := 0, obj := -1) -> Array[T]:
+	var o := _next_obj() if obj < 0 else obj
+	var out: Array[T] = []
+	for r in range(r0, r0 + h):
+		for c in range(c0, c0 + w):
+			var t := _cell(c, r, terrain, hh, o)
+			if t:
+				out.append(t)
+	return out
+
+
+## Wand von (c, r0) bis (c, r1) senkrecht bzw. (c0..c1, r) waagerecht; gaps = Durchgänge (Startfeld, Breite)
+func _vwall(c: int, r0: int, r1: int, gaps: Array = [], terrain: StringName = &"innenwand") -> void:
+	for r in range(r0, r1 + 1):
+		if not _in_gap(r, gaps):
+			_cell(c, r, terrain)
+
+
+func _hwall(r: int, c0: int, c1: int, gaps: Array = [], terrain: StringName = &"innenwand") -> void:
+	for c in range(c0, c1 + 1):
+		if not _in_gap(c, gaps):
+			_cell(c, r, terrain)
+
+
+func _in_gap(i: int, gaps: Array) -> bool:
+	for g in gaps:
+		if i >= g[0] and i < g[0] + g[1]:
+			return true
+	return false
+
+
+## n Objekte w×h an freie Stellen im Bereich (c0, r0)–(c1, r1) setzen, mit freiem Rand drumherum
+func _place(terrain: StringName, w: int, h: int, n: int, c0: int, r0: int, c1: int, r1: int, hh := 0) -> int:
+	var placed := 0
+	var tries := 0
+	while placed < n and tries < n * 40 + 20:
+		tries += 1
+		var c := _ri(c0, maxi(c0, c1 - w + 1))
+		var r := _ri(r0, maxi(r0, r1 - h + 1))
+		var ok := true
+		for y in range(r - 1, r + h + 1):
+			for x in range(c - 1, c + w + 1):
+				var t := m.at_offset(x, y)
+				var inside := x >= c and x < c + w and y >= r and y < r + h
+				if inside and not _free(t):
+					ok = false
+				elif not inside and t and t.reserved and not t.terrain in [&"wand", &"innenwand", &"gebaeude"]:
+					ok = false
+		if not ok:
+			continue
+		_rect(c, r, w, h, terrain, hh)
+		placed += 1
+	return placed

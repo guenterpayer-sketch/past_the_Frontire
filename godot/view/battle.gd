@@ -83,7 +83,7 @@ func _ready() -> void:
 	else:
 		new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
-	if ("--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args) and not get_tree().root.has_node("Autotest"):
+	if ("--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args or "--autotest-maps" in args) and not get_tree().root.has_node("Autotest"):
 		# der Selbsttest hängt an der Wurzel, damit er den Wechsel ins Charakter-Modul übersteht
 		var t: Node = load("res://tests/autotest.gd").new()
 		t.name = "Autotest"
@@ -94,10 +94,13 @@ func _ready() -> void:
 ## Neuer Einsatz: Mission würfeln (Gegner, Halle), Karte bauen, Runde 0 (Aufstellung) mit Briefing.
 ## size_id/difficulty leer = vom Missionsgenerator bestimmt; briefing = false überspringt die Einsatzbesprechung;
 ## m = fertige Mission (aus dem Schiff).
-func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true, m: Mission = null) -> void:
+## place = Kartentyp (Schnellkampf-Auswahl „Ort“), leer = vom Missionsgenerator.
+func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := true, m: Mission = null, place: StringName = &"") -> void:
 	mission = m if m else Mission.generate(seed_value, difficulty)
 	if size_id != "":
 		mission.size_id = size_id
+	if place != &"":
+		mission.set_map_type(place, "board" if place == MapTypes.SHIP else "")
 	_seed = seed_value
 	_pick_squad()
 	_wait_ai()
@@ -106,7 +109,8 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	ui.result_banner.hide()
 	_end_shown = false
 	Music.play(Music.BRIEFING)   # Briefing und Runde 0 (Musikspieler des Hubs)
-	var map := MapGenerator.generate(seed_value, mission.size_id)
+	var map := MapGenerator.for_mission(seed_value, mission)
+	_apply_light(map.map_type)
 	combat = Combat.new(map, Roster.build_crew(squad), Roster.build_units(mission.enemies, &"enemy"))
 	Ammo.apply(combat.crew(), ammo_stock())   # Munition aus dem Schiffsvorrat (Gegner: voll)
 	ai = CombatAI.new()
@@ -131,16 +135,32 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	rig.focus(map_view.tile_top(map.crew_start[0].pos).lerp(c, 0.35))
 	map_view.update_cutaway(rig.view_dir())
 	var sz: Dictionary = map.size_info
-	ui.top_menu.set_mission(mission.title, "%s · %s · Lagerhalle %s, ca. %d×%d m · Karte %d" % [mission.title, mission.faction.name, sz.name, roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed])
-	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s) in einer Lagerhalle (%s)." % [
-		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), sz.name], &"round")
-	ui.combat_log.add("Runde 0: Crew im Eingangsbereich aufstellen, dann „Kampf beginnen“.", &"")
+	var place_name := MapTypes.type_name(map.map_type)
+	var form := ", quadratisch" if sz.get("square", false) else ""
+	ui.top_menu.set_mission(mission.title, "%s · %s · %s (%s%s), ca. %d×%d m · Karte %d" % [mission.title, mission.faction.name, place_name, sz.name, form,
+		roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed])
+	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s). Ort: %s (%s%s)." % [
+		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), place_name, sz.name, form], &"round")
+	var zone: String = {&"verteidigung": "rechten Bereich", &"hinterhalt": "mittleren Bereich"}.get(mission.lage, "Eingangsbereich")
+	ui.combat_log.add("Lage: %s." % mission.lage_text(), &"round")
+	ui.combat_log.add("Runde 0: Crew im %s aufstellen (blaue Felder), dann „Kampf beginnen“." % zone, &"")
 	deploy_sel = combat.crew()[0] if not combat.crew().is_empty() else null
 	_mark_current(deploy_sel)
 	if briefing:
 		ui.briefing.ammo_stock = ammo_stock()
 		ui.briefing.show_mission(mission, candidates, squad)
 	_dirty = true
+
+
+## Licht und Hintergrund je Kartentyp (MapTypes): Umgebungslicht, Sonne/Mond, Hintergrundfarbe
+func _apply_light(map_type: StringName) -> void:
+	var info := MapTypes.info(map_type)
+	var env: Environment = $WorldEnvironment.environment
+	env.background_color = info.bg
+	env.ambient_light_color = info.ambient
+	env.ambient_light_energy = info.ambient_energy
+	$Sun.light_color = info.sun
+	$Sun.light_energy = info.sun_energy
 
 
 ## Kandidaten und Vorbelegung (Charakter-Modul): im Spiel neu aus der Crew (letzter Trupp, Gesperrte heraus, aufgefüllt);
@@ -779,7 +799,7 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			if HubState.in_mission():
 				return_to_ship()
 			else:
-				new_battle(randi() % 1000000, "", arg)
+				new_battle(randi() % 1000000, "", arg, true, null, ui.briefing.place)
 		&"briefing":
 			ui.briefing.ammo_stock = ammo_stock()
 			ui.briefing.show_mission(mission, candidates, squad)

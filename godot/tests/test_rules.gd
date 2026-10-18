@@ -40,6 +40,8 @@ func _init() -> void:
 	_test_loot_wear()
 	_test_char_wear()
 	_test_weapon_repair()
+	_test_map_types()
+	_test_lagen()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1146,3 +1148,82 @@ func _test_weapon_repair() -> void:
 	u.act = 100
 	var step := CombatAI.new().plan_step(c, u)
 	check(step.type == &"repair" and step.target == u and step.slot == "w0", "KI repariert unbrauchbare Waffe (%s)" % step.type)
+
+
+## Kartentypen (17.10.2026): jeder Typ in allen Größen und Formen begehbar, genug Startfelder, Abwehr seitenverkehrt;
+## Mission würfelt Typ und Form mit eigenem Zufall (übrige Mission unverändert), Entern = Raumschiff
+func _test_map_types() -> void:
+	var types: Array = MapTypes.GROUND + [MapTypes.SHIP]
+	for ty in types:
+		for sz in BattleMap.SIZES:
+			for sq in [false, true]:
+				var m := MapGenerator.generate(77, sz.id, ty, sq)
+				check(m != null and m.map_type == ty, "Karte %s %s%s erzeugt" % [ty, sz.id, " quadr." if sq else ""])
+				if m == null:
+					continue
+				check(m.cols == (sz.sq if sq else sz.cols) and m.rows == (sz.sq if sq else sz.rows), "Größe %s %s" % [ty, sz.id])
+				check(m.crew_start.size() >= 6 and m.enemy_start.size() >= Mission.MAX_ENEMIES, "Startfelder %s %s" % [ty, sz.id])
+				var reach := m.reachable(m.crew_start[0].pos, INF)
+				check(m.list.all(func(t: BattleMap.Tile) -> bool: return not m.walkable(t) or reach.all.has(t.pos)), "alles erreichbar %s %s" % [ty, sz.id])
+	var d := MapGenerator.generate(78, "mittel", MapTypes.SHIP, false, &"verteidigung")
+	check(d.crew_start.all(func(t: BattleMap.Tile) -> bool: return t.col > d.cols / 2) and d.enemy_start.all(func(t: BattleMap.Tile) -> bool: return t.col < d.cols / 2),
+		"Abwehr an Bord: Crew rechts, Gegner links (Schleuse)")
+	var seen := {}
+	var squares := 0
+	for i in 200:
+		var mi := Mission.generate(9000 + i)
+		seen[mi.map_type] = seen.get(mi.map_type, 0) + 1
+		squares += 1 if mi.square else 0
+	check(seen.size() == MapTypes.GROUND.size() and not seen.has(MapTypes.SHIP), "Missionen: alle Bodentypen, kein Raumschiff (%s)" % seen)
+	check(squares > 60 and squares < 140, "rund die Hälfte quadratisch (%d von 200)" % squares)
+	var a := Mission.generate(4711)
+	var b := Mission.generate(4711)
+	b.set_map_type(MapTypes.SHIP, "defend")
+	check(a.enemies.size() == b.enemies.size() and a.difficulty == b.difficulty and b.title == "Abwehr an Bord", "Entern ändert nur Ort und Text")
+	var mp := MapGenerator.for_mission(4711, b)
+	check(mp.map_type == MapTypes.SHIP and mp.terrain_name(mp.crew_start[0]) == "Deckplatten", "for_mission: Raumschiff, Bodenname")
+
+
+## Startlagen (18.10.2026): Startfelder je Lage, Zuordnung zu den Aufträgen, Zufall bei Standard
+func _test_lagen() -> void:
+	for ty in MapTypes.GROUND + [MapTypes.SHIP]:
+		for sz in BattleMap.SIZES:
+			for lage in Mission.LAGEN:
+				var m := MapGenerator.generate(55, sz.id, ty, false, lage)
+				check(m != null, "Lage %s auf %s %s" % [lage, ty, sz.id])
+	var cols := 30
+	var rows := 23
+	var h := MapGenerator.generate(60, "mittel", &"halle", false, &"hinterhalt")
+	var e9 := h.enemy_start.slice(0, 9)
+	check(h.crew_start.all(func(t: BattleMap.Tile) -> bool: return absi(t.col - cols / 2) <= 4), "Hinterhalt: Crew in der Mitte")
+	check(e9.any(func(t: BattleMap.Tile) -> bool: return t.col <= 5) and e9.any(func(t: BattleMap.Tile) -> bool: return t.col >= cols - 6), "Hinterhalt: Gegner auf beiden Seiten")
+	var z := MapGenerator.generate(61, "mittel", &"halle", false, &"zange")
+	var flank := z.enemy_start.slice(0, 9).filter(func(t: BattleMap.Tile) -> bool: return t.col < cols - 6)
+	check(flank.size() == 3, "Zange: 3 von 9 an der Flanke (%d)" % flank.size())
+	var v := MapGenerator.generate(62, "mittel", &"halle", false, &"verteilt")
+	var v9 := v.enemy_start.slice(0, 9)
+	var spread := true
+	for i in v9.size():
+		for j in range(i + 1, v9.size()):
+			spread = spread and Hex.distance(v9[i].pos, v9[j].pos) >= 3
+	check(spread and v9.all(func(t: BattleMap.Tile) -> bool: return t.col >= cols / 3), "Verteilt: Abstand mindestens 3, rechte zwei Drittel")
+	var d := MapGenerator.generate(63, "mittel", &"halle", false, &"verteidigung")
+	check(d.crew_start.all(func(t: BattleMap.Tile) -> bool: return t.col >= cols - 6) and d.crew_start.any(func(t: BattleMap.Tile) -> bool: return t.h > 0)
+		and d.enemy_start.all(func(t: BattleMap.Tile) -> bool: return t.col <= 5), "Verteidigung: Crew rechts (auch Galerie), Gegner links")
+	# Zuordnung: feste Lagen bleiben, Standard mit rund 30 % anders
+	var fixed_ok := true
+	var std := 0
+	var changed := 0
+	for i in 400:
+		var mi := Mission.generate(20000 + i)
+		var job: Array = Mission.JOBS[mi.map_type][mi.job_index]
+		if job[2] != &"standard":
+			fixed_ok = fixed_ok and mi.lage == job[2]
+		else:
+			std += 1
+			changed += 1 if mi.lage != &"standard" else 0
+	check(fixed_ok, "feste Lagen je Auftrag")
+	check(changed > std * 0.18 and changed < std * 0.42, "Standard-Aufträge: rund 30 %% andere Lage (%d von %d)" % [changed, std])
+	var b := Mission.generate(4711)
+	b.set_map_type(MapTypes.SHIP, "defend")
+	check(b.lage == &"verteidigung" and b.lage_text().begins_with("Verteidigung"), "Abwehr an Bord = Verteidigung")

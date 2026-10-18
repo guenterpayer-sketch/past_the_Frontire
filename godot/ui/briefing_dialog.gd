@@ -1,6 +1,6 @@
 class_name BriefingDialog
 extends Modal
-## Einsatzbesprechung vor Runde 0, zwei Spalten: links Auftrag, Gegnergruppe, Schwierigkeit, Halle, Belohnung;
+## Einsatzbesprechung vor Runde 0, zwei Spalten: links Auftrag, Gegnergruppe, Schwierigkeit, Ort und Größe, Belohnung;
 ## rechts die Truppwahl als Kacheln (bis Campaign.MAX_SQUAD; Gesperrte ausgegraut, Angeschlagene markiert,
 ## Warnung bei weniger als MAX_SQUAD). "Neu würfeln" erzeugt eine andere Mission (wahlweise mit fester Schwierigkeit).
 
@@ -14,6 +14,10 @@ const HURT := Color("ff8a3d")
 const SUB := Color("a9b4c9")
 
 var _diff := 0
+## Schnellkampf: gewählter Ort (Kartentyp) für „Andere Mission“, &"" = zufällig
+var place: StringName = &""
+const PLACE_CHOICES := [[&"", "zufällig"], [&"halle", "Lagerhalle"], [&"bar", "Bar"], [&"strasse", "Straße"],
+	[&"tempel", "Tempel"], [&"buero", "Büro"], [&"schiff", "Raumschiff"]]
 ## aus dem Schiff gestartet: kein Neu-Würfeln, stattdessen zurück ins Schiff
 var hub_mode := false
 ## Schnellkampf aus dem Startmenü: Figuren aus dem globalen Roster
@@ -65,6 +69,14 @@ func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Characte
 	ob.visible = not hub_mode
 	ob.item_selected.connect(func(i: int) -> void: _diff = i)
 	footer.add_child(ob)
+	var po := OptionButton.new()
+	for c in PLACE_CHOICES:
+		po.add_item("Ort: %s" % c[1])
+	po.select(maxi(0, PLACE_CHOICES.map(func(c: Array) -> StringName: return c[0]).find(place)))
+	po.visible = not hub_mode
+	po.tooltip_text = "Ort der nächsten Mission („Andere Mission“)"
+	po.item_selected.connect(func(i: int) -> void: place = PLACE_CHOICES[i][0])
+	footer.add_child(po)
 	var again := UiTheme.button("Andere Mission")
 	again.pressed.connect(func() -> void:
 		hide()
@@ -127,8 +139,9 @@ func _mission_column(m: Mission) -> VBoxContainer:
 		if s.id == m.size_id:
 			sz = s
 	var s := "[b]Ziel:[/b] alle Gegner ausschalten\n"
-	s += "[b]Schwierigkeit:[/b] %s · [b]Halle:[/b] %s\n[b]Belohnung bei Sieg:[/b] +%d freie EP je Figur (zusätzlich zu den %d freien EP pro Einsatz)\n\n" % [
-		m.difficulty_name(), sz.get("name", m.size_id), m.reward_xp, MissionResult.FREE_XP]
+	s += "[b]Schwierigkeit:[/b] %s · [b]Ort:[/b] %s · [b]Größe:[/b] %s%s\n[b]Belohnung bei Sieg:[/b] +%d freie EP je Figur (zusätzlich zu den %d freien EP pro Einsatz)\n\n" % [
+		m.difficulty_name(), MapTypes.type_name(m.map_type), sz.get("name", m.size_id), ", quadratisch" if m.square else "", m.reward_xp, MissionResult.FREE_XP]
+	s = s.replace("[b]Belohnung bei Sieg:[/b]", "[b]Lage:[/b] %s\n[b]Belohnung bei Sieg:[/b]" % m.lage_text())
 	s += "[color=#8291ad]GEGNER (%d)[/color]\n[table=4]" % m.enemies.size()
 	for h in ["", "Typ", "Rolle", "Ausrüstung"]:
 		s += "[cell][color=#8291ad]%s[/color][/cell]" % h

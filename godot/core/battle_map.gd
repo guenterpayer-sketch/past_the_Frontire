@@ -17,16 +17,39 @@ const TERRAIN := {
 	&"barriere": {"name": "Betonbarriere", "walk": false, "obj": 0.8},
 	&"saeule": {"name": "Stahlsäule", "walk": false, "obj": 5.0},
 	&"wand": {"name": "Hallenwand", "walk": false, "obj": 5.0},
+	# weitere Kartentypen (Entscheidungen des Nutzers 17.10.2026): obj 0.8 = halbe, ab 1.8 volle Deckung
+	&"innenwand": {"name": "Wand", "walk": false, "obj": 5.0},
+	&"gebaeude": {"name": "Hauswand", "walk": false, "obj": 5.0},
+	&"leer": {"name": "Außenraum", "walk": false, "obj": 5.0},
+	&"gehweg": {"name": "Gehweg", "walk": true, "cost": 1},
+	&"podest": {"name": "Podest", "walk": true, "cost": 1},
+	&"theke": {"name": "Theke", "walk": false, "obj": 0.8},
+	&"tisch": {"name": "Tisch", "walk": false, "obj": 0.8},
+	&"sofa": {"name": "Sitzecke", "walk": false, "obj": 0.8},
+	&"schrank": {"name": "Regal", "walk": false, "obj": 1.9},
+	&"server": {"name": "Serverschrank", "walk": false, "obj": 1.9},
+	&"auto": {"name": "Fahrzeug", "walk": false, "obj": 1.9},
+	&"laterne": {"name": "Laterne", "walk": false, "obj": 5.0},
+	&"tonne": {"name": "Müllcontainer", "walk": false, "obj": 0.8},
+	&"steinsaeule": {"name": "Steinsäule", "walk": false, "obj": 5.0},
+	&"bruch": {"name": "Zerbrochene Säule", "walk": false, "obj": 0.8},
+	&"geroell": {"name": "Geröll", "walk": false, "obj": 0.8},
+	&"altar": {"name": "Altar", "walk": false, "obj": 0.8},
+	&"statue": {"name": "Statue", "walk": false, "obj": 1.9},
+	&"schreibtisch": {"name": "Schreibtisch", "walk": false, "obj": 0.8},
+	&"konsole": {"name": "Konsole", "walk": false, "obj": 0.8},
+	&"tank": {"name": "Tank", "walk": false, "obj": 5.0},
 }
 const EYE := 1.1   # Augenhöhe einer Figur (Höhenstufen)
 const AIM := 0.8   # Zielhöhe
 const FULL := 1.8  # ab dieser Höhe über dem Ziel: volle Deckung
 const HALF := 0.8  # ab dieser Höhe: halbe Deckung
 const COVER_BONUS := [0, 40, 70]
+## sq = Kantenlänge der quadratischen Variante (etwa gleiche Fläche; Entscheidung des Nutzers 17.10.2026)
 const SIZES := [
-	{"id": "klein", "name": "klein", "cols": 20, "rows": 16},
-	{"id": "mittel", "name": "mittel", "cols": 30, "rows": 23},
-	{"id": "gross", "name": "groß", "cols": 40, "rows": 31},
+	{"id": "klein", "name": "klein", "cols": 20, "rows": 16, "sq": 18},
+	{"id": "mittel", "name": "mittel", "cols": 30, "rows": 23, "sq": 26},
+	{"id": "gross", "name": "groß", "cols": 40, "rows": 31, "sq": 35},
 ]
 
 
@@ -83,6 +106,9 @@ var crew_start: Array[Tile] = []
 var enemy_start: Array[Tile] = []
 var map_seed := 0
 var size_info := {}
+## Kartentyp (MapTypes.TYPES) und Name des Bodens im Infokasten
+var map_type: StringName = &"halle"
+var floor_name := "Hallenboden"
 var _los_cache := {}
 var _peek_cache := {}
 
@@ -119,6 +145,11 @@ func add_floor(col: int, row: int, terrain: StringName = &"boden", h := 0) -> Ti
 func clear_cache() -> void:
 	_los_cache.clear()
 	_peek_cache.clear()
+
+
+## Name eines Felds für Infokasten und Deckung (Boden je Kartentyp)
+func terrain_name(t: Tile) -> String:
+	return floor_name if t.terrain == &"boden" else String(t.info().name)
 
 
 func block_top(t: Tile) -> float:
@@ -283,5 +314,5 @@ func cover(target: Tile, attacker: Tile) -> Dictionary:
 			if attacker.h >= top + 2:
 				level -= 1
 			if level > 0 and level > best.get("level", 0):
-				best = {"level": level, "label": n.info().name, "bonus": COVER_BONUS[level]}
+				best = {"level": level, "label": terrain_name(n), "bonus": COVER_BONUS[level]}
 	return best

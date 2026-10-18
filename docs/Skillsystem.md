@@ -224,8 +224,8 @@ Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen
 | Angreifer höher als Ziel | +5 AW je Höhenstufe (max. +15) |
 | Angreifer tiefer als Ziel | −5 AW je Höhenstufe (max. −15) |
 | Nahkampf | nur gegen Nachbarfelder mit max. 1 Stufe Höhenunterschied; höher stehend +10 / tiefer −10 |
-| **Halbe Deckung**: Hindernis in einem der 2 Felder vor dem Ziel (Richtung Angreifer; das 2. Feld nur ab 4 Feldern Abstand), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren | **+40 VW**, man schießt darüber hinweg |
-| **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante | **+70 VW**; auf ein Ziel in voller Deckung sind nur gezielte Schüsse möglich (mind. 60 % Aktivität), keine Reaktionsschüsse |
+| **Halbe Deckung**: Hindernis in einem der 2 Felder vor dem Ziel (Richtung Angreifer; das 2. Feld nur ab 4 Feldern Abstand), 1,2–2,7 m höher als das Ziel steht: Kisten, Fässer, Betonbarrieren; Theke, Tische, Sitzecken, Müllcontainer, zerbrochene Säulen, Geröll, Altar, Schreibtische, Konsolen (Kartentypen, 17.10.2026) | **+40 VW**, man schießt darüber hinweg |
+| **Volle Deckung**: wie oben, Hindernis mind. 2,7 m höher als das Ziel: Container, Hochregal, Säule, Galerie-Kante; Fahrzeuge (Entscheidung 17.10.2026), Regale und Schränke, Serverschränke, Steinsäulen, Statuen, Laternen, Tanks, Wände | **+70 VW**; auf ein Ziel in voller Deckung sind nur gezielte Schüsse möglich (mind. 60 % Aktivität), keine Reaktionsschüsse |
 | Angreifer steht mind. 2 Stufen (3 m) über der Oberkante der Deckung | Deckung sinkt um eine Stufe (voll → halb → keine) |
 | Hohe Hindernisse zwischen Schütze und Ziel | blockieren die Sichtlinie |
 | **Kistenstapel** (1,5 m) zwischen Schütze und Ziel | ein einzelner Stapel auf der Linie sperrt die Sicht nicht, erst zwei oder mehr (Kistenwand); direkt vor dem Ziel bleibt er halbe Deckung (Entscheidung 15.10.2026) |

@@ -129,7 +129,10 @@ static func active_mission() -> Mission:
 
 func mission_of(offer: Dictionary) -> Mission:
 	if offer.get("board", false) or offer.get("defend", false):
-		return Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
+		var bm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
+		# Entern: Raumschiff-Inneres (Bodenkampf, 18.10.2026); Abwehr = Gegner kommen durch die Luftschleuse
+		bm.set_map_type(MapTypes.SHIP, "defend" if offer.get("defend", false) else "board")
+		return bm
 	return Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
 
 
