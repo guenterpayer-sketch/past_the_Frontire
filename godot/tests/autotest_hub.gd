@@ -40,7 +40,7 @@ func _run() -> void:
 	await _click_button(enc, "Angriff")
 	await _frames(5)
 	await _shot("h0e2_enz_psi")
-	await _click_button(enc, "Kurzregeln")
+	await _click_button(enc, "Kurzregeln   (")    # nicht „Kurzregeln Raumkampf“
 	await _click_button(enc, "Reichweite und Deckung")
 	await _frames(5)
 	await _shot("h0e3_enz_regel")
