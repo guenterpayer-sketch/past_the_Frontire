@@ -2,7 +2,7 @@ class_name Crafting
 extends RefCounted
 ## Handwerk (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026, Mockup „Schiff-Hub Mockup“
 ## Bildschirme 29–31): Bauen, Zerlegen und Reparieren in der Werkstatt (Waffenkammer), Medikits in der Krankenstation.
-## Eine Arbeit je Figur (HubState.jobs {Figur-ID: Arbeit}), der Handwerker ist nicht gesperrt. Probe „mittel“ am Ende
+## Eine Arbeit je Figur (HubState.jobs {Figur-ID: Arbeit}; auch die Crew-Reparatur des Schiffs, ShipArms.start_fix), der Handwerker ist nicht gesperrt. Probe „mittel“ am Ende
 ## der Arbeit (Voyage.check, EP für die Fertigkeit); Bauen und Reparieren von Waffen/Rüstungen schwerer nach Kaufpreis. Handwerksmaterial HubState.craft_material, 1 Einheit = 10 Cr.
 ## Material: Bauen/Reparieren aufgerundet und sofort verbraucht, Zerlegen abgerundet am Ende.
 
@@ -205,9 +205,10 @@ static func _start(g: HubState, c: Character, job: Dictionary) -> void:
 
 ## Kurztext einer laufenden Arbeit
 static func job_text(job: Dictionary) -> String:
-	var what: String = {"build": "baut", "take": "zerlegt", "repair": "repariert"}.get(String(job.kind), "")
+	var what: String = {"build": "baut", "take": "zerlegt", "repair": "repariert", ShipArms.FIX_KIND: "repariert"}.get(String(job.kind), "")
 	var d := int(job.days)
-	return "%s %s – noch %d %s" % [what, name_of(String(job.key)), d, "Tag" if d == 1 else "Tage"]
+	var thing := ShipArms.fix_label(String(job.key)) if String(job.kind) == ShipArms.FIX_KIND else name_of(String(job.key))
+	return "%s %s – noch %d %s" % [what, thing, d, "Tag" if d == 1 else "Tage"]
 
 
 ## Ein Spieltag: Arbeiten laufen weiter, fertige werden gewürfelt; Meldungen zurück
@@ -229,6 +230,8 @@ static func work_day(g: HubState) -> Array[Dictionary]:
 
 ## Ergebnis einer Arbeit: {text, result ("" = keine Probe), name, skill, xp} (Reise-/Einsatzbericht, Meldung beim Warten)
 static func _finish(g: HubState, c: Character, job: Dictionary) -> Dictionary:
+	if String(job.kind) == ShipArms.FIX_KIND:
+		return ShipArms.finish_fix(g, c, job)
 	var key := String(job.key)
 	if c == null:
 		# Handwerker nicht mehr an Bord: Material und Stück zurück

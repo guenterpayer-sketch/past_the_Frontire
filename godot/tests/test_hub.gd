@@ -1142,30 +1142,60 @@ func _test_ship_arms() -> void:
 	g.wait_days(1)
 	check(g.provisions == 100 - 2 * Galley.need(), "Lebenserhaltung E: Proviant doppelt")
 	ShipArms.set_stage(g, "lebenserhaltung", 0)
-	# Crew-Reparatur: 1 Tag, 1 Material, Probe
+	# Crew-Reparatur als Arbeit wie Handwerk (Entscheidungen 18.10.2026): kein Tag sofort, Probe am Ende, eine Arbeit je Figur
 	g.material = 5
+	g.jobs = {}
+	var fc := ShipArms.default_fixer(g)
 	var d0 := g.day
 	Voyage.fixed_result = &"erfolg"
-	var r := g.ship_fix("antrieb")
-	check(not r.is_empty() and ShipArms.stage(g, "antrieb") == 2 and g.material == 4 and g.day == d0 + 1, "Crew: Erfolg −1 Stufe, 1 Material, 1 Tag")
+	check(ShipArms.start_fix(g, fc, "antrieb") and g.day == d0 and g.material == 4 and ShipArms.stage(g, "antrieb") == 3
+		and ShipArms.fix_job(g, "antrieb").name == fc.name and Crafting.is_busy(g, fc), "Reparatur angelegt: 1 Material, kein Tag, Figur beschäftigt")
+	check(not ShipArms.can_start_fix(g, fc, "station_computer") and not Crafting.can_take_apart(g, fc, "medkit"), "eine Arbeit je Figur (auch kein Handwerk)")
+	var other: Character = null
+	for c in ShipArms.fixers(g):
+		if c != fc:
+			other = c
+			break
+	check(not ShipArms.can_start_fix(g, other, "antrieb"), "Ziel schon in Arbeit")
+	var hj := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())), 1)
+	check(String(hj.jobs[String(fc.id)].kind) == ShipArms.FIX_KIND and hj.jobs[String(fc.id)].key == "antrieb", "Reparatur im Spielstand")
+	g.wait_days(1)
+	var e: Dictionary = g.last_crafts[0] if not g.last_crafts.is_empty() else {}
+	check(ShipArms.stage(g, "antrieb") == 2 and not Crafting.is_busy(g, fc) and e.get("label", "") == "Reparatur" and e.result == "erfolg"
+		and e.skill == String(ShipArms.SKILL) and String(e.text).contains("Antrieb"), "Arbeit fertig: Erfolg −1 Stufe, Meldung wie Werkstatt")
 	Voyage.fixed_result = &"herausragend"
-	g.ship_fix("antrieb")
+	ShipArms.start_fix(g, fc, "antrieb")
+	g.wait_days(1)
 	check(not g.ship_damage.has("antrieb"), "Crew: Herausragend −2 Stufen")
 	Voyage.fixed_result = &"patzer"
-	g.ship_fix("station_computer")
+	ShipArms.start_fix(g, fc, "station_computer")
+	g.wait_days(1)
 	check(ShipArms.stage(g, "station_computer") == 2, "Crew: Patzer +1 Stufe")
 	Voyage.fixed_result = &"teilerfolg"
-	g.ship_fix("station_computer")
+	ShipArms.start_fix(g, fc, "station_computer")
+	g.wait_days(1)
 	check(ShipArms.stage(g, "station_computer") == 2 and g.material == 1, "Crew: Teilerfolg nichts, Material weg")
 	Voyage.fixed_result = &"erfolg"
 	g.ship_slots.backbord.damage = -20
-	g.ship_fix("slot:backbord")
+	ShipArms.start_fix(g, fc, "slot:backbord")
+	g.wait_days(1)
 	check(ShipArms.slot_damage(g, "backbord") == -10 and g.material == 0, "Crew: Waffe im Slot −10 weg")
-	check(not ShipArms.can_crew_fix_weapon(g, "slot:backbord"), "ohne Material keine Crew-Reparatur")
+	check(not ShipArms.can_start_fix(g, fc, "slot:backbord"), "ohne Material keine Crew-Reparatur")
 	g.material = 2
 	Voyage.fixed_result = &"herausragend"
-	g.ship_fix("schnellfeuerkanone|-10")
+	check(ShipArms.start_fix(g, other, "schnellfeuerkanone|-10") and ShipArms.stock_count(g, "schnellfeuerkanone|-10") == 0, "Stück aus dem Lager in der Werkstatt")
+	g.wait_days(1)
 	check(ShipArms.stock_count(g, "schnellfeuerkanone") == 1 and ShipArms.stock_count(g, "schnellfeuerkanone|-10") == 0, "Crew: Waffe im Lager heil")
+	# Abbruch: Figur nicht mehr an Bord → Material und Stück zurück
+	ShipArms.stock_add(g, "laserbank|-20")
+	ShipArms.start_fix(g, other, "laserbank|-20")
+	var mat0 := g.material
+	g.jobs[String(other.id)].name = other.name
+	g.jobs["niemand_mehr"] = g.jobs[String(other.id)]
+	g.jobs.erase(String(other.id))
+	g.wait_days(1)
+	check(g.material == mat0 + 1 and ShipArms.stock_count(g, "laserbank|-20") == 1 and String(g.last_crafts[0].text).contains("abgebrochen"), "Abbruch: Material und Stück zurück")
+	ShipArms.stock_take(g, "laserbank|-20")
 	Voyage.fixed_result = &""
 	check(ShipArms.damage_count(g) == 2, "offene Schäden: Station Computer, Massebeschleuniger")
 	# Werft: nur im Hafen
