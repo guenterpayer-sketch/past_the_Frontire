@@ -10,14 +10,15 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | Branch | Modul | Stand |
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`0736fda`); Auftrag Kampfkarten läuft |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`2c8a590`) |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`4b16e4e`), nichts offen |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9522c1d`), nichts offen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`7554606`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`58647de`), nichts offen |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 18.10.2026 | `ab10aa0` | Charakter (`9522c1d`) + Hub (`7554606`) | beide ohne Konflikte, enthielten `main`, verschiedene Dateien; Koordinator nach beiden: `test_rules`, `test_hub` OK. Fertigkeitstexte: Raumkampf- und Handelsfertigkeiten nicht mehr „ohne Wirkung“. Ausbau „Panzerung“ heißt „Schiffspanzerung“ (ID `armor` bleibt). |
 | 18.10.2026 | `400d99c` | Raumkampf `claude/raumkampf-modul` (`58647de`) | ohne Konflikte; Branch ohne Hub `4b16e4e` → Koordinator: `test_rules`, `test_hub`, `test_space` OK, `test_sim -- 10` 6 Siege / 0 hängengeblieben. EP im Raumkampf höchstens 2 je Station und Runde, Navigation mit Initiative-Probe je Runde; Messung in `docs/Planung_Raumkampf.md` 1d. |
 | 18.10.2026 | `ac7b351` | Hub `claude/happy-lamport-u4fvya` (`4b16e4e`) | ohne Konflikte; es fehlte nur ein Doku-Commit, Code identisch mit dem getesteten Stand, keine eigenen Tests. Crew-Reparatur des Schiffs als Arbeit wie Handwerk (kein Tag sofort, Figur wählbar, eine Arbeit je Figur). |
 | 18.10.2026 | `7d03a47` | Bodenkampf `claude/confident-edison-6mxzke` (`0736fda`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Zwischenstand: Steuerung Tab (Aufstellung Figur wechseln, Kampf Zug beenden), F/Shift+F Ziele durchschalten, Leertaste angreifen. Klärung Kampfkarten Runde 1 in `bodenkampf.md`. |
