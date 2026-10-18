@@ -141,7 +141,9 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 		roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed])
 	ui.combat_log.add("Einsatz „%s“ (%s): %d Crewmitglieder gegen %s (%s). Ort: %s (%s%s)." % [
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), place_name, sz.name, form], &"round")
-	ui.combat_log.add("Runde 0: Crew im %s aufstellen, dann „Kampf beginnen“." % ("rechten Bereich (Brücke)" if mission.boarding == "defend" else "Eingangsbereich"), &"")
+	var zone: String = {&"verteidigung": "rechten Bereich", &"hinterhalt": "mittleren Bereich"}.get(mission.lage, "Eingangsbereich")
+	ui.combat_log.add("Lage: %s." % mission.lage_text(), &"round")
+	ui.combat_log.add("Runde 0: Crew im %s aufstellen (blaue Felder), dann „Kampf beginnen“." % zone, &"")
 	deploy_sel = combat.crew()[0] if not combat.crew().is_empty() else null
 	_mark_current(deploy_sel)
 	if briefing:

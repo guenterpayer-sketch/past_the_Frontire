@@ -3,7 +3,7 @@ extends Node
 ##   godot --path godot -- --autotest          KI gegen KI, Kampfende, Charakterbogen, Tabellen
 ##   godot --path godot -- --autotest-player   Bedienung mit simulierten Mausklicks
 ##   godot --path godot -- --autotest-psi      Psi-Zeile und Kontextmenü (Nyx)
-##   godot --path godot -- --autotest-maps     alle Kartentypen aufbauen (Übersicht und Nahansicht je Typ)
+##   godot --path godot -- --autotest-maps     alle Kartentypen (Übersicht, Nahansicht) und Startlagen aufbauen
 ## Optional: PTF_SECONDS = maximale Kampfdauer im KI-Test.
 
 var battle: Battle
@@ -463,6 +463,22 @@ func _run_maps() -> void:
 		await get_tree().create_timer(0.5).timeout
 		await _screenshot(out + "/m%d_%s_nah.png" % [i, ty])
 		i += 1
+	# Startlagen in der Lagerhalle (Aufstellung: blaue Felder der Crew, Gegner)
+	for lage in [&"hinterhalt", &"zange", &"verteilt", &"verteidigung"]:
+		var mi := Mission.generate(4711)
+		mi.map_type = &"halle"
+		mi.size_id = "mittel"
+		mi.square = false
+		mi.lage = lage
+		b.new_battle(4711, "", "", false, mi)
+		b.ui.briefing.hide()
+		for k in 20:
+			await get_tree().process_frame
+		print("Lage %s: Crew-Start %d, Gegner-Start %d" % [lage, b.combat.map.crew_start.size(), b.combat.map.enemy_start.size()])
+		b.rig.focus(b.map_view.center(), true)
+		b.rig.zoom_at(get_viewport().get_visible_rect().size / 2.0, 1 / 1.8)
+		await get_tree().create_timer(0.5).timeout
+		await _screenshot(out + "/l_%s.png" % lage)
 	print("AUTOTEST FERTIG")
 	get_tree().quit()
 

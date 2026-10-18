@@ -143,13 +143,13 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 	_bottom.add_child(end)
 
 
-## Runde 0: Aufstellung im Eingangsbereich
+## Runde 0: Aufstellung im Aufstellungsbereich (blaue Felder, je nach Lage)
 func refresh_deploy(c: Combat, sel: Combatant, mission: Mission) -> void:
 	UiTheme.clear(_box)
 	UiTheme.clear(_bottom)
 	show()
 	_box.add_child(UiTheme.label("Runde 0 – Aufstellung", 15, UiTheme.ACCENT))
-	var l := UiTheme.label("Figur anklicken oder hier wählen, dann ein blaues Feld im Eingangsbereich: dorthin stellen (mit einer anderen Figur wird getauscht). Rechtsklick bzw. lange drücken: Blickrichtung.", FONT, UiTheme.MUTED)
+	var l := UiTheme.label("Figur anklicken oder hier wählen, dann ein blaues Feld (Aufstellungsbereich): dorthin stellen (mit einer anderen Figur wird getauscht). Rechtsklick bzw. lange drücken: Blickrichtung.", FONT, UiTheme.MUTED)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_box.add_child(l)
 	var g := GridContainer.new()

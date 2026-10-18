@@ -21,18 +21,18 @@ var m: BattleMap
 var rng := RandomNumberGenerator.new()
 var size: Dictionary
 var _obj := 0
-## Abwehr beim Entern: Crew startet rechts, Gegner links (an der Luftschleuse)
-var swap_sides := false
+## Startlage (Mission.LAGEN): standard, hinterhalt, zange, verteilt, verteidigung (Crew rechts, Gegner links)
+var lage: StringName = &"standard"
 ## auch erhöhte Felder müssen erreichbar sein (neue Kartentypen; die Halle prüft nur den Boden)
 var check_all := false
 
 
-## Karte zum Einsatz: Typ, Größe und Form aus der Mission (Mission.map_type, size_id, square, boarding)
+## Karte zum Einsatz: Typ, Größe, Form und Startlage aus der Mission (Mission.map_type, size_id, square, lage)
 static func for_mission(seed_value: int, mission: Mission) -> BattleMap:
-	return generate(seed_value, mission.size_id, mission.map_type, mission.square, mission.boarding == "defend")
+	return generate(seed_value, mission.size_id, mission.map_type, mission.square, mission.lage)
 
 
-static func generate(seed_value: int, size_id: String, map_type: StringName = &"halle", square := false, defend := false) -> BattleMap:
+static func generate(seed_value: int, size_id: String, map_type: StringName = &"halle", square := false, start_lage: StringName = &"standard") -> BattleMap:
 	var sz: Dictionary = BattleMap.SIZES[1]
 	for s in BattleMap.SIZES:
 		if s.id == size_id:
@@ -45,7 +45,7 @@ static func generate(seed_value: int, size_id: String, map_type: StringName = &"
 	for attempt in 60:
 		var s := seed_value + attempt * 7919
 		var gen: MapGenerator = load(GENERATORS[map_type]).new() if GENERATORS.has(map_type) else MapGenerator.new()
-		gen.swap_sides = defend
+		gen.lage = start_lage
 		var map := gen._try(s, sz)
 		if map:
 			map.map_seed = s
@@ -297,46 +297,122 @@ func _group_walls(cols: int, rows: int) -> void:
 				id = 0
 
 
-## Erreichbarkeit prüfen und Startfelder festlegen: Crew links (Spalten 1 bis DEPLOY_COLS), Gegner rechts
-## (letzte 5 Spalten, erhöhte Felder zuerst); swap_sides: umgekehrt (Abwehr beim Entern)
+## Erreichbarkeit prüfen und Startfelder festlegen (je Lage, Mockup „Frontire Aufstellungen“ 18.10.2026):
+## standard: Crew links (Spalten 1 bis DEPLOY_COLS), Gegner rechts (letzte 5 Spalten, erhöhte Felder zuerst);
+## hinterhalt: Crew mittig, Gegner abwechselnd links und rechts mit Abstand; zange: 2 von 3 Gegnern rechts, 1 an
+## einer Flanke; verteilt: Gegner einzeln über die rechten zwei Drittel; verteidigung: Crew rechts (auch erhöht),
+## Gegner links. enemy_start ist so sortiert, dass die ersten n Felder die Lage ergeben.
 func _finish(cols: int, rows: int) -> BattleMap:
 	var mid_row := (rows - 1) / 2.0
-	var near := func(a: T, b: T) -> bool:
+	var mid_col := (cols - 1) / 2.0
+	var by_row := func(a: T, b: T) -> bool:
 		var da := absf(a.row - mid_row)
 		var db := absf(b.row - mid_row)
 		return da < db if da != db else a.col < b.col
-	var zone_crew := func(t: T) -> bool:
-		return t.col >= cols - 1 - BattleMap.DEPLOY_COLS and t.col < cols - 1 if swap_sides else t.col >= 1 and t.col <= BattleMap.DEPLOY_COLS
-	var zone_enemy := func(t: T) -> bool:
-		return t.col >= 1 and t.col <= 5 if swap_sides else t.col >= cols - 5 and t.col < cols - 1
+	var in_cols := func(t: T, c0: int, c1: int) -> bool: return t.col >= c0 and t.col <= c1
+	# Crew-Bereich
 	var crew: Array[T] = []
 	for t in m.list:
-		if zone_crew.call(t) and m.walkable(t) and t.h == 0:
-			crew.append(t)
-	if crew.is_empty():
+		if not m.walkable(t):
+			continue
+		match lage:
+			&"verteidigung":
+				if in_cols.call(t, cols - 1 - BattleMap.DEPLOY_COLS - 1, cols - 2):
+					crew.append(t)
+			&"hinterhalt":
+				if t.h == 0 and absf(t.col - mid_col) <= 3.0 and absf(t.row - mid_row) <= 4.0:
+					crew.append(t)
+			_:
+				if t.h == 0 and in_cols.call(t, 1, BattleMap.DEPLOY_COLS):
+					crew.append(t)
+	if crew.size() < 6:
 		return null
-	crew.sort_custom(near)
+	if lage == &"hinterhalt":
+		crew.sort_custom(func(a: T, b: T) -> bool:
+			return absf(a.col - mid_col) + absf(a.row - mid_row) < absf(b.col - mid_col) + absf(b.row - mid_row))
+	else:
+		crew.sort_custom(by_row)
 	var reach := m.reachable(crew[0].pos, INF)
 	for t in m.list:
 		if m.walkable(t) and (t.h == 0 or check_all) and not reach.all.has(t.pos):
 			return null
 	crew = crew.filter(func(t: T) -> bool: return reach.all.has(t.pos))
-	var high: Array[T] = []
-	var low: Array[T] = []
-	for t in m.list:
-		if zone_enemy.call(t) and m.walkable(t) and reach.all.has(t.pos):
-			(high if t.h > 0 else low).append(t)
-	_shuffle(high)
-	_shuffle(low)
+	var ok := func(t: T) -> bool: return m.walkable(t) and reach.all.has(t.pos) and not crew.has(t)
+	# Gegner
 	var enemy: Array[T] = []
-	enemy.append_array(high.slice(0, 2))
-	enemy.append_array(low)
-	enemy.append_array(high.slice(2))
+	match lage:
+		&"verteidigung":
+			enemy = _side(func(t: T) -> bool: return in_cols.call(t, 1, 5) and ok.call(t))
+		&"hinterhalt":
+			var gap := mini(6, cols / 4)
+			var far := func(t: T) -> bool:
+				for c in crew:
+					if Hex.distance(c.pos, t.pos) < gap:
+						return false
+				return true
+			var left := _side(func(t: T) -> bool: return in_cols.call(t, 1, 5) and ok.call(t) and far.call(t))
+			var right := _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t) and far.call(t))
+			enemy = _mix([left, right], [1, 1])
+		&"zange":
+			var right := _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t))
+			var top := rng.randf() < 0.5
+			var flank := _side(func(t: T) -> bool:
+				return in_cols.call(t, int(mid_col) - 3, int(mid_col) + 4) and ok.call(t) \
+					and (t.row <= 4 if top else t.row >= rows - 5))
+			enemy = _mix([right, flank], [2, 1])
+		&"verteilt":
+			var pool: Array[T] = []
+			for t in m.list:
+				if t.col >= cols / 3 and t.col < cols - 1 and ok.call(t):
+					pool.append(t)
+			_shuffle(pool)
+			for t in pool:
+				if enemy.all(func(o: T) -> bool: return Hex.distance(o.pos, t.pos) >= 3):
+					enemy.append(t)
+			for t in pool:
+				if not enemy.has(t):
+					enemy.append(t)
+		_:
+			enemy = _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t))
 	if crew.size() < 6 or enemy.size() < Mission.MAX_ENEMIES:
 		return null
 	m.crew_start = crew
 	m.enemy_start = enemy
 	return m
+
+
+## Felder einer Seite, gemischt: zwei erhöhte zuerst (Schützen oben), dann Boden, dann übrige erhöhte
+func _side(pick: Callable) -> Array[T]:
+	var high: Array[T] = []
+	var low: Array[T] = []
+	for t in m.list:
+		if pick.call(t):
+			(high if t.h > 0 else low).append(t)
+	_shuffle(high)
+	_shuffle(low)
+	var out: Array[T] = []
+	out.append_array(high.slice(0, 2))
+	out.append_array(low)
+	out.append_array(high.slice(2))
+	return out
+
+
+## Listen im Verhältnis weights abwechselnd zusammenführen (z. B. 2 rechts, 1 Flanke, 2 rechts, …)
+func _mix(lists: Array, weights: Array) -> Array[T]:
+	var out: Array[T] = []
+	var idx := []
+	for l in lists:
+		idx.append(0)
+	var any := true
+	while any:
+		any = false
+		for i in lists.size():
+			for k in weights[i]:
+				if idx[i] < lists[i].size():
+					out.append(lists[i][idx[i]])
+					idx[i] += 1
+					any = true
+	return out
 
 
 # ---------------------------------------------------------------- Bausteine für die Kartentypen

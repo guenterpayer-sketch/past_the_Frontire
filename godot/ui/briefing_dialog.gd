@@ -141,6 +141,7 @@ func _mission_column(m: Mission) -> VBoxContainer:
 	var s := "[b]Ziel:[/b] alle Gegner ausschalten\n"
 	s += "[b]Schwierigkeit:[/b] %s · [b]Ort:[/b] %s · [b]Größe:[/b] %s%s\n[b]Belohnung bei Sieg:[/b] +%d freie EP je Figur (zusätzlich zu den %d freien EP pro Einsatz)\n\n" % [
 		m.difficulty_name(), MapTypes.type_name(m.map_type), sz.get("name", m.size_id), ", quadratisch" if m.square else "", m.reward_xp, MissionResult.FREE_XP]
+	s = s.replace("[b]Belohnung bei Sieg:[/b]", "[b]Lage:[/b] %s\n[b]Belohnung bei Sieg:[/b]" % m.lage_text())
 	s += "[color=#8291ad]GEGNER (%d)[/color]\n[table=4]" % m.enemies.size()
 	for h in ["", "Typ", "Rolle", "Ausrüstung"]:
 		s += "[cell][color=#8291ad]%s[/color][/cell]" % h
