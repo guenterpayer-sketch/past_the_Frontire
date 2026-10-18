@@ -116,6 +116,13 @@ func _run() -> void:
 	await _frames(5)
 	var enc2 := hub.ui.get_node_or_null(Encyclopedia.NAME)
 	print("Enzyklopädie im Schiff offen: %s, Dialog erkannt %s" % [enc2 != null and enc2.visible, hub.ui.any_dialog_open()])
+	# Raumkampf-Bereiche: Übersicht Gegnerschiffe und eine Schiffswaffe
+	enc2.show_at(&"s_schiffe", Encyclopedia.OVERVIEW)
+	await _frames(5)
+	await _shot("h0e_enzyklopaedie_schiffe")
+	enc2.show_at(&"s_waffen", "Laserbank")
+	await _frames(5)
+	await _shot("h0f_enzyklopaedie_schiffswaffe")
 	enc2.close()
 	print("Schiff: Tag %d, %s, %d Aufträge" % [g.day, g.sector.systems[g.position].name, g.offers.size()])
 	await _shot("h1_schiff")
