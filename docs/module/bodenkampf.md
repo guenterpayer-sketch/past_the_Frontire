@@ -22,7 +22,7 @@
 
 ## Stand
 
-- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
+- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator
@@ -31,14 +31,4 @@
 
 - **Schritt 2 (Karteneditor) ruht (18.10.2026, Wunsch des Nutzers: „erst mal abwarten“).** Offene Fragen dafür: Bedienung (Draufsicht malen / 3D / beides), Start einer neuen Karte (leer / Zufallskarte als Vorlage / Kopie), Weg ins Spiel (Chance statt Zufallskarte / je Karte an-aus / nur Schnellkampf), Startbereiche (je Lage automatisch / von Hand / beides).
 
-### Auftrag (18.10.2026): Truppgröße nach Schwierigkeit
-
-Grundlage: `docs/Planung_Truppgroesse.md` (Entscheidungen des Nutzers). **Zuständig: Bodenkampf**; darf `core/campaign.gd` minimal ändern (z. B. `Campaign.max_squad(difficulty)`, `MAX_SQUAD` = 6 bleibt Standard) und vermerkt das.
-- **Schwer: bis zu 8 Crewmitglieder**, leicht/mittel höchstens 6: Truppwahl im Briefing, Vorschlag `suggested_squad`, **Startfelder aller Kartentypen und Startlagen** (bisher fest 6).
-- **Per Simulation nachjustieren**: Budget/Gegner bei „schwer“ so, dass es mit 8 schwer bleibt; Siegquote vorher/nachher (`test_sim -- 45 missionen` o. ä.) als Tabelle.
-- Offen, mit dem Nutzer klären (Auswahl-Buttons, Freitext am Ende): gilt die 8 auch für Blockade „schwer“ und für Entern/Abwehr; Schnellkampf mit „schwer“ bis 8?
-- **Entscheidungen des Nutzers (18.10.2026):** 8 gilt für jeden schweren Bodenkampf (auch nach Blockade, Entern und Abwehr) und im Schnellkampf; Ziel der Simulation: mit 8 Figuren etwa 10 Prozentpunkte öfter gewinnen als heute mit 6.
-- **Gebaut (18.10.2026):** `Campaign.HARD_SQUAD = 8`, `Campaign.max_squad(difficulty)`, `suggested_squad(cands, limit)`, `squad(limit)`, `set_squad` speichert bis 8 (**Änderung in `core/campaign.gd`, Charakter-Modul, vermerkt**; `MAX_SQUAD` = 6 bleibt Standard). Briefing: Höchstzahl je Mission (`_max`), Battle: Vorbelegung mit `limit`, Schnellkampf behält die Auswahl und füllt auf. Kartengenerator: mindestens 8 Crew-Startfelder in allen Typen und Lagen. Gegnerbudget „schwer“ 76 → **88**.
-  - **Fehler gefunden und behoben:** `BattleMap.reachable(…, INF)` nahm unerreichbare Felder mit Kosten INF auf; die Erreichbarkeitsprüfung aller Generatoren war damit wirkungslos (im Büro blieb ein Raum ohne Tür, der letzte Gegner unerreichbar → Kampf hing). Jetzt werden INF-Kosten nicht aufgenommen; Büro-Generator gibt dem Rest neben dem letzten Raum eine Tür.
-  - `test_sim`: Optionen `leicht|mittel|schwer`, `trupp=N`, `ab=K`, `budget=N` (nur Messung, `Mission.budget_override`); Grenze 100 Runden statt 60 (lange Kämpfe mit 8 gegen 9 sind kein Hänger, z. B. Kampf 15 endet in Runde 63).
-  - **Simulation „schwer“, je 60 Kämpfe:** 6 Figuren, Budget 76: 29/60 (48 %) · 8 Figuren, 76: 50/60 (83 %) · 8, 84: 41/60 (68 %) · **8, 88: 34/60 (57 %)** · 8, 92: 33/60 (55 %) · 8, 108: 32/60 (53 %; ab etwa 92 begrenzt die Höchstzahl von 9 Gegnern). Gewählt: 88.
+- Keine offenen Aufträge (Karteneditor ruht). Nächste Aufgabe kommt vom Nutzer.
