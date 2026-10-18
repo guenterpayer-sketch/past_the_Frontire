@@ -72,6 +72,7 @@
 - Alle Aufträge bis 16.10.2026 erledigt und in `main`. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 - **Fertig (18.10.2026): Fertigkeitstexte „ohne Wirkung“.** `core/skill_texts.gd`: `SOON` entfernt (Konstante gelöscht), die 9 Texte sagen jetzt, wo die Fertigkeit wirkt (Geschützstation, Station Schilde, Station Technik, Raumhafen). Danach trägt keine Fertigkeit mehr `SOON`; alle Fertigkeiten aus `Rules` haben einen Text. Keine Schnittstellenänderung.
+- **Fertig (18.10.2026): Absturz beim Ändern der Farbe.** Nachgestellt mit Grafik an allen drei Stellen: nur die Charakterübersicht stürzt ab (`data.tree is null`, danach signal 11, wie im Log), Roster-Dialog und Editor nicht. Ursache: `ColorPickerButton` ruft nach dem Senden von `popup_closed` noch `get_tree()` auf; `_render()` hatte ihn da schon per `UiTheme.clear` aus dem Baum genommen. Behebung in `ui/crew/crew_overview.gd`: `_render.call_deferred()`. Autotest (`--autotest`): neue Hilfe `_pick_color` (Knopf anklicken, Farbe wählen, Popup schließen) für Übersicht, Roster-Dialog und Editor; ohne Behebung stürzt der Autotest dort ab, mit ihr läuft er durch. Keine Schnittstellenänderung.
 
 ## Aufträge vom Koordinator
 

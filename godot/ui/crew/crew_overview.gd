@@ -230,9 +230,11 @@ func _left_column(u: Character) -> Control:
 	col.color = u.color
 	col.edit_alpha = false
 	col.custom_minimum_size = Vector2(50, 26)
+	# erst nach dem Signal neu bauen: der Knopf ruft nach popup_closed noch get_tree() auf und stürzt ab,
+	# wenn _render() ihn schon aus dem Baum genommen hat (Godot 4.7, signal 11)
 	col.popup_closed.connect(func() -> void:
 		u.color = col.color
-		_render())
+		_render.call_deferred())
 	hb.add_child(col)
 	g.add_child(hb)
 	g.add_child(UiTheme.label("Station", 12, UiTheme.MUTED))
