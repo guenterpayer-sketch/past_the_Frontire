@@ -6,6 +6,7 @@ extends SceneTree
 
 
 func _init() -> void:
+	CustomMaps.dir = "user://maps_test_none"   # nur Zufallskarten (eigene Karten des Nutzers nicht mitprüfen)
 	var args := OS.get_cmdline_user_args()
 	var fights := int(args[0]) if args.size() > 0 else 30
 	var stats := {&"sieg": 0, &"niederlage": 0, "stuck": 0, "rounds": 0, "dead": 0, "ko": 0}

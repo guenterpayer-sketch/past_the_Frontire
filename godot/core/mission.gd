@@ -89,6 +89,9 @@ var reward_xp := 0
 ## Typ und Form werden mit eigenem Zufall (seed + 2) gewürfelt, damit der Rest der Mission gleich bleibt.
 var map_type: StringName = &"halle"
 var square := false
+## eigene Karte (CustomMaps): id und Name; im Schnellkampf fest gewählt oder beim Kartenbau aus dem Pool gesetzt
+var custom_map := ""
+var custom_name := ""
 var boarding := ""
 var job_index := 0
 ## Startlage (LAGEN); _lage_roll/_lage_pick: einmal gewürfelt, damit set_map_type() dieselbe Lage ergibt

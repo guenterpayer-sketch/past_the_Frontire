@@ -28,7 +28,11 @@ var check_all := false
 
 
 ## Karte zum Einsatz: Typ, Größe, Form und Startlage aus der Mission (Mission.map_type, size_id, square, lage)
+## (eigene Karte aus dem Karteneditor, wenn gewählt oder mit CustomMaps.CHANCE aus dem Pool)
 static func for_mission(seed_value: int, mission: Mission) -> BattleMap:
+	var own := CustomMaps.for_mission(seed_value, mission)
+	if own:
+		return own
 	return generate(seed_value, mission.size_id, mission.map_type, mission.square, mission.lage)
 
 

@@ -109,6 +109,8 @@ var size_info := {}
 ## Kartentyp (MapTypes.TYPES) und Name des Bodens im Infokasten
 var map_type: StringName = &"halle"
 var floor_name := "Hallenboden"
+## Name der eigenen Karte (Karteneditor, CustomMaps), leer = Zufallskarte
+var custom_name := ""
 var _los_cache := {}
 var _peek_cache := {}
 

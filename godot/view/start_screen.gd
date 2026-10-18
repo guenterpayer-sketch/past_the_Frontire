@@ -5,6 +5,7 @@ extends Node3D
 ## --autotest / --autotest-player / --autotest-psi / --autotest-maps springen direkt in den Bodenkampf, --autotest-hub ins Schiff.
 
 const SHIP_MODEL := "res://assets/ship/ship_imperial.glb"
+const MAP_EDITOR_SCENE := "res://map_editor.tscn"
 
 var slots: SlotsDialog
 var picker: CrewPicker
@@ -19,6 +20,7 @@ var _menu: VBoxContainer
 func _ready() -> void:
 	UiScale.apply(get_tree())
 	HubState.quick_battle = false
+	CustomMaps.editor_return = ""   # Probekampf aus dem Editor beendet
 	var args := OS.get_cmdline_user_args()
 	if "--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args or "--autotest-maps" in args:
 		HubState.game = null
@@ -123,6 +125,9 @@ func _build_ui() -> void:
 	var gear_b := _item("Ausrüstung")
 	gear_b.tooltip_text = "Eigene Waffen und Rüstungen erstellen, bearbeiten, löschen (für alle Spielstände)"
 	gear_b.pressed.connect(func() -> void: gear.show_editor())
+	var maps_b := _item("Karteneditor")
+	maps_b.tooltip_text = "Eigene Kampfkarten bauen (Draufsicht und 3D); aktive Karten kommen im Spiel statt einer Zufallskarte vor"
+	maps_b.pressed.connect(func() -> void: get_tree().change_scene_to_file(MAP_EDITOR_SCENE))
 	var quick := _item("Schnellkampf (Bodenkampf ohne Schiff)")
 	quick.tooltip_text = "Einzelner Bodenkampf mit zufälliger Mission und Figuren aus dem Roster (Trupp im Briefing wählen). Nichts wird verbucht, danach zurück ins Startmenü."
 	quick.pressed.connect(start_quick_battle)

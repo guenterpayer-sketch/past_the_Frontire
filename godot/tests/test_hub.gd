@@ -12,6 +12,7 @@ func check(cond: bool, what: String) -> void:
 
 
 func _init() -> void:
+	CustomMaps.dir = "user://maps_test_none"   # nur Zufallskarten (eigene Karten des Nutzers nicht mitprüfen)
 	SpaceEvents.fixed_contact = -2       # kein Feindkontakt auf Reisen (eigene Tests in _test_space_events)
 	SpaceEvents.fixed_kind = "boden"
 	TradeSkills.fixed = &"teilerfolg"   # Normalpreise für die älteren Preistests; _test_trade_skills prüft die Stufen
