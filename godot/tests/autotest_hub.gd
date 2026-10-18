@@ -160,6 +160,15 @@ func _run() -> void:
 	# Werkstatt: beschädigtes Stück im Lager reparieren
 	Stock.add(g, Stock.damaged_key("res://data/weapons/sturmgewehr.tres", -20))
 	Stock.add(g, Stock.damaged_key("res://data/armor/mittel.tres", -30))
+	# lange Lagerliste (Bildlaufleiste): nichts darf rechts überlaufen
+	var long_stock := g.stock.duplicate()
+	for f in ResourceLoader.list_directory("res://data/weapons").slice(0, 12):
+		if f.ends_with(".tres"):
+			Stock.add(g, Stock.damaged_key("res://data/weapons/" + f, -10))
+	hub.ui.trade.show_trade(g)
+	await _frames(5)
+	await _shot("h1a4_handel_lang")
+	g.stock = long_stock
 	hub.ui.trade.show_trade(g)
 	await _frames(5)
 	await _shot("h1a3_werkstatt")
@@ -216,6 +225,7 @@ func _run() -> void:
 	await _shot("h1f1_waffenslots")
 	hub.ui.ship_arms.hide()
 	g.material = 8
+	g.hull = mini(g.hull, 60)
 	hub.open_room(&"hangar")
 	await _frames(5)
 	await _click_button(hub.ui.notice, "Systemschäden")
@@ -411,14 +421,9 @@ func _run() -> void:
 	await _shot("h5_reisebericht")
 	await _click_button(hub.ui, "Weiter")
 	print("Reisebericht geschlossen: ", not hub.ui.travel_report.visible)
-	# große Reparatur durch die Crew (1 Tag, 1 Material)
+	# Status nach der Reise (die Hülle repariert die Crew jetzt als Arbeit im Maschinenraum)
 	g.hull = 60
 	sm.refresh()
-	var d1 := g.day
-	await _click_button(hub.ui, "Große Reparatur")
-	print("Crew-Reparatur: Tag %d -> %d, Hülle 60 -> %d, Material %d" % [d1, g.day, g.hull, g.material])
-	await _shot("h5b_crew_reparatur")
-	hub.ui.notice.hide()
 	await _shot("h5c_status_schiff")
 	await _click_button(hub.ui, "Zurück ins Schiff")
 	# Crewquartiere

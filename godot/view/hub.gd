@@ -51,7 +51,6 @@ func _ready() -> void:
 		if int(r.taken) + int(r.scrapped) > 0:
 			ui.show_toast("Beute: %d Stück ins Lager, %d als Schrott (+%d Cr)" % [r.taken, r.scrapped, r.scrap]))
 	ui.star_map.port.connect(_open_port)
-	ui.star_map.crew_repair.connect(crew_repair)
 	ui.travel_report.visibility_changed.connect(func() -> void:
 		if not ui.travel_report.visible and _after_travel.is_valid():
 			var next := _after_travel
@@ -268,19 +267,6 @@ func _continue_journey() -> void:
 	elif game.pending_offer >= 0:
 		_after_leg()
 	_refresh()
-
-
-## Große Reparatur durch die Crew (1 Tag, 1 Material)
-func crew_repair() -> void:
-	var r := game.crew_repair()
-	if r.is_empty():
-		return
-	Sfx.play(&"klick")
-	_after_days()
-	_training_toast()
-	ui.show_notice("Große Reparatur", "%s: Reparatur %s %+d = %d → %s\nHülle %+d (jetzt %d / %d) · 1 Material verbraucht · +%d EP" % [
-		r.name, Dice.format_roll(r.roll), r.bonus, r.total, r.result_name, r.hull, game.hull, game.hull_max(), r.xp])
-	ui.notice.move_to_front()
 
 
 ## Zum Auftrag: hinfliegen (Reisebericht), dann in den Bodenkampf

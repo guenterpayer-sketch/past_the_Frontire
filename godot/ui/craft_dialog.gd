@@ -25,11 +25,11 @@ func refresh() -> void:
 	open("Werkstatt (Waffenkammer)")
 	content.add_child(UiTheme.label("Handwerksmaterial %d · Tag %d · Werkstatt Stufe %d: %s · Ausbau im Maschinenraum" % [
 		g.craft_material, g.day, lv, ShipUpgrades.describe(&"workshop", lv)], 15, UiTheme.ACCENT))
-	content.add_child(UiTheme.label("HANDWERKER (EINE ARBEIT JE FIGUR, NICHT GESPERRT)", 13, UiTheme.MUTED))
+	content.add_child(UiTheme.label("HANDWERKER (EINE ARBEIT JE FIGUR, NICHT SCHWER VERWUNDET)", 13, UiTheme.MUTED))
 	var crew := Campaign.crew()
 	if _pick() == null:
 		for c in crew:
-			if not Crafting.is_busy(g, c):
+			if not Crafting.is_busy(g, c) and Crafting.can_work(c):
 				_who = c.id
 				break
 	var flow := HFlowContainer.new()
@@ -38,9 +38,9 @@ func refresh() -> void:
 	for c in crew:
 		var job := Crafting.job_of(g, c)
 		var b := UiTheme.button("%s · Waffen %+d · Rüstung %+d\n%s" % [c.name, Rules.skill_total(c, Crafting.SKILL_WEAPON),
-			Rules.skill_total(c, Crafting.SKILL_ARMOR), "frei" if job.is_empty() else Crafting.job_text(job)], "", true)
+			Rules.skill_total(c, Crafting.SKILL_ARMOR), Crafting.status_text(g, c)], "", true)
 		b.button_pressed = c.id == _who
-		b.add_theme_color_override("font_color", UiTheme.GOOD if job.is_empty() else Color("ff8a3d"))
+		b.add_theme_color_override("font_color", UiTheme.MUTED if not Crafting.can_work(c) else (UiTheme.GOOD if job.is_empty() else Color("ff8a3d")))
 		b.custom_minimum_size.x = 300
 		b.pressed.connect(func() -> void:
 			_who = c.id

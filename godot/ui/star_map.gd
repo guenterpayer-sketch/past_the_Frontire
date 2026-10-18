@@ -11,7 +11,6 @@ signal start(offer: Dictionary)
 ## Raumhafen: eigenes Fenster öffnen (&"ship" Schiffshändler, &"trade" Händler, &"yard" Werft, &"hire" Crew anheuern)
 signal port(kind: StringName)
 ## große Reparatur durch die Crew (1 Tag)
-signal crew_repair
 signal closed
 
 const PANEL_W := 420.0
@@ -25,7 +24,6 @@ var _canvas: Control
 var _side: VBoxContainer
 var _status: Label
 var _hover := -1
-var _repair_btn: Button
 
 
 func _ready() -> void:
@@ -60,10 +58,6 @@ func _ready() -> void:
 	wait.custom_minimum_size.y = 44
 	wait.pressed.connect(func() -> void: wait_day.emit())
 	top.add_child(wait)
-	_repair_btn = UiTheme.button("Große Reparatur (1 Tag)", "Überall möglich: 1 Tag, 1 Schiffsmaterial, Reparaturprobe. Teilerfolg +10, Erfolg +20, Herausragend +40 Hülle; Fehlschlag ±0, Patzer −5 (Material ist weg)")
-	_repair_btn.custom_minimum_size.y = 44
-	_repair_btn.pressed.connect(func() -> void: crew_repair.emit())
-	top.add_child(_repair_btn)
 	# unten links: Legende
 	var leg := PanelContainer.new()
 	leg.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 8))
@@ -126,9 +120,6 @@ func refresh() -> void:
 	var sys: Dictionary = game.sector.systems[game.position]
 	_status.text = "Tag %d · Position: %s · %s\n%d Cr · Treibstoff %d/%d · Hülle %d/%d · Material %d" % [game.day, sys.name, game.sector.name,
 		game.credits, game.fuel, game.tank_max(), game.hull, game.hull_max(), game.material]
-	_repair_btn.disabled = not Voyage.can_crew_repair(game)
-	var who := Voyage.repairer(game)
-	_repair_btn.text = "Große Reparatur (1 Tag)" + ((" · %s %s" % [who.name.split(" ")[0], Dice.fmt(Rules.skill_total(who, &"rsReparatur"))]) if who else "")
 	_render_side()
 	_canvas.queue_redraw()
 
