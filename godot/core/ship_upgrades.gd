@@ -1,7 +1,7 @@
 class_name ShipUpgrades
 extends RefCounted
 ## Schiffsausbau (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 12 Bereiche (Werkstatt: Crafting;
-## Schilde, Panzerung, Reaktor, Waffenslots für den Raumkampf, Wirkung im Kampf legt der Raumkampf fest; Waffenslots: ShipArms) mit je
+## Schilde, Schiffspanzerung, Reaktor, Waffenslots für den Raumkampf, Wirkung im Kampf legt der Raumkampf fest; Waffenslots: ShipArms) mit je
 ## 3 Stufen. Werft im Hafen: Credits, sofort. Crew: Schiffsmaterial und Spieltage, am Ende eine Reparaturprobe
 ## (Station Technik, sonst der Beste); nur ein Crew-Ausbau zur Zeit. Stufen liegen in HubState.upgrades {id: Stufe},
 ## der laufende Crew-Ausbau in HubState.project {id, days}.
@@ -18,7 +18,7 @@ const AREAS := {
 	&"workshop": {"name": "Werkstatt", "values": [0, 1, 2, 3], "text": "Stufe %d", "texts": ["Bauen bis 200 Cr",
 		"+10 Handwerk, bis 400 Cr", "+10, Dauer −50 %, alles", "+20, Dauer −50 %, alles"]},
 	&"shields": {"name": "Schilde", "values": [0, 1, 2, 3], "text": "Stufe %d"},
-	&"armor": {"name": "Panzerung", "values": [0, 1, 2, 3], "text": "Stufe %d"},
+	&"armor": {"name": "Schiffspanzerung", "values": [0, 1, 2, 3], "text": "Stufe %d"},
 	&"reactor": {"name": "Reaktor", "values": [0, 1, 2, 3], "text": "Stufe %d"},
 	&"slots": {"name": "Waffenslots", "values": [4, 5, 6, 7, 8, 9], "text": "%d Slots", "max": 5, "texts": ["4 Slots",
 		"5 Slots (+ Heck)", "6 Slots (+ Backbord 2)", "7 Slots (+ Steuerbord 2)", "8 Slots (+ Bug 2)", "9 Slots (+ Turm 2)"]},
