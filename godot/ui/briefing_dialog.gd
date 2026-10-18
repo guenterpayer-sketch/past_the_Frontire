@@ -73,12 +73,13 @@ func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Characte
 	ob.item_selected.connect(func(i: int) -> void: _diff = i)
 	footer.add_child(ob)
 	var po := OptionButton.new()
-	for c in PLACE_CHOICES:
+	var choices := place_choices()
+	for c in choices:
 		po.add_item("Ort: %s" % c[1])
-	po.select(maxi(0, PLACE_CHOICES.map(func(c: Array) -> StringName: return c[0]).find(place)))
+	po.select(maxi(0, choices.map(func(c: Array) -> StringName: return c[0]).find(place)))
 	po.visible = not hub_mode
-	po.tooltip_text = "Ort der nächsten Mission („Andere Mission“)"
-	po.item_selected.connect(func(i: int) -> void: place = PLACE_CHOICES[i][0])
+	po.tooltip_text = "Ort der nächsten Mission („Andere Mission“); „Eigene“ = Karte aus dem Karteneditor"
+	po.item_selected.connect(func(i: int) -> void: place = choices[i][0])
 	footer.add_child(po)
 	var again := UiTheme.button("Andere Mission")
 	again.pressed.connect(func() -> void:
@@ -91,6 +92,14 @@ func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Characte
 	_go.pressed.connect(close)
 	footer.add_child(_go)
 	_refresh()
+
+
+## Orte im Schnellkampf: Kartentypen und eigene Karten (CustomMaps, als "map:<id>")
+static func place_choices() -> Array:
+	var out: Array = PLACE_CHOICES.duplicate()
+	for d in CustomMaps.list():
+		out.append([StringName("map:" + String(d.id)), "Eigene: %s" % d.name])
+	return out
 
 
 func close() -> void:
@@ -143,7 +152,7 @@ func _mission_column(m: Mission) -> VBoxContainer:
 			sz = s
 	var s := "[b]Ziel:[/b] alle Gegner ausschalten\n"
 	s += "[b]Schwierigkeit:[/b] %s · [b]Ort:[/b] %s · [b]Größe:[/b] %s%s\n[b]Belohnung bei Sieg:[/b] +%d freie EP je Figur (zusätzlich zu den %d freien EP pro Einsatz)\n\n" % [
-		m.difficulty_name(), MapTypes.type_name(m.map_type), sz.get("name", m.size_id), ", quadratisch" if m.square else "", m.reward_xp, MissionResult.FREE_XP]
+		m.difficulty_name(), MapTypes.type_name(m.map_type) + (" – eigene Karte „%s“" % m.custom_name if m.custom_name != "" else ""), sz.get("name", m.size_id), ", quadratisch" if m.square else "", m.reward_xp, MissionResult.FREE_XP]
 	s = s.replace("[b]Belohnung bei Sieg:[/b]", "[b]Lage:[/b] %s\n[b]Belohnung bei Sieg:[/b]" % m.lage_text())
 	s += "[color=#8291ad]GEGNER (%d)[/color]\n[table=4]" % m.enemies.size()
 	for h in ["", "Typ", "Rolle", "Ausrüstung"]:

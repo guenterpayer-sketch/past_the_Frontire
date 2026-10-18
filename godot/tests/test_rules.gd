@@ -12,6 +12,8 @@ func check(cond: bool, what: String) -> void:
 
 
 func _init() -> void:
+	CustomMaps.dir = "user://maps_test_rules"   # eigene Karten des Nutzers nicht mitprüfen
+	_clear_maps()
 	_test_rules()
 	_test_dice()
 	_test_cover()
@@ -44,6 +46,7 @@ func _init() -> void:
 	_test_lagen()
 	_test_squad_size()
 	_test_walls()
+	_test_custom_maps()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1291,3 +1294,106 @@ func _test_walls() -> void:
 	at.call(2, 1).terrain = &"saeule"
 	m2.clear_cache()
 	check(m2.peek_tiles(at.call(1, 1)).size() > 1, "an der Säule Herauslehnen")
+
+
+func _clear_maps() -> void:
+	if DirAccess.dir_exists_absolute(CustomMaps.dir):
+		for f in DirAccess.get_files_at(CustomMaps.dir):
+			DirAccess.remove_absolute(CustomMaps.dir.path_join(f))
+
+
+## Karteneditor (18.10.2026): Speichern/Laden, Startfelder je Lage (gezeichnet oder automatisch), Objekte,
+## Prüfung, Pool im Spiel (CHANCE, nur aktive, passender Typ) und fest gewählte Karte
+func _test_custom_maps() -> void:
+	var d := CustomMaps.blank("Test", &"bar", "mittel")
+	check(d.cols == 30 and d.rows == 23 and d.cells.size() == 30 * 23, "leere Karte: Größe")
+	var res := CustomMaps.check(d)
+	check(res.ok and res.lagen.size() == Mission.LAGEN.size() and res.errors.is_empty(), "leere Karte: alle Lagen automatisch (%s %s)" % [res.lagen, res.errors])
+	for lage in Mission.LAGEN:
+		var m := CustomMaps.build(d, lage, 5)
+		check(m != null and m.crew_start.size() >= Campaign.HARD_SQUAD and m.enemy_start.size() >= Mission.MAX_ENEMIES, "leere Karte: Startfelder %s" % lage)
+	var id := CustomMaps.save(d)
+	var back := CustomMaps.load_map(id)
+	check(id != "" and back.cells == d.cells and back.name == "Test" and StringName(back.type) == &"bar", "Speichern und Laden")
+	# Container 3×2 = ein Objekt; L-Form = zwei Objekte
+	for c in [5, 6, 7]:
+		for r in [5, 6]:
+			d.cells[r * d.cols + c] = "container:2"
+	d.cells[10 * d.cols + 10] = "regal:3"
+	d.cells[10 * d.cols + 11] = "regal:3"
+	d.cells[11 * d.cols + 10] = "regal:3"
+	d.cells[5 * d.cols + 4] = "kiste:1"     # Aufstieg auf den Container
+	d.cells[10 * d.cols + 9] = "leiter:0"   # und aufs Regal
+	var tm := CustomMaps.terrain_map(d)
+	var objs := {}
+	for c in [5, 6, 7]:
+		for r in [5, 6]:
+			objs[tm.at_offset(c, r).obj] = true
+	check(objs.size() == 1 and tm.at_offset(5, 5).h == 2, "Container 3×2 ein Objekt, Höhe 2")
+	check(tm.at_offset(10, 10).obj == tm.at_offset(11, 10).obj and tm.at_offset(10, 11).obj != tm.at_offset(10, 10).obj, "L-Form: zwei Objekte")
+	# gezeichnete Startfelder: Crew rechts, Gegner links; Standard nimmt sie, andere Lagen automatisch
+	var p := d.duplicate(true)
+	p.crew = []
+	p.enemy = []
+	for r in range(5, 13):
+		p.crew.append([27, r])
+	for r in range(5, 14):
+		p.enemy.append([2, r])
+	var mp := CustomMaps.build(p, &"standard", 3)
+	check(mp != null and CustomMaps.check(d).ok, "Karte mit Container und Regal nutzbar")
+	if mp == null:
+		return
+	check(mp.crew_start.all(func(t: BattleMap.Tile) -> bool: return t.col == 27) and mp.enemy_start.all(func(t: BattleMap.Tile) -> bool: return t.col == 2),
+		"gezeichnete Startfelder bei Standard")
+	check(CustomMaps.check(p).lagen.get(&"standard") == "gezeichnet", "Prüfung: Standard gezeichnet")
+	# abgeschlossener Raum: nicht erreichbar, Fehler
+	var w := CustomMaps.blank("Wand", &"halle", "klein")
+	for c in range(8, 13):
+		w.cells[4 * w.cols + c] = "innenwand:0"
+		w.cells[8 * w.cols + c] = "innenwand:0"
+	for r in range(4, 9):
+		w.cells[r * w.cols + 8] = "innenwand:0"
+		w.cells[r * w.cols + 12] = "innenwand:0"
+	var wr := CustomMaps.check(w)
+	check(not wr.unreachable.is_empty() and not wr.errors.is_empty(), "abgeschlossener Raum: nicht erreichbar gemeldet (%d)" % wr.unreachable.size())
+	# alles Wand: nicht nutzbar
+	var x := CustomMaps.blank("Voll", &"halle", "klein")
+	for i in x.cells.size():
+		x.cells[i] = "wand:0"
+	check(not CustomMaps.check(x).ok and CustomMaps.build(x) == null, "ohne Boden nicht nutzbar")
+	# Pool: nur aktiv, passender Kartentyp, rund CHANCE
+	var hits := 0
+	for i in 200:
+		var mi := Mission.generate(7000 + i)
+		mi.set_map_type(&"bar")
+		if MapGenerator.for_mission(mi.map_seed, mi).custom_name != "":
+			hits += 1
+	check(hits == 0, "inaktive Karte kommt nicht vor")
+	back.active = true
+	CustomMaps.save(back)
+	hits = 0
+	var other := 0
+	for i in 200:
+		var mi := Mission.generate(7000 + i)
+		mi.set_map_type(&"bar")
+		var m := MapGenerator.for_mission(mi.map_seed, mi)
+		if m.custom_name == "Test":
+			hits += 1
+			check(mi.custom_map == id and mi.custom_name == "Test" and m.map_type == &"bar", "Mission kennt die eigene Karte")
+		var mo := Mission.generate(7000 + i)
+		mo.set_map_type(&"tempel")
+		if MapGenerator.for_mission(mo.map_seed, mo).custom_name != "":
+			other += 1
+	check(hits > 30 and hits < 90 and other == 0, "Pool: %d von 200 Bar-Einsätzen eigene Karte, anderer Typ %d" % [hits, other])
+	var fm := Mission.generate(1)
+	fm.custom_map = id
+	check(MapGenerator.for_mission(fm.map_seed, fm).custom_name == "Test", "fest gewählte eigene Karte")
+	var a := CustomMaps.for_mission(123, Mission.generate(1))
+	check(a == null or a.custom_name == "Test", "Pool ohne passenden Typ")
+	# Zufallskarte als Vorlage: gleiches Gelände
+	var g := MapGenerator.generate(99, "klein", &"tempel")
+	var gd := CustomMaps.from_battle_map(g, "Vorlage")
+	var gm := CustomMaps.terrain_map(gd)
+	check(gm.list.all(func(t: BattleMap.Tile) -> bool: return t.terrain == g.tile(t.pos).terrain and t.h == g.tile(t.pos).h), "Vorlage übernimmt das Gelände")
+	check(CustomMaps.delete(id) and CustomMaps.list().is_empty(), "Löschen")
+	_clear_maps()

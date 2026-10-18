@@ -27,8 +27,9 @@
 
 ## Aufträge vom Koordinator
 
-### Ruht: Karteneditor (Schritt 2 aus `docs/Planung_Kampfkarten.md`)
+### Fertig: Karteneditor (Schritt 2 aus `docs/Planung_Kampfkarten.md`, 18.10.2026)
 
-- **Schritt 2 (Karteneditor) ruht (18.10.2026, Wunsch des Nutzers: „erst mal abwarten“).** Offene Fragen dafür: Bedienung (Draufsicht malen / 3D / beides), Start einer neuen Karte (leer / Zufallskarte als Vorlage / Kopie), Weg ins Spiel (Chance statt Zufallskarte / je Karte an-aus / nur Schnellkampf), Startbereiche (je Lage automatisch / von Hand / beides).
+- Entscheidungen des Nutzers: Bedienung Draufsicht **und** 3D umschaltbar; neue Karte leer, aus Zufallskarte oder als Kopie; im Spiel **je Karte an/aus**. Übrige Fragen hat der Nutzer dem Bodenkampf-Chat überlassen („so selbstständig wie möglich“); gewählt: Startfelder gezeichnet für „Standard“, sonst automatisch je Lage; Pool-Chance 30 %; Größen wie die Zufallskarten (6 Varianten); Probekampf aus dem Editor; Speicherort `user://maps/*.json`.
+- Neu: `map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, `tests/autotest_editor.gd`; Startmenü „Karteneditor“. Schnittstellen: `Mission.custom_map`/`custom_name`, `BattleMap.custom_name`, `MapGenerator.for_mission` fragt zuerst `CustomMaps.for_mission`; Briefing (Schnellkampf) „Ort: Eigene: …“ (`BriefingDialog.place_choices()`). Tests setzen `CustomMaps.dir` auf Testordner. Beschreibung in `godot/README.md` („Karteneditor“).
 
-- Keine offenen Aufträge (Karteneditor ruht). Nächste Aufgabe kommt vom Nutzer.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

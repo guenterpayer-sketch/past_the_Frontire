@@ -99,7 +99,17 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	mission = m if m else Mission.generate(seed_value, difficulty)
 	if size_id != "":
 		mission.size_id = size_id
-	if place != &"":
+	# Probekampf aus dem Karteneditor: diese Karte, auch für „Andere Mission“
+	if place == &"" and CustomMaps.test_map != "":
+		place = StringName("map:" + CustomMaps.test_map)
+		ui.briefing.place = place
+		CustomMaps.test_map = ""
+	if String(place).begins_with("map:"):
+		var own := CustomMaps.load_map(String(place).substr(4))
+		if not own.is_empty():
+			mission.set_map_type(StringName(own.type), "board" if StringName(own.type) == MapTypes.SHIP else "")
+			mission.custom_map = String(own.id)
+	elif place != &"":
 		mission.set_map_type(place, "board" if place == MapTypes.SHIP else "")
 	_seed = seed_value
 	_pick_squad()
@@ -135,7 +145,7 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	rig.focus(map_view.tile_top(map.crew_start[0].pos).lerp(c, 0.35))
 	map_view.update_cutaway(rig.view_dir())
 	var sz: Dictionary = map.size_info
-	var place_name := MapTypes.type_name(map.map_type)
+	var place_name := MapTypes.type_name(map.map_type) + (" „%s“" % map.custom_name if map.custom_name != "" else "")
 	var form := ", quadratisch" if sz.get("square", false) else ""
 	ui.top_menu.set_mission(mission.title, "%s · %s · %s (%s%s), ca. %d×%d m · Karte %d" % [mission.title, mission.faction.name, place_name, sz.name, form,
 		roundi(sz.cols * Hex.SIZE_M), roundi(sz.rows * Hex.ROW_M), map.map_seed])
@@ -218,10 +228,12 @@ func finish_mission() -> void:
 	var c := combat
 	Music.play(Music.VICTORY if c.result == &"sieg" else Music.DEFEAT)   # Musik der Niederlage auch bei Rückzug
 	if HubState.quick_battle:
-		ui.combat_log.add("%s – Schnellkampf, nichts verbucht. Zurück ins Startmenü …" % ("Sieg" if c.result == &"sieg" else ("Rückzug" if c.retreated else "Niederlage")), &"round")
+		var to_editor := CustomMaps.editor_return != ""
+		ui.combat_log.add("%s – Schnellkampf, nichts verbucht. Zurück %s …" % ["Sieg" if c.result == &"sieg" else ("Rückzug" if c.retreated else "Niederlage"),
+			"in den Karteneditor" if to_editor else "ins Startmenü"], &"round")
 		await get_tree().create_timer(2.5).timeout
 		if combat == c:
-			get_tree().change_scene_to_file(HubState.START_SCENE)
+			get_tree().change_scene_to_file(CustomMaps.EDITOR_SCENE if to_editor else HubState.START_SCENE)
 		return
 	var result := MissionResult.from_combat(c, mission)
 	Campaign.finish_mission(result)
