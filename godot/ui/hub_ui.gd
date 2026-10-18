@@ -360,7 +360,10 @@ func show_report(rep: Dictionary) -> void:
 	var win: bool = rep.get("outcome", &"") == &"sieg"
 	var retreat := bool(rep.get("retreated", false))
 	var title := String(rep.get("title", "")).trim_suffix(" (Rückzug)")
-	report.open("Einsatzbericht: %s – %s" % ["Rückzug" if retreat else ("Sieg" if win else "Niederlage"), title])
+	var head_name := "Rückzug" if retreat else ("Sieg" if win else "Niederlage")
+	if rep.get("defend", false) and not retreat:
+		head_name = "Sieg (Entern abgewehrt)" if win else "Niederlage (Schiff übernommen)"
+	report.open("Einsatzbericht: %s – %s" % [head_name, title])
 	if retreat:
 		var rb := UiTheme.label("Rückzug · der Auftrag bleibt offen bis Tag %d (auf der Brücke als „erneuter Versuch“). Kein Lohn, keine Beute; Ausrüstung: kein Verlust, Kampfunfähige können Schaden bekommen." % int(rep.get("expires", 0)), 15, UiTheme.RETREAT)
 		rb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -398,11 +401,13 @@ func show_report(rep: Dictionary) -> void:
 		var ck: Array = rep.get("cook", [])
 		var kt := ("   ·   Kochen: " + ", ".join(ck.map(func(e: Dictionary) -> String: return cook_text(e)))) if not ck.is_empty() else ""
 		report.content.add_child(UiTheme.label("Proviant %d → %d%s" % [rep.prov0, rep.prov1, kt], 15, UiTheme.BAD if int(rep.prov1) <= 0 else UiTheme.TEXT))
-	if rep.has("board"):
-		report.content.add_child(_board_label(rep))
 	if rep.get("defend", false):
-		report.content.add_child(UiTheme.label("Entern abgewehrt." if rep.get("outcome", &"") == &"sieg" else "Die Gegner haben das Schiff übernommen.", 15,
-			UiTheme.GOOD if rep.get("outcome", &"") == &"sieg" else UiTheme.BAD))
+		report.content.add_child(UiTheme.label("Entern abgewehrt: der Raumkampf ist gewonnen." if win else "Die Gegner haben das Schiff übernommen.", 15,
+			UiTheme.GOOD if win else UiTheme.BAD))
+	if String(rep.get("next", "")) == "ground":
+		var gl := UiTheme.label("Die Blockade ist durchbrochen: weiter zum Bodeneinsatz. In der Einsatzbesprechung den Trupp neu wählen (Verwundete können an Bord bleiben).", 15, UiTheme.ACCENT)
+		gl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		report.content.add_child(gl)
 	if not rep.get("plunder", {}).is_empty():
 		_plunder_box(report.content, rep.plunder)
 	_payout(rep)
@@ -428,6 +433,14 @@ func _payout(rep: Dictionary) -> void:
 		report.content.add_child(UiTheme.label("Munitionsverbrauch: " + ", ".join(parts), 14))
 	report.content.add_child(UiTheme.label("LOHN UND BEUTE", 13, UiTheme.MUTED))
 	var p: Dictionary = rep.payout
+	if rep.has("board"):
+		# Entern (selbst oder abgewehrt): Beute des Schiffs, Lohn eines Abfang-Auftrags, Medikits aus dem Bodenkampf
+		if int(rep.get("pay", 0)) > 0:
+			report.content.add_child(UiTheme.label("Auftragslohn +%d Cr" % int(rep.pay), 15, UiTheme.GOOD))
+		report.content.add_child(_board_label(rep))
+		if int(rep.get("medkits", 0)) > 0:
+			report.content.add_child(UiTheme.label("Beute: Medikits (ins Lager) +%d" % int(rep.medkits), 15, UiTheme.GOOD))
+		return
 	if p.is_empty():
 		report.content.add_child(UiTheme.label("Niederlage oder Rückzug: kein Lohn, keine Beute.", 14, UiTheme.MUTED))
 		return
@@ -609,7 +622,8 @@ func show_travel(rep: Dictionary) -> void:
 ## Entern: Beute des geenterten Schiffs (nur bei Sieg verbucht)
 func _board_label(rep: Dictionary) -> Label:
 	var loot: Dictionary = rep.get("board_loot", {})
-	var t := "Entern der %s: " % String(rep.board) if String(rep.board) != "" else "Entern: "
+	var who := "Enterschiff" if rep.get("defend", false) else "Entern der"
+	var t := "%s %s: " % [who, String(rep.board)] if String(rep.board) != "" else ("Enterschiff: " if rep.get("defend", false) else "Entern: ")
 	if loot.is_empty():
 		t += "Besatzung nicht besiegt, keine Beute aus dem Schiff."
 	else:
@@ -816,7 +830,7 @@ func show_space_report(rep: Dictionary) -> void:
 	space_report.max_size = Vector2(1200, 760)
 	var out := StringName(rep.get("outcome", &"niederlage"))
 	var name := "Sieg" if out == &"sieg" else ("Flucht" if rep.get("retreated", false) else ("Kapitulation" if rep.get("surrendered", false)
-		else ("Niederlage – Entern" if rep.get("next", "") == "defend" else "Niederlage – Notfall")))
+		else ("Gegner entern" if rep.get("next", "") == "defend" else "Niederlage – Notfall")))
 	space_report.open("Einsatzbericht: %s – %s (Raumkampf)" % [name, rep.get("title", "")])
 	space_report.content.add_child(UiTheme.label("%s · %d Runden · Tag %d" % [rep.get("faction", ""), int(rep.get("rounds", 0)), int(rep.get("day", 0))], 14, UiTheme.MUTED))
 	var cols := HBoxContainer.new()
@@ -877,7 +891,7 @@ func show_space_report(rep: Dictionary) -> void:
 	var nx := String(rep.get("next", ""))
 	if nx != "":
 		var nt: String = {"ground": "Die Blockade ist durchbrochen: weiter zum Bodeneinsatz.", "board": "Die Crew entert das Gegnerschiff: Bodenkampf gegen die Besatzung.",
-			"defend": "Die Gegner entern: Bodenkampf an Bord. Verliert die Crew, wird das Schiff geplündert und treibt."}[nx]
+			"defend": "Die Gegner entern: Bodenkampf an Bord. Gewinnt die Crew, ist der Raumkampf gewonnen (mit der Beute des Enterschiffs); verliert sie, wird das Schiff geplündert und treibt."}[nx]
 		var nl := UiTheme.label(nt, 15, UiTheme.ACCENT)
 		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		space_report.content.add_child(nl)

@@ -415,7 +415,7 @@ func begin_offer() -> String:
 		"eskorte":
 			travel_to(int(o.target), int(o.id))
 			return "escort"
-	if o.get("blockade", false):
+	if o.get("blockade", false) and not o.get("blockade_done", false):
 		space_ctx = {"kind": "vor_einsatz", "offer_id": o.id, "faction": SpaceEvents.faction_id(self, o.system),
 			"difficulty": String(o.difficulty), "mission": "Blockade: " + offer_title(o)}
 		return "space"
@@ -513,9 +513,11 @@ func finish_space(result: Dictionary) -> String:
 		if kind != "eskorte":
 			_drop_offer(o, false)
 	elif bool(result.get("boarding", false)):
-		_drop_offer(o, false)
+		# Auftrag erst nach der Abwehr abrechnen (gewonnen = wie ein gewonnener Raumkampf, verloren = Notfall)
 		active = {"id": -2, "system": position, "seed": randi() % 1000000, "difficulty": String(ctx.get("difficulty", "mittel")),
-			"expires": day, "retry": false, "defend": true, "faction": String(result.get("boarding_faction", ctx.get("faction", "")))}
+			"expires": day, "retry": false, "defend": true, "faction": String(result.get("boarding_faction", ctx.get("faction", ""))),
+			"space_kind": kind, "offer_id": int(ctx.get("offer_id", -1)), "ship": String(result.get("board_ship", "")),
+			"loot": result.get("board_loot", {}).duplicate(true)}
 		next = "defend"
 	else:
 		_drop_offer(o, false)
@@ -559,6 +561,7 @@ func abort_mission() -> void:
 		board_pending = {}
 	elif active.get("defend", false):
 		# Abwehr nicht angetreten: wie verloren (Notfall)
+		_drop_offer(offer_by_id(int(active.get("offer_id", -1))), false)
 		space_report = {"kind": "abwehr", "title": "Entern abgewehrt?", "outcome": &"niederlage", "plunder": SpaceEvents.plunder(self),
 			"units": [], "day": day, "next": ""}
 		travel_rest = {}
@@ -574,19 +577,31 @@ func finish_mission(rep: Dictionary) -> void:
 	if retreated:
 		rep.outcome = &"rueckzug"
 		rep.expires = int(active.get("expires", day))
+	var won: bool = rep.get("outcome", &"") == &"sieg"
+	var go_ground := false
 	if active.get("defend", false):
-		# Gegner entern: Sieg = abgewehrt; Niederlage = Notfall (Plünderung + Treiben)
+		# Gegner entern: Sieg = Raumkampf gewonnen (Beute des Enterschiffs, Beuteauswahl, Auftrag geht weiter);
+		# Niederlage = Notfall (Plünderung + Treiben), der Auftrag ist verloren
 		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
 		rep.defend = true
-		if rep.get("outcome", &"") != &"sieg":
+		rep.payout = {}
+		var o := offer_by_id(int(active.get("offer_id", -1)))
+		if won:
+			rep.board = String(active.get("ship", ""))
+			rep.board_loot = _book_board_loot(active.get("loot", {}))
+			rep.medkits = set_loot(Campaign.last_result)
+			go_ground = _defend_won(o, rep)
+		else:
+			_drop_offer(o, false)
 			rep.plunder = SpaceEvents.plunder(self)
 			travel_rest = {}
-		rep.payout = {}
 	elif active.get("board", false):
-		# Entern: kein Lohn; Beute des Schiffs nur bei Sieg, sonst verloren
+		# Entern: kein Lohn; Beute des Schiffs und Beuteauswahl nur bei Sieg, sonst verloren
 		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
 		rep.board = String(board_pending.get("ship", ""))
-		rep.board_loot = _book_board_loot(board_pending.get("loot", {})) if rep.get("outcome", &"") == &"sieg" else {}
+		rep.board_loot = _book_board_loot(board_pending.get("loot", {})) if won else {}
+		if won:
+			rep.medkits = set_loot(Campaign.last_result)
 		rep.payout = {}
 		board_pending = {}
 	elif not active.is_empty():
@@ -614,7 +629,8 @@ func finish_mission(rep: Dictionary) -> void:
 		missions_done += 1
 	active = {}
 	rep.prov0 = provisions
-	advance_days(MISSION_DAYS)
+	if not go_ground:
+		advance_days(MISSION_DAYS)
 	rep.prov1 = provisions
 	rep.cook = last_cook.duplicate(true)
 	rep.training = last_training
@@ -622,6 +638,28 @@ func finish_mission(rep: Dictionary) -> void:
 	rep.crafts = last_crafts.duplicate()
 	rep.day = day
 	report = rep
+
+
+## Abwehr gewonnen: den Auftrag wie nach einem gewonnenen Raumkampf weiterführen (Abfangen: Lohn; Eskorte: Lohn bei
+## Ankunft; Blockade: der Bodeneinsatz folgt gleich, Truppwahl in der Einsatzbesprechung). true = Bodeneinsatz folgt
+## (dann vergeht keine Zeit, damit der Auftrag nicht abläuft).
+func _defend_won(o: Dictionary, rep: Dictionary) -> bool:
+	match String(active.get("space_kind", "reise")):
+		"auftrag":
+			if not o.is_empty():
+				rep.pay = SpaceEvents.offer_pay(self, o)
+				credits += int(rep.pay)
+				_drop_offer(o, true)
+		"vor_einsatz":
+			if not o.is_empty():
+				o.blockade_done = true
+				pending_offer = int(o.id)
+				rep.next = "ground"
+				return true
+		"eskorte":
+			if not travel_rest.is_empty():
+				travel_rest.won = true
+	return false
 
 
 ## Beute aus dem MissionResult übernehmen: Medikits ins Lager (Anzahl zurück), Waffen/Rüstungen als offene Auswahl
@@ -731,6 +769,8 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 		var no := {"id": int(o.id), "system": int(o.system), "seed": int(o.seed), "difficulty": String(o.difficulty),
 			"expires": int(o.expires), "retry": bool(o.get("retry", false)), "kind": String(o.get("kind", "boden")),
 			"blockade": bool(o.get("blockade", false))}
+		if o.get("blockade_done", false):
+			no.blockade_done = true
 		if o.has("target"):
 			no.target = int(o.target)
 		g.offers.append(no)
