@@ -58,7 +58,11 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 
 ## 5. Erfahrung
 
-Wie am Boden: Jede Stationsaktion ist eine Probe der jeweiligen Fertigkeit und bringt EP nur dieser Fertigkeit.
+Jede Stationsaktion ist eine Probe der jeweiligen Fertigkeit und bringt EP nur dieser Fertigkeit, aber **höchstens 2 EP je Station und Runde** (Entscheidungen des Nutzers 18.10.2026):
+- **Schützen** (Geschütze, Punktverteidigung): +1, wenn die Station in der Runde gefeuert oder abgefangen hat, +1 bei mindestens einem Treffer (gelungenes Abfangen zählt als Treffer). Nicht mehr je Schuss.
+- **Steuer, Schilde, Computer, Technik** (jeder Techniker einzeln): normale Probe-EP, auf 2 je Runde gekürzt (z. B. 2. Baustelle).
+- **Navigation:** Initiative-Probe (mittel) zu Rundenbeginn, Erfolg +2, Herausragend +4 auf die Initiative; dazu die Sprungvorbereitung, zusammen höchstens 2 EP je Runde.
+- Wer zwei Stationen bedient (Doppelbesetzung), bekommt die EP **je Station**. Keine Obergrenze je Kampf.
 
 ## 6. Offene Fragen
 

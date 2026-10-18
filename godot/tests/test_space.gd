@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_board()
 	_test_preview()
 	_test_repost()
+	_test_xp_cap()
 	_test_auto()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails > 0 else 0)
@@ -357,6 +358,32 @@ func _test_repost() -> void:
 	while c.phase != SpaceCombat.Phase.SHIELDS and c.result == &"":
 		c.resolve()
 	check(c.switched.is_empty(), "Wechsel-Malus endet mit der Runde")
+
+
+func _test_xp_cap() -> void:
+	var c := _combat(15)
+	var a: Character = c.crew[0]
+	a.xp_log = {}
+	c._round_xp = {}
+	c._gun_round = {}
+	for i in 4:
+		c._gun_xp("geschuetz_turm", a, &"ballistikGeschuetze", true)
+	check(int(c.station_xp.get("geschuetz_turm", 0)) == 2 and int(a.xp_log.get(&"ballistikGeschuetze", 0)) == 2,
+		"Schütze höchstens 2 EP je Runde, auch bei mehreren Schüssen und Treffern")
+	c._gun_xp("geschuetz_bug", a, &"strahlGeschuetze", false)
+	c._gun_xp("geschuetz_bug", a, &"strahlGeschuetze", false)
+	check(int(c.station_xp.get("geschuetz_bug", 0)) == 1, "gefeuert ohne Treffer: 1 EP")
+	check(int(a.xp_log.get(&"strahlGeschuetze", 0)) == 1, "Doppelbesetzung: EP je Station getrennt")
+	Rules.award_xp(a, &"notReparatur", 3)
+	check(c._cap_xp("technik", a, &"notReparatur", 3) == 2 and int(a.xp_log.get(&"notReparatur", 0)) == 2,
+		"Probe-EP auf 2 je Runde gekürzt")
+	Rules.award_xp(a, &"notReparatur", 2)
+	check(c._cap_xp("technik", a, &"notReparatur", 2) == 0 and int(a.xp_log.get(&"notReparatur", 0)) == 2,
+		"2. Baustelle in derselben Runde: keine weiteren EP")
+	c.round_no = 0
+	c._start_round()
+	check(c._round_xp.is_empty() or c._round_xp.keys() == ["navigation"], "neue Runde: Deckel zurückgesetzt")
+	check(int(c._round_xp.get("navigation", 0)) <= 2, "Navigation würfelt die Initiative (höchstens 2 EP)")
 
 
 func _test_auto() -> void:

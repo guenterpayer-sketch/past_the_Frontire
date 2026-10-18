@@ -169,6 +169,7 @@ godot --headless --path godot --script res://tests/test_hub.gd       # Sektor, R
 godot --headless --path godot --script res://tests/test_space.gd     # Raumkampf: Regelkern, Selbstlauf
 godot --headless --path godot --script res://tests/sim_space.gd -- 150          # Raumkampf: Siege je Schwierigkeit
 godot --headless --path godot --script res://tests/sim_space.gd -- 200 waffen   # Raumkampf: Wirkung je Schiffswaffe
+godot --headless --path godot --script res://tests/sim_space.gd -- 60 ep        # Raumkampf: EP je Station und Kampf
 godot --headless --path godot --script res://tests/test_sim.gd -- 30
 godot --headless --path godot --script res://tests/test_sim.gd -- 45 missionen   # Siege je Schwierigkeit
 ```
