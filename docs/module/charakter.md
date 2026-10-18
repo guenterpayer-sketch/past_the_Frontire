@@ -69,17 +69,11 @@
 
 ## Stand
 
+- (18.10.2026, `9228e24`) Absturz beim Ändern der Farbe in der Charakterübersicht behoben (`ColorPickerButton` nicht mehr im eigenen `popup_closed` aus dem Baum genommen), Autotest für alle drei Farbknöpfe. Details im Archiv.
 - Alle Aufträge bis 16.10.2026 erledigt und in `main`. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 - **Fertig (18.10.2026): Fertigkeitstexte „ohne Wirkung“.** `core/skill_texts.gd`: `SOON` entfernt (Konstante gelöscht), die 9 Texte sagen jetzt, wo die Fertigkeit wirkt (Geschützstation, Station Schilde, Station Technik, Raumhafen). Danach trägt keine Fertigkeit mehr `SOON`; alle Fertigkeiten aus `Rules` haben einen Text. Keine Schnittstellenänderung.
-- **Fertig (18.10.2026): Absturz beim Ändern der Farbe.** Nachgestellt mit Grafik an allen drei Stellen: nur die Charakterübersicht stürzt ab (`data.tree is null`, danach signal 11, wie im Log), Roster-Dialog und Editor nicht. Ursache: `ColorPickerButton` ruft nach dem Senden von `popup_closed` noch `get_tree()` auf; `_render()` hatte ihn da schon per `UiTheme.clear` aus dem Baum genommen. Behebung in `ui/crew/crew_overview.gd`: `_render.call_deferred()`. Autotest (`--autotest`): neue Hilfe `_pick_color` (Knopf anklicken, Farbe wählen, Popup schließen) für Übersicht, Roster-Dialog und Editor; ohne Behebung stürzt der Autotest dort ab, mit ihr läuft er durch. Keine Schnittstellenänderung.
 
 ## Aufträge vom Koordinator
 
-### Auftrag (18.10.2026): Absturz beim Ändern der Farbe
-
-Meldung des Nutzers: Beim Ändern der Farbe einer Figur („im Charakter“, Farbauswahl offen, Farbe gewählt) beendet sich das Spiel sofort. Log noch nicht vorhanden (Nutzer sucht `%APPDATA%\Godot\app_userdata\Past the Frontire\logs\godot.log` bzw. die Ausgabe im Godot-Editor).
-- Betroffene Stellen mit `ColorPickerButton`: `ui/crew/crew_overview.gd` (~Z. 229, `popup_closed` → `_render()`), `ui/crew/roster_edit_dialog.gd` (~Z. 42, `popup_closed`), `ui/crew/character_editor.gd` (~Z. 161, `color_changed`).
-- **Vermutung des Koordinators (nicht geprüft):** In `crew_overview.gd` baut `_render()` im Signal `popup_closed` die ganze Seite neu (`UiTheme.clear` entfernt den `ColorPickerButton` aus dem Baum, während er noch sein eigenes Signal sendet). Das könnte Godot zum Absturz bringen. Möglicher Weg: `_render.call_deferred()` oder nur die Farbe setzen, ohne den Knopf neu zu bauen.
-- Bitte nachstellen (mit Grafik, alle drei Stellen), Ursache belegen, beheben, im Autotest abdecken (Farbe wählen und Popup schließen). Log des Nutzers kommt ggf. über den Nutzer nach.
-- **Log des Nutzers (18.10.2026, Windows, Godot 4.7.2):** unmittelbar vor dem Absturz `ERROR: Parameter "data.tree" is null. at: get_tree (./scene/main/node.h:559)`, danach `CrashHandlerException: signal 11` (Backtrace ohne Symbole). Passt zur Vermutung: ein Knoten, der nicht mehr im Baum hängt (der aus der Seite entfernte `ColorPickerButton` bzw. sein Popup), ruft noch `get_tree()` auf.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

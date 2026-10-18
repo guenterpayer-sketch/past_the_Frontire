@@ -10,7 +10,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | Branch | Modul | Stand |
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`bb89c03`); Auftrag Truppgröße |
-| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9522c1d`), nichts offen |
+| `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`7554606`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`58647de`), nichts offen |
 
@@ -18,6 +18,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 18.10.2026 | `48060fe` | Charakter `claude/elegant-gauss-hq5bus` (`9228e24`) | ohne Konflikte; Branch ohne Bodenkampf `bb89c03` → Koordinator: `test_rules`, `test_hub` OK. Absturz beim Ändern der Farbe (Charakterübersicht) behoben, Autotest deckt alle drei Farbknöpfe ab. |
 | 18.10.2026 | `83d33de` | Bodenkampf `claude/confident-edison-6mxzke` (`bb89c03`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (Entern/Abwehr), Startlagen je Auftrag; kleine Änderung in Hub-Dateien (`hub_state.gd` `mission_of`, `start_screen.gd` Autotest-Schalter), vermerkt. Karteneditor ruht (Nutzer). |
 | 18.10.2026 | `ab10aa0` | Charakter (`9522c1d`) + Hub (`7554606`) | beide ohne Konflikte, enthielten `main`, verschiedene Dateien; Koordinator nach beiden: `test_rules`, `test_hub` OK. Fertigkeitstexte: Raumkampf- und Handelsfertigkeiten nicht mehr „ohne Wirkung“. Ausbau „Panzerung“ heißt „Schiffspanzerung“ (ID `armor` bleibt). |
 | 18.10.2026 | `400d99c` | Raumkampf `claude/raumkampf-modul` (`58647de`) | ohne Konflikte; Branch ohne Hub `4b16e4e` → Koordinator: `test_rules`, `test_hub`, `test_space` OK, `test_sim -- 10` 6 Siege / 0 hängengeblieben. EP im Raumkampf höchstens 2 je Station und Runde, Navigation mit Initiative-Probe je Runde; Messung in `docs/Planung_Raumkampf.md` 1d. |
