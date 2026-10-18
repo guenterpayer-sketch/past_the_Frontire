@@ -43,4 +43,9 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (19.10.2026): Raumkampf in der Enzyklopädie
+
+Befund: `ui/encyclopedia.gd` (`SECTIONS`) hat nur Bodenkampf-Bereiche; zum Raumkampf fehlt alles (Wunsch des Nutzers).
+- Neue Bereiche, Daten nur **lesen** (Dateien des Raumkampfs nicht ändern): **Schiffswaffen** mit Werten (`ShipWeapons`: Art, Slot, Munition, Energie, Schüsse, Reichweite, Schaden, Bonus, Preis), **Gegnerschiffe** mit Werten (`data/ships/schiffe/*.tres`: Klasse, Hülle, Schild, Aufladung, Panzerung, Verteidigung, Tempo, Waffen, Besatzung, Beute), **Gegnerseiten** (`data/ships/seiten/*.tres`: Entern/Abziehen, Lösegeld, Fluchtgrenze), **Schiffsausbau** (Schilde, Schiffspanzerung, Reaktor, Waffenslots mit Werten je Stufe aus `SpaceSetup`/`ShipUpgrades`), **Schiffsmunition**, **Stationen** und **Kurzregeln Raumkampf** (aus `docs/Raumkampf.md`, wie die Bodenregeln aus `Skillsystem.md`).
+- Fehlt dem Hub eine Lesefunktion beim Raumkampf, über den Nutzer melden (nicht selbst in `core/space_*.gd` bauen).
+- Aufbau und Darstellung bei Bedarf erst mit dem Nutzer klären (Auswahl-Buttons, Freitext am Ende).
