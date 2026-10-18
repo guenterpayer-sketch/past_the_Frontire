@@ -421,14 +421,9 @@ func _run() -> void:
 	await _shot("h5_reisebericht")
 	await _click_button(hub.ui, "Weiter")
 	print("Reisebericht geschlossen: ", not hub.ui.travel_report.visible)
-	# große Reparatur durch die Crew (1 Tag, 1 Material)
+	# Status nach der Reise (die Hülle repariert die Crew jetzt als Arbeit im Maschinenraum)
 	g.hull = 60
 	sm.refresh()
-	var d1 := g.day
-	await _click_button(hub.ui, "Große Reparatur")
-	print("Crew-Reparatur: Tag %d -> %d, Hülle 60 -> %d, Material %d" % [d1, g.day, g.hull, g.material])
-	await _shot("h5b_crew_reparatur")
-	hub.ui.notice.hide()
 	await _shot("h5c_status_schiff")
 	await _click_button(hub.ui, "Zurück ins Schiff")
 	# Crewquartiere
