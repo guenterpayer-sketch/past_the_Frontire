@@ -50,3 +50,12 @@ Entscheidungen des Nutzers (18.10.2026):
 - **Täglich bis voll:** an jedem Tag **ohne Reise** eine Reparaturprobe (Werte wie bisher `Voyage.HULL_CREW`: Teilerfolg +10, Erfolg +20, Herausragend +40, Fehlschlag 0, Patzer −5), **1 Schiffsmaterial je Tag**; die Arbeit läuft weiter, bis die Hülle voll ist, das Material fehlt oder sie abgebrochen wird. Kein Tag wird beim Anlegen verbraucht. Meldung je Tag wie Werkstatt-Einträge (`{text, result, name, skill, xp}`).
 - **Reisetage: Arbeit pausiert** (zählt nicht, keine Probe, kein Material); nach der Reise läuft sie weiter. Unterwegs gilt nur die normale Reiseprobe.
 - Die Werft-Reparatur gegen Credits bleibt unverändert. Spielstand verträglich; Tests in `test_hub` (Anlegen ohne Tag, täglich bis voll, Material leer, Pause bei Reise, eine Arbeit je Figur).
+
+### Auftrag (18.10.2026): Schwer Verwundete arbeiten nicht
+
+Befund (im Code geprüft): Handwerk (`core/crafting.gd`: Bauen, Zerlegen, Reparieren, Medikits) prüft die Verwundung nicht; Schiffsreparatur (`ShipArms`), Koch und Krankenstation schließen gesperrte Figuren (`Injury.is_locked`: kampfunfähig **und** schwer) aus. Crew-Ausbau (`ShipUpgrades`) nicht geprüft.
+Entscheidungen des Nutzers (18.10.2026):
+- **Nur „schwer verwundet“** (`Injury.SEVERE`) kann kein Handwerk und keine Arbeit anlegen (in der Auswahl ausgegraut mit Grund). Kampfunfähige und Angeschlagene dürfen.
+- **Laufende Arbeit pausiert**, solange die Figur schwer verwundet ist (keine Probe, kein Fortschritt), und läuft weiter, sobald sie es nicht mehr ist.
+- Gilt **für alle Arbeiten** (Handwerk, System-/Waffen-/Hüllenreparatur, Crew-Ausbau, falls dort eine Figur arbeitet). Die Schiffsreparatur sperrt bisher auch Kampfunfähige – auf „nur schwer verwundet“ angleichen; ist das unklar, mit dem Nutzer klären. Koch und Arzt bleiben wie sie sind.
+- Tests in `test_hub`.
