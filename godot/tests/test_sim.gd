@@ -1,6 +1,8 @@
 extends SceneTree
-## KI gegen KI: godot --headless --path godot --script res://tests/test_sim.gd -- [Anzahl Kämpfe] [missionen]
-## Mit "missionen": Gegner aus dem Missionsgenerator (Schwierigkeit reihum leicht/mittel/schwer), Siege je Schwierigkeit.
+## KI gegen KI: godot --headless --path godot --script res://tests/test_sim.gd -- [Anzahl Kämpfe] [missionen] [leicht|mittel|schwer] [trupp=N] [ab=K] [budget=N]
+## Mit "missionen": Gegner aus dem Missionsgenerator (Schwierigkeit reihum leicht/mittel/schwer, oder nur die genannte),
+## Siege je Schwierigkeit. Truppgröße wie im Spiel (Campaign.max_squad: schwer 8, sonst 6) oder fest mit trupp=N;
+## mehr als 6 Figuren: Kopien der Startcrew der Reihe nach (Vela, Ikko, …).
 
 
 func _init() -> void:
@@ -8,16 +10,32 @@ func _init() -> void:
 	var fights := int(args[0]) if args.size() > 0 else 30
 	var stats := {&"sieg": 0, &"niederlage": 0, "stuck": 0, "rounds": 0, "dead": 0, "ko": 0}
 	var missions := args.size() > 1 and args[1] == "missionen"
+	var only := ""
+	var squad_n := 0
+	var offset := 0   # ab=K: andere Kämpfe (Würfel und Missionen ab K), z. B. für parallele Läufe
+	for a in args.slice(2):
+		if a in ["leicht", "mittel", "schwer"]:
+			only = a
+		elif a.begins_with("trupp="):
+			squad_n = int(a.substr(6))
+		elif a.begins_with("ab="):
+			offset = int(a.substr(3))
+		elif a.begins_with("budget="):
+			Mission.budget_override[only if only != "" else "schwer"] = int(a.substr(7))
 	var by_diff := {}
 	var t0 := Time.get_ticks_msec()
-	for i in fights:
+	for k in fights:
+		var i := k + offset
 		Dice.set_seed(1000 + i)
 		var c: Combat
 		var diff := ""
+		var lage_name := ""
 		if missions:
-			diff = ["leicht", "mittel", "schwer"][i % 3]
+			diff = only if only != "" else ["leicht", "mittel", "schwer"][i % 3]
 			var mi := Mission.generate(5000 + i, diff)
-			c = Combat.new(MapGenerator.for_mission(mi.map_seed, mi), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(mi.enemies, &"enemy"))
+			lage_name = String(mi.lage)
+			var n := squad_n if squad_n > 0 else Campaign.max_squad(diff)
+			c = Combat.new(MapGenerator.for_mission(mi.map_seed, mi), _crew(n), Roster.build_units(mi.enemies, &"enemy"))
 		else:
 			# alle Kartentypen reihum, abwechselnd quadratisch, Startlagen reihum
 			var types: Array = MapTypes.GROUND + [MapTypes.SHIP]
@@ -28,7 +46,7 @@ func _init() -> void:
 		var ai := CombatAI.new()
 		c.start()
 		var steps := 0
-		while c.result == &"" and steps < 5000 and c.round_no <= 60:
+		while c.result == &"" and steps < 10000 and c.round_no <= 100:
 			var t := Time.get_ticks_usec()
 			ai.act(c)
 			var dt := Time.get_ticks_usec() - t
@@ -38,6 +56,9 @@ func _init() -> void:
 			steps += 1
 		if c.result == &"":
 			stats.stuck += 1
+			var alive := func(t: StringName) -> int: return c.units.filter(func(u: Combatant) -> bool: return u.team == t and u.is_ok()).size()
+			print("  hängengeblieben: Kampf %d, %s/%s %s, Runde %d, Schritte %d, Crew %d, Gegner %d" % [i, c.map.map_type, c.map.size_info.get("id", ""), lage_name,
+				c.round_no, steps, alive.call(&"crew"), alive.call(&"enemy")])
 			continue
 		stats[c.result] += 1
 		if missions:
@@ -60,5 +81,19 @@ func _init() -> void:
 	print("Ø Runden: %.1f | Ø tote Crew: %.2f | Ø kampfunfähige Crew (bewusstlos/sterbend): %.2f" % [float(stats.rounds) / maxi(1, fights - stats.stuck), float(stats.dead) / fights, float(stats.ko) / fights])
 	for d in by_diff:
 		print("  %s: %d von %d gewonnen" % [d, by_diff[d][0], by_diff[d][1]])
+	if missions:
+		print("  Gegnerbudget: %s" % ", ".join(Mission.DIFFICULTIES.keys().map(func(k: String) -> String: return "%s %d" % [k, int(Mission.budget_override.get(k, Mission.DIFFICULTIES[k].budget))])))
 	print("OK" if stats.stuck == 0 else "FEHLER: Kämpfe ohne Ende")
 	quit(0 if stats.stuck == 0 else 1)
+
+
+## n Crew-Figuren: die Startcrew, darüber hinaus Kopien der Reihe nach (eigene IDs)
+func _crew(n: int) -> Array[Combatant]:
+	var units: Array[UnitData] = GameData.crew().units
+	var out: Array[Combatant] = []
+	for i in n:
+		var u := Combatant.create(units[i % units.size()], &"crew")
+		if i >= units.size():
+			u.id = "%s_%d" % [u.id, i / units.size() + 1]
+		out.append(u)
+	return out

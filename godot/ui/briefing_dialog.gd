@@ -1,8 +1,8 @@
 class_name BriefingDialog
 extends Modal
 ## Einsatzbesprechung vor Runde 0, zwei Spalten: links Auftrag, Gegnergruppe, Schwierigkeit, Ort und Größe, Belohnung;
-## rechts die Truppwahl als Kacheln (bis Campaign.MAX_SQUAD; Gesperrte ausgegraut, Angeschlagene markiert,
-## Warnung bei weniger als MAX_SQUAD). "Neu würfeln" erzeugt eine andere Mission (wahlweise mit fester Schwierigkeit).
+## rechts die Truppwahl als Kacheln (bis Campaign.max_squad(Schwierigkeit): schwer 8, sonst 6; Gesperrte ausgegraut,
+## Angeschlagene markiert, Warnung bei weniger als der Höchstzahl). "Neu würfeln" erzeugt eine andere Mission (wahlweise mit fester Schwierigkeit).
 
 signal reroll(difficulty: String)
 ## beim Schließen: gewählter Trupp in Listenreihenfolge (leer = nichts gewählt, bisheriger Trupp bleibt)
@@ -14,6 +14,8 @@ const HURT := Color("ff8a3d")
 const SUB := Color("a9b4c9")
 
 var _diff := 0
+## Höchste Truppgröße dieser Mission (Campaign.max_squad)
+var _max := Campaign.MAX_SQUAD
 ## Schnellkampf: gewählter Ort (Kartentyp) für „Andere Mission“, &"" = zufällig
 var place: StringName = &""
 const PLACE_CHOICES := [[&"", "zufällig"], [&"halle", "Lagerhalle"], [&"bar", "Bar"], [&"strasse", "Straße"],
@@ -41,6 +43,7 @@ func _init() -> void:
 ## cands = Kandidaten (Campaign.candidates: {ch, locked, reason, marked, note}), selected = vorbelegter Trupp
 func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Character]) -> void:
 	open("Einsatz: %s" % m.title)
+	_max = Campaign.max_squad(m.difficulty)
 	_cands = cands
 	_sel = selected.duplicate()
 	_tiles.clear()
@@ -107,7 +110,7 @@ func toggle(ch: Character) -> void:
 		return
 	if ch in _sel:
 		_sel.erase(ch)
-	elif _sel.size() < Campaign.MAX_SQUAD:
+	elif _sel.size() < _max:
 		_sel.append(ch)
 	var sorted: Array[Character] = []
 	for o in _cands:
@@ -161,7 +164,7 @@ func _squad_column() -> VBoxContainer:
 	right.add_theme_constant_override("separation", 10)
 	var head := HBoxContainer.new()
 	var title := UiTheme.label("EINSATZTRUPP · bis %d aus %s · Kachel anklicken: dazu / heraus" % [
-		Campaign.MAX_SQUAD, "dem Roster" if quick else "Crew und Reserve"], 12, UiTheme.MUTED)
+		_max, "dem Roster" if quick else "Crew und Reserve"], 12, UiTheme.MUTED)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
 	_count = UiTheme.label("", 20, UiTheme.ACCENT)
@@ -291,7 +294,7 @@ func _refresh() -> void:
 	for ch in _tiles:
 		var b: Button = _tiles[ch]
 		var on: bool = ch in _sel
-		var full := not on and _sel.size() >= Campaign.MAX_SQUAD
+		var full := not on and _sel.size() >= _max
 		var sb: StyleBoxFlat
 		if b.disabled:
 			sb = UiTheme.box(Color(UiTheme.PANEL2, 0.45), Color(UiTheme.LINE, 0.9), 10, 0, 2)
@@ -313,13 +316,13 @@ func _refresh() -> void:
 	if _count == null:
 		return
 	var n := _sel.size()
-	_count.text = "%d / %d" % [n, Campaign.MAX_SQUAD]
-	_count.add_theme_color_override("font_color", UiTheme.ACCENT if n == Campaign.MAX_SQUAD else HURT)
-	_warn.visible = n < Campaign.MAX_SQUAD
+	_count.text = "%d / %d" % [n, _max]
+	_count.add_theme_color_override("font_color", UiTheme.ACCENT if n == _max else HURT)
+	_warn.visible = n < _max
 	if n == 0:
 		_warn_text.text = "Niemand gewählt. Mindestens eine Figur muss in den Einsatz."
 	else:
-		_warn_text.text = "Nur %d von %d Plätzen besetzt. Der Einsatz ist möglich, aber mit weniger Figuren schwerer." % [n, Campaign.MAX_SQUAD]
+		_warn_text.text = "Nur %d von %d Plätzen besetzt. Der Einsatz ist möglich, aber mit weniger Figuren schwerer." % [n, _max]
 	if _go:
 		_go.disabled = n == 0
-		_go.text = "Zur Aufstellung" if n == Campaign.MAX_SQUAD else "Mit %d zur Aufstellung" % n
+		_go.text = "Zur Aufstellung" if n == _max else "Mit %d zur Aufstellung" % n

@@ -198,7 +198,7 @@ func reachable(start: Vector2i, mp: float, blocked := Callable(), pass_only := C
 			if nt == null or (blocked.is_valid() and blocked.call(nt)):
 				continue
 			var c: float = cur[0] + step_cost(ct, nt)
-			if c > mp:
+			if c > mp or not is_finite(c):   # unbegehbar (auch bei mp = INF nicht aufnehmen)
 				continue
 			if not res.all.has(n) or c < res.all[n].cost:
 				res.all[n] = {"cost": c, "prev": cp, "tile": nt}

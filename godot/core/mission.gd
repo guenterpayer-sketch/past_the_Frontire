@@ -9,10 +9,13 @@ const FACTION_DIR := "res://data/missions"
 const MAX_ENEMIES := 9
 const MIN_ENEMIES := 3
 
+## nur für Messungen (test_sim budget=N): Budget je Schwierigkeit überschreiben
+static var budget_override := {}
+
 const DIFFICULTIES := {
 	"leicht": {"name": "leicht", "budget": 42, "reward": 2},
 	"mittel": {"name": "mittel", "budget": 58, "reward": 3},
-	"schwer": {"name": "schwer", "budget": 76, "reward": 5},
+	"schwer": {"name": "schwer", "budget": 88, "reward": 5},   # 76 → 88 mit bis zu 8 Figuren (Simulation 18.10.2026)
 }
 
 ## Aufträge je Kartentyp: Titel, Einsatzbeschreibung (%s = Fraktion) und Startlage (LAGEN), je 5 (Index aus dem Missionszufall)
@@ -109,7 +112,7 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	m.faction = factions[rng.randi_range(0, factions.size() - 1)]
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)
-	m.enemies = _compose(rng, m.faction, diff.budget)
+	m.enemies = _compose(rng, m.faction, int(budget_override.get(difficulty_id, diff.budget)))
 	m.job_index = rng.randi_range(0, 4)
 	var r2 := RandomNumberGenerator.new()
 	r2.seed = seed_value + 2
