@@ -22,7 +22,7 @@
 
 ## Stand
 
-- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
+- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Danach (`16ac931`): Wände sperren Sicht und Druckwelle immer. Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
 ## Aufträge vom Koordinator

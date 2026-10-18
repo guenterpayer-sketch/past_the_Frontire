@@ -9,7 +9,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e931e13`), nichts offen (Editor ruht) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`16ac931`), nichts offen (Editor ruht) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`608be25`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
@@ -18,6 +18,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 18.10.2026 | `cabec57` | Bodenkampf `claude/confident-edison-6mxzke` (`16ac931`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Wände sperren Sicht und Druckwelle immer (`battle_map.gd`, `combat.gd`, Test in `test_rules`). |
 | 18.10.2026 | `e485e7d` | Bodenkampf `claude/confident-edison-6mxzke` (`e931e13`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Truppgröße: schwer bis 8 (`core/campaign.gd` minimal geändert, vermerkt), Budget schwer 88. |
 | 18.10.2026 | `da5886b` | Hub `claude/happy-lamport-u4fvya` (`608be25`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Gewonnene Abwehr an Bord = gewonnener Raumkampf: Beute des Enterschiffs mit Beuteauswahl, Auftrag läuft weiter. |
 | 18.10.2026 | `305328e` | Raumkampf `claude/raumkampf-modul` (`c0e578c`) | ohne Konflikte; Branch ohne die letzten `main`-Commits → Koordinator: `test_rules`, `test_hub`, `test_space` OK, `test_sim -- 10` 7 Siege / 0 hängengeblieben. Wracks statt Zerstörung, Entern in jeder Entfernung mit Pilotenprobe, Gegner entern ab Hülle < 25 %, gewonnener Enterkampf = gewonnener Raumkampf. Neu im Ergebnis bei `boarding`: `board_ship`, `board_loot` → Auftrag an Hub. |
