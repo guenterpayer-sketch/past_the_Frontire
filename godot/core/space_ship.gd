@@ -34,12 +34,20 @@ var init_bonus := 0
 var initiative := 0
 var destroyed := false
 var fled := false
+## Wrack: Schiff mit Besatzung bei Hülle 0 – manövrierunfähig, kämpft nicht mehr, bleibt enterbar
+## (Entscheidung des Nutzers 18.10.2026: Schiffe nicht bis zum Letzten zerstören; Jäger werden weiter zerstört)
+var wreck := false
 ## nur für diese Runde: Zielerfassung (+) bzw. Störung (−) durch den Computer {Ziel-ID: Wert}
 var lock := {}
 var jammed := 0
 
 
 func is_active() -> bool:
+	return not destroyed and not fled and not wreck
+
+
+## noch auf der Karte (auch als Wrack)
+func is_present() -> bool:
 	return not destroyed and not fled
 
 

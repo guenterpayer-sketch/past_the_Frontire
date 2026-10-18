@@ -11,6 +11,8 @@ const ENGINE_SPARE := 2
 static func enemy_orders(c: SpaceCombat, s: SpaceShip, phase: int) -> Dictionary:
 	match phase:
 		SpaceCombat.Phase.MOVE:
+			if c.enemy_wants_board(s):
+				return move_plan(c, s, c.own, 1)
 			return move_plan(c, s, c.own, 2 if s.is_fighter() else _pref_range(s))
 		SpaceCombat.Phase.FIRE:
 			var t := {}
@@ -26,7 +28,8 @@ static func crew_orders(c: SpaceCombat, phase: int) -> Dictionary:
 	var own := c.own
 	var foes := c.active_enemies()
 	if foes.is_empty():
-		return {}
+		# nur noch Wracks: zum Enterziel fliegen
+		return crew_move_plan(c) if phase == SpaceCombat.Phase.MOVE and c.board_wait else {}
 	var flee := own.hull < own.hull_max / 4 and c.can_jump()
 	match phase:
 		SpaceCombat.Phase.SHIELDS:
@@ -139,6 +142,10 @@ static func crew_move_plan(c: SpaceCombat) -> Dictionary:
 	var best := {"speed": own.speed, "steps": []}
 	var best_score := -INF
 	var spare := ENGINE_SPARE
+	var board_target: SpaceShip = null
+	for e in c.enemies():
+		if e.is_present() and not e.is_fighter() and (e.wreck or e.is_out("antrieb") or e.hull < e.hull_max * SpaceCombat.BOARD_HULL):
+			board_target = e
 	for steps in candidates(c, own, own.turns):
 		if steps.count("F") > SpaceCombat.ENGINE_FREE + spare:
 			continue
@@ -161,6 +168,9 @@ static func crew_move_plan(c: SpaceCombat) -> Dictionary:
 		# keine Waffe frei: lieber annähern und in Bewegung bleiben als stehen (kein Patt hinter Asteroiden)
 		if score <= 0.0:
 			score -= near * 0.5 + (1.0 if steps.count("F") == 0 else 0.0)
+		# enterbares Ziel: heranfliegen (leichtere Pilotenprobe)
+		if board_target:
+			score -= Hex.distance(pv.end, board_target.pos) * 1.5
 		if pv.blocked:
 			score -= 3.0
 		if score > best_score:

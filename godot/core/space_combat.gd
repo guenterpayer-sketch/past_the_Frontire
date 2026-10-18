@@ -61,8 +61,14 @@ const SYSTEM_TABLE := [[20, "antrieb"], [35, "sensoren"], [50, "slot"], [65, "sc
 	[85, "lebenserhaltung"], [999, "station"]]
 const SYSTEM_NAMES := {"antrieb": "Antrieb", "sensoren": "Sensoren", "lebenserhaltung": "Lebenserhaltung",
 	"schilde": "Schildgeneratoren", "reaktor": "Reaktor"}
-## Entern möglich unter diesem Hüllenanteil (oder Antrieb E)
+## Entern möglich unter diesem Hüllenanteil (oder Antrieb E, oder Wrack) – gilt für beide Seiten
 const BOARD_HULL := 0.25
+## Pilotenprobe zum Andocken nach Entfernung (Felder → Schwierigkeit), +20 bei Antrieb E oder Wrack;
+## Patzer = Kollision (beide Schiffe 2W6 Hülle). Entscheidungen des Nutzers 18.10.2026
+const BOARD_DIFF := [[1, "leicht"], [3, "mittel"], [6, "schwer"], [999, "sehrSchwer"]]
+const BOARD_HELPLESS := 20
+## Warten auf die Enter-Entscheidung, wenn nur noch Wracks übrig sind: höchstens so viele Fehlversuche
+const BOARD_MAX_FAILS := 3
 ## EP im Raumkampf (Entscheidungen des Nutzers 18.10.2026, docs/Raumkampf.md 5): höchstens 2 EP je Station und
 ## Runde; Schützen +1, wenn die Station in der Runde gefeuert oder abgefangen hat, +1 bei mindestens einem Treffer.
 ## Eine Figur an zwei Stationen bekommt je Station ihre EP. Keine Obergrenze je Kampf.
@@ -117,7 +123,16 @@ var station_xp := {}
 var _round_xp := {}
 var _gun_round := {}
 var boarded: SpaceShip = null     # selbst geentertes Gegnerschiff
-var board_loot := {}               # Schiffs-ID → Abfangversuche in dieser Runde
+var board_loot := {}
+## Gegnerschiff, das die Frontire entert (Beute bei abgewehrtem Entern, bucht der Hub)
+var boarding_ship: SpaceShip = null
+## Enterversuch in dieser Runde schon gemacht (eigener bzw. der Gegner)
+var board_tried_round := 0
+var enemy_board_round := 0
+## Nur noch Wracks/angeschlagene Schiffe übrig: der Kampf wartet auf die Entscheidung „Entern ja/nein“
+var board_wait := false
+var board_fails := 0
+var board_declined := false               # Schiffs-ID → Abfangversuche in dieser Runde
 
 
 func _init(s: Dictionary, seed_value := -1) -> void:
@@ -238,7 +253,7 @@ func ship_by_id(sid: String) -> SpaceShip:
 
 func ship_at(p: Vector2i) -> SpaceShip:
 	for s in ships:
-		if s.is_active() and s.pos == p:
+		if s.is_present() and s.pos == p:
 			return s
 	return null
 
@@ -490,8 +505,11 @@ func run_auto() -> void:
 	var guard := 0
 	while result == &"" and guard < (MAX_ROUNDS + 2) * 4:
 		guard += 1
-		if boardable():
+		if boardable() != null and board_tried_round != round_no:
 			board(boardable())
+			continue
+		if board_wait and boardable() == null:
+			decline_board()
 			break
 		set_orders(SpaceAI.crew_orders(self, phase))
 		resolve()
@@ -514,12 +532,23 @@ func _check_end() -> void:
 		own.hull = 0
 		if String(faction.get("on_win", "abziehen")) == "entern":
 			boarding = true
+			if boarding_ship == null:
+				for e in active_enemies():
+					if not e.is_fighter():
+						boarding_ship = e
+						break
 			log_text("Die Frontire ist manövrierunfähig – %s gehen längsseits und entern!" % faction.name, &"bad")
 		else:
 			emergency = true
 			log_text("Die Frontire ist manövrierunfähig. Die Gegner ziehen ab.", &"bad")
 		_finish(&"niederlage")
 	elif active_enemies().is_empty():
+		# nur noch Wracks/angeschlagene Schiffe: Entscheidung „Entern ja/nein“ abwarten
+		if not board_declined and board_fails < BOARD_MAX_FAILS and boardable() != null:
+			if not board_wait:
+				board_wait = true
+				log_text("Kein Gegner kämpft mehr. %s treibt im All – entern?" % boardable().name, &"round")
+			return
 		_finish(&"sieg")
 
 
@@ -578,6 +607,9 @@ func _finish(res: StringName) -> void:
 	if res == &"sieg":
 		_roll_loot()
 		log_text("Sieg!", &"round")
+	elif boarding and boarding_ship:
+		# Beute des Enterschiffs, falls die Crew das Entern abwehrt (bucht der Hub)
+		board_loot = ship_loot(boarding_ship)
 	ended.emit(res)
 
 
@@ -697,6 +729,8 @@ func _trim_plan(s: SpaceShip, want_speed: int, steps: Array, max_turns: int, del
 
 
 func _do_move(s: SpaceShip, o: Dictionary) -> void:
+	if s != own and enemy_board_round != round_no and enemy_wants_board(s) and _enemy_board(s):
+		return
 	var extra := 0
 	var delta := 1
 	if s == own:
@@ -953,8 +987,12 @@ func _apply_hit(s: SpaceShip, t: SpaceShip, res: Dictionary) -> void:
 		_system_hit(t, String(res.severity))
 	if t.hull <= 0 and t != own:
 		t.hull = 0
-		t.destroyed = true
-		log_text("%s ist zerstört!" % t.name, &"kill")
+		if t.is_fighter():
+			t.destroyed = true
+			log_text("%s ist zerstört!" % t.name, &"kill")
+		else:
+			t.wreck = true
+			log_text("%s ist ein Wrack – manövrierunfähig, die Besatzung lebt." % t.name, &"kill")
 		ship_destroyed.emit(t)
 	ship_changed.emit(t)
 
@@ -1112,33 +1150,120 @@ func _tech_task(st: String, task: Dictionary, extra: Array) -> void:
 
 # ---------------------------------------------------------------- Selbst entern
 
-## Enterbar: Schiff mit Besatzung (kein Jäger), direkt benachbart, Antrieb ausgefallen oder Hülle unter 25 %,
-## und es kämpft kein anderer Gegner mehr (Entscheidungen des Nutzers 16.10.2026)
+## Enterbar (Entscheidungen des Nutzers 18.10.2026): Schiff mit Besatzung (kein Jäger), Antrieb ausgefallen, Hülle unter
+## 25 % oder Wrack, Entfernung egal (Pilotenprobe nach Entfernung); kein anderes Gegnerschiff kämpft mehr (Jäger dürfen
+## übrig sein, sie ziehen beim Entern ab). Ein Versuch je Runde.
 func can_board(t: SpaceShip) -> bool:
-	if result != &"" or t == null or not t.is_active() or t.side != &"enemy" or t.is_fighter():
+	if result != &"" or t == null or not t.is_present() or t.side != &"enemy" or t.is_fighter():
 		return false
-	if Hex.distance(own.pos, t.pos) != 1:
+	if not station_usable("steuer") or board_tried_round == round_no:
 		return false
-	if not (t.is_out("antrieb") or t.hull < t.hull_max * BOARD_HULL):
+	if not (t.wreck or t.is_out("antrieb") or t.hull < t.hull_max * BOARD_HULL):
 		return false
-	return active_enemies().size() == 1
+	for e in active_enemies():
+		if e != t and not e.is_fighter():
+			return false
+	return true
 
 
 func boardable() -> SpaceShip:
-	for e in active_enemies():
-		if can_board(e):
-			return e
-	return null
+	var best: SpaceShip = null
+	for e in enemies():
+		if can_board(e) and (best == null or Hex.distance(own.pos, e.pos) < Hex.distance(own.pos, best.pos)):
+			best = e
+	return best
 
 
-## Entern: der Raumkampf endet, der Hub startet den Bodenkampf gegen die Besatzung
+## Schwierigkeit und Modifikatoren der Pilotenprobe zum Andocken
+static func board_difficulty(from: Vector2i, t: SpaceShip) -> String:
+	var d := Hex.distance(from, t.pos)
+	for row in BOARD_DIFF:
+		if d <= int(row[0]):
+			return String(row[1])
+	return "sehrSchwer"
+
+
+static func board_mods(t: SpaceShip) -> Array:
+	return [{"label": "Ziel hilflos", "val": BOARD_HELPLESS}] if t.wreck or t.is_out("antrieb") else []
+
+
+## Text für die Frage „Entern?“
+func board_text(t: SpaceShip) -> String:
+	var diff := board_difficulty(own.pos, t)
+	var helpless := t.wreck or t.is_out("antrieb")
+	return "%s%s, %d Felder: Pilotenprobe %s%s" % [t.name, " (Wrack)" if t.wreck else "", Hex.distance(own.pos, t.pos),
+		Rules.DIFFICULTY[diff].name, " +%d" % BOARD_HELPLESS if helpless else ""]
+
+
+## Enterversuch: Pilotenprobe; Erfolg = angedockt, der Raumkampf endet (Hub startet den Bodenkampf);
+## Fehlschlag = Kampf geht weiter; Patzer = Kollision
 func board(t: SpaceShip) -> bool:
 	if not can_board(t):
 		return false
-	boarded = t
-	log_text("Die Frontire geht längsseits und entert %s!" % t.name, &"round")
-	_finish(&"sieg")
-	return true
+	board_tried_round = round_no
+	var r := check("steuer", &"pilot", board_difficulty(own.pos, t), board_mods(t))
+	if Rules.is_success(r.result):
+		boarded = t
+		own.pos = _free_cell(t.pos + Hex.DIRS[Hex.dir_toward(t.pos, own.pos)])
+		ship_moved.emit(own, [own.pos] as Array[Vector2i])
+		log_text("%s legt an (%s) – die Crew entert %s!" % [who_name("steuer"), r.result.name, t.name], &"round")
+		_finish(&"sieg")
+		return true
+	board_fails += 1
+	if r.result.id == &"patzer":
+		_collide(own, t)
+	else:
+		log_text("%s verfehlt das Andocken an %s (%s)." % [who_name("steuer"), t.name, r.result.name])
+	_check_end()
+	return false
+
+
+## Entern ablehnen, wenn nur noch Wracks übrig sind: Sieg ohne Entern
+func decline_board() -> void:
+	board_declined = true
+	if result == &"" and active_enemies().is_empty():
+		_finish(&"sieg")
+
+
+func _collide(a: SpaceShip, b: SpaceShip) -> void:
+	var da := Dice.d(6) + Dice.d(6)
+	var db := Dice.d(6) + Dice.d(6)
+	a.hull = maxi(0 if a == own else 1, a.hull - da)
+	b.hull = maxi(0 if b.wreck else 1, b.hull - db)
+	log_text("Kollision beim Andocken! %s −%d Hülle, %s −%d Hülle." % [a.name, da, b.name, db], &"bad")
+	ship_changed.emit(a)
+	ship_changed.emit(b)
+
+
+# ---------------------------------------------------------------- Gegner entern
+
+## Gegner (Seite „entern“) versuchen anzulegen, sobald die Frontire angeschlagen ist (Hülle < 25 % oder Antrieb E)
+func enemy_wants_board(s: SpaceShip) -> bool:
+	return String(faction.get("on_win", "")) == "entern" and s.is_active() and not s.is_fighter() \
+		and (own.hull < own.hull_max * BOARD_HULL or own.is_out("antrieb"))
+
+
+## Enterversuch eines Gegnerschiffs (statt seiner Bewegung, einer je Runde): Probe mit dem Bonus der Besatzung
+func _enemy_board(s: SpaceShip) -> bool:
+	enemy_board_round = round_no
+	var d: Dictionary = Rules.DIFFICULTY[board_difficulty(s.pos, own)]
+	var roll := Dice.open_d100()
+	var total: int = roll.total + s.crew_skill + int(d.mod) + _sum(board_mods(own))
+	rolled.emit(roll, "%s: Andocken" % s.name)
+	var res := Rules.maneuver_result(total)
+	if Rules.is_success(res):
+		boarding = true
+		boarding_ship = s
+		s.pos = _free_cell(own.pos + Hex.DIRS[Hex.dir_toward(own.pos, s.pos)])
+		ship_moved.emit(s, [s.pos] as Array[Vector2i])
+		log_text("%s legt an der Frontire an – %s entern!" % [s.name, faction.name], &"bad")
+		_finish(&"niederlage")
+		return true
+	if res.id == &"patzer":
+		_collide(s, own)
+	else:
+		log_text("%s versucht anzulegen und verfehlt die Frontire." % s.name)
+	return false
 
 
 func _prepare_jump() -> void:
@@ -1165,7 +1290,7 @@ func _roll_loot() -> void:
 	var am := {}
 	var weapons: Array = []
 	for e in enemies():
-		if not e.destroyed:
+		if not (e.destroyed or e.wreck) or e == boarded:
 			continue
 		var t: Dictionary = SpaceTemplates.ship(e.template)
 		credits += roundi(int(t.credits) * rng.randf_range(0.6, 1.0))
@@ -1185,14 +1310,19 @@ func _roll_loot() -> void:
 	loot = {"credits": credits, "material": material, "ship_ammo": am, "weapons": weapons}
 	if boarded:
 		# Beute des geenterten Schiffs: gilt erst, wenn die Crew den Bodenkampf gewinnt (bucht der Hub)
-		var t: Dictionary = SpaceTemplates.ship(boarded.template)
-		var bw: Array = []
-		for sl in boarded.weapon_slots():
-			var key := String(boarded.slots[sl].key)
-			if ShipWeapons.data(key).trade:
-				bw.append({"key": key, "name": ShipWeapons.name(key), "damage": maxi(-30, int(boarded.slots[sl].damage))})
-		board_loot = {"credits": roundi(int(t.credits) * 1.5), "material": int(t.material) * 2,
-			"ship_ammo": {"schiffsraketen": rng.randi_range(2, 4), "geschosse": rng.randi_range(10, 20)}, "weapons": bw}
+		board_loot = ship_loot(boarded)
+
+
+## Beute an Bord eines Schiffs (Entern gewonnen bzw. Entern abgewehrt): Credits ×1,5, Material ×2, Waffen, Munition
+func ship_loot(e: SpaceShip) -> Dictionary:
+	var t: Dictionary = SpaceTemplates.ship(e.template)
+	var bw: Array = []
+	for sl in e.weapon_slots():
+		var key := String(e.slots[sl].key)
+		if ShipWeapons.data(key).trade:
+			bw.append({"key": key, "name": ShipWeapons.name(key), "damage": maxi(-30, int(e.slots[sl].damage))})
+	return {"credits": roundi(int(t.credits) * 1.5), "material": int(t.material) * 2,
+		"ship_ammo": {"schiffsraketen": rng.randi_range(2, 4), "geschosse": rng.randi_range(10, 20)}, "weapons": bw}
 
 
 ## Ergebnis im Format MissionResult plus Schiffsteil (Schnittstelle docs/module/raumkampf.md)
@@ -1221,4 +1351,5 @@ func to_result() -> Dictionary:
 		"ship_ammo_used": ammo_used.duplicate(), "fuel_used": fuel_used,
 		"ship_loot": loot.duplicate(true) if result == &"sieg" else {},
 		"board_enemy": boarded != null, "board_faction": faction_id if boarded else "",
-		"board_ship": boarded.name if boarded else "", "board_loot": board_loot.duplicate(true)}
+		"board_ship": boarded.name if boarded else (boarding_ship.name if boarding and boarding_ship else ""),
+		"board_loot": board_loot.duplicate(true)}

@@ -110,11 +110,22 @@ func update_plan_preview() -> void:
 	map_view.show_ghosts(predicted)
 
 
+## Enterversuch (Pilotenprobe); bei Erfolg endet der Kampf, sonst geht er weiter
 func board() -> void:
 	var t := combat.boardable()
-	if t and combat.board(t):
-		await play_events()
-		_phase_ready()
+	if t == null or busy:
+		return
+	busy = true
+	combat.board(t)
+	await play_events()
+	busy = false
+	_phase_ready()
+
+
+func decline_board() -> void:
+	combat.decline_board()
+	await play_events()
+	_phase_ready()
 
 
 ## Ereignisse des Regelkerns nacheinander abspielen
