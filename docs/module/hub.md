@@ -55,9 +55,4 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 4 (19.10.2026): Story-Orte in der Systemansicht.** Story Auftrag 5 ist in `main` (`e0b5bd3`). Ketten an einem Ort starten erst, wenn das Schiff den Ort anfliegt (Entscheidung des Nutzers). Dafür braucht die Story vom Hub:
-  - `Story.on_visit(cur_sector, system, place)` aufrufen, wenn ein Ort in der Systemansicht angeflogen wird. Liefert es eine Kette, das Szenenfenster öffnen.
-  - `Story.at_place(sector, system, place)` in der Systemansicht beim gewählten Ort zeigen (Story-Einträge an diesem Ort).
-  - Optional `Story.place_label(loc)` für Ortsnamen im Logbuch und in Listen. `pending_mission().loc` enthält den Ort des Story-Einsatzes.
-  - `on_arrive(sector, system)` und `markers()` laufen schon (`story_arrive`, `story_markers`). Den Übergang für die alte Form (`get_method_argument_count`) kann der Hub jetzt entfernen.
-  - Einzelheiten: `docs/Planung_Story.md`, Abschnitt „Story-Orte mit Sektor und Ort“.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

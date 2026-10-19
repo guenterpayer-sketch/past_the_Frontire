@@ -11,7 +11,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e635702`), nichts offen |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`0025654`), offen: Auftrag 4 (Story-Orte in der Systemansicht) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`45e5177`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), nichts offen |
 
@@ -19,6 +19,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | Merge `45e5177` | Hub `claude/happy-lamport-u4fvya` (`45e5177`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Orte anfliegen ruft `Story.on_visit`, Story-Orte am Ort in der Systemansicht (`at_place`). |
 | 19.10.2026 | `8ad2a72` | Story `claude/zen-sagan-9yn0le` (`e0b5bd3`) | ohne Konflikte; parallel zu Hub Auftrag 3 gebaut → Koordinator: `test_rules`, `test_hub`, `test_story` OK, Aufrufe `on_arrive(sector, system)`/`markers()` passen. Story-Orte `{sector, system, place}`, `on_visit`, `at_place`, `place_label`. `on_visit` ruft der Hub noch nicht auf → Hub Auftrag 4. |
 | 19.10.2026 | `7e32f90` | Bodenkampf `claude/confident-edison-6mxzke` (`e635702`) | ohne Konflikte, nur Daten (`data/missions/*.tres`). Fraktionsfarben: Eisenwölfe Magenta, Kinder der Glut Gold, Abteilung 9 Kobaltblau, Neuntes Haus Violett. |
 | 19.10.2026 | Merge `0025654` | Hub `claude/happy-lamport-u4fvya` (`0025654`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). `loot_extra`, Lohn neuer Fraktionen, Story-Fraktionen ohne Lohn, Entern/Abwehr nicht absagbar (`boarding_active`), Kartenart für Story-Einsätze, gefangene Crew gesperrt, `sectors_reached()`, Story-Orte `{sector, system, place}`. Kleine Änderung in `core/campaign.gd` (Charakter, mit Zustimmung des Nutzers). |
