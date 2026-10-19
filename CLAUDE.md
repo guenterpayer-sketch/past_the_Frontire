@@ -5,7 +5,7 @@ Weltraum-Rollenspiel mit einer sechsköpfigen Crew. Regeln im Stil von Rolemaste
 ## Stand
 
 - **Aktive Version: Godot 4.7.2** im Ordner `godot/`. Überblick, Bedienung, Aufbau und Tests: `godot/README.md`. Versionsnummer: `application/config/version` in `godot/project.godot` (pflegt der Koordinator).
-- **HTML/JS-Version** (`index.html`, `js/`, `css/`, `tests/` im Wurzelordner) ist **eingefroren**: nur Referenz, nicht weiterentwickeln.
+- **HTML/JS-Version** (Ordner `alt_html/`: `index.html`, `js/`, `css/`, `tests/`) ist **eingefroren**: nur Referenz, nicht weiterentwickeln.
 - Regeln: `docs/Skillsystem.md` (Proben, Kampf, Steigerung, Fraktionen 7.4, Reise 8b …), `docs/Raumkampf.md`, `docs/Charakterbogen_Grundgeruest.md`. Story: `docs/Planung_Story.md`. Layout: `docs/Layout.md`.
 - **Module** (je eigener Chat und Branch, Moduldatei in `docs/module/`): Bodenkampf, Charakter (Crew, Roster, Editor, Waffenkammer), Hub (Startmenü, Schiff, Sternenkarte mit Sektoren, Spielstände, Enzyklopädie), Raumkampf, Story/Kampagne, Export (Android, Windows, Touch). Module tauschen nur Daten aus (z. B. Kampf bekommt Kopien der `Character`, gibt ein `MissionResult` zurück; `godot/README.md`, „Module und Schnittstelle“).
 - Noch nicht gebaut: eigene Jäger und Hangar (V2), Kapitel 2 der Story. Früherer ausführlicher Stand: `docs/module/archiv/CLAUDE_Stand_bis_2026-10-19.md`.

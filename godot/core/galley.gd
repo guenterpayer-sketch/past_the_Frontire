@@ -1,6 +1,6 @@
 class_name Galley
 extends RefCounted
-## Kombüse: Proviant und Kochen (docs/Planung_Rueckzug_Proviant_Kochen.md, Entscheidungen des Nutzers 16.10.2026).
+## Kombüse: Proviant und Kochen (docs/archiv/Planung_Rueckzug_Proviant_Kochen.md, Entscheidungen des Nutzers 16.10.2026).
 ## - Proviant (HubState.provisions): Startvorrat START, Kauf beim Schiffshändler PRICE Cr je Einheit nach Verhandeln (Entscheidung 16.10.2026).
 ## - Verbrauch je Tag außerhalb des Hafens: Crew an Bord × Faktor der Kochprobe (FACTOR), kaufmännisch gerundet,
 ##   mindestens 1. Im Raumhafen kein Verbrauch und keine Kochprobe. Reicht der Vorrat nicht, wird der Rest verbraucht.

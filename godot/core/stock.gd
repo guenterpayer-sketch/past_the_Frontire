@@ -1,6 +1,6 @@
 class_name Stock
 extends RefCounted
-## Lager des Schiffs und Handel im Raumhafen (docs/Planung_Ausbau_Lager_Handwerk.md, Schritt 2; Entscheidungen des
+## Lager des Schiffs und Handel im Raumhafen (docs/archiv/Planung_Ausbau_Lager_Handwerk.md, Schritt 2; Entscheidungen des
 ## Nutzers 16.10.2026). Das Lager zählt Stück je Gegenstand in HubState.stock {Schlüssel: Anzahl}; Schlüssel ist der
 ## resource_path der WeaponData/ArmorData (auch eigene aus dem Editor), MEDKIT oder Equipment.SHIELD. Was die Crew trägt, gehört nicht
 ## dazu. Munition bleibt im eigenen Vorrat (HubState.ammo). Ohne Spiel (Schnellkampf) gilt alles als vorhanden.

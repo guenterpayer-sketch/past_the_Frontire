@@ -1,6 +1,6 @@
 class_name Crafting
 extends RefCounted
-## Handwerk (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026, Mockup „Schiff-Hub Mockup“
+## Handwerk (docs/archiv/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026, Mockup „Schiff-Hub Mockup“
 ## Bildschirme 29–31): Bauen, Zerlegen und Reparieren in der Werkstatt (Waffenkammer), Medikits in der Krankenstation.
 ## Eine Arbeit je Figur (HubState.jobs {Figur-ID: Arbeit}; auch die Crew-Reparatur des Schiffs, ShipArms.start_fix), der Handwerker ist nicht gesperrt; schwer Verwundete arbeiten nicht (can_work). Probe „mittel“ am Ende
 ## der Arbeit (Voyage.check, EP für die Fertigkeit); Bauen und Reparieren von Waffen/Rüstungen schwerer nach Kaufpreis. Handwerksmaterial HubState.craft_material, 1 Einheit = 10 Cr.

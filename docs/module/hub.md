@@ -20,7 +20,7 @@
 
 - Standardwaffen und -rüstungen bleiben feste Vorlagen (im Ausrüstungs-Editor nicht editierbar, Entscheidung des Nutzers).
 
-### Klärung Hub ⇄ Charakter (`docs/Planung_Roster_Verwundung.md`, Abschnitt D)
+### Klärung Hub ⇄ Charakter (`docs/archiv/Planung_Roster_Verwundung.md`, Abschnitt D)
 
 - **Neues Spiel:** Der Hub ruft den **`CrewPicker` des Charakter-Moduls** auf (1 bis 8 Figuren) und baut keine eigene Auswahl. Mockup-Bildschirm „6 Neues Spiel“ entfällt.
 - **Roster im Startmenü:** Punkt „Roster“ → `Campaign.ROSTER_SCENE`.

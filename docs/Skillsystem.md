@@ -3,7 +3,7 @@
 Grundlage: der Charakterbogen in `Charakterbogen_Grundgeruest.md`.
 Das Würfelsystem lehnt sich an Rolemaster an: **W100, offen nach oben und unten, man muss über einen Zielwert kommen.**
 
-Alle Zahlen sind ein erster Vorschlag und werden im Prototyp (`index.html`) genau so verwendet (Quelltext: `js/rules.js`, `js/tables.js`). Punkte, die ich festgelegt habe, ohne dass sie vorgegeben waren, stehen in Abschnitt 9 als **Annahme**.
+Alle Zahlen sind ein erster Vorschlag und werden im HTML-Prototyp (`alt_html/index.html`) genau so verwendet (Quelltext: `alt_html/js/rules.js`, `alt_html/js/tables.js`). Punkte, die ich festgelegt habe, ohne dass sie vorgegeben waren, stehen in Abschnitt 9 als **Annahme**.
 
 ---
 
@@ -213,7 +213,7 @@ Sechs Tabellen (Durchschlag, Hitze, Wucht, Schnitt, Explosion, Psi) mit je 7 Stu
 - **Malus**: dauerhafter Abzug auf alle Würfe für den Rest des Kampfes (stapelt)
 - **Bewusstlos / Tot**
 
-Die vollständigen Texte stehen in `js/tables.js` und im Spiel unter „Tabellen“.
+Die vollständigen Texte stehen in `alt_html/js/tables.js` und im Spiel unter „Tabellen“.
 
 ### 5.4 Maßstab, Höhe, Deckung, Reichweite
 
@@ -391,7 +391,7 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 
 **Truppgröße** (Entscheidung des Nutzers 18.10.2026): höchstens 6 Crewmitglieder je Bodenkampf, bei Schwierigkeit „schwer“ bis zu 8 (auch nach Blockade, beim Entern, bei der Abwehr an Bord und im Schnellkampf). Gegnerbudget: leicht 42, mittel 58, schwer 88 (vorher 76; per Simulation so gewählt, dass 8 Figuren etwa 10 Prozentpunkte öfter gewinnen als vorher 6).
 
-**Verwundung statt Tod:** Wer nach den Regeln sterben würde (TP ≤ −KON/5 oder tödlicher Kritischer), ist **sterbend**: kampfunfähig am Boden, aber nicht tot. Das gilt für Crew und Gegner. Sterbende bluten weiter (TP sinken höchstens bis −max. TP, ohne weitere Folgen). Eine **gelungene Erste Hilfe** (Erfolg oder besser) **stabilisiert**: Die Figur bleibt für den Rest des Kampfes kampfunfähig, zählt danach aber nur als kampfunfähig statt schwer verwundet. **Tod** nur, wenn die **ganze Crew fällt**: Dann stirbt jede noch unversorgte sterbende Figur mit **10 %** (W100 ≤ 10); Stabilisierte überleben. Heilung und Schwere nach dem Kampf: `docs/Planung_Roster_Verwundung.md`, Abschnitt B.
+**Verwundung statt Tod:** Wer nach den Regeln sterben würde (TP ≤ −KON/5 oder tödlicher Kritischer), ist **sterbend**: kampfunfähig am Boden, aber nicht tot. Das gilt für Crew und Gegner. Sterbende bluten weiter (TP sinken höchstens bis −max. TP, ohne weitere Folgen). Eine **gelungene Erste Hilfe** (Erfolg oder besser) **stabilisiert**: Die Figur bleibt für den Rest des Kampfes kampfunfähig, zählt danach aber nur als kampfunfähig statt schwer verwundet. **Tod** nur, wenn die **ganze Crew fällt**: Dann stirbt jede noch unversorgte sterbende Figur mit **10 %** (W100 ≤ 10); Stabilisierte überleben. Heilung und Schwere nach dem Kampf: `docs/archiv/Planung_Roster_Verwundung.md`, Abschnitt B.
 
 
 **Feuerbereitschaft:** Wer noch nicht angegriffen hat und mindestens 30 % übrig hat, kann die gesamte restliche Aktivität zurückhalten; der Zug endet damit. Handelt danach ein Gegner im Sichtfeld und in Reichweite (bewegt sich Feld für Feld oder setzt zum Angriff an), wird sofort geschossen: Modifikator nach den zurückgehaltenen Prozent (Tabelle oben) und −10 für die Reaktion. Ein Treffer kann den Gegner mitten in der Bewegung stoppen. Einmal pro Runde; die Bereitschaft endet mit dem nächsten eigenen Zug. Danach ist keine Ausweichreserve mehr übrig.
@@ -618,7 +618,7 @@ Durchschnitt je Reisetag (simuliert, 200 000 Würfe): schwache Crew (alle Werte 
 
 ## 8c. Proviant und Kochen (Entscheidungen 16.10.2026)
 
-Umgesetzt im Hub (`godot/core/galley.gd`, Werte im `HubState`; Planung `docs/Planung_Rueckzug_Proviant_Kochen.md`).
+Umgesetzt im Hub (`godot/core/galley.gd`, Werte im `HubState`; Planung `docs/archiv/Planung_Rueckzug_Proviant_Kochen.md`).
 
 - **Proviant:** Startvorrat **60**; Kauf beim Schiffshändler im Hafen **5 Cr** je Einheit (nach **Verhandeln**, Entscheidung 16.10.2026). **Verbrauch je Tag 1 je Crewmitglied an Bord**, Reisetage zählen wie jeder Tag, **im Raumhafen kein Verbrauch**.
 - **Kochen** (`kochen`, EMP + KOO): Ein **fester Koch** (Raum Kombüse) würfelt **jeden Tag außerhalb des Hafens** automatisch eine Probe (Mittel, EP wie bei jeder Probe). Ohne Koch – oder wenn der Koch gesperrt verwundet ist – gilt **Fehlschlag**. Der Koch darf zugleich Arzt, Helfer oder Handwerker sein.
@@ -635,7 +635,7 @@ Diese Punkte habe ich festgelegt, ohne dass sie vorgegeben waren. Sie sind leich
 3. **„Psi wirken“ vs. „Psi-Angriffe“**: umgesetzt – „Psi wirken“ ist die Probe für unterstützende Kräfte, „Psi-Angriffe“ für Angriffe.
 4. **„Panzerung“ (Raumschiff-Kampf)**: umgesetzt – Hülle flicken an der Station Technik (`docs/Raumkampf.md`). Nicht verwechseln mit dem Ausbau „Schiffspanzerung“.
 5. **Zahlenwerte** (TP-Formel, Tabellen-Schwellen, Schadensfaktoren, EP-Kosten) sind ein erster Entwurf und noch nicht ausbalanciert. **Vom Nutzer bestätigt (19.10.2026).**
-6. **Munition (Entscheidungen 15.10.2026, `docs/Planung_Munition.md`):** Waffen mit Magazin brauchen Munition einer **Munitionsart** (Energiezellen, Projektil, Raketen; Schiffsvorrat je Art). Jede Figur nimmt je Waffe **3 Magazine** mit (Zweitwaffe **1 Magazin**), höchstens „Munition gesamt“ der Waffe, solange der Vorrat reicht; ohne Vorrat ist die Waffe im Kampf nicht nutzbar. **Feuerstoß:** Waffenwert *Schuss pro Angriff*; ab 2 Schuss ein Angriffswurf mit **+5 je Kugel** (MG: 3 Schuss = +15); reicht das Magazin nicht, mit dem Rest und anteiligem Bonus. Magazine der Standardwaffen (16.10.2026): Laserpistole 12, Laserkarabiner 20, Sturmgewehr 30, MG 60, Raketenwerfer 1 (2 insgesamt). Waffen ohne Magazinwert sind unbegrenzt.
+6. **Munition (Entscheidungen 15.10.2026, `docs/archiv/Planung_Munition.md`):** Waffen mit Magazin brauchen Munition einer **Munitionsart** (Energiezellen, Projektil, Raketen; Schiffsvorrat je Art). Jede Figur nimmt je Waffe **3 Magazine** mit (Zweitwaffe **1 Magazin**), höchstens „Munition gesamt“ der Waffe, solange der Vorrat reicht; ohne Vorrat ist die Waffe im Kampf nicht nutzbar. **Feuerstoß:** Waffenwert *Schuss pro Angriff*; ab 2 Schuss ein Angriffswurf mit **+5 je Kugel** (MG: 3 Schuss = +15); reicht das Magazin nicht, mit dem Rest und anteiligem Bonus. Magazine der Standardwaffen (16.10.2026): Laserpistole 12, Laserkarabiner 20, Sturmgewehr 30, MG 60, Raketenwerfer 1 (2 insgesamt). Waffen ohne Magazinwert sind unbegrenzt.
 7. Rolemaster arbeitet mit drei Eigenschaften pro Fertigkeit und ~20 Rüstungsarten; hier sind es zur Vereinfachung zwei Eigenschaften und vier Rüstungsklassen.
 8. **Galerie** ist im Prototyp ein massiver Block (man kann nicht darunter hindurchgehen).
 9. **Kosten für Eigenschaften** (2 + Wert/10) und die **Missionsbelohnung** sind ein erster Entwurf, nicht ausbalanciert. **Vom Nutzer bestätigt (19.10.2026).**

@@ -1,6 +1,6 @@
 class_name ShipUpgrades
 extends RefCounted
-## Schiffsausbau (docs/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 12 Bereiche (Werkstatt: Crafting;
+## Schiffsausbau (docs/archiv/Planung_Ausbau_Lager_Handwerk.md, Entscheidungen des Nutzers 16.10.2026): 12 Bereiche (Werkstatt: Crafting;
 ## Schilde, Schiffspanzerung, Reaktor, Waffenslots für den Raumkampf, Wirkung im Kampf legt der Raumkampf fest; Waffenslots: ShipArms) mit je
 ## 3 Stufen. Werft im Hafen: Credits, sofort. Crew: Schiffsmaterial und Spieltage, am Ende eine Reparaturprobe
 ## (Station Technik, sonst der Beste); nur ein Crew-Ausbau zur Zeit. Stufen liegen in HubState.upgrades {id: Stufe},
