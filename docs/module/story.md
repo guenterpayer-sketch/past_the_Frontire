@@ -31,8 +31,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 6 (19.10.2026, dringend): Szenenfenster lässt sich nicht schließen
-
-- Fehlermeldung des Nutzers (Probespiel): Erster Story-Kontakt, verhandelt, Probe erfolgreich. Das Fenster mit dem Ergebnis lässt sich nicht schließen, das Spiel hängt.
-- Ursache laut Code (vom Koordinator gelesen, nicht nachgestellt): `StoryDialog._ready` setzt `closable = false`. „Schließen“ ruft `_finish()` → `close()` auf, und `Modal.close()` kehrt bei `closable == false` sofort zurück. Das Fenster bleibt offen, `finished` kommt zwar, aber das Fenster liegt weiter über allem. Dasselbe gilt für `_render()` mit leerer Ansicht.
-- Bitte in `ui/story_dialog.gd` beheben (z. B. in `_finish` `hide()` statt `close()`, dann `closed`/`finished` senden), ohne `ui/modal.gd` zu ändern. Einen Test ergänzen, der eine Kette bis zum Ende durchklickt und prüft, dass das Fenster danach unsichtbar ist. Auch das Logbuch (`StoryLog`) auf dieselbe Falle prüfen.
+Keine offenen Aufträge.
