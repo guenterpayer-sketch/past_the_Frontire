@@ -56,9 +56,4 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 5 (19.10.2026): Enzyklopädie ergänzen** (Entscheidungen des Nutzers). Neue Bereiche in `ui/encyclopedia.gd`, Daten nur lesen:
-  1. **Fraktionen** (Gruppe Bodenkampf): alle aus `data/missions/` mit Name, Oberart (`kind`), Eigenheit (`trait_name`/`trait_text`), Farbe, bevorzugte Kartentypen (`maps`), Gegnerzusammenstellung und Verweis auf die Raumkampf-Seite (oder „Piraten“ als Ersatz). **Story-Fraktionen sofort sichtbar** (Oberart Story).
-  2. **Gegnertypen**: alle aus `data/units/enemies/` mit Werten, Waffen, Rüstung, Psi und Eigenheit; Verweise zwischen Fraktion und Gegnertyp.
-  3. **Orte und Sektoren** (eigene Gruppe oder bei den Kurzregeln): Ortsarten mit Funktion (Station Handel +20 %, Wrack Bergung, Gasriese/Nebel Treibstoff schöpfen, Planet/Mond Einsätze, Kartentyp je Ort), Proben und Ergebnisse, Sprungtore (Gebühr, Papiere), Häfen.
-  - Zusätzlich per Screenshot prüfen, ob die neuen Raumkampf-Seiten und -Schiffe (Raumkampf Auftrag 6) richtig erscheinen.
-  - Layout nach `docs/Layout.md` und wie die vorhandenen Bereiche (Einzelseiten mit Verweisen, „Übersicht“ als Vergleichstabelle).
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
