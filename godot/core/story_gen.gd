@@ -8,11 +8,14 @@ extends RefCounted
 
 ## Gegnergruppen: Anzeigename (im Dativ, für „bewacht von …“), gewünschte Missionsfraktion (data/missions/<id>.tres) und Ersatz, solange sie fehlt
 const GEGNER := {
-	"abteilung9": {"name": "Abteilung 9", "id": "abteilung9", "fallback": "konzern"},
-	"klingen": {"name": "den Klingen der Wacht", "id": "seraph", "fallback": "leeres_licht"},
+	"abteilung9": {"name": "Abteilung 9", "id": "abteilung_9", "fallback": "konzern"},
+	"klingen": {"name": "den Klingen der Wacht", "id": "wacht_klingen", "fallback": "leeres_licht"},
+	"hirten": {"name": "den Hirten der Wacht", "id": "wacht_hirten", "fallback": "leeres_licht"},
 	"hand": {"name": "Angeheuerten der Stillen Hand", "id": "stille_hand", "fallback": "rote_sonne"},
 	"pluenderer": {"name": "Plünderern", "id": "aasgeier", "fallback": "schmuggler"},
 }
+## Hirten der Wacht nur als Gegner, wenn die Crew gegen Begabte gehandelt hat (Flag; Entscheidung des Nutzers 19.10.2026: „selten“)
+const HIRTEN_FLAG := "hirten_feind"
 ## Leute des Gläubigers je Baustein „glaeubiger“
 const GLAEUBIGER_GEGNER := {"syndikat": "schmuggler", "bank": "konzern", "person": "rote_sonne"}
 const DIFFS := ["leicht", "mittel", "schwer"]
@@ -73,6 +76,8 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	var werte: Dictionary = t.get("werte", {})
 	for k in werte:
 		var list: Array = werte[k]
+		if k == "gegner" and not story.state.flags.has(HIRTEN_FLAG):
+			list = list.filter(func(x: Variant) -> bool: return String(x) != "hirten")
 		if not list.is_empty():
 			v[k] = list[story.rng.randi_range(0, list.size() - 1)]
 	if extra.has("rescue_name"):

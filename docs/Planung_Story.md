@@ -105,7 +105,8 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
   - Schmuggel-Kontakt: 25 % je Hafenankunft, wenn keiner offen ist.
   - Diese Werte sind vorläufig und noch nicht mit dem Nutzer abgestimmt.
 - **Vorschlag, noch zu bestätigen:** Das Finale braucht **Schiffsausbau 2** (Summe der Ausbaustufen).
-- **Gegner-Fraktionen:** Die Schritte nennen die gewünschten Missionsfraktionen `abteilung9`, `seraph`, `stille_hand` und `pluenderer`. Solange der Bodenkampf sie nicht angelegt hat, nimmt der Generator vorhandene Fraktionen als Ersatz: `konzern`, `leeres_licht`, `rote_sonne`, `schmuggler`. Das Finale nennt `abteilung9` fest; der Hub fällt dann auf die Fraktion des Systems zurück.
+- **Gegner-Fraktionen (Auftrag 4):** Die Story nutzt die Fraktionen des Bodenkampfs: `abteilung_9`, `wacht_klingen`, `wacht_hirten`, `stille_hand`, dazu `aasgeier` (Plünderer), `semidrug` und `konzern` (Vantar). `tests/test_story.gd` (`_test_faction_ids`) prüft, dass jede genannte Fraktion als Datei vorhanden ist. Der Ersatz (`fallback` in `StoryGen.GEGNER`) greift nur noch, wenn eine Datei fehlt.
+- **Hirten als Gegner (Entscheidung des Nutzers 19.10.2026: „selten“):** Die Hirten der Wacht kommen erst als Gegner vor, wenn die Crew gegen Begabte gehandelt hat. Das sind drei Wahlen: Lio verkaufen, die junge Begabte an die Klingen verraten, lebende Fracht abliefern. Jede setzt das Flag `hirten_feind`. Danach stehen die Hirten mit in der Gegnerliste von Befreiung, Bergung und Abfangen.
 - **Bilder:** Liste und Prompts in `docs/Story_Bilder.md`.
 
 ### Nötige Anbindungen anderer Module
@@ -118,7 +119,12 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
 - **Charakter:**
   - Status „gefangen“ (gesperrt wie verwundet, mit Text „gefangen“).
   - Eine Psi-Begabte „Lio“ als Figur, wenn `state.recruits` den Eintrag `begabte` enthält. Anheuern über `Campaign.hire`.
-- **Bodenkampf:** Fraktionsdaten `abteilung9`, `seraph` (Wacht von Seraph), `stille_hand`, `semidrug` und gern `pluenderer`, Einheiten wie im Abschnitt „Story-Fraktionen“.
+- **Bodenkampf:** erledigt (Fraktionen `abteilung_9`, `wacht_klingen`, `wacht_hirten`, `stille_hand`).
+- **Offene Hub-Punkte** (gehen über den Koordinator an den Hub, sobald dessen Sektorumbau in `main` liegt; Stand 19.10.2026):
+  1. Kartenart des Story-Einsatzes aus der Vorlage übernehmen (heute zufällig).
+  2. Gefangene Crew (`Story.state.captured`) in Truppwahl, Reiseposten und Krankenstation sperren.
+  3. Story-Schlüssel `sectors`: Zahl der erreichten Sektoren liefern (`Story.sectors()` ist ein Stub mit 1).
+  4. Story-Orte mit Sektor: Orte liegen heute auf ganzen Systemen des aktuellen Sektors (`Story.pick_place`/`pick_harbor`); nach dem Umbau Ort im System und Sektor mitspeichern.
 
 ## Gebaut (Auftrag 2)
 

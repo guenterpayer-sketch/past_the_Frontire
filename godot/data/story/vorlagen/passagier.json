@@ -111,7 +111,7 @@
 									"kind": "boden",
 									"title": "Die Klingen der Wacht",
 									"difficulty": "{diff}",
-									"faction": "seraph",
+									"faction": "wacht_klingen",
 									"sieg": "sieg",
 									"niederlage": "niederlage",
 									"rueckzug": "niederlage"
@@ -136,6 +136,9 @@
 					{
 						"text": "An die Klingen verraten",
 						"effects": [
+							{
+								"flag": "hirten_feind"
+							},
 							{
 								"credits": 400
 							},

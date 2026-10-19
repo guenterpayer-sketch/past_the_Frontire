@@ -353,7 +353,7 @@
 										"kind": "boden",
 										"title": "Station von Abteilung 9",
 										"difficulty": "schwer",
-										"faction": "abteilung9",
+										"faction": "abteilung_9",
 										"sieg": "befreit",
 										"niederlage": "zurueck",
 										"rueckzug": "plan"
@@ -392,7 +392,7 @@
 										"kind": "boden",
 										"title": "Station von Abteilung 9",
 										"difficulty": "mittel",
-										"faction": "abteilung9",
+										"faction": "abteilung_9",
 										"sieg": "befreit",
 										"niederlage": "zurueck",
 										"rueckzug": "plan"
@@ -414,7 +414,7 @@
 										"kind": "boden",
 										"title": "Station von Abteilung 9",
 										"difficulty": "schwer",
-										"faction": "abteilung9",
+										"faction": "abteilung_9",
 										"sieg": "befreit",
 										"niederlage": "zurueck",
 										"rueckzug": "plan"
@@ -482,6 +482,9 @@
 						{
 							"text": "Lio verkaufen",
 							"effects": [
+								{
+									"flag": "hirten_feind"
+								},
 								{
 									"credits": 1500
 								},
