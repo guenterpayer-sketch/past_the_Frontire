@@ -20,8 +20,8 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 1 (19.10.2026): Planung, noch nicht bauen
+### Auftrag 2 (19.10.2026): offene Punkte klären, dann Story-Engine
 
-- Mit dem Nutzer klären (Auswahl-Buttons, am Ende jeder Runde eine Freitext-Frage): Art der Story (feste Kampagne, lose Ereignisketten, offene Sandbox mit Zielen …), Ton und Setting, Rolle der Fraktionen, wie Story-Einsätze ins bestehende Spiel kommen (Sternenkarte, Aufträge, Ereignisse auf Reisen), Fortschritt und Speicherstand, Ende/Ziele, Umfang V1.
-- Ergebnis: `docs/Planung_Story.md` mit Entscheidungen, Vorschlägen, offenen Punkten und einem Schnittstellen-Vorschlag (was Hub, Bodenkampf, Raumkampf, Charakter liefern müssten). Bei Bedarf Mockup.
-- Danach melden; der Koordinator verteilt die Anbindungen an die anderen Module.
+- Offene Punkte 1–9 aus `docs/Planung_Story.md` mit dem Nutzer klären (Auswahl-Buttons, am Ende jeder Runde eine Freitext-Frage), dazu ein Mockup für das Szenenfenster und das Logbuch.
+- Danach im eigenen Bereich bauen: Story-Engine, Logbuch, `StoryState` mit einer Test-Kette. Keine fremden Dateien umbauen. Wo eine Anbindung fehlt, mit einem Stub im eigenen Code arbeiten.
+- Den Schnittstellen-Vorschlag in `docs/Planung_Story.md` auf den gebauten Stand bringen (Funktionsnamen, Daten). Danach fertig melden. Erst dann verteilt der Koordinator die Aufträge an Hub, Bodenkampf und Raumkampf (Entscheidung des Nutzers 19.10.2026).
