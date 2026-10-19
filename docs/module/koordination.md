@@ -41,7 +41,7 @@ Es gelten die Regeln aus `CLAUDE.md` (Deutsch, Wissen und Annahme trennen, erst 
 
 ## Übergabe (19.10.2026)
 
-Dritter Koordinations-Chat beendet (langer Verlauf). Ein neuer Chat startet nur von diesen Dateien aus.
+Vierter Koordinations-Chat (19.10.2026). Ein neuer Chat startet nur von diesen Dateien aus.
 
 **Stand `main` (19.10.2026, abends):** alle Module ohne offene Aufträge. Neu seit der letzten Übergabe: Story/Kampagne (Engine, Generator, Kapitel 1, Ketten, Logbuch; Branch `claude/zen-sagan-9yn0le`), Hub-Anbindung der Story, Sektorumbau (3 Sektoren, Orte, Sprungtore), Fraktions-Oberarten mit 6 neuen und 4 Story-Fraktionen (Bodenkampf), Raumkampf-Seiten der neuen Fraktionen, Entern nicht absagbar, Layoutregeln `docs/Layout.md`, Sparregel in `CLAUDE.md`. Verlauf: `docs/Zusammenfuehrung.md`.
 
