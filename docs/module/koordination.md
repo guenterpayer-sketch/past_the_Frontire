@@ -25,6 +25,11 @@ Anweisung für den Koordinations-Chat. Er arbeitet nicht an Spielfunktionen, son
 - Der Nutzer hat ausdrücklich erlaubt, dass der Koordinations-Chat **nach `main` pusht** (nur Zusammenführungen und Dokumentation). Die Umgebung weist dem Chat zusätzlich einen eigenen `claude/…`-Branch zu; dort darf er Entwürfe ablegen.
 - Zusammenführen als Merge-Commit (`git merge --no-ff`), keine Rebases, kein Force-Push auf `main`.
 
+## Versionsnummer (Entscheidung des Nutzers 19.10.2026)
+
+- `application/config/version` in `godot/project.godot`, Form `"0.N (TT.MM.JJJJ)"`. Der Koordinator erhöht N bei jeder Zusammenführung mit Code- oder Datenänderungen um 1 und setzt das Datum (eigener Commit „Version 0.N“ nach dem Merge). Reine Doku-Merges ändern die Version nicht.
+- Angezeigt im Burgermenü und bei den Spielstand-Slots (Hub).
+
 ## Tests nach jedem Zusammenführen
 
 ```
