@@ -19,8 +19,8 @@ max_same = 3
 color = Color(1, 0.541, 0.239, 1)
 kind = &"soeldner"
 trait_name = "Disziplin"
-trait_text = "+5 Angriff"
+trait_text = "+5 Initiative"
 trait_mods = {
-"ob": 5
+"init": 5
 }
 maps = Array[StringName]([&"bar", &"halle"])

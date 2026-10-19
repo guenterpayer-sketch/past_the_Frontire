@@ -437,15 +437,15 @@ Jede Bodenfraktion gehört zu einer Oberart (Konzern, Söldner, Piraten, Syndika
 | Fraktion | Oberart | Eigenheit |
 |---|---|---|
 | Vantar-Konzern | Konzern | Gute Panzerung: +5 Verteidigung |
-| Semidrug Inc. | Konzern | Kampfdrogen: +5 Initiative, je 1 Medikit; Laserkarabiner statt Sturmgewehr |
-| Söldner der Roten Sonne | Söldner | Disziplin: +5 Angriff |
+| Semidrug Inc. | Konzern | Kampfdrogen: +10 Initiative, je 1 Medikit; Laserkarabiner statt Sturmgewehr |
+| Söldner der Roten Sonne | Söldner | Disziplin: +5 Initiative |
 | Eisenwölfe | Söldner | Zäh: +10 % TP; Sturmgewehr statt Laserkarabiner |
 | Schwarze Flagge | Piraten | Entern: +10 Angriff im Nahkampf |
 | Aasgeier | Piraten | Überzahl: +15 % Gegnerbudget, Waffen beschädigt (−10), 1 Beuteplatz mehr |
 | Kesslers Schmugglerbande | Syndikat | Überzahl: bis 4 gleiche Gegner |
 | Das Neunte Haus | Syndikat | Aus dem Schatten: +10 Ausweichen, Waffen gute Stücke (+5) |
 | Kult des Leeren Lichts | Kult | Fanatiker: +10 % TP |
-| Kinder der Glut | Kult | Glut: +5 Angriff mit Psi; Energiehammer statt Vibroklinge |
+| Kinder der Glut | Kult | Glut: +10 Angriff mit Psi; Energiehammer statt Vibroklinge |
 
 Bei einem Waffentausch gilt der Rang der alten Waffenfertigkeit auch für die neue. Einsätze einer Fraktion finden mit 60 % auf einem ihrer bevorzugten Kartentypen statt (z. B. Kult → Tempel).
 

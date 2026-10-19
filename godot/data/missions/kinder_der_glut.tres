@@ -17,9 +17,9 @@ weights = Array[int]([3, 3, 2])
 max_same = 3
 color = Color(1, 0.45, 0.1, 1)
 trait_name = "Glut"
-trait_text = "+5 Angriff mit Psi"
+trait_text = "+10 Angriff mit Psi"
 trait_mods = {
-"psi_ob": 5
+"psi_ob": 10
 }
 weapon_swap = {
 "vibroklinge": ExtResource("10_w0")

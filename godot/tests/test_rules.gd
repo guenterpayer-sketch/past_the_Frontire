@@ -1484,7 +1484,7 @@ func _test_factions() -> void:
 	# Eigenheiten im Kampf
 	var crew := Roster.build_crew(Roster.start_crew())
 	var map := MapGenerator.generate(5, "mittel", &"halle")
-	var cases := [["konzern", "db"], ["rote_sonne", "ob"], ["leeres_licht", "hp"], ["eisenwoelfe", "hp"], ["aasgeier", "wear"],
+	var cases := [["konzern", "db"], ["rote_sonne", "init5"], ["leeres_licht", "hp"], ["eisenwoelfe", "hp"], ["aasgeier", "wear"],
 		["neuntes_haus", "dodge"], ["semidrug", "init"], ["schwarze_flagge", "melee"]]
 	for cs in cases:
 		var mi := Mission.generate(21, "mittel", F.call(cs[0]))
@@ -1508,6 +1508,8 @@ func _test_factions() -> void:
 			"wear":
 				ok = int(u.wear.get("w0", 0)) == -10
 			"init":
+				ok = u.trait_val("init") == 10
+			"init5":
 				ok = u.trait_val("init") == 5
 		check(ok, "Eigenheit %s (%s)" % [mi.faction.trait_name, cs[0]])
 	check(Combatant.create(Mission.generate(21, "mittel", F.call("neuntes_haus")).enemies[0], &"enemy").wear.get("w0", 0) == 5, "Neuntes Haus: gute Stücke")
@@ -1516,8 +1518,11 @@ func _test_factions() -> void:
 	var rc := Combat.new(map, Roster.build_crew(Roster.start_crew()), Roster.build_units(rs.enemies, &"enemy"))
 	var att: Combatant = rc.enemies()[0]
 	var tgt: Combatant = rc.crew()[0]
+	att.faction_trait = {"name": "Probe", "ob": 5}
+	tgt.faction_trait = {"name": "Panzer", "db": 5}
 	var ai := rc.attack_info(att, tgt, att.weapons[0], {"from": rc.tile_of(att), "to": rc.tile_of(tgt)})
-	check(not ai.valid or ai.ob.any(func(m: Dictionary) -> bool: return m.label == "Disziplin" and m.val == 5), "Disziplin in der Angriffsvorschau")
+	check(not ai.valid or (ai.ob.any(func(m: Dictionary) -> bool: return m.label == "Probe" and m.val == 5)
+		and ai.db.any(func(m: Dictionary) -> bool: return m.label == "Panzer" and m.val == 5)), "Eigenheit in der Angriffsvorschau (Angriff und Verteidigung)")
 	# Überzahl: mehr Budget als ohne
 	var n_a := 0
 	var n_s := 0
