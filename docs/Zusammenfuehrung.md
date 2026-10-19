@@ -12,13 +12,14 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`41054e5`), offen: Auftrag 4 (Briefing-Meldung) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`c32dcb6`), offen: Auftrag 2 (Sektorkarte) |
-| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
+| `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`f81f07f`), offen: Auftrag 4 (Fraktions-IDs) |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | Merge `49e14ad` | Raumkampf `claude/raumkampf-modul` (`49e14ad`) | ohne Konflikte; es fehlte nur ein Doku-Commit, Code identisch mit dem getesteten Stand, keine eigenen Tests. 6 Seiten und 6 Schiffstypen der neuen Fraktionen, `sim_space -- N fraktionen`; Siege neu 79–90 / 56–73 / 35–50 %. |
 | 19.10.2026 | `1e02e7d` | Bodenkampf `claude/confident-edison-6mxzke` (`41054e5`) | ohne Konflikte; Branch ohne den Story-Merge → Koordinator: `test_rules`, `test_hub`, `test_story` OK, `test_sim -- 10` 8 Siege / 0 hängengeblieben. Entern-Briefing mit „Ausrüstung“, Entern nicht absagbar; Story-Fraktionen `stille_hand`, `wacht_klingen`, `wacht_hirten`, `abteilung_9`. Neu: Meldung `resized already connected` (BriefingDialog) → Auftrag 4. |
 | 19.10.2026 | `48af1ac` | Story `claude/zen-sagan-9yn0le` (`f81f07f`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Generator `core/story_gen.gd`, Kapitel 1, 8 Vorlagen, Raten, Rückschläge, Bildliste `docs/Story_Bilder.md`; je eine Zeile in `tests/test_hub.gd` und `tests/autotest_hub.gd`. Fraktions-IDs passen nicht zum Bodenkampf → Story Auftrag 4. |
 | 19.10.2026 | `53b08c6` | Raumkampf `claude/raumkampf-modul` (`66ae2b0`) | nur Doku: Fehlermeldung Entern-Briefing → Bodenkampf Auftrag 2. |
