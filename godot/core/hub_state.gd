@@ -997,7 +997,7 @@ func story_map(m: Dictionary) -> String:
 	if id != "" and MapTypes.TYPES.has(StringName(id)):
 		return id
 	var e: Dictionary = story_engine().state.chains.get(String(m.get("chain", "")), {})
-	var sp := story_place(e.get("place", -1))
+	var sp := story_place(m.get("loc", e.get("place", -1)), cur_sector)
 	if int(sp.sector) == cur_sector and int(sp.system) == position and int(sp.place) >= 0:
 		var pl: Array = sector.systems[position].get("places", [])
 		if int(sp.place) < pl.size() and Places.has_ground(String(pl[int(sp.place)].kind)):
@@ -1006,29 +1006,33 @@ func story_map(m: Dictionary) -> String:
 
 
 ## Story-Ort in einheitlicher Form {sector, system, place} (Hub Auftrag 3 / Story Auftrag 5). Neue Form: Dictionary;
-## alte Form: Systemnummer (gilt als Sektor 0, ohne Ort). system < 0 = kein Ort.
-static func story_place(v: Variant) -> Dictionary:
+## alte Form: Systemnummer (gilt im Sektor cur, ohne Ort). system < 0 = kein Ort ({} = überall).
+static func story_place(v: Variant, cur := 0) -> Dictionary:
 	if v is Dictionary:
-		return {"sector": int(v.get("sector", 0)), "system": int(v.get("system", -1)), "place": int(v.get("place", -1))}
-	return {"sector": 0, "system": int(v) if v != null else -1, "place": -1}
+		return {"sector": int(v.get("sector", cur)), "system": int(v.get("system", -1)), "place": int(v.get("place", -1))}
+	return {"sector": cur, "system": int(v) if v != null else -1, "place": -1}
 
 
 ## Story-Orte im aktuellen Sektor: [{system, place, chain, title}]; Orte in anderen Sektoren zeigt nur das Logbuch
 func story_markers() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for m in story_engine().markers():
-		var sp := story_place(m) if m.has("sector") else story_place(m.get("system", -1))
+		var sp := story_place(m, cur_sector)
 		if int(sp.sector) == cur_sector and int(sp.system) >= 0 and int(sp.system) < sector.systems.size():
 			out.append({"system": int(sp.system), "place": int(sp.place), "chain": String(m.get("chain", "")), "title": String(m.get("title", ""))})
 	return out
 
 
-## Ankunft für die Story: on_arrive(sector, system), solange die Story noch die alte Form hat on_arrive(system)
+## Ankunft im System für die Story (startet Ketten für das ganze System, Kopfgeldjäger, Schmuggel)
 func story_arrive() -> String:
-	var st := story_engine()
-	if st.get_method_argument_count("on_arrive") >= 2:
-		return st.call("on_arrive", cur_sector, position)
-	return st.call("on_arrive", position)
+	return story_engine().on_arrive(cur_sector, position)
+
+
+## Ort im aktuellen System anfliegen (Hub Auftrag 4, ohne Zeit): startet eine Story-Kette an diesem Ort. Gibt sie zurück oder "".
+func visit_place(index: int) -> String:
+	if Places.place(self, index).is_empty():
+		return ""
+	return story_engine().on_visit(cur_sector, position, index)
 
 
 ## Zahl der erreichten Sektoren (Story-Schlüssel „sectors“)

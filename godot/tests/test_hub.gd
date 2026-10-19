@@ -623,6 +623,10 @@ func _test_auftrag3() -> void:
 	check(g.story_markers().is_empty(), "Story-Ort eines anderen Sektors nicht auf der Karte")
 	g.cur_sector = 0
 	g.sector = g.sectors[0]
+	# Ort anfliegen (Auftrag 4): Kette am Ort startet erst beim Anfliegen, nicht bei der Ankunft im System
+	st.state.chains["test_ort"].place = {"sector": 0, "system": g.position, "place": 0}
+	check(g.story_arrive() != "test_ort" and st.at_place(0, g.position, 0).size() == 1, "Story-Ort am Ort: Ankunft im System startet nichts")
+	check(g.visit_place(1) == "" and g.visit_place(0) == "test_ort" and st.state.status("test_ort") == "aktiv", "Ort anfliegen startet die Kette")
 	# Kartenart: Feld map der Vorlage, sonst Ort, sonst zufällig
 	check(g.story_map({"map": "tempel"}) == "tempel" and g.story_map({"map": "gibtsnicht"}) == "", "Story-Karte aus der Vorlage")
 	st.state.chains["test_kette"] = {"status": "wartet", "scene": "start", "place": {"sector": 0, "system": g.position, "place": 0}}
