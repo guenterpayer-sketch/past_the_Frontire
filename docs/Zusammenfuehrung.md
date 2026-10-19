@@ -11,7 +11,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`c1a2dcb`), offen: Auftrag 5 (Farbe Eisenwölfe) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`acca5e7`), offen: Auftrag 3 (Restpunkte, Story-Orte) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`0025654`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`0bd2388`), offen: Auftrag 5 (Story-Orte mit Sektor) |
 
@@ -19,6 +19,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | Merge `0025654` | Hub `claude/happy-lamport-u4fvya` (`0025654`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). `loot_extra`, Lohn neuer Fraktionen, Story-Fraktionen ohne Lohn, Entern/Abwehr nicht absagbar (`boarding_active`), Kartenart für Story-Einsätze, gefangene Crew gesperrt, `sectors_reached()`, Story-Orte `{sector, system, place}`. Kleine Änderung in `core/campaign.gd` (Charakter, mit Zustimmung des Nutzers). |
 | 19.10.2026 | Merge `acca5e7` | Hub `claude/happy-lamport-u4fvya` (`acca5e7`) | ohne Konflikte (Hub hatte sie in seinem Branch gelöst); 14 Commits aus `main` fehlten → Koordinator: `test_rules`, `test_hub`, `test_story`, `test_space` OK, `test_sim -- 10` 8 Siege / 0 hängengeblieben. Sektorkarte: 3 Sektoren, 15–20 Systeme mit Orten, Systemansicht, Sprungtore, Papiere, alte Spielstände veraltet. Prompt-Punkte (`loot_extra`, `PAY_FACTOR`, `abort_mission`) nicht umgesetzt → Hub Auftrag 3. |
 | 19.10.2026 | Merge `0bd2388` | Story `claude/zen-sagan-9yn0le` (`0bd2388`) | ohne Konflikte; Branch ohne den letzten Bodenkampf-Merge → Koordinator: `test_rules`, `test_hub`, `test_story` OK. Fraktions-IDs wie im Bodenkampf, Test `_test_faction_ids`, Hirten als seltene Gegner (Flag `hirten_feind`). |
 | 19.10.2026 | Merge `c1a2dcb` | Bodenkampf `claude/confident-edison-6mxzke` (`c1a2dcb`) | ohne Konflikte; Branch ohne Raumkampf-Merge → Koordinator: `test_rules`, `test_hub`, `test_space` OK, Warnung `resized already connected` weg (kam aus dem Briefing-Test, nicht aus dem Spiel). Story-Fraktionen per Simulation abgestimmt. |
