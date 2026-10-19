@@ -20,6 +20,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | Merge `00ace7c` | Export `claude/inspiring-hypatia-5l2tq8` (`00ace7c`) | nur Doku: Moduldatei `docs/module/export.md` mit Touch-Wünschen (6 Punkte), Verteilung folgt. |
 | 19.10.2026 | Merge `697e182` | Export `claude/inspiring-hypatia-5l2tq8` (`697e182`) | ohne Konflikte; nur neue Dateien (`godot/assets/icon/`, Lizenzeintrag, Zeile in `godot/README.md`), kein Code, keine Tests. App-Icon für den Android-Export; in `project.godot` nicht eingetragen (Export-Einstellung im Editor). |
 | 19.10.2026 | Merge `77608b1` | Hub `claude/happy-lamport-u4fvya` (`77608b1`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Enzyklopädie: Fraktionen (auch Story), Gegnertypen, Gruppe Reise (Orte, Sektoren, Tore). |
 | 19.10.2026 | Merge `45e5177` | Hub `claude/happy-lamport-u4fvya` (`45e5177`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Orte anfliegen ruft `Story.on_visit`, Story-Orte am Ort in der Systemansicht (`at_place`). |
