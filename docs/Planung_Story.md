@@ -93,14 +93,14 @@ Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul ändert kei
 
 | Was | Story-Seite (gebaut) | Hub-Seite (Auftrag) |
 |---|---|---|
-| Speicherstand | `StoryState.to_dict()` / `StoryState.from_dict(d)`, neues Spiel: `StoryState.create()` | Feld `HubState.story: Dictionary` in `to_dict`/`from_dict`, beim neuen Spiel `StoryState.create().to_dict()`. **Stub:** `Story.for_game(g)` hält den Zustand bis dahin nur im Speicher (je Slot). |
+| Speicherstand | `StoryState.to_dict()` / `StoryState.from_dict(d)`, neues Spiel: `StoryState.create()` | **gebaut** (`main` `6aebcfb`): `HubState.story`, `HubState.story_engine()` hält das Story-Objekt. Der frühere Stub `Story.for_game` ist entfernt. |
 | Story-Objekt | `Story.create(state, game)`; `crew()` = `Voyage.available(game)`, `today()` = `game.day` | ein `Story` je Spiel erzeugen und `HubState.story` beim Speichern zurückschreiben |
 | Auftragsliste | `Story.offers()` → `[{chain, title, kind}]`, ohne Zeitlimit; Annehmen = `start(chain)` und `StoryDialog.show_on(parent, story, chain)` | markiert in der Auftragsliste (Brücke), ohne Ablauf |
 | Sternenkarte | `Story.markers()` → `[{system, chain, title}]`; `Story.on_arrive(system)` → Kette oder "" | Marker zeichnen; bei Ankunft aufrufen und ggf. das Szenenfenster öffnen |
 | Reise | `Story.travel_event(rng)` → Kette oder "" (Chance `TRAVEL_CHANCE` je Tag) | in `_travel` je Reisetag neben dem Feindkontakt |
 | Raumhafen | `Story.contacts()` → `[{chain, title}]` | Bereich „Kontakte“; Ansprechen = `start(chain)` + Szenenfenster |
 | Tagesende | `Story.on_day()` → Ketten mit verpasster Frist (Rückschlag-Szene ist dann aktiv) | nach `advance_days` aufrufen, Szenenfenster öffnen |
-| Ressourcen | `Story.add_resource(feld, n)`; **Stub:** schreibt direkt in `HubState.credits/material/provisions/fuel` (nicht unter 0) | auf Wunsch `HubState.apply_story(effects)`, damit die Regeln im Hub bleiben |
+| Ressourcen | `Story.add_resource(feld, n)` → tatsächliche Änderung; im Spiel über `HubState.apply_story({feld: n})` | **gebaut**: Credits dürfen unter 0, Material und Proviant nicht, Treibstoff 0 bis Tankgröße |
 | Logbuch | `StoryLog.show_on(parent, story)` | Knopf auf der Brücke und im Burgermenü |
 | Sektorkarte | Story-Orte zurzeit ein ganzes System (`_pick_place`, Stub) | Umbau in `core/sector.gd` und der Sternenkarte: 15–20 Systeme, 2–4 Orte je System, besser vernetzt, mehrere Sektoren mit Sprungtoren (Nutzungsgebühr, Erlaubnis, Rückreise). Danach Story-Orte als Ort im System. |
 

@@ -18,6 +18,7 @@
 - (19.10.2026) Moduldatei angelegt.
 - (19.10.2026) Auftrag 1 erledigt: Entscheidungen des Nutzers und Planung in `docs/Planung_Story.md`, offene Punkte dort. Nichts gebaut.
 - (19.10.2026) Auftrag 2 erledigt: offene Punkte geklärt, Mockup abgenommen, gebaut: `core/story.gd`, `core/story_state.gd`, `core/story_data.gd`, `ui/story_dialog.gd`, `ui/story_log.gd`, `data/story/` (Bausteine, Test-Ketten), `tests/test_story.gd`, Demo `tests/story_demo.tscn`. Fremde Datei geändert: nur `godot/README.md` (Einträge Aufbau und Tests). Noch nicht im Hub angebunden.
+- (19.10.2026) Auftrag 3, Hub-Punkt erledigt: `Story.add_resource` nutzt `HubState.apply_story` (gibt die tatsächliche Änderung zurück), Stub `Story.for_game` entfernt, Tests angepasst.
 
 ## Hinweise und Bitte an den Koordinator
 

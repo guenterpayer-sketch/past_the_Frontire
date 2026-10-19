@@ -175,10 +175,15 @@ func _test_places_and_hooks() -> void:
 	var c0 := g.credits
 	gs.add_resource("credits", 100)
 	check(g.credits == c0 + 100 and gs.today() == g.day, "mit Spielstand: Credits und Tag aus dem Hub")
+	check(gs.add_resource("credits", -(c0 + 300)) == -(c0 + 300) and g.credits == -200, "Credits dürfen unter 0 (HubState.apply_story)")
+	g.material = 1
+	check(gs.add_resource("material", -3) == -1 and g.material == 0, "Material nicht unter 0, tatsächliche Änderung zurück")
+	g.fuel = 0
+	check(gs.add_resource("fuel", 10000) == g.tank_max() and g.fuel == g.tank_max(), "Treibstoff höchstens Tankgröße")
 	gs.reveal("test_ort")
 	var p := int(gs.state.chains.test_ort.place)
 	check(p >= 0 and p < g.sector.systems.size() and p != g.position, "Story-Ort im Sektor, nicht am Standort")
-	check(Story.for_game(g).state == Story.for_game(g).state, "Stub-Zustand je Spielstand")
+	check(g.story_engine() == g.story_engine() and g.story_engine().game == g, "HubState.story_engine() hält ein Story-Objekt je Spiel")
 
 
 func _test_save() -> void:

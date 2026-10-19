@@ -3,7 +3,7 @@ extends RefCounted
 ## Story-Engine ohne Grafik: Szenen mit Wahl, Proben, Bedingungen, Folgen, Kampagnenziele, Logbuch.
 ## Daten: StoryData (data/story/*.json), Fortschritt: StoryState. Planung: docs/Planung_Story.md.
 ## Anbindung an den Hub über die Einhängepunkte unten (offers, on_arrive, travel_event, contacts, on_day,
-## pending_mission/mission_done, markers). Solange HubState.story fehlt, hält for_game() den Zustand als Stub.
+## pending_mission/mission_done, markers). Im Spiel hält HubState.story_engine() das Story-Objekt, der Zustand liegt in HubState.story.
 
 ## Ressourcen, die Folgen und Bedingungen ändern bzw. prüfen dürfen (Feldnamen in HubState)
 const RESOURCES := ["credits", "material", "provisions", "fuel"]
@@ -25,23 +25,12 @@ var day := 1
 ## Tests: feste Reise-Auslösung (-1 = würfeln, 0 = nie, 1 = immer)
 static var fixed_travel := -1
 
-## Stub bis HubState.story existiert: Zustand je Spielstand (Schlüssel: Slot)
-static var _stub_states := {}
-
 
 static func create(st: StoryState = null, g: HubState = null) -> Story:
 	var s := Story.new()
 	s.state = st if st != null else StoryState.create()
 	s.game = g
 	return s
-
-
-## Story zum laufenden Spiel. Stub: Zustand liegt bis zur Hub-Anbindung im Speicher, nicht im Spielstand.
-static func for_game(g: HubState) -> Story:
-	var key := g.slot if g != null else 0
-	if not _stub_states.has(key):
-		_stub_states[key] = StoryState.create()
-	return create(_stub_states[key], g)
 
 
 # ---------------------------------------------------------------- Umgebung
@@ -64,12 +53,14 @@ func resource(key: String) -> int:
 	return int(res.get(key, 0))
 
 
-func add_resource(key: String, n: int) -> void:
+## Ressource ändern; gibt die tatsächliche Änderung zurück. Im Spiel nach den Regeln des Hubs (HubState.apply_story:
+## Credits dürfen unter 0, Material und Proviant nicht, Treibstoff 0 bis Tankgröße), ohne Spielstand nicht unter 0.
+func add_resource(key: String, n: int) -> int:
 	if game != null:
-		# Stub: direkt ins Feld; später über HubState.apply_story (Regeln bleiben im Hub)
-		game.set(key, maxi(0, int(game.get(key)) + n))
-	else:
-		res[key] = maxi(0, int(res.get(key, 0)) + n)
+		return int(game.apply_story({key: n}).get(key, 0))
+	var v0 := int(res.get(key, 0))
+	res[key] = maxi(0, v0 + n)
+	return int(res[key]) - v0
 
 
 # ---------------------------------------------------------------- Ketten
@@ -244,8 +235,9 @@ func _apply(chain_id: String, effects: Array, out: Dictionary) -> void:
 		else:
 			for k in RESOURCES:
 				if e.has(k):
-					add_resource(k, int(e[k]))
-					out.effects.append("%+d %s" % [int(e[k]), RESOURCE_NAMES[k]])
+					var d := add_resource(k, int(e[k]))
+					if d != 0:
+						out.effects.append("%+d %s" % [d, RESOURCE_NAMES[k]])
 
 
 ## Ziel ändern: add (Fortschritt), target (Ziel erhöhen, z. B. Strafzins), due (Frist verschieben), done
