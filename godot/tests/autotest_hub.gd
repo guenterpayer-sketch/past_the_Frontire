@@ -397,6 +397,23 @@ func _run() -> void:
 	await _frames(10)
 	print("gewählt: %s (Auftrag im System: %s)" % [g.sector.systems[sm.selected].name, sm.selected_offer])
 	await _shot("h4_sternenkarte")
+	# Story (Auftrag 1): Story-Einsatz und Story-Ort in der Sternenkarte, Logbuch
+	var stg := g.story_engine()
+	stg.reveal("test_ort")
+	stg.state.chains["test_kette"] = {"status": "wartet", "scene": "hafen", "place": -1}
+	stg.state.mission = {"chain": "test_kette", "kind": "boden", "title": "Schlägerei an der Schleuse", "difficulty": "leicht",
+		"sieg": "ende", "niederlage": "pfaendung", "rueckzug": "hafen"}
+	sm.refresh()
+	await _frames(5)
+	await _shot("h4s_story_karte")
+	await _click_button(sm, "Logbuch")
+	await _frames(5)
+	await _shot("h4t_story_logbuch")
+	hub.ui.close_dialogs()
+	stg.state.mission = {}
+	stg.state.chains.erase("test_kette")
+	stg.state.chains.erase("test_ort")
+	sm.refresh()
 	# Auftragsarten (Mockup Bildschirm 41): vorübergehend drei Aufträge anderer Art im gewählten System
 	var extra := []
 	var esc_t := SpaceEvents.escort_target(g, sm.selected)

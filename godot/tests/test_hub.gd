@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_gear()
 	_test_ammo()
 	_test_encyclopedia()
+	_test_story_hub()
 	_test_gear_models()
 	_test_training()
 	_test_upgrades()
@@ -497,6 +498,68 @@ func _test_ammo() -> void:
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)
 	Campaign.reload()
+
+
+## Story-Anbindung (Auftrag 1, Entscheidungen des Nutzers 19.10.2026)
+func _test_story_hub() -> void:
+	var g := HubState.new_game(11)
+	check(not g.story.is_empty() and g.story_engine().game == g, "Story: neues Spiel mit Story-Zustand und Story-Objekt")
+	var old := g.to_dict()
+	old.erase("story")
+	check(not HubState.from_dict(old).story.is_empty(), "Story: alter Spielstand ohne Feld lädt")
+	# Ressourcen nach den Regeln des Hubs
+	g.credits = 100
+	g.material = 2
+	g.fuel = g.tank_max() - 5
+	var ch := g.apply_story({"credits": -150, "material": -5, "fuel": 20})
+	check(g.credits == -50 and g.material == 0 and g.fuel == g.tank_max() and ch.material == -2 and ch.fuel == 5, "apply_story: Credits unter 0, Material ab 0, Tank bis voll")
+	# Story-Ort: Ankunft öffnet die Kette (Szenenfenster vorgemerkt), im Spielstand
+	var st := g.story_engine()
+	st.reveal("test_ort")
+	var place := int(st.state.chains.test_ort.place)
+	check(place >= 0 and st.markers().size() == 1, "Story-Ort auf der Karte")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(int(h.story_engine().state.chains.test_ort.place) == place, "Story-Zustand im Spielstand")
+	g.position = place
+	g.queue_story(g.story_engine().on_arrive(place))
+	check(g.story_queue == ["test_ort"] and st.state.status("test_ort") == "aktiv", "Ankunft am Story-Ort: Szenenfenster vorgemerkt")
+	g.story_queue = []
+	# Frist verpasst → Rückschlag-Szene am Tagesende
+	st.state.chains["test_kette"] = {"status": "aktiv", "scene": "start", "place": -1}
+	st.state.goals["frist"] = {"name": "Frist", "chain": "test_kette", "value": 0, "target": 1, "due": g.day, "fail": "pfaendung", "done": false}
+	g.wait_days(1)
+	check("test_kette" in g.story_queue and st.current_scene_id("test_kette") == "pfaendung", "Tagesende: verpasste Frist öffnet die Rückschlag-Szene")
+	g.story_queue = []
+	# Story-Einsatz am Boden: Angebot, kein Lohn, Beuteauswahl, Folgeszene
+	st.state.chains["test_kette"] = {"status": "wartet", "scene": "start", "place": -1}
+	st.state.mission = {"chain": "test_kette", "kind": "boden", "title": "Schlägerei an der Schleuse", "difficulty": "leicht",
+		"sieg": "ende", "niederlage": "pfaendung", "rueckzug": "hafen"}
+	check(g.start_story_mission() == "ground" and g.active.story and g.mission_of(g.active).title == "Schlägerei an der Schleuse", "Story-Einsatz: Bodenkampf mit Story-Titel")
+	var cr := g.credits
+	g.loot_pending = {}
+	Campaign.last_result = {"outcome": &"sieg", "units": {"a": {}}, "loot": [{"key": "res://data/weapons/sturmgewehr.tres", "damage": 0}]}
+	g.finish_mission({"outcome": &"sieg"})
+	check(g.credits == cr and g.report.story and g.loot_pending.items.size() == 1 and g.story_queue == ["test_kette"]
+		and st.current_scene_id("test_kette") == "ende" and g.story_mission().is_empty(), "Story-Einsatz gewonnen: kein Lohn, Beuteauswahl, Folgeszene")
+	g.loot_pending = {}
+	g.story_queue = []
+	# Raum: Rückzug; Blockade: Sieg → Bodenkampf
+	var res := {"outcome": &"niederlage", "retreated": true, "surrendered": false, "ransom": {}, "boarding": false, "units": {}}
+	st.state.chains["test_kette"] = {"status": "wartet", "scene": "start", "place": -1}
+	st.state.mission = {"chain": "test_kette", "kind": "raum", "title": "Jagd", "difficulty": "mittel", "sieg": "ende", "rueckzug": "hafen"}
+	check(g.start_story_mission() == "space" and g.space_ctx.kind == "story", "Story-Einsatz im All: Raumkampf")
+	g.finish_space(res)
+	check(g.story_queue == ["test_kette"] and st.current_scene_id("test_kette") == "hafen", "Raum-Story: Rückzug → Folgeszene")
+	g.story_queue = []
+	st.state.chains["test_kette"] = {"status": "wartet", "scene": "start", "place": -1}
+	st.state.mission = {"chain": "test_kette", "kind": "blockade", "title": "Sperre", "difficulty": "mittel", "sieg": "ende"}
+	g.start_story_mission()
+	res.outcome = &"sieg"
+	res.retreated = false
+	check(g.finish_space(res) == "ground" and g.active.story and g.story_queue.is_empty(), "Story-Blockade gewonnen: Bodenkampf folgt")
+	g.active = {}
+	Campaign.last_result = {}
+	HubState.game = null
 
 
 func _test_encyclopedia() -> void:
