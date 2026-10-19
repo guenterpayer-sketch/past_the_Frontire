@@ -22,8 +22,7 @@
 
 ## Stand
 
-- Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Danach (`16ac931`): Wände sperren Sicht und Druckwelle immer. Danach (`7f95a11`): **Karteneditor** (`map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, Startmenü „Karteneditor“, Draufsicht/3D, eigene Karten in `user://maps/`, je Karte an/aus, Pool-Chance 30 %; Schnittstellen `Mission.custom_map`, `CustomMaps.for_mission`). Danach (`514a72b`): Startausrichtung zum Gegner in allen Lagen, neue Lage „Überfall“ (Gegner in der Mitte, schauen weg, handeln in Runde 1 nicht). Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
-- Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
+- Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/bodenkampf_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
 
 ## Aufträge vom Koordinator
 
