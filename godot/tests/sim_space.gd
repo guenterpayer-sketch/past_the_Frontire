@@ -2,6 +2,7 @@ extends SceneTree
 ## Simulation Raumkampf, KI gegen KI (Crew-Seite = Vorschlag der Bord-KI, Startschiff, Startcrew aus dem Roster):
 ##   godot --headless --path godot --script res://tests/sim_space.gd -- 60          Kämpfe je Schwierigkeit
 ##   godot --headless --path godot --script res://tests/sim_space.gd -- 40 waffen   Wirkung je Schiffswaffe
+##   godot --headless --path godot --script res://tests/sim_space.gd -- 60 fraktionen   Siege je Gegnerseite und Schwierigkeit
 ## Ziele des Nutzers (17.10.2026, docs/Planung_Raumkampf.md 1c): Sieg 90/70/45 %, 8–12 Runden, Flucht < 10 %.
 
 const DIFFS := ["leicht", "mittel", "schwer"]
@@ -16,6 +17,8 @@ func _init() -> void:
 		_weapons(n)
 	elif "ep" in args:
 		_xp(n)
+	elif "fraktionen" in args:
+		_by_faction(n)
 	else:
 		_battles(n)
 	quit()
@@ -146,6 +149,25 @@ func _xp(n: int) -> void:
 		var r: Dictionary = sum[key]
 		print("%-20s | %4d | %5.1f | %3d | %4.2f" % [key, r.n, float(r.xp) / r.n, r.max, float(r.xp) / maxi(1, r.rounds)])
 	print("je Figur (alle Stationen zusammen): Ø %.1f EP, höchstens %d" % [float(per_char.sum) / per_char.n, per_char.max])
+
+
+## Siege je Gegnerseite (n Kämpfe je Seite und Schwierigkeit), Ziel wie GOAL
+func _by_faction(n: int) -> void:
+	print("Seite | leicht | mittel | schwer | Runden Ø")
+	var only := Array(OS.get_cmdline_user_args()).filter(func(a): return a in _factions())
+	for f in (only if not only.is_empty() else _factions()):
+		var line := "%-16s" % f
+		var rounds := 0
+		for d in DIFFS:
+			var win := 0
+			for i in n:
+				var c := SpaceCombat.new(_setup(d, f), 1000 * DIFFS.find(d) + i)
+				c.run_auto()
+				rounds += mini(c.round_no, SpaceCombat.MAX_ROUNDS)
+				if c.result == &"sieg":
+					win += 1
+			line += " | %3d %%" % _pct(win, n)
+		print("%s | %4.1f" % [line, float(rounds) / (3 * n)])
 
 
 func _pct(a: int, b: int) -> int:

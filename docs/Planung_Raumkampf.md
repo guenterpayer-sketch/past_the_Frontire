@@ -115,6 +115,23 @@ Meldung des Nutzers: nie selbst geentert, nie geentert worden. **Messung vorher*
 
 **Messung nachher:** selbst entern möglich in **35 / 49 / 49 %** der Kämpfe (davon erst als Wrack 9 / 18 / 13 %); Gegner können entern in **13 / 47 / 68 %** der Kämpfe gegen enternde Seiten. In der Simulation (Crew-KI entert immer, wenn möglich) endeten **30–34 / 62–65 / 79–83 %** der Siege mit Andocken; Siegquoten 91 / 67–78 / 47–55 % – dabei zählt ein gelungenes Andocken als Sieg, der Bodenkampf an Bord ist nicht mitgerechnet.
 
+## 1f. Seiten der neuen Fraktionen (Auftrag 6, 19.10.2026)
+
+Entscheidungen des Nutzers: eigene Seiten in `data/ships/seiten/` für `semidrug`, `eisenwoelfe`, `schwarze_flagge`, `aasgeier`, `neuntes_haus`, `kinder_der_glut`; **kein** neues Eigenheit-Feld, die Eigenheiten vom Boden (`docs/Skillsystem.md` 7.4) werden sinngemäß über die vorhandenen Felder und **einen eigenen Schiffstyp je Fraktion** (Abwandlung der Korvette) übertragen; Ziel wie bisher (etwa 90/70/45 %). Aufstellungen = Standardaufstellungen mit dem eigenen Typ statt der Korvette (Fregatte, Kreuzer, Jäger gemeinsam).
+
+| Seite | Niederlage / Lösegeld / Flucht | Schiffstyp: Abweichung von der Korvette (nach Abstimmung) |
+|---|---|---|
+| Semidrug Inc. | abziehen / 800 / nie | Semidrug-Korvette: Initiative 8 (+2), Laserbank + Partikelkanone, Besatzung 26 (+1) |
+| Eisenwölfe | entern / 600 / 20 % | Wolfskorvette: Hülle 77 (+10 %), Massebeschleuniger statt Laserbank, Besatzung 21 (−4) |
+| Schwarze Flagge | entern / 400 / 25 % | Enterkorvette: Tempo 4/5 (+1) |
+| Aasgeier | entern / 300 / 35 % | Aasgeier-Korvette: Besatzung 20 (−5), Hülle 63 (−10 %), Material 4 (+1); je Aufstellung ein Jäger mehr |
+| Das Neunte Haus | entern / 500 / 35 % | Schattenkorvette: VW 7 (+2), Besatzung 26 (+1), Credits 400 |
+| Kinder der Glut | entern / 0 / nie | Glutkorvette: Partikelkanone statt Laserbank, Besatzung 23 (−2) |
+
+Änderungen beim Abstimmen (Startwerte siehe Vorschlag im Chat): Wolfskorvette Besatzung 25 → 21 und Flucht 10 → 20 %, Glutkorvette Besatzung 30 → 23, Schattenkorvette VW 10 → 7 und Besatzung 30 → 26, Semidrug Besatzung 25 → 26, Enterkorvette Drehungen 3 → 2.
+
+Messung (`tests/sim_space.gd -- 100 fraktionen`, neu: Siege je Seite) nach der Abstimmung, Sieg leicht/mittel/schwer: Semidrug 79/69/45, Eisenwölfe 88/56/35, Schwarze Flagge 88/65/42, Aasgeier 85/73/40, Neuntes Haus 88/66/50, Kinder der Glut 90/66/40; zum Vergleich die alten Seiten 87–93 / 58–72 / 39–48 (Drohnen 100/97/59). Die Werte schwanken zwischen Läufen um etwa ±7 Punkte (Würfelfolge hängt von der Reihenfolge der Kämpfe ab; Eisenwölfe mittel z. B. 56–67 % bei gleichen Werten). Die neuen Seiten liegen damit in der Streuung der alten.
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
