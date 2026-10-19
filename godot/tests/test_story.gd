@@ -178,7 +178,9 @@ func _test_places_and_hooks() -> void:
 	check(s.markers().size() == 1 and s.markers()[0].system == 3, "Story-Ort auf der Karte")
 	check(s.on_arrive(2) == "" and s.on_arrive(3) == "test_ort", "Ankunft am Story-Ort startet die Kette")
 	check(s.state.status("test_ort") == "aktiv" and s.markers().is_empty(), "Marker weg, Kette aktiv")
+	Story.fixed_travel = 0
 	check(s.travel_event() == "" and s.contacts().is_empty(), "keine Reise-/Kontakt-Ketten in den Testdaten")
+	Story.fixed_travel = -1
 	var g := HubState.new_game(4711, "Test", 0)
 	var gs := Story.create(null, g)
 	gs.crew_override = [_crew_member("Mara", 8)]

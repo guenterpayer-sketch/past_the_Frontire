@@ -11,7 +11,7 @@ const GEGNER := {
 	"abteilung9": {"name": "Abteilung 9", "id": "abteilung9", "fallback": "konzern"},
 	"klingen": {"name": "den Klingen der Wacht", "id": "seraph", "fallback": "leeres_licht"},
 	"hand": {"name": "Angeheuerten der Stillen Hand", "id": "stille_hand", "fallback": "rote_sonne"},
-	"pluenderer": {"name": "Plünderern", "id": "pluenderer", "fallback": "schmuggler"},
+	"pluenderer": {"name": "Plünderern", "id": "aasgeier", "fallback": "schmuggler"},
 }
 ## Leute des Gläubigers je Baustein „glaeubiger“
 const GLAEUBIGER_GEGNER := {"syndikat": "schmuggler", "bank": "konzern", "person": "rote_sonne"}
@@ -32,7 +32,7 @@ static func step(story: Story, frame: String) -> String:
 	var steps: Array = f.get("steps", [])
 	if steps.is_empty():
 		return ""
-	return make(story, String(steps[randi_range(0, steps.size() - 1)]), {"frame": frame})
+	return make(story, String(steps[story.rng.randi_range(0, steps.size() - 1)]), {"frame": frame})
 
 
 ## Kette aus einer Vorlage erzeugen. extra: frame, rescue/rescue_name (Befreiung eines Crewmitglieds), place (System),
@@ -55,7 +55,7 @@ static func make(story: Story, template_id: String, extra := {}) -> String:
 	if not outs.is_empty():
 		var keys := outs.keys()
 		keys.sort()
-		var pick: String = keys[randi_range(0, keys.size() - 1)]
+		var pick: String = keys[story.rng.randi_range(0, keys.size() - 1)]
 		c.ausgang = pick
 		c.scenes.merge(outs[pick].duplicate(true), true)
 	for k in ["frame", "rescue", "rescue_name"]:
@@ -74,7 +74,7 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	for k in werte:
 		var list: Array = werte[k]
 		if not list.is_empty():
-			v[k] = list[randi_range(0, list.size() - 1)]
+			v[k] = list[story.rng.randi_range(0, list.size() - 1)]
 	if extra.has("rescue_name"):
 		var rn := String(extra.rescue_name)
 		v["ziel"] = {"name": rn, "kurz": rn, "titel": rn}
@@ -82,7 +82,7 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	var entries: Array = t.get("einstieg", [])
 	var entry := String(t.get("trigger", "keiner"))
 	if not entries.is_empty():
-		entry = String(entries[randi_range(0, entries.size() - 1)])
+		entry = String(entries[story.rng.randi_range(0, entries.size() - 1)])
 	if extra.get("start", false):
 		entry = "keiner"
 	v.einstieg_typ = entry
@@ -95,7 +95,7 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	if story.game != null and story.game.sector != null:
 		sys_name = String(story.game.sector.systems[place if place >= 0 else story.game.position].name)
 	v.system = sys_name
-	v.kontakt = KONTAKTE[randi_range(0, KONTAKTE.size() - 1)]
+	v.kontakt = KONTAKTE[story.rng.randi_range(0, KONTAKTE.size() - 1)]
 	v.einstieg = String(EINSTIEG.get(entry, "")).replace("{system}", sys_name).replace("{kontakt}", String(v.kontakt))
 	# Gegner
 	var g := String(v.get("gegner", "lokal"))
@@ -122,10 +122,26 @@ static func _gegner(story: Story, g: String, place: int) -> Dictionary:
 	if story.game != null and story.game.sector != null:
 		path = String(story.game.sector.systems[place if place >= 0 else story.game.position].faction)
 	if path == "":
-		var ids := ["konzern", "leeres_licht", "rote_sonne", "schmuggler"]
-		path = "res://data/missions/%s.tres" % ids[randi_range(0, ids.size() - 1)]
+		var ids := _normal_factions()
+		path = "res://data/missions/%s.tres" % ids[story.rng.randi_range(0, ids.size() - 1)]
 	var f := load(path) as FactionData if ResourceLoader.exists(path) else null
 	return {"name": f.name if f != null else "Bewaffnete", "id": path.get_file().get_basename()}
+
+
+## alle Missionsfraktionen außer denen der Oberart „story“ (Kennung = Dateiname)
+static func _normal_factions() -> Array[String]:
+	var out: Array[String] = []
+	var d := DirAccess.open("res://data/missions")
+	if d != null:
+		for f in d.get_files():
+			var file := f.trim_suffix(".remap")
+			if file.ends_with(".tres"):
+				var fd := load("res://data/missions/" + file) as FactionData
+				if fd != null and fd.kind != &"story":
+					out.append(file.get_basename())
+	if out.is_empty():
+		out.append("rote_sonne")
+	return out
 
 
 static func _faction_id(id: String, fallback: String) -> String:

@@ -31,6 +31,8 @@ var crew_override: Array[Character] = []
 var res := {"credits": 0, "material": 0, "provisions": 0, "fuel": 0}
 ## Spieltag ohne Spielstand
 var day := 1
+## eigener Zufall der Story, damit sie die Zufallsfolge anderer Module (Hub, Kampf) nicht verschiebt
+var rng := RandomNumberGenerator.new()
 ## Tests: feste Reise-Auslösung (-1 = würfeln, 0 = nie, 1 = immer)
 static var fixed_travel := -1
 ## false = Ketten mit Auslöser „start“ (Kapitel 1) beginnen nicht von selbst (Selbsttests, die keine Szenen wegklicken)
@@ -39,6 +41,7 @@ static var auto_start := true
 
 static func create(st: StoryState = null, g: HubState = null) -> Story:
 	var s := Story.new()
+	s.rng.randomize()
 	s.state = st if st != null else StoryState.create()
 	s.game = g
 	return s
@@ -156,7 +159,7 @@ func scene_of(id: String, sid: String) -> Dictionary:
 func _make_goal(g: Dictionary, chain_id: String) -> void:
 	var target := int(g.get("target", 0))
 	if g.has("target_rand"):
-		target = randi_range(int(g.target_rand[0]), int(g.target_rand[1]))
+		target = rng.randi_range(int(g.target_rand[0]), int(g.target_rand[1]))
 	var every := int(g.get("every", 0))
 	var due := today() + int(g.due_in) if g.has("due_in") else (today() + every if every > 0 else 0)
 	state.goals[String(g.id)] = {"name": String(g.get("name", g.id)), "chain": chain_id, "value": int(g.get("value", 0)),
@@ -358,7 +361,7 @@ func _apply(chain_id: String, effects: Array, out: Dictionary) -> void:
 		elif e.has("item_random"):
 			var keys := item_keys()
 			if not keys.is_empty():
-				var k: String = keys[randi_range(0, keys.size() - 1)]
+				var k: String = keys[rng.randi_range(0, keys.size() - 1)]
 				if item_add(k, -1) != 0:
 					out.effects.append("−1 %s (Lager)" % item_name(k))
 		elif e.has("credits_pct"):
@@ -493,7 +496,7 @@ func _capture(out: Dictionary) -> void:
 	var list := crew()
 	if list.size() <= 1:
 		return
-	var c: Character = list[randi_range(0, list.size() - 1)]
+	var c: Character = list[rng.randi_range(0, list.size() - 1)]
 	state.captured.append(String(c.id))
 	out.effects.append("%s ist gefangen" % c.name)
 	StoryGen.make(self, "befreien", {"rescue": String(c.id), "rescue_name": c.name})
@@ -518,7 +521,7 @@ func pick_harbor() -> int:
 	for i in game.sector.systems.size():
 		if game.is_harbor(i):
 			list.append(i)
-	return list[randi_range(0, list.size() - 1)] if not list.is_empty() else -1
+	return list[rng.randi_range(0, list.size() - 1)] if not list.is_empty() else -1
 
 
 ## Stub: zufälliges System außer dem aktuellen; später Orte im System (Sektorumbau im Hub)
@@ -530,7 +533,7 @@ func _pick_place() -> int:
 	if game == null or game.sector == null:
 		return -1
 	var n := game.sector.systems.size()
-	var i := randi_range(0, n - 1)
+	var i := rng.randi_range(0, n - 1)
 	if i == game.position and n > 1:
 		i = (i + 1) % n
 	return i
@@ -607,7 +610,7 @@ func on_arrive(system: int) -> String:
 		var hid := StoryGen.make(self, "hinterhalt", {"start": true})
 		start(hid)
 		return hid
-	if harbor and not _event_open(HARBOR_EVENTS) and randf() < SMUGGLE_CHANCE:
+	if harbor and not _event_open(HARBOR_EVENTS) and rng.randf() < SMUGGLE_CHANCE:
 		StoryGen.make(self, "schmuggel", {"place": system})
 	return ""
 
@@ -622,10 +625,9 @@ func _event_open(kinds: Array) -> bool:
 
 ## Ein Reisetag: vielleicht löst eine Reise-Kette aus. Gibt die Kette zurück oder "".
 ## Reihenfolge: erzeugte Story-Schritte mit Einstieg „Reise“, geschriebene Reise-Ketten, erzeugte Ereignisketten.
-func travel_event(rng: RandomNumberGenerator = null) -> String:
-	if rng == null:
-		rng = RandomNumberGenerator.new()
-		rng.randomize()
+func travel_event(r: RandomNumberGenerator = null) -> String:
+	if r != null:
+		rng = r
 	if fixed_travel == 0:
 		return ""
 	var ready := _ready_chains("reise")
@@ -692,7 +694,7 @@ func _rate_due(g: Dictionary) -> String:
 	var list: Array = g.get("backlash", [])
 	if list.is_empty():
 		return ""
-	var bid := String(list[randi_range(0, list.size() - 1)])
+	var bid := String(list[rng.randi_range(0, list.size() - 1)])
 	if state.is_open(bid):
 		return ""
 	state.chains.erase(bid)

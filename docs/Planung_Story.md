@@ -98,6 +98,7 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
   - Folgen `item` (`add`/`take`), `item_random`, `credits_pct`, `goal` mit `pay` und `target_pct`, `step`, `step_done`, `step_failed`, `spur`, `capture`, `recruit`.
   - Ziele mit `target_rand`, `rate`/`every`/`backlash`; Ketten mit `repeat`; Dateien mit mehreren Ketten unter `chains`.
   - Gefangene fehlen in `Story.crew()`. Sind die Schulden getilgt, kommen sie frei.
+- **Eigener Zufall:** Die Story würfelt mit einem eigenen Generator (`Story.rng`), damit sie die Zufallsfolge von Hub und Kampf nicht verschiebt.
 - **Häufigkeiten:**
   - Story-Schritt mit Einstieg „Reise“: 45 % je Reisetag.
   - Ereigniskette Wrack oder Passagier: 8 % je Reisetag, wenn keine offen ist.
