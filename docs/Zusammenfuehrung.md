@@ -13,11 +13,13 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`2c531ec`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
+| `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`9cb42f2`), Planung fertig, offene Punkte in `docs/Planung_Story.md` |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | `00c10aa` | Story `claude/zen-sagan-9yn0le` (`9cb42f2`) | ohne Konflikte, enthielt `main`, nur Doku. Planung Story/Kampagne (`docs/Planung_Story.md`): Entscheidungen, Aufbau, Schnittstellen-Vorschlag, offene Punkte. |
 | 19.10.2026 | `1c1ce95` | Bodenkampf `claude/confident-edison-6mxzke` (`514a72b`) | ohne Konflikte; es fehlten nur Doku-Commits, Code identisch mit dem getesteten Stand, keine eigenen Tests. Startausrichtung zum Gegner in allen Startlagen, neue Lage „Überfall“. |
 | 19.10.2026 | `9683d69` | Hub `claude/happy-lamport-u4fvya` (`2c531ec`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Enzyklopädie mit Raumkampf: Schiffswaffen, Gegnerschiffe, Gegnerseiten, Ausbau, Munition, Stationen, Kurzregeln. |
 | 18.10.2026 | `83c5582` | Hub `claude/happy-lamport-u4fvya` (`a9ef9fc`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Hüllenreparatur als Arbeit im Maschinenraum (Knopf in der Sternenkarte entfällt, täglich bis voll, Pause an Reisetagen), schwer Verwundete arbeiten nicht (Arbeit pausiert), Händler ohne Überlauf. |
