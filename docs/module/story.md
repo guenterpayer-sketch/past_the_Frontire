@@ -30,4 +30,6 @@
 
 - Zuerst die drei Story-Fraktionen mit dem Nutzer ausarbeiten (Namen, Oberart, Ziele, wie sie zueinander stehen) und in `docs/Planung_Story.md` eintragen. Der Bodenkampf legt sie dann als Fraktionsdaten an, Auftrag über den Koordinator.
 - Danach Kapitel 1 und die drei Ereignisketten: erst Ablauf und Eckpunkte klären, dann die Szenen als JSON in `data/story/` schreiben. Dazu die Bildliste mit Prompts. Die offenen Punkte 3–5 aus `docs/Planung_Story.md` mitklären.
-- Parallel bindet der Hub die Story an (Hub Auftrag 1) und baut danach die Sektorkarte um (Hub Auftrag 2). Rückfragen dazu über den Nutzer an den Hub-Chat oder den Koordinator.
+- **Vom Hub (Anbindung in `main` `6aebcfb`):** `Story.add_resource` auf `game.apply_story({key: n})` umstellen (Credits dürfen unter 0, Material und Proviant nicht, Tank 0 bis Maximum). Den Stub `Story.for_game` entfernen; der Hub nutzt `HubState.story_engine()`. Die Testketten (`test: true`) wirken im Spiel nicht, echte Ketten fehlen noch.
+- Den Sektorumbau macht der Hub (Hub Auftrag 2). Bis dahin liegen Story-Orte auf ganzen Systemen.
+- Rückfragen zum Hub über den Nutzer an den Hub-Chat oder den Koordinator.
