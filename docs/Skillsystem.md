@@ -536,6 +536,10 @@ Entscheidungen des Nutzers (15.10.2026), umgesetzt im Hub (`godot/core/voyage.gd
 | Leerer Tank | Die laufende Reise endet trotzdem am Ziel (**Notsprit**, kein Verbrauch); danach nur Kurs zum nächsten Hafen; das nächste Tanken kostet das Doppelte |
 | Hülle | 100, zu Beginn voll. Reparaturprobe je Reisetag: Patzer −10, Fehlschlag −5, Teilerfolg ±0, Erfolg +2, Herausragend +4 (höchstens 100) |
 | Hülle 0 | nur Kurs zum nächsten Hafen |
+| Sprungtor (Entscheidungen des Nutzers 19.10.2026) | Gebühr 300–600 Cr (nach Verhandeln), 1 Tag; manche Tore verlangen Papiere des Betreibers (500 Cr nach Verhandeln, nur im Hafen, gelten für alle Tore dieses Betreibers); Rückreise über dasselbe Tor |
+| Station (Ort im System) | Handel wie im Hafen, außerhalb eines Hafens 20 % teurer |
+| Wrack (Ort) | Bergung: 1 Tag, Reparatur (mittel): Teilerfolg +1 Schiffsmaterial, Erfolg +3 Schiffsmaterial und +2 Handwerksmaterial, Herausragend zusätzlich eine beschädigte Schiffswaffe (−20), Patzer −5 Hülle; danach leer |
+| Gasriese, Nebel (Ort) | Treibstoff schöpfen: 1 Tag, Pilot (mittel): Teilerfolg +10, Erfolg +20, Herausragend +30, Patzer −5 Hülle; beliebig oft |
 | Große Reparatur, Werft (Hafen) | +25 Hülle für 1 Schiffsmaterial + 40 Cr |
 | Hülle reparieren, Crew (Arbeit im Maschinenraum, Entscheidungen des Nutzers 18.10.2026) | Figur wählbar, eine Arbeit je Figur; kein Tag beim Anlegen. An jedem Tag ohne Reise 1 Material und eine Reparaturprobe (mittel): Patzer −5, Fehlschlag ±0, Teilerfolg +10, Erfolg +20, Herausragend +40. Läuft bis die Hülle voll ist, das Material fehlt oder sie beendet wird; Reisetage pausieren (dort nur die Reiseprobe) |
 | Schiffsmaterial | zu Beginn 2; 60 Cr im Hafen |

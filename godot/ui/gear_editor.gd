@@ -361,8 +361,10 @@ func _enemy_box() -> Control:
 		draft.set_meta(&"enemy", x)
 		_render_form())
 	v.add_child(on)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
+	# Fraktionsknöpfe umbrechen (seit Bodenkampf Auftrag 1 sind es 14 Fraktionen; nebeneinander lief das Fenster über)
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override("h_separation", 8)
+	row.add_theme_constant_override("v_separation", 6)
 	v.add_child(row)
 	var fs: Array = draft.get_meta(&"factions", [])
 	for f in Mission.all_factions():

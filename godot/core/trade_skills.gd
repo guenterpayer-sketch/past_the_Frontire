@@ -55,8 +55,13 @@ static func roll(g: HubState, skill: StringName, c: Character) -> Dictionary:
 	return out
 
 
+## Kaufpreise: nach Handeln, an einer Station außerhalb eines Hafens 20 % teurer (Places.STATION_FACTOR)
 static func buy_factor(g: HubState) -> float:
-	return BUY[result(g, &"handeln")]
+	return BUY[result(g, &"handeln")] * station_factor(g)
+
+
+static func station_factor(g: HubState) -> float:
+	return Places.STATION_FACTOR if g != null and g.sector != null and not g.is_harbor(g.position) else 1.0
 
 
 static func sell_factor(g: HubState) -> float:
@@ -64,7 +69,7 @@ static func sell_factor(g: HubState) -> float:
 
 
 static func ship_factor(g: HubState) -> float:
-	return BUY[result(g, &"verhandeln")]
+	return BUY[result(g, &"verhandeln")] * station_factor(g)
 
 
 ## Verkauf von Schiffswaffen und Schiffsmunition: Anteil wie beim Handeln, aber nach Verhandeln (Entscheidung 16.10.2026)

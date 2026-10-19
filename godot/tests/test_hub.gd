@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_gear()
 	_test_ammo()
 	_test_encyclopedia()
+	_test_galaxy()
 	_test_story_hub()
 	_test_gear_models()
 	_test_training()
@@ -42,11 +43,82 @@ func _init() -> void:
 	quit(1 if fails else 0)
 
 
+## Mehrere Sektoren, Sprungtore, Papiere, Orte mit Funktion (Auftrag 2, Entscheidungen des Nutzers 19.10.2026)
+func _test_galaxy() -> void:
+	var gal := Sector.galaxy(321)
+	check(gal.size() == Sector.SECTOR_COUNT, "drei Sektoren")
+	for k in gal.size():
+		check(gal[k].gates.size() == 2 and gal[k].gates.all(func(t: Dictionary) -> bool: return int(t.system) != gal[k].home), "Sektor %d: zwei Tore, nicht am Heimathafen" % k)
+		for t in gal[k].gates:
+			var back: Array = gal[int(t.to_sector)].gates.filter(func(x: Dictionary) -> bool: return int(x.to_sector) == k)
+			check(back.size() == 1 and int(back[0].system) == int(t.to_system) and int(back[0].to_system) == int(t.system)
+				and int(t.fee) >= Sector.GATE_FEE[0] and int(t.fee) <= Sector.GATE_FEE[1], "Tor mit Rückweg und Gebühr 300–600")
+	var g := HubState.new_game(321)
+	check(g.sectors.size() == 3 and g.sector == g.sectors[0] and g.known_sectors == [0], "neues Spiel: drei Sektoren, nur der Start bekannt")
+	check(g.offers.all(func(o: Dictionary) -> bool: return int(o.get("place", -1)) >= 0), "Aufträge an einem Ort")
+	var o: Dictionary = g.offers[0]
+	var pk := String(g.sector.systems[int(o.system)].places[int(o.place)].kind)
+	check(g.mission_of(o).map_type in Places.MAPS[pk], "Kartentyp passt zum Ort (%s)" % pk)
+	# alte Spielstände (ein Sektor) gelten als veraltet
+	var old := g.to_dict()
+	old.erase("sectors")
+	old["sector"] = g.sector.to_dict()
+	check(HubState.outdated(old) and not HubState.outdated(g.to_dict()), "alter Spielstand veraltet")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.sectors.size() == 3 and h.sector.to_dict() == g.sector.to_dict() and h.sectors[2].gates.size() == 2, "Sektoren im Spielstand")
+	# Sprung: Papiere, Gebühr, neuer Sektor
+	var gate: Dictionary = g.sector.gates[0]
+	gate.papers = true
+	gate.operator = Mission.all_factions()[0].resource_path
+	check(g.jump_block(gate) != "", "Sprung nur im System des Tors")
+	g.position = int(gate.system)
+	g.credits = 2000
+	check(g.jump_block(gate).begins_with("Papiere"), "Tor verlangt Papiere")
+	g.papers.append(String(gate.operator))
+	var fee := g.gate_fee(gate)
+	var d0 := g.day
+	check(g.jump(gate) and g.cur_sector == int(gate.to_sector) and g.position == int(gate.to_system) and g.credits == 2000 - fee
+		and g.day == d0 + 1 and int(gate.to_sector) in g.known_sectors, "Sprung: Gebühr, 1 Tag, neuer Sektor aufgedeckt")
+	check(g.offers.all(func(x: Dictionary) -> bool: return int(x.system) < g.sector.systems.size()), "Aufträge im neuen Sektor")
+	# Papiere im Hafen
+	g.position = g.sector.home
+	g.credits = 1000
+	var op := Mission.all_factions()[1].resource_path
+	check(g.buy_papers(op) and op in g.papers and g.credits == 1000 - g.papers_price() and not g.can_buy_papers(op), "Papiere im Hafen kaufen")
+	# Stationshandel 20 % teurer außerhalb des Hafens
+	var hostile := -1
+	for i in g.sector.systems.size():
+		if not g.sector.is_neutral(i):
+			hostile = i
+			break
+	var f_harbor := TradeSkills.buy_factor(g)
+	g.position = hostile
+	check(is_equal_approx(TradeSkills.buy_factor(g), f_harbor * Places.STATION_FACTOR), "Station: Kauf 20 % teurer")
+	# Bergung und Schöpfen
+	g.sector.systems[hostile].places = [{"kind": "wrack", "name": "Wrack „Test“", "done": false}, {"kind": "gas", "name": "Gas", "done": false}]
+	g.material = 0
+	g.craft_material = 0
+	Voyage.fixed_result = &"erfolg"
+	d0 = g.day
+	var e := Places.salvage(g, 0)
+	check(not e.is_empty() and g.material == 3 and g.craft_material == 2 and g.day == d0 + 1 and g.sector.systems[hostile].places[0].done
+		and not Places.can_salvage(g, 0), "Bergung: Erfolg +3/+2, 1 Tag, danach leer")
+	g.fuel = 10
+	e = Places.skim(g, 1)
+	check(not e.is_empty() and g.fuel == 30 and Places.can_skim(g, 1), "Schöpfen: Erfolg +20 Treibstoff, beliebig oft")
+	Voyage.fixed_result = &"patzer"
+	var h0 := g.hull
+	Places.skim(g, 1)
+	check(g.hull == h0 - 5, "Schöpfen: Patzer −5 Hülle")
+	Voyage.fixed_result = &""
+	HubState.game = null
+
+
 func _test_sector() -> void:
 	var a := Sector.generate(4711)
 	var b := Sector.generate(4711)
 	check(a.to_dict() == b.to_dict(), "gleicher Seed = gleicher Sektor")
-	check(a.systems.size() == Sector.SYSTEM_COUNT, "Anzahl Systeme")
+	check(a.systems.size() >= Sector.SYSTEM_MIN and a.systems.size() <= Sector.SYSTEM_MAX, "Anzahl Systeme 15–20")
 	for seed_value in [1, 2, 3, 99, 4711, 123456]:
 		var s := Sector.generate(seed_value)
 		var names := {}
@@ -72,6 +144,11 @@ func _test_sector() -> void:
 		for p in fset:
 			kinds[(load(p) as FactionData).kind] = true
 		check(fset.size() == kinds.size() and kinds.size() == Mission.sector_factions(RandomNumberGenerator.new()).size(), "Seed %d: je Oberart eine Fraktion mit Systemen" % seed_value)
+		for i in s.systems.size():
+			var pl: Array = s.systems[i].places
+			check(pl.size() >= Places.MIN_PLACES and pl.size() <= Places.MAX_PLACES, "Seed %d: 2–4 Orte je System" % seed_value)
+			if s.is_neutral(i):
+				check(pl.any(func(p: Dictionary) -> bool: return p.kind == "station"), "Hafen hat eine Station")
 	var c := Sector.from_dict(JSON.parse_string(JSON.stringify(a.to_dict())))
 	check(c.to_dict() == a.to_dict(), "Sektor übersteht Speichern als JSON")
 	# Weg: Summe der Reisetage entlang des Pfads
