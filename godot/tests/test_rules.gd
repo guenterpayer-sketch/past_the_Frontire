@@ -49,6 +49,8 @@ func _init() -> void:
 	_test_custom_maps()
 	_test_start_facing()
 	_test_factions()
+	_test_story_factions()
+	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1463,7 +1465,7 @@ func _test_start_facing() -> void:
 ## Fraktions-Oberarten (Bodenkampf Auftrag 1, 19.10.2026): 2 je Oberart, Eigenheiten, Waffentausch, neue Gegnertypen,
 ## bevorzugte Kartentypen, je Sektor eine Fraktion je Oberart
 func _test_factions() -> void:
-	var fs := Mission.all_factions()
+	var fs := Mission.all_factions().filter(func(f: FactionData) -> bool: return f.kind != &"story")
 	var by := {}
 	for f in fs:
 		by[f.kind] = by.get(f.kind, 0) + 1
@@ -1549,3 +1551,46 @@ func _test_factions() -> void:
 	var ac := Combat.new(map, Roster.build_crew(Roster.start_crew()), Roster.build_units(am.enemies, &"enemy"))
 	ac.result = &"sieg"
 	check(MissionResult.from_combat(ac, am).loot_extra == 1, "Aasgeier: 1 Beuteplatz mehr")
+
+
+## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+func _test_story_factions() -> void:
+	var ids := ["stille_hand", "wacht_klingen", "wacht_hirten", "abteilung_9"]
+	for id in ids:
+		var f: FactionData = load("res://data/missions/%s.tres" % id)
+		check(f.kind == &"story" and f.trait_name != "" and f.units.size() == f.weights.size(), "Story-Fraktion %s" % id)
+		var m := Mission.generate(77, "mittel", f.resource_path)
+		check(m.faction == f and m.enemies.size() >= Mission.MIN_ENEMIES, "Story-Einsatz gegen %s" % f.name)
+	var story := 0
+	for i in 300:
+		story += 1 if Mission.generate(60000 + i).faction.kind == &"story" else 0
+	check(story == 0, "Story-Fraktionen kommen nicht zufällig vor")
+	for k in 20:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = k
+		check(Mission.sector_factions(rng).all(func(f: FactionData) -> bool: return f.kind != &"story"), "keine Story-Fraktion im Sektor")
+	var a9 := Mission.generate(78, "mittel", "res://data/missions/abteilung_9.tres")
+	check(a9.enemies.any(func(d: UnitData) -> bool: return String(d.id).begins_with("psi_soldat")), "Abteilung 9 mit Psi-Soldaten")
+	var ps := Combatant.create(load("res://data/units/enemies/psi_soldat.tres"), &"enemy")
+	check(ps.weapons.any(func(w: WeaponData) -> bool: return w.power != ""), "Psi-Soldat hat Psi-Angriffe")
+
+
+## Entern-Briefing (Bodenkampf Auftrag 2): „Ausrüstung“ statt „Zurück ins Schiff“, normale Einsätze unverändert
+func _test_boarding_briefing() -> void:
+	var b := BriefingDialog.new()
+	root.add_child(b)
+	if b.footer == null:   # im Test-Skript läuft _ready nicht von selbst
+		b._ready()
+	b.hub_mode = true
+	var m := Mission.generate(4711)
+	m.set_map_type(MapTypes.SHIP, "board")
+	var cands: Array[Dictionary] = []
+	var sel: Array[Character] = []
+	b.show_mission(m, cands, sel)
+	var texts := b.footer.get_children().filter(func(n: Node) -> bool: return n is Button).map(func(n: Button) -> String: return n.text)
+	check("Ausrüstung" in texts and not "Zurück ins Schiff" in texts, "Entern: Ausrüstung statt Zurück ins Schiff (%s)" % [texts])
+	var n := Mission.generate(4712)
+	b.show_mission(n, cands, sel)
+	texts = b.footer.get_children().filter(func(x: Node) -> bool: return x is Button).map(func(x: Button) -> String: return x.text)
+	check("Zurück ins Schiff" in texts and not "Ausrüstung" in texts, "normaler Einsatz: Zurück ins Schiff")
+	b.queue_free()

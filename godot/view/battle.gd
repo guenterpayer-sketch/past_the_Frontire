@@ -71,6 +71,8 @@ func _ready() -> void:
 	ui.action.connect(_on_action)
 	ui.context_menu.chosen.connect(_on_context)
 	ui.briefing.accepted.connect(_on_squad)
+	ui.briefing.equip.connect(_open_armory)
+	ui.armory.done.connect(_armory_done)
 	ui.briefing.quick = HubState.quick_battle
 	ui.set_toggle(&"sound", Sfx.enabled)
 	ui.set_toggle(&"dice", events.dice_enabled)
@@ -78,7 +80,7 @@ func _ready() -> void:
 	var hub_mission := HubState.active_mission()
 	ui.briefing.hub_mode = hub_mission != null
 	if hub_mission:
-		ui.top_menu.set_menu_text(&"new", "Einsatz abbrechen / Rückzug")
+		ui.top_menu.set_menu_text(&"new", "Rückzug" if hub_mission.boarding != "" else "Einsatz abbrechen / Rückzug")
 		new_battle(hub_mission.map_seed, "", "", true, hub_mission)
 	else:
 		new_battle(randi() % 1000000)
@@ -275,15 +277,38 @@ func hub_report(result: Dictionary) -> Dictionary:
 func _ask_leave() -> void:
 	if combat.result != &"":
 		return
-	if combat.deploying:
+	if combat.deploying and mission.boarding != "":
+		ui.ask("Entern lässt sich nicht abbrechen.\nAb Runde 1 ist ein Rückzug möglich.", "OK", func() -> void: pass)
+	elif combat.deploying:
 		ui.ask("Einsatz abbrechen und zurück ins Schiff?\nDer Auftrag bleibt auf der Sternenkarte offen.", "Zurück ins Schiff", return_to_ship)
 	else:
 		ui.ask("Rückzug antreten?\nKein Lohn, keine Beute%s.\nDie EP aus diesem Kampf bleiben." % ("; die Zeit vergeht. Der Auftrag bleibt bis zum Ablaufdatum offen" if HubState.in_mission() else ""), "Rückzug",
 			func() -> void: combat.retreat())
 
 
-## Einsatz abbrechen: zurück ins Schiff, der Auftrag bleibt offen
+## Entern: Waffenkammer aus dem Briefing (Briefing zu, danach neu aufgebaut mit der geänderten Ausrüstung)
+func _open_armory() -> void:
+	var sel := ui.briefing.selection()
+	ui.briefing.hide()
+	if not sel.is_empty() and sel != squad:
+		squad = sel.duplicate()
+		Campaign.set_squad(sel)
+	var crew := Campaign.crew()
+	ui.armory.open_for(crew, maxi(0, crew.find(squad[0]) if not squad.is_empty() else 0))
+
+
+## Ausrüstung gespeichert: Runde 0 mit derselben Karte und dem neu ausgerüsteten Trupp, dann wieder das Briefing
+func _armory_done() -> void:
+	if combat == null or not combat.deploying:
+		return
+	_keep_squad = true
+	new_battle(_seed, mission.size_id, "", true, mission)
+
+
+## Einsatz abbrechen: zurück ins Schiff, der Auftrag bleibt offen (beim Entern nicht möglich, siehe _ask_leave)
 func return_to_ship() -> void:
+	if mission and mission.boarding != "":
+		return
 	_wait_ai()
 	HubState.game.abort_mission()
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)

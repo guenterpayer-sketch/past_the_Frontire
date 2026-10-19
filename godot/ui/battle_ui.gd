@@ -22,6 +22,8 @@ var actions: ActionPanel
 var sheet: SheetDialog
 var briefing: BriefingDialog
 var help: Modal
+## Waffenkammer im Briefing beim Entern (Charakter-Modul, nur aufgerufen; Bodenkampf Auftrag 2)
+var armory: ArmoryDialog
 var result_banner: ResultBanner
 var active_tag: ActiveTag
 var context_menu: ContextMenu
@@ -79,7 +81,8 @@ func _ready() -> void:
 	sheet = SheetDialog.new()
 	briefing = BriefingDialog.new()
 	help = Modal.new()
-	for d in [sheet, briefing, help]:
+	armory = ArmoryDialog.new()
+	for d in [sheet, briefing, help, armory]:
 		add_child(d)
 	active_tag = ActiveTag.new()
 	add_child(active_tag)
@@ -149,7 +152,7 @@ func set_toggle(name: StringName, on: bool, tip := "") -> void:
 
 func any_dialog_open() -> bool:
 	var enc := encyclopedia()
-	return sheet.visible or briefing.visible or help.visible or (enc != null and enc.visible) or _confirm.visible
+	return sheet.visible or briefing.visible or help.visible or armory.visible or (enc != null and enc.visible) or _confirm.visible
 
 
 func close_dialogs() -> bool:
