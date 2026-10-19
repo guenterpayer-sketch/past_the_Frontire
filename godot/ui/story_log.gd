@@ -118,14 +118,12 @@ func _chains() -> void:
 
 ## wo ein bekannter Schritt wartet (Kontakt, Story-Ort, Auftragsliste, unterwegs)
 func _where(c: Dictionary) -> String:
-	var sys := ""
-	if c.place >= 0 and story.game != null and story.game.sector != null:
-		sys = String(story.game.sector.systems[c.place].name)
+	var at := story.place_label(c.place)
 	match String(c.trigger):
 		"kontakt":
-			return "Kontakt im Raumhafen" + (" von " + sys if sys != "" else "")
+			return "Kontakt im Raumhafen" + (": " + at if at != "" else "")
 		"ort":
-			return "Story-Ort" + (": " + sys if sys != "" else " auf der Sternenkarte")
+			return "Story-Ort" + (": " + at if at != "" else " auf der Sternenkarte")
 		"auftrag":
 			return "Auftrag auf der Brücke"
 		"reise":

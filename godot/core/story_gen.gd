@@ -3,8 +3,8 @@ extends RefCounted
 ## Story-Generator (Entscheidung des Nutzers 19.10.2026: „ganz erzeugt“): baut aus Vorlagen (data/story/vorlagen/*.json)
 ## fertige Ketten im Format der JSON-Ketten und legt sie in StoryState.generated ab (bleiben nach dem Laden gleich).
 ## Vorlage: id, kind, title, contact, einstieg (Liste) oder trigger, werte {name: [Werte]}, ausgaenge {name: {Szenen}},
-## start, scenes. Platzhalter in allen Texten: {wert} bzw. {wert.feld}, {gegner}, {gegner_id}, {diff}, {diff_leichter},
-## {diff_schwerer}, {system}, {kontakt}, {einstieg}. {glaeubiger}, {konzern} usw. ersetzt erst Story.text_of.
+## orte (passende Ortsarten für einen Story-Ort), start, scenes. Platzhalter in allen Texten: {wert} bzw. {wert.feld}, {gegner},
+## {gegner_id}, {diff}, {diff_leichter}, {diff_schwerer}, {system}, {ort} (Ort mit System, ggf. Sektor), {kontakt}, {einstieg}. {glaeubiger}, {konzern} usw. ersetzt erst Story.text_of.
 
 ## Gegnergruppen: Anzeigename (im Dativ, für „bewacht von …“), gewünschte Missionsfraktion (data/missions/<id>.tres) und Ersatz, solange sie fehlt
 const GEGNER := {
@@ -23,7 +23,7 @@ const KONTAKTE := ["Ines Varga, Frachtmaklerin", "der alte Oskar am Tresen", "Mi
 	"Bruder Elias, ein Wanderprediger", "Kael Dorn, Ex-Söldner", "Juna, Funkerin der Hafenwache", "ein Mann ohne Namen im grauen Mantel"]
 const EINSTIEG := {
 	"kontakt": "Im Raumhafen von {system} wartet {kontakt}.",
-	"ort": "Ein Hinweis führt zu einem Ort auf der Sternenkarte.",
+	"ort": "Ein Hinweis führt zu {ort}.",
 	"auftrag": "Auf der Brücke liegt eine verschlüsselte Nachricht ohne Absender.",
 	"reise": "Unterwegs fängt das Schiff einen kurzen, verschlüsselten Funkspruch auf.",
 }
@@ -38,7 +38,7 @@ static func step(story: Story, frame: String) -> String:
 	return make(story, String(steps[story.rng.randi_range(0, steps.size() - 1)]), {"frame": frame})
 
 
-## Kette aus einer Vorlage erzeugen. extra: frame, rescue/rescue_name (Befreiung eines Crewmitglieds), place (System),
+## Kette aus einer Vorlage erzeugen. extra: frame, rescue/rescue_name (Befreiung eines Crewmitglieds), place ({sector, system, place}),
 ## start (true = der Aufrufer startet sie gleich, sonst steht sie „bekannt“ im Logbuch). Gibt die Kennung zurück oder "".
 static func make(story: Story, template_id: String, extra := {}) -> String:
 	var t: Dictionary = StoryData.templates().get(template_id, {})
@@ -66,7 +66,7 @@ static func make(story: Story, template_id: String, extra := {}) -> String:
 			c[k] = extra[k]
 	c = _fill(c, vals)
 	st.generated[id] = c
-	st.chains[id] = {"status": "" if extra.get("start", false) else "bekannt", "scene": "", "place": int(vals.place)}
+	st.chains[id] = {"status": "" if extra.get("start", false) else "bekannt", "scene": "", "place": vals.place}
 	return id
 
 
@@ -91,20 +91,24 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	if extra.get("start", false):
 		entry = "keiner"
 	v.einstieg_typ = entry
-	# Ort: Kontakt im Hafen, Story-Ort irgendwo, sonst dort, wo das Schiff gerade ist
-	var place := int(extra.get("place", -2))
-	if place == -2:
-		place = story.pick_harbor() if entry == "kontakt" else (story.pick_place() if entry == "ort" else -1)
+	# Ort: Kontakt im Hafen, Story-Ort an einem passenden Ort (Hauptstory selten in einem unbekannten Sektor),
+	# sonst dort, wo das Schiff gerade ist
+	var place: Dictionary = extra.get("place", {})
+	if not extra.has("place"):
+		if entry == "kontakt":
+			place = story.pick_harbor()
+		elif entry == "ort":
+			place = story.pick_place(t.get("orte", []), extra.has("frame"))
 	v.place = place
-	var sys_name := "diesem System"
-	if story.game != null and story.game.sector != null:
-		sys_name = String(story.game.sector.systems[place if place >= 0 else story.game.position].name)
+	var sys := story.system_of(place) if not place.is_empty() else (story.system_of({"system": story.game.position}) if story.game != null else {})
+	var sys_name := String(sys.get("name", "diesem System"))
 	v.system = sys_name
+	v.ort = story.place_label(place) if not place.is_empty() else sys_name
 	v.kontakt = KONTAKTE[story.rng.randi_range(0, KONTAKTE.size() - 1)]
-	v.einstieg = String(EINSTIEG.get(entry, "")).replace("{system}", sys_name).replace("{kontakt}", String(v.kontakt))
+	v.einstieg = String(EINSTIEG.get(entry, "")).replace("{system}", sys_name).replace("{ort}", String(v.ort)).replace("{kontakt}", String(v.kontakt))
 	# Gegner
 	var g := String(v.get("gegner", "lokal"))
-	var gi := _gegner(story, g, place)
+	var gi := _gegner(story, g, sys)
 	v.gegner = gi.name
 	v.gegner_id = gi.id
 	# Schwierigkeit
@@ -117,15 +121,13 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 
 
 ## Gegnergruppe → {name, id}; „lokal“ = Fraktion des Systems, „glaeubiger“ = Leute des Gläubigers
-static func _gegner(story: Story, g: String, place: int) -> Dictionary:
+static func _gegner(story: Story, g: String, sys: Dictionary) -> Dictionary:
 	if g == "glaeubiger":
 		return {"name": "den Leuten des Gläubigers", "id": _faction_id(String(GLAEUBIGER_GEGNER.get(String(story.state.vars.get("glaeubiger", "")), "rote_sonne")), "rote_sonne")}
 	if GEGNER.has(g):
 		return {"name": String(GEGNER[g].name), "id": _faction_id(String(GEGNER[g].id), String(GEGNER[g].fallback))}
 	# lokal: kontrollierende Fraktion des Systems (im Hafen zufällig eine der vorhandenen)
-	var path := ""
-	if story.game != null and story.game.sector != null:
-		path = String(story.game.sector.systems[place if place >= 0 else story.game.position].faction)
+	var path := String(sys.get("faction", ""))
 	if path == "":
 		var ids := _normal_factions()
 		path = "res://data/missions/%s.tres" % ids[story.rng.randi_range(0, ids.size() - 1)]
@@ -161,7 +163,7 @@ static func _fill(x: Variant, vals: Dictionary) -> Variant:
 			var val: Variant = vals[k]
 			if val is Dictionary:
 				for f in val:
-					s = s.replace("{%s.%s}" % [k, f], String(val[f]))
+					s = s.replace("{%s.%s}" % [k, f], str(val[f]))
 				s = s.replace("{%s}" % k, String(val.get("name", "")))
 			else:
 				s = s.replace("{%s}" % k, str(val))

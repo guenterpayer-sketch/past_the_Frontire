@@ -9,6 +9,10 @@
 		"auftrag",
 		"reise"
 	],
+	"orte": [
+		"station",
+		"planet"
+	],
 	"werte": {
 		"ziel": [
 			{
