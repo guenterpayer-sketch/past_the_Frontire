@@ -118,7 +118,8 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	m.difficulty = difficulty_id
 	var diff: Dictionary = DIFFICULTIES[difficulty_id]
 	m.reward_xp = diff.reward
-	var factions := all_factions()
+	# zufällige Fraktion ohne Story-Fraktionen (die kommen nur über Story-Einsätze mit faction_path)
+	var factions := all_factions().filter(func(f: FactionData) -> bool: return f.kind != &"story")
 	m.faction = factions[rng.randi_range(0, factions.size() - 1)]
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)

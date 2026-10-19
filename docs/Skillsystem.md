@@ -447,6 +447,15 @@ Jede Bodenfraktion gehört zu einer Oberart (Konzern, Söldner, Piraten, Syndika
 | Kult des Leeren Lichts | Kult | Fanatiker: +10 % TP |
 | Kinder der Glut | Kult | Glut: +10 Angriff mit Psi; Energiehammer statt Vibroklinge |
 
+**Story-Fraktionen** (Oberart Story, nur in Story-Einsätzen, nie zufällig oder im Sektor):
+
+| Fraktion | Eigenheit |
+|---|---|
+| Die Stille Hand | Gut bezahlt: Waffen gute Stücke (+5); angeheuerte Söldner und Handagenten |
+| Klingen der Wacht | Klingenweihe: +10 Angriff im Nahkampf |
+| Hirten der Wacht | Schutzkreis: +10 Verteidigung |
+| Abteilung 9 | Konditioniert: +5 Initiative, +5 Angriff mit Psi; Psi-Soldaten und schwere Wachen |
+
 Bei einem Waffentausch gilt der Rang der alten Waffenfertigkeit auch für die neue. Einsätze einer Fraktion finden mit 60 % auf einem ihrer bevorzugten Kartentypen statt (z. B. Kult → Tempel).
 
 ## 7a. Charaktererschaffung

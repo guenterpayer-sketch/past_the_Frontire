@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/keine.tres" id="1_ar"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
+[ext_resource type="Resource" path="res://data/visuals/characters/men_suit.tres" id="4_vi"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_w0"]
+[ext_resource type="Resource" path="res://data/weapons/vibroklinge.tres" id="6_w1"]
+
+[resource]
+script = ExtResource("2_ud")
+id = &"handagent"
+name = "Handagent"
+letter = "D"
+role = "Agent der Stillen Hand"
+color = Color(0.35, 0.35, 0.45, 1)
+attrs = {
+"EMP": 55,
+"GEW": 85,
+"INT": 70,
+"KON": 55,
+"KOO": 80,
+"MEN": 65,
+"STA": 50
+}
+skills = {
+"ausweichen": 10,
+"einhand": 7,
+"kampfsinn": 6,
+"pistolen": 8
+}
+weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0"), ExtResource("6_w1")])
+armor = ExtResource("1_ar")
+threat = 12
+visual = ExtResource("4_vi")

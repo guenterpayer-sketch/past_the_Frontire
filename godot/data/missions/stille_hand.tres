@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/sturmlaeufer.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="6_u3"]
+[ext_resource type="Resource" path="res://data/units/enemies/handagent.tres" id="7_u4"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Die Stille Hand"
+description = "Geheimbund, der kaum selbst kämpft: angeheuerte Söldner und wenige eigene Agenten."
+kind = &"story"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2"), ExtResource("6_u3"), ExtResource("7_u4")])
+weights = Array[int]([3, 3, 2, 1, 2])
+max_same = 3
+color = Color(0.75, 0.75, 0.8, 1)
+trait_name = "Gut bezahlt"
+trait_text = "Waffen gute Stücke (+5)"
+trait_mods = {
+"wear": 5
+}
