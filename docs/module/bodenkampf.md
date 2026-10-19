@@ -27,4 +27,4 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+- **Auftrag 5 (19.10.2026): Farbe der Eisenwölfe.** Meldung des Hubs: Die Eisenwölfe haben die Kartenfarbe Grau (0,6/0,62/0,66) und sind auf der Sternenkarte kaum von neutralen Häfen (`UiTheme.MUTED`) zu unterscheiden. Bitte eine Farbe wählen, die sich von allen anderen Fraktionsfarben und von `MUTED` abhebt, und dem Nutzer zeigen.
