@@ -7,6 +7,7 @@ Branch `claude/inspiring-hypatia-5l2tq8`. Zuständig für Exporte und das App-Ic
 - App-Icon `godot/assets/icon/` (Zuordnung im Android-Export: `godot/README.md`, „Starten“).
 - Android-APK (Debug-Export) läuft auf dem Tablet des Nutzers (19.10.2026). Web-Export getestet: zu langsam, ohne Ton, Sonderzeichen wie ⏎ fehlen (keine eigene Schrift im Projekt) – nicht weiter verfolgt.
 - Exportprofile (`export_presets.cfg`) liegen nur lokal beim Nutzer, nicht im Repo.
+- Auftrag 1 (Touch-Grundlagen) gebaut (19.10.2026): neuer Autoload `TouchInput` (`ui/touch_input.gd`: Wischen in Listen, Android-Zurück = Esc), Test `tests/test_touch.gd`. Geänderte gemeinsame Dateien: `ui/modal.gd` (Klick neben ein Fenster bewirkt nichts – Entscheidung Nutzer: bei allen Fenstern), `ui/ui_theme.gd` (`is_touch()`, auf Mobilgeräten Mindesthöhe 44 px für Knöpfe/Eingabefelder, breitere Scrollbalken), `project.godot` (Autoload, `quit_on_go_back=false`). Am Tablet noch nicht geprüft.
 
 ## Für den Koordinator: Touch-Bedienung (Wunsch des Nutzers 19.10.2026, Tests am Tablet)
 
