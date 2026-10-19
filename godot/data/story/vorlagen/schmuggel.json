@@ -211,6 +211,9 @@
 						"text": "Abliefern",
 						"effects": [
 							{
+								"flag": "hirten_feind"
+							},
+							{
 								"credits": 900
 							},
 							{

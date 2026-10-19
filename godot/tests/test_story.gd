@@ -25,6 +25,7 @@ func _init() -> void:
 	_test_rate_and_backlash()
 	_test_items_and_keys()
 	_test_events_and_harbor()
+	_test_faction_ids()
 	Voyage.fixed_result = &""
 	Story.fixed_travel = -1
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
@@ -412,3 +413,44 @@ func _test_events_and_harbor() -> void:
 		s.on_arrive(g.sector.home)
 	check(s._event_open(Story.HARBOR_EVENTS), "Schmuggel-Kontakt im Hafen")
 	check(s.contacts().any(func(c: Dictionary) -> bool: return s.chain_of(c.chain).get("template", "") == "schmuggel"), "Schmuggel unter den Kontakten")
+
+
+## jede Fraktion, die die Story nennt, gibt es als Datei (data/missions/<id>.tres): Gegnergruppen des Generators
+## (gewünschte ID und Ersatz) und alle festen „faction“-Angaben in Ketten und Vorlagen
+func _test_faction_ids() -> void:
+	var ids := {}
+	for g in StoryGen.GEGNER.values():
+		ids[String(g.id)] = "StoryGen.GEGNER"
+		ids[String(g.fallback)] = "StoryGen.GEGNER (Ersatz)"
+	for g in StoryGen.GLAEUBIGER_GEGNER.values():
+		ids[String(g)] = "StoryGen.GLAEUBIGER_GEGNER"
+	var sources: Array = StoryData.chains().values() + StoryData.templates().values()
+	for c in sources:
+		_collect_factions(c, ids, String(c.get("id", "?")))
+	for id in ids:
+		check(ResourceLoader.exists("res://data/missions/%s.tres" % id), "Fraktion %s (%s) als Datei vorhanden" % [id, ids[id]])
+	check(ids.has("abteilung_9") and ids.has("wacht_klingen") and ids.has("wacht_hirten") and ids.has("stille_hand"), "Story nennt die Story-Fraktionen des Bodenkampfs")
+	# Hirten nur als Gegner nach Handeln gegen Begabte
+	var s := _story()
+	var seen := {}
+	for i in 80:
+		seen[s.chain_of(StoryGen.make(s, "befreien")).scenes.start.choices[0].effects[0].mission.faction] = true
+	check(not seen.has("wacht_hirten"), "ohne Flag keine Hirten als Gegner")
+	s.state.flags[StoryGen.HIRTEN_FLAG] = true
+	seen = {}
+	for i in 80:
+		seen[s.chain_of(StoryGen.make(s, "befreien")).scenes.start.choices[0].effects[0].mission.faction] = true
+	check(seen.has("wacht_hirten"), "nach Handeln gegen Begabte auch Hirten als Gegner")
+
+
+func _collect_factions(x: Variant, ids: Dictionary, where: String) -> void:
+	if x is Dictionary:
+		if x.has("mission") and x.mission is Dictionary:
+			var f := String(x.mission.get("faction", ""))
+			if f != "" and not f.contains("{"):
+				ids[f] = where
+		for k in x:
+			_collect_factions(x[k], ids, where)
+	elif x is Array:
+		for e in x:
+			_collect_factions(e, ids, where)
