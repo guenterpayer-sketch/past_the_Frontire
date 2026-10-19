@@ -46,3 +46,11 @@
 ## Aufträge vom Koordinator
 
 - **Auftrag 2 (nach Auftrag 1): Sektorkarte umbauen.** Zuerst ein Mockup und Fragen an den Nutzer. Inhalt: 15–20 Systeme je Sektor, 2–4 Orte je System (Station, Planet, Wrack …), besser vernetzt, mehrere Sektoren mit Sprungtoren (Nutzungsgebühr, Erlaubnis, Rückreise; Einzelheiten in `docs/Planung_Story.md`). Fraktionen je Sektor nach Oberart aus den Fraktionsdaten des Bodenkampfs (`FactionData.kind`, Bodenkampf Auftrag 1). Danach liegen Story-Orte auf einem Ort im System; dazu mit dem Story-Chat `_pick_place` abstimmen.
+  - **Entscheidungen des Nutzers (19.10.2026)**, Mockup „Schiff-Hub Mockup“ Bildschirme 45–47:
+    - Orte im System in einer **Systemansicht** (Doppelklick auf ein System zoomt hinein, Orte auf Umlaufbahnen, rechts Aufträge und Funktionen des gewählten Orts; Variante B, Bildschirm 46).
+    - Orte **mit Funktion**: **Station** = Handel (Händler und Schiffshändler auch in Fraktionssystemen, **20 % teurer** als im Hafen); **Wrack** = Bergung (1 Tag, Probe Reparatur mittel: Teilerfolg +1 Schiffsmaterial, Erfolg +3 Schiffsmaterial und +2 Handwerksmaterial, Herausragend zusätzlich eine beschädigte Schiffswaffe, Patzer −5 Hülle; danach leer); **Planet/Mond** = Bodeneinsätze mit passendem Kartentyp (Planet → Straße/Tempel, Station → Büro/Bar, Wrack → Schiffs-Inneres); **Gasriese/Nebel** = Treibstoff schöpfen (1 Tag, Probe Pilot mittel: Teilerfolg +10, Erfolg +20, Herausragend +30, Patzer −5 Hülle).
+    - **3 Sektoren zum Start**, zufällig, über Sprungtore verbunden; nur der Startsektor ist bekannt, die anderen werden beim ersten Sprung aufgedeckt.
+    - **Sprungtore**: Gebühr 300–600 Cr (nach Verhandeln), manche verlangen **Papiere** des Betreibers (500 Cr im Hafen, gelten für alle Tore eines Betreibers; auch über Fraktionsaufträge oder die Story). Rückreise über dasselbe Tor.
+    - **3 neutrale Häfen** je Sektor.
+    - **Alte Spielstände** werden **nicht mehr geladen** (gelten als veraltet).
+    - Fraktionen je Sektor: bis `FactionData.kind` (Bodenkampf Auftrag 1) in `main` liegt, die vier vorhandenen Fraktionen in jedem Sektor.
