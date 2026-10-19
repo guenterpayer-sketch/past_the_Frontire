@@ -17,3 +17,10 @@ units = Array[ExtResource("2_unit")]([ExtResource("3_pl1"), ExtResource("4_pl2")
 weights = Array[int]([3, 3, 2, 2, 2, 1])
 max_same = 3
 color = Color(1, 0.541, 0.239, 1)
+kind = &"soeldner"
+trait_name = "Disziplin"
+trait_text = "+5 Initiative"
+trait_mods = {
+"init": 5
+}
+maps = Array[StringName]([&"bar", &"halle"])

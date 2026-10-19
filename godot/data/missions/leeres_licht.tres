@@ -14,3 +14,10 @@ units = Array[ExtResource("2_unit")]([ExtResource("3_hx"), ExtResource("4_kl"), 
 weights = Array[int]([3, 4, 1])
 max_same = 3
 color = Color(0.706, 0.549, 1, 1)
+kind = &"kult"
+trait_name = "Fanatiker"
+trait_text = "+10 % Trefferpunkte"
+trait_mods = {
+"hp_pct": 10
+}
+maps = Array[StringName]([&"tempel"])

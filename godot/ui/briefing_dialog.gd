@@ -5,6 +5,8 @@ extends Modal
 ## Angeschlagene markiert, Warnung bei weniger als der Höchstzahl). "Neu würfeln" erzeugt eine andere Mission (wahlweise mit fester Schwierigkeit).
 
 signal reroll(difficulty: String)
+## Entern: „Ausrüstung“ (Waffenkammer) statt „Zurück ins Schiff“ – Entern lässt sich nicht absagen (Bodenkampf Auftrag 2)
+signal equip
 ## beim Schließen: gewählter Trupp in Listenreihenfolge (leer = nichts gewählt, bisheriger Trupp bleibt)
 signal accepted(squad: Array[Character])
 
@@ -59,7 +61,11 @@ func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Characte
 		else "Vorbelegt: Trupp des letzten Einsatzes, Gesperrte entfernt, freie Plätze aufgefüllt", 12, UiTheme.MUTED)
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(hint)
-	if hub_mode:
+	if hub_mode and m.boarding != "":
+		var eq := UiTheme.button("Ausrüstung", "Waffenkammer: Waffen, Rüstung und Medikits der Crew ändern. Entern lässt sich nicht absagen.")
+		eq.pressed.connect(func() -> void: equip.emit())
+		footer.add_child(eq)
+	elif hub_mode:
 		var back := UiTheme.button("Zurück ins Schiff", "Auftrag nicht jetzt erledigen; er bleibt auf der Sternenkarte offen")
 		back.pressed.connect(func() -> void:
 			hide()
@@ -143,7 +149,8 @@ func _mission_column(m: Mission) -> VBoxContainer:
 	var t := UiTheme.label(m.text, 15)
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left.add_child(t)
-	var f := UiTheme.label("%s – %s" % [m.faction.name, m.faction.description], 13, UiTheme.MUTED)
+	var f := UiTheme.label("%s (%s) – %s%s" % [m.faction.name, m.faction.kind_name(), m.faction.description,
+		("\nEigenheit: %s (%s)" % [m.faction.trait_name, m.faction.trait_text]) if m.faction.trait_name != "" else ""], 13, UiTheme.MUTED)
 	f.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left.add_child(f)
 	var sz: Dictionary = {}

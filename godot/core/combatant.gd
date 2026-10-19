@@ -78,12 +78,29 @@ const WEAR_STEP := -10
 const WEAR_BROKEN := -30
 var wear := {}
 var lost: Array[String] = []   # bei Niederlage ohne Rückzug verlorene Plätze
+## Eigenheit der Fraktion (FactionData.trait_mods + name), leer bei der Crew
+var faction_trait := {}
 var repaired: Array[String] = []   # Waffen-Plätze, an denen in diesem Kampf schon repariert wurde (einmal je Stück)
 
 
 ## Figur aus einer Vorlage (Gegner, Tests); saved = Fortschritt im alten Format {skills, attrs, free_xp}
 static func create(d: UnitData, team_id: StringName, saved := {}) -> Combatant:
-	return from_character(Character.from_unit(d).apply_progress(saved), team_id)
+	var u := from_character(Character.from_unit(d).apply_progress(saved), team_id)
+	u.faction_trait = d.faction_trait.duplicate()
+	var t := u.faction_trait
+	if t.has("hp_pct"):
+		u.max_hp = roundi(u.max_hp * (1.0 + float(t.hp_pct) / 100.0))
+		u.hp = u.max_hp
+	if t.has("wear"):
+		for slot in ["w0", "w1"]:
+			if int(slot.substr(1)) < u.weapons.size() and u.weapons[int(slot.substr(1))].power == "":
+				u.wear[slot] = int(t.wear)
+	return u
+
+
+## Wert der Fraktions-Eigenheit (0, wenn keine)
+func trait_val(key: String) -> int:
+	return int(faction_trait.get(key, 0))
 
 
 ## Kampfbereite Kopie eines Charakters (volle TP und PP, volle Ausrüstung)

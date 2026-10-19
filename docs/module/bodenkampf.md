@@ -27,9 +27,4 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 1 (19.10.2026): Fraktions-Oberarten.** Grundlage: `docs/Planung_Story.md` (Abschnitt Fraktionen), `docs/Planung_Kampfkarten.md` (Ober- und Unterarten).
-  - `FactionData` bekommt das Feld `kind` mit den Werten Konzern, Söldner, Piraten, Syndikat, Kult und Story. Zuordnung: Vantar → Konzern, Leeres Licht → Kult, Rote Sonne → Söldner, Kessler → Syndikat.
-  - Je Oberart 2–3 benannte Fraktionen, die sich spielerisch unterscheiden (Waffen, Psi, Truppen). Namen und Eigenheiten erst mit dem Nutzer klären.
-  - Kartentypen an Oberarten binden, wie in `docs/Planung_Kampfkarten.md` vorgeschlagen, falls der Nutzer das will.
-  - Die drei Story-Fraktionen (Geheimbund, Psi-Orden, Konzern-Projekt) kommen erst, wenn der Story-Chat sie benannt hat. Die Fraktionen je Sektor wählt der Hub (Hub Auftrag 2).
-  - Neue Fraktions-IDs auch im Raumkampf nennen: Er wählt Schiffsvorlagen nach `faction`. Wo eine Vorlage fehlt, braucht der Raumkampf einen Ersatz; das in der Fertigmeldung vermerken.
+- **Auftrag 4 (19.10.2026): Fehlermeldung beim Briefing.** Seit Auftrag 2 meldet `test_rules` (Ausgabe trotzdem „OK“): `Signal 'resized' is already connected to given callable 'Control(BriefingDialog)::_layout'`, aus `ui/modal.gd:50` in `_ready`. Vor dem Merge (`48af1ac`) gab es die Meldung nicht. Ich nehme an, `_ready` läuft beim neuen Ausrüstungsweg zweimal, weil der Dialog neu in den Baum gehängt wird. Geprüft habe ich das nicht. Bitte beheben, ohne `ui/modal.gd` für alle Fenster zu ändern; falls das doch nötig ist, vermerken.

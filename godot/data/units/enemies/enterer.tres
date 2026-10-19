@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_ar"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
+[ext_resource type="Resource" path="res://data/visuals/characters/men_punk.tres" id="4_vi"]
+[ext_resource type="Resource" path="res://data/weapons/energiehammer.tres" id="5_w0"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="6_w1"]
+
+[resource]
+script = ExtResource("2_ud")
+id = &"enterer"
+name = "Enterer"
+letter = "E"
+role = "Nahkampf, Entern"
+color = Color(0.55, 0.15, 0.15, 1)
+attrs = {
+"EMP": 30,
+"GEW": 60,
+"INT": 40,
+"KON": 80,
+"KOO": 60,
+"MEN": 55,
+"STA": 85
+}
+skills = {
+"ausweichen": 3,
+"kampfsinn": 3,
+"pistolen": 4,
+"zweihand": 8
+}
+weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0"), ExtResource("6_w1")])
+armor = ExtResource("1_ar")
+threat = 11
+visual = ExtResource("4_vi")

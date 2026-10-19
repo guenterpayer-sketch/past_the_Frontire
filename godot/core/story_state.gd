@@ -15,6 +15,14 @@ var goals := {}
 var logbook: Array[Dictionary] = []
 ## laufender Story-Einsatz: {chain, title, kind, difficulty, sieg, niederlage, rueckzug, …} oder leer
 var mission := {}
+## vom Generator erzeugte Ketten (gleiches Format wie die JSON-Ketten): {id: Kette}
+var generated := {}
+## Zähler für die Kennungen erzeugter Ketten
+var next_gen := 1
+## gefangene Crewmitglieder (Character.id als Text), gesperrt bis zur Befreiung
+var captured: Array[String] = []
+## angeworbene Story-Figuren (z. B. "begabte"); das Charakter-Modul macht daraus eine Figur
+var recruits: Array[String] = []
 
 
 ## neuer Spielstand: je Bausteingruppe einen Eintrag auswürfeln
@@ -54,7 +62,8 @@ func entries(kind: String) -> Array[Dictionary]:
 
 func to_dict() -> Dictionary:
 	return {"vars": vars.duplicate(true), "flags": flags.duplicate(true), "chains": chains.duplicate(true),
-		"goals": goals.duplicate(true), "log": logbook.duplicate(true), "mission": mission.duplicate(true)}
+		"goals": goals.duplicate(true), "log": logbook.duplicate(true), "mission": mission.duplicate(true),
+		"generated": generated.duplicate(true), "next_gen": next_gen, "captured": captured.duplicate(), "recruits": recruits.duplicate()}
 
 
 static func from_dict(d: Dictionary) -> StoryState:
@@ -66,11 +75,17 @@ static func from_dict(d: Dictionary) -> StoryState:
 	for e in d.get("log", []):
 		st.logbook.append(e.duplicate())
 	st.mission = d.get("mission", {}).duplicate(true)
+	st.generated = d.get("generated", {}).duplicate(true)
+	st.next_gen = int(d.get("next_gen", 1))
+	for c in d.get("captured", []):
+		st.captured.append(String(c))
+	for r in d.get("recruits", []):
+		st.recruits.append(String(r))
 	# JSON liefert Zahlen als float
 	for id in st.chains:
 		st.chains[id].place = int(st.chains[id].get("place", -1))
 	for id in st.goals:
-		for k in ["value", "target", "due"]:
+		for k in ["value", "target", "due", "rate", "every", "paid"]:
 			st.goals[id][k] = int(st.goals[id].get(k, 0))
 	for e in st.logbook:
 		e.day = int(e.get("day", 0))

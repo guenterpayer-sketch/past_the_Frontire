@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_ar"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_witch.tres" id="4_vi"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_w0"]
+
+[resource]
+script = ExtResource("2_ud")
+id = &"seherin"
+name = "Seherin"
+letter = "Y"
+role = "Psi, Seherin"
+color = Color(0.85, 0.45, 0.15, 1)
+attrs = {
+"EMP": 85,
+"GEW": 55,
+"INT": 75,
+"KON": 50,
+"KOO": 50,
+"MEN": 85,
+"STA": 40
+}
+skills = {
+"ausweichen": 3,
+"kampfsinn": 4,
+"lAngriff": 3,
+"lWahrnehmung": 4,
+"pistolen": 3,
+"psiAngriff": 7,
+"psiVerteidigung": 6,
+"psiWirken": 5
+}
+weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0")])
+armor = ExtResource("1_ar")
+threat = 12
+visual = ExtResource("4_vi")

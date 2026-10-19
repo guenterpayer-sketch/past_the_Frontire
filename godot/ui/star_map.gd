@@ -23,6 +23,7 @@ const PANEL_W := 420.0
 const PICK_R := 28.0
 
 var game: HubState
+var _legend_factions: HBoxContainer   # Fraktionen des Sektors in der Legende (beim Öffnen gefüllt)
 var selected := -1
 var selected_offer := -1      # Auftrags-ID
 var _missions := {}           # Auftrags-ID -> Mission (Vorschau)
@@ -93,11 +94,10 @@ func _ready() -> void:
 	var lv := VBoxContainer.new()
 	lv.add_theme_constant_override("separation", 2)
 	leg.add_child(lv)
-	var frow := HBoxContainer.new()
-	frow.add_theme_constant_override("separation", 14)
-	lv.add_child(frow)
-	for f in Mission.all_factions():
-		frow.add_child(UiTheme.label("● " + f.name, 13, f.color))
+	# oben die Fraktionen des aktuellen Sektors (in refresh gefüllt, Bodenkampf Auftrag 1), unten die Zeichen
+	_legend_factions = HBoxContainer.new()
+	_legend_factions.add_theme_constant_override("separation", 14)
+	lv.add_child(_legend_factions)
 	var lrow := HBoxContainer.new()
 	lrow.add_theme_constant_override("separation", 14)
 	lv.add_child(lrow)
@@ -161,8 +161,21 @@ func refresh() -> void:
 	if selected >= game.sector.systems.size():
 		selected = game.position
 	_to_map.visible = zoom >= 0
+	_fill_legend()
 	_render_side()
 	_canvas.queue_redraw()
+
+
+## Legende: nur die Fraktionen des aktuellen Sektors (es gibt mehr Fraktionen als Plätze; ändert sich beim Sprung)
+func _fill_legend() -> void:
+	UiTheme.clear(_legend_factions)
+	var shown := {}
+	for sys in game.sector.systems:
+		var p := String(sys.faction)
+		if p != "" and not shown.has(p) and ResourceLoader.exists(p):
+			shown[p] = true
+			var f: FactionData = load(p)
+			_legend_factions.add_child(UiTheme.label("● " + f.name, 13, f.color))
 
 
 func select(system: int, offer_id := -1) -> void:
