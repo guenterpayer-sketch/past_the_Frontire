@@ -9,7 +9,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`514a72b`), nichts offen |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`d9ac494`), offen: Auftrag 2 (Entern-Briefing) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`c32dcb6`), offen: Auftrag 2 (Sektorkarte) |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
@@ -19,6 +19,8 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | `53b08c6` | Raumkampf `claude/raumkampf-modul` (`66ae2b0`) | nur Doku: Fehlermeldung Entern-Briefing → Bodenkampf Auftrag 2. |
+| 19.10.2026 | `dc2eb6d` | Bodenkampf `claude/confident-edison-6mxzke` (`d9ac494`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Fraktions-Oberarten (`FactionData.kind` u. a.), 6 neue Fraktionen, 5 Gegnertypen; Hub-Dateien geändert: `core/sector.gd` (`Mission.sector_factions`), `ui/star_map.gd` (Legende), `tests/test_hub.gd`. **Hub-Branch (`d8c2359`, Sektorkarte) kollidiert jetzt in `ui/star_map.gd` und `tests/test_hub.gd`** → Hub holt `main` und löst. |
 | 19.10.2026 | `6aebcfb` | Hub `claude/happy-lamport-u4fvya` (`c32dcb6`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Story angebunden: `HubState.story`, `story_engine()`, `story_queue`, Einhängepunkte, STORY in der Sternenkarte, KONTAKTE im Raumhafen, Logbuch, Story-Einsätze, `apply_story`. Keine Story-Dateien geändert. |
 | 19.10.2026 | `af58c8c` | Story `claude/zen-sagan-9yn0le` (`be8f45b`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Story-Engine (`core/story*.gd`), Szenenfenster, Logbuch, Test-Ketten, `tests/test_story.gd`; fremde Datei nur `godot/README.md`. Anbindung an Hub/Kampf noch offen. |
 | 19.10.2026 | `00c10aa` | Story `claude/zen-sagan-9yn0le` (`9cb42f2`) | ohne Konflikte, enthielt `main`, nur Doku. Planung Story/Kampagne (`docs/Planung_Story.md`): Entscheidungen, Aufbau, Schnittstellen-Vorschlag, offene Punkte. |
