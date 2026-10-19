@@ -1,0 +1,14 @@
+{
+	"_info": "Bausteine für den Spielstart (Story-Modul). Beim neuen Spiel wird je Gruppe ein Eintrag ausgewürfelt; Texte nutzen sie als {gruppe} bzw. {gruppe.feld}. Inhalte noch Platzhalter (Entscheidung 19.10.2026: Bausteine kombiniert).",
+	"ausgangslage": {
+		"pump": {"name": "Schiff auf Pump"},
+		"erbe": {"name": "Erbe des Kapitäns"},
+		"verrat": {"name": "Alter Verrat"},
+		"fracht": {"name": "Fracht verloren"}
+	},
+	"glaeubiger": {
+		"syndikat": {"name": "Syndikat"},
+		"bank": {"name": "Konzern-Bank"},
+		"person": {"name": "Kredithai"}
+	}
+}
