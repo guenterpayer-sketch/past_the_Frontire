@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SpaceFactionData" format=3]
+
+[ext_resource type="Script" path="res://data/ships/space_faction_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Schwarze Flagge"
+on_win = "entern"
+ransom = 400
+flee_at = 0.25
+leicht = PackedStringArray("enterkorvette", "jaeger,jaeger,jaeger")
+mittel = PackedStringArray("enterkorvette,jaeger", "enterkorvette,jaeger,jaeger")
+schwer = PackedStringArray("fregatte,jaeger", "kreuzer", "enterkorvette,enterkorvette")

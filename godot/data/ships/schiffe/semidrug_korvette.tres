@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ShipTemplateData" format=3]
+
+[ext_resource type="Script" path="res://data/ships/ship_template_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Semidrug-Korvette"
+cls = 1
+hull = 70
+shield = 8
+recharge = 3
+armor = 1
+vw = 5
+speed = 3
+max_speed = 4
+turns = 2
+weapons = PackedStringArray("laserbank", "partikelkanone")
+skill = 26
+init = 8
+credits = 300
+material = 3
