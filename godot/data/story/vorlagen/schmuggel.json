@@ -1,0 +1,231 @@
+{
+	"id": "schmuggel",
+	"kind": "kette",
+	"title": "Schmuggelware",
+	"trigger": "kontakt",
+	"contact": "{kontakt}: ein Frachtangebot",
+	"werte": {
+		"gegner": [
+			"lokal",
+			"hand"
+		],
+		"diff": [
+			"mittel",
+			"schwer"
+		]
+	},
+	"start": "start",
+	"scenes": {
+		"start": {
+			"title": "Ein Angebot",
+			"image": "ev_schmuggel",
+			"text": "{kontakt} bietet gut bezahlte Fracht an: ein paar versiegelte Kisten, keine Fragen. Lohn 600 Credits bei Ablieferung.",
+			"choices": [
+				{
+					"text": "Annehmen",
+					"next": "ausgang"
+				},
+				{
+					"text": "Ablehnen",
+					"effects": [
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		}
+	},
+	"ausgaenge": {
+		"zoll": {
+			"ausgang": {
+				"title": "Kontrolle",
+				"text": "Unterwegs: eine Zollstreife. „Frachtraum öffnen.“",
+				"choices": [
+					{
+						"text": "Bestechen (200 Credits)",
+						"requires": [
+							{
+								"credits": 200
+							}
+						],
+						"effects": [
+							{
+								"credits": -200
+							}
+						],
+						"next": "geliefert"
+					},
+					{
+						"text": "Bluffen",
+						"check": {
+							"skill": "verhandeln",
+							"diff": "schwer"
+						},
+						"results": {
+							"erfolg": {
+								"text": "Die Papiere überzeugen.",
+								"next": "geliefert"
+							},
+							"fehlschlag": {
+								"text": "Die Kisten werden beschlagnahmt, dazu eine Strafe.",
+								"effects": [
+									{
+										"credits": -300
+									},
+									{
+										"end": "gescheitert"
+									}
+								]
+							}
+						}
+					},
+					{
+						"text": "Fliehen",
+						"effects": [
+							{
+								"mission": {
+									"kind": "abfangen",
+									"title": "Zollstreife",
+									"difficulty": "mittel",
+									"faction": "konzern",
+									"sieg": "geliefert",
+									"niederlage": "erwischt",
+									"rueckzug": "erwischt"
+								}
+							}
+						]
+					}
+				]
+			},
+			"geliefert": {
+				"title": "Geliefert",
+				"text": "Die Kisten wechseln den Besitzer, die Credits auch.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"credits": 600
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"erwischt": {
+				"title": "Erwischt",
+				"text": "Die Kisten sind weg, die Strafe bleibt.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"credits": -300
+							},
+							{
+								"end": "gescheitert"
+							}
+						]
+					}
+				]
+			}
+		},
+		"verrat": {
+			"ausgang": {
+				"title": "Die Übergabe",
+				"text": "Am Treffpunkt warten zu viele Leute, geschickt von {gegner}. Sie wollen die Ware ohne Bezahlung.",
+				"choices": [
+					{
+						"text": "Kämpfen",
+						"effects": [
+							{
+								"mission": {
+									"kind": "boden",
+									"title": "Verrat bei der Übergabe",
+									"difficulty": "{diff}",
+									"faction": "{gegner_id}",
+									"sieg": "sieg",
+									"niederlage": "niederlage",
+									"rueckzug": "niederlage"
+								}
+							}
+						]
+					}
+				]
+			},
+			"sieg": {
+				"title": "Doch bezahlt",
+				"text": "Wer übrig bleibt, zahlt. Mit Aufschlag.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"credits": 700
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"niederlage": {
+				"title": "Ausgeraubt",
+				"text": "Ware weg, Lohn weg.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"end": "gescheitert"
+							}
+						]
+					}
+				]
+			}
+		},
+		"lebendig": {
+			"ausgang": {
+				"title": "Lebende Fracht",
+				"text": "Aus einer Kiste klopft es. Darin: Menschen, betäubt. An einem Handgelenk ein Band mit der Nummer 9.",
+				"choices": [
+					{
+						"text": "Freilassen",
+						"effects": [
+							{
+								"spur": "kapitel1"
+							},
+							{
+								"hint": "In Schmuggelkisten: betäubte Menschen mit Bändern der Nummer 9."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					},
+					{
+						"text": "Abliefern",
+						"effects": [
+							{
+								"credits": 900
+							},
+							{
+								"flag": "menschenhandel"
+							},
+							{
+								"log": "Lebende Fracht abgeliefert."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}

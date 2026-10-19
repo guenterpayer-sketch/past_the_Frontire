@@ -109,12 +109,28 @@ func _card(title: String, sub: String, text := "", title_color := UiTheme.TEXT) 
 
 func _chains() -> void:
 	for c in story.open_chains():
-		var where := ""
-		if c.place >= 0 and story.game != null and story.game.sector != null:
-			where = String(story.game.sector.systems[c.place].name) + " · "
-		var status: String = {"aktiv": "läuft", "wartet": "Einsatz offen", "bekannt": "bekannt, noch nicht begonnen"}.get(c.status, c.status)
 		var kind: String = StoryDialog.KIND_NAMES.get(c.kind, c.kind)
-		_card(c.title, "%s · %s%s · ohne Zeitlimit" % [kind, where, status], _summary(c.chain), StoryDialog.STORY_COLOR)
+		var status: String = {"aktiv": "läuft", "wartet": "Einsatz offen"}.get(c.status, _where(c))
+		var v := _card(c.title, "%s · %s · ohne Zeitlimit" % [kind, status], _summary(c.chain), StoryDialog.STORY_COLOR)
+		if c.reason != "":
+			v.add_child(UiTheme.label(c.reason, 13, UiTheme.BAD))
+
+
+## wo ein bekannter Schritt wartet (Kontakt, Story-Ort, Auftragsliste, unterwegs)
+func _where(c: Dictionary) -> String:
+	var sys := ""
+	if c.place >= 0 and story.game != null and story.game.sector != null:
+		sys = String(story.game.sector.systems[c.place].name)
+	match String(c.trigger):
+		"kontakt":
+			return "Kontakt im Raumhafen" + (" von " + sys if sys != "" else "")
+		"ort":
+			return "Story-Ort" + (": " + sys if sys != "" else " auf der Sternenkarte")
+		"auftrag":
+			return "Auftrag auf der Brücke"
+		"reise":
+			return "meldet sich unterwegs"
+	return "bekannt"
 
 
 ## Beschreibung eines Auftrags: letzter Hinweis der Kette, sonst die aktuelle Szene
@@ -122,7 +138,7 @@ func _summary(id: String) -> String:
 	var hints := story.state.entries("hinweis").filter(func(e: Dictionary) -> bool: return e.chain == id)
 	if not hints.is_empty():
 		return hints[-1].text
-	var sc := StoryData.scene(id, story.current_scene_id(id))
+	var sc := story.scene_of(id, story.current_scene_id(id))
 	if not sc.is_empty():
 		return "Aktuell: %s" % story.text_of(sc.get("title", ""))
 	return ""
@@ -132,7 +148,7 @@ func _entries(kind: String) -> void:
 	var list := story.state.entries(kind)
 	list.reverse()
 	for e in list:
-		var c := StoryData.chain(String(e.chain))
+		var c := story.chain_of(String(e.chain))
 		_card(e.text, "Tag %d · %s" % [e.day, story.text_of(c.get("title", e.chain))])
 
 
@@ -140,7 +156,7 @@ func _entries(kind: String) -> void:
 func _goals() -> void:
 	for gid in story.state.goals:
 		var g: Dictionary = story.state.goals[gid]
-		var c := StoryData.chain(String(g.chain))
+		var c := story.chain_of(String(g.chain))
 		var v := _card(g.name + ("  ✓ erreicht" if g.done else ""), story.text_of(c.get("title", g.chain)), "", UiTheme.GOOD if g.done else UiTheme.TEXT)
 		if int(g.target) > 0:
 			var h := HBoxContainer.new()

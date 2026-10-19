@@ -9,16 +9,18 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`d9ac494`), offen: Auftrag 2 (Entern-Briefing) |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`41054e5`), offen: Auftrag 4 (Briefing-Meldung) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`c32dcb6`), offen: Auftrag 2 (Sektorkarte) |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
-| `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`be8f45b`), Story-Engine gebaut, noch nicht angebunden |
+| `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`f81f07f`), offen: Auftrag 4 (Fraktions-IDs) |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | `1e02e7d` | Bodenkampf `claude/confident-edison-6mxzke` (`41054e5`) | ohne Konflikte; Branch ohne den Story-Merge → Koordinator: `test_rules`, `test_hub`, `test_story` OK, `test_sim -- 10` 8 Siege / 0 hängengeblieben. Entern-Briefing mit „Ausrüstung“, Entern nicht absagbar; Story-Fraktionen `stille_hand`, `wacht_klingen`, `wacht_hirten`, `abteilung_9`. Neu: Meldung `resized already connected` (BriefingDialog) → Auftrag 4. |
+| 19.10.2026 | `48af1ac` | Story `claude/zen-sagan-9yn0le` (`f81f07f`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Generator `core/story_gen.gd`, Kapitel 1, 8 Vorlagen, Raten, Rückschläge, Bildliste `docs/Story_Bilder.md`; je eine Zeile in `tests/test_hub.gd` und `tests/autotest_hub.gd`. Fraktions-IDs passen nicht zum Bodenkampf → Story Auftrag 4. |
 | 19.10.2026 | `53b08c6` | Raumkampf `claude/raumkampf-modul` (`66ae2b0`) | nur Doku: Fehlermeldung Entern-Briefing → Bodenkampf Auftrag 2. |
 | 19.10.2026 | `dc2eb6d` | Bodenkampf `claude/confident-edison-6mxzke` (`d9ac494`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Fraktions-Oberarten (`FactionData.kind` u. a.), 6 neue Fraktionen, 5 Gegnertypen; Hub-Dateien geändert: `core/sector.gd` (`Mission.sector_factions`), `ui/star_map.gd` (Legende), `tests/test_hub.gd`. **Hub-Branch (`d8c2359`, Sektorkarte) kollidiert jetzt in `ui/star_map.gd` und `tests/test_hub.gd`** → Hub holt `main` und löst. |
 | 19.10.2026 | `6aebcfb` | Hub `claude/happy-lamport-u4fvya` (`c32dcb6`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Story angebunden: `HubState.story`, `story_engine()`, `story_queue`, Einhängepunkte, STORY in der Sternenkarte, KONTAKTE im Raumhafen, Logbuch, Story-Einsätze, `apply_story`. Keine Story-Dateien geändert. |
