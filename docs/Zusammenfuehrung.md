@@ -11,7 +11,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`204d874`), nichts offen |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`c09c49a`), offen: Auftrag 7 (Versionsanzeige) |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`465c9a5`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
 | `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`b08d74d`), nichts offen |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`94a8cc3`), nichts offen |
@@ -20,6 +20,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | `9198062` | Hub `claude/happy-lamport-u4fvya` (`465c9a5`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Versionsanzeige: `Version` (`core/version.gd`), Zeile in allen vier Burgermenüs (je eine Zeile in `ui/top_menu.gd` und `ui/crew/crew_widgets.gd`, mit Zustimmung des Nutzers), `game_version` je Spielstand. Version → 0.2. |
 | 19.10.2026 | Merge `b08d74d` | Export `claude/inspiring-hypatia-5l2tq8` (`b08d74d`) | ohne Konflikte; Branch ohne Hub-Touch → Koordinator: `test_rules`, `test_hub`, `test_story`, `test_touch` OK. Autoload `TouchInput` (Wischen in Listen, Android-Zurück = Esc), `Modal`: Klick daneben bewirkt bei keinem Fenster etwas (Nutzer), größere Flächen auf Mobilgeräten, `project.godot` geändert. |
 | 19.10.2026 | `f838ff3` | Hub `claude/happy-lamport-u4fvya` (`c09c49a`) | Konflikt nur in `godot/README.md` (beide ergänzten dieselbe Testzeile) → vom Koordinator gelöst, beide Sätze übernommen; Branch ohne Bodenkampf-/Story-Merge → `test_rules`, `test_hub`, `test_story` OK. Touch im Schiff und auf der Sternenkarte. |
 | 19.10.2026 | Merge `204d874` | Bodenkampf `claude/confident-edison-6mxzke` (`204d874`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Karte per Touch drehen (zwei Finger, Knöpfe ⟲ ⟳ nur auf Touch-Geräten), auch im Karteneditor. |

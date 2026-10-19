@@ -58,7 +58,4 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 7 (19.10.2026): Versionsanzeige** (Entscheidungen des Nutzers). Die Version steht in `project.godot` (`application/config/version`, z. B. `"0.1 (19.10.2026)"`, gepflegt vom Koordinator). Anzeigen:
-  - im **Burgermenü** als kleine graue Zeile (z. B. „Version 0.1 (19.10.2026)“), überall wo es das Burgermenü gibt;
-  - bei den **Spielstand-Slots**: die Version, mit der der Stand gespeichert wurde (beim Speichern mit ablegen; alte Stände ohne Angabe zeigen „–“).
-  - Lesen über `ProjectSettings.get_setting("application/config/version", "")`, an einer Stelle als Funktion (z. B. `UiTheme` oder Hub), damit die Module sie mitnutzen können.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
