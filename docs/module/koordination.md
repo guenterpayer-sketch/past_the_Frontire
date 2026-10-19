@@ -43,12 +43,11 @@ Es gelten die Regeln aus `CLAUDE.md` (Deutsch, Wissen und Annahme trennen, erst 
 
 Dritter Koordinations-Chat beendet (langer Verlauf). Ein neuer Chat startet nur von diesen Dateien aus.
 
-**Stand `main`:** alle Module zusammengeführt; Raumkampf V1 inkl. Wracks/Entern (`c0e578c`), Hub bis `608be25` (Abwehr als Sieg), Charakter bis `9228e24` (Farb-Absturz behoben), Bodenkampf bis `bb89c03` (Kartentypen, Startlagen). Verlauf: `docs/Zusammenfuehrung.md`.
+**Stand `main` (19.10.2026):** alle Module zusammengeführt und ohne offene Aufträge: Bodenkampf bis `514a72b` (Kartentypen, Startlagen inkl. „Überfall“, Startausrichtung, Truppgröße, Karteneditor), Hub bis `2c531ec` (Hüllenreparatur als Arbeit, schwer Verwundete arbeiten nicht, Raumkampf in der Enzyklopädie), Charakter bis `9228e24`, Raumkampf bis `c0e578c`. `docs/Skillsystem.md` 9 mit dem Nutzer abgeglichen (fast alles bestätigt). Verlauf: `docs/Zusammenfuehrung.md`.
 
 **Offen:**
-- **Bodenkampf:** Truppgröße in `main` (`e931e13`). Karteneditor in `main` (`7f95a11`).
-- Alle anderen Module: keine offenen Aufträge.
-- Ideen für später: Fraktionen mit Ober-/Unterarten (`docs/Planung_Kampfkarten.md`), eigene Jäger/Hangar (V2), Story/Kampagne, Balancing Boden/Charakter (`docs/Skillsystem.md` 9).
+- **Neues Modul Story/Kampagne:** `docs/module/story.md`, Auftrag 1 (nur Planung); Branch trägt der Story-Chat ein. Nach seiner Planung die Anbindungen an Hub/Bodenkampf/Raumkampf verteilen.
+- Ideen für später: Fraktionen mit Ober-/Unterarten (`docs/Planung_Kampfkarten.md`), eigene Jäger/Hangar (V2), Raumkarte mit Trümmern/Nebel.
 
 **Branches:** `claude/confident-edison-6mxzke` (Bodenkampf), `claude/elegant-gauss-hq5bus` (Charakter), `claude/happy-lamport-u4fvya` (Hub), `claude/raumkampf-modul` (Raumkampf). Immer `git fetch origin` ohne Branch-Angabe.
 
