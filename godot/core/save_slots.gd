@@ -27,7 +27,8 @@ static func info(slot: int) -> Dictionary:
 	if pos >= 0 and pos < systems.size():
 		sys = systems[pos].get("name", "")
 	return {"name": d.get("name", ""), "day": int(g.get("day", 1)), "system": sys,
-		"missions": int(g.get("missions_done", 0)), "saved_at": int(d.get("saved_at", 0)), "outdated": HubState.outdated(g)}
+		"missions": int(g.get("missions_done", 0)), "saved_at": int(d.get("saved_at", 0)), "outdated": HubState.outdated(g),
+		"game_version": String(d.get("game_version", ""))}
 
 
 ## zuletzt gespeicherter Slot (für „Fortsetzen“), 0 = keiner
@@ -52,7 +53,7 @@ static func save(slot: int, name: String, g: HubState) -> bool:
 			crew = c
 	g.slot = slot
 	g.slot_name = name
-	var data := {"version": VERSION, "name": name, "saved_at": int(Time.get_unix_time_from_system()),
+	var data := {"version": VERSION, "game_version": Version.current(), "name": name, "saved_at": int(Time.get_unix_time_from_system()),
 		"game": g.to_dict(), "crew": crew}
 	var f := FileAccess.open(path(slot), FileAccess.WRITE)
 	if f == null:
