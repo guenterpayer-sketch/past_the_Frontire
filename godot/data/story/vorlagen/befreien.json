@@ -1,0 +1,172 @@
+{
+	"id": "befreien",
+	"kind": "haupt",
+	"title": "Befreiung: {ziel.titel}",
+	"contact": "{kontakt}",
+	"einstieg": [
+		"kontakt",
+		"ort",
+		"auftrag",
+		"reise"
+	],
+	"werte": {
+		"ziel": [
+			{
+				"name": "ein Zeuge",
+				"titel": "Der Zeuge",
+				"kurz": "Der Zeuge"
+			},
+			{
+				"name": "eine Informantin",
+				"titel": "Die Informantin",
+				"kurz": "Die Informantin"
+			},
+			{
+				"name": "ein Psi-Begabter",
+				"titel": "Der Begabte",
+				"kurz": "Der Begabte"
+			},
+			{
+				"name": "ein Buchhalter von {konzern}",
+				"titel": "Der Buchhalter",
+				"kurz": "Der Buchhalter"
+			}
+		],
+		"gegner": [
+			"abteilung9",
+			"klingen",
+			"hand",
+			"lokal"
+		],
+		"diff": [
+			"leicht",
+			"mittel",
+			"mittel",
+			"schwer"
+		],
+		"bild": [
+			"schritt_befreien"
+		]
+	},
+	"scenes": {
+		"start": {
+			"title": "{ziel.titel}",
+			"image": "{bild}",
+			"text": "{einstieg} In {system} wird {ziel.name} festgehalten, bewacht von {gegner}. Wer etwas über die Hintermänner weiß, sitzt jetzt hinter Gittern.",
+			"choices": [
+				{
+					"text": "Zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Befreiung: {ziel.titel}",
+								"difficulty": "{diff}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				},
+				{
+					"text": "Erst auskundschaften",
+					"check": {
+						"skill": "gassenwissen",
+						"diff": "mittel"
+					},
+					"results": {
+						"erfolg": {
+							"next": "vorteil"
+						},
+						"fehlschlag": {
+							"next": "entdeckt"
+						}
+					}
+				}
+			]
+		},
+		"vorteil": {
+			"title": "Gut vorbereitet",
+			"text": "Ihr kennt jetzt Wege, Wachen und Zeiten.",
+			"choices": [
+				{
+					"text": "Zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Befreiung: {ziel.titel}",
+								"difficulty": "{diff_leichter}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				}
+			]
+		},
+		"entdeckt": {
+			"title": "Entdeckt",
+			"text": "Jemand hat geredet. Sie erwarten euch.",
+			"choices": [
+				{
+					"text": "Trotzdem zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Befreiung: {ziel.titel}",
+								"difficulty": "{diff_schwerer}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				}
+			]
+		},
+		"erfolg": {
+			"title": "Geschafft",
+			"text": "{ziel.kurz} ist frei und redet: von Geld, das durch zu viele Hände geht, und von einer Station, die auf keiner Karte steht.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"hint": "{ziel.kurz} ist frei und redet: von Geld, das durch zu viele Hände geht, und von einer Station, die auf keiner Karte steht."
+						},
+						{
+							"step_done": true
+						},
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		},
+		"fehlschlag": {
+			"title": "Zu spät",
+			"text": "Als ihr zurückkommt, ist die Zelle leer. Die Spur ist kalt.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"step_failed": true
+						},
+						{
+							"end": "gescheitert"
+						}
+					]
+				}
+			]
+		}
+	}
+}

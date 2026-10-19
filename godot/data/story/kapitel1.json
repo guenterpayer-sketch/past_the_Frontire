@@ -1,0 +1,507 @@
+{
+	"_info": "Kapitel 1 (Entscheidungen des Nutzers 19.10.2026): Rahmen mit Schulden und Spuren, Rate im Hafen, Rückschläge, Finale. Die Schritte dazwischen erzeugt StoryGen aus data/story/vorlagen.",
+	"chains": [
+		{
+			"id": "kapitel1",
+			"kind": "haupt",
+			"title": "Kapitel 1: Schulden",
+			"trigger": {
+				"type": "start",
+				"requires": [
+					{
+						"day": 3
+					}
+				]
+			},
+			"start": "glaeubiger",
+			"frame": {
+				"goal": "spuren",
+				"steps": [
+					"befreien",
+					"bergen",
+					"abfangen",
+					"gespraech"
+				],
+				"finale": "kapitel1_finale"
+			},
+			"goals": [
+				{
+					"id": "schulden",
+					"name": "Schulden tilgen",
+					"target": 5000,
+					"rate": 500,
+					"every": 10,
+					"backlash": [
+						"rueck_zins",
+						"rueck_pfaendung",
+						"rueck_gefangen",
+						"rueck_verfolgung"
+					]
+				},
+				{
+					"id": "spuren",
+					"name": "Spuren: Wer steckt dahinter?",
+					"target_rand": [
+						3,
+						4
+					]
+				}
+			],
+			"scenes": {
+				"glaeubiger": {
+					"title": "Besuch an der Schleuse",
+					"image": "k1_glaeubiger",
+					"text": [
+						{
+							"var": "ausgangslage",
+							"pump": "Das Schiff gehört euch nur auf dem Papier. Der Kaufvertrag hat Kleingedrucktes, und das Kleingedruckte steht jetzt an eurer Luftschleuse.",
+							"erbe": "Kapitän Harlan Voss hat euch sein Schiff vererbt. Was im Testament fehlte: seine Schulden. Und die Antwort auf die Frage, woran er gestorben ist.",
+							"verrat": "Vor Jahren habt ihr einen Partner sitzen lassen, als es eng wurde. Er hat überlebt und nichts vergessen. Jetzt gehören ihm eure Schuldscheine.",
+							"fracht": "Eure letzte Fracht ist nie angekommen. Gestohlen, sagt ihr. Unterschlagen, sagt der Auftraggeber. Bezahlt werden muss sie trotzdem."
+						},
+						{
+							"var": "glaeubiger",
+							"syndikat": "Zwei Männer mit Narben und guten Manieren überbringen Grüße vom Syndikat: 5 000 Credits, 500 alle zehn Tage. Wer nicht zahlt, bekommt Besuch.",
+							"bank": "Eine Anwältin der Konzern-Bank legt die Rechnung auf den Tisch: 5 000 Credits, Raten zu 500 alle zehn Tage. Bei Verzug wird gepfändet. Freundlich, gründlich, gnadenlos.",
+							"person": "Silas Kreck, Kredithai mit Goldzahn, lehnt an der Schleuse. „Fünftausend, Freunde. Fünfhundert alle zehn Tage. Sonst schicke ich meine Jungs.“"
+						},
+						{
+							"var": "hand",
+							"ja": "Auf dem Vertrag prangt ein Siegel, das nicht zum Gläubiger passt: eine offene Hand, ganz in Grau.",
+							"*": ""
+						},
+						"\nBeim Gehen fällt ein Satz, der nicht zur Rechnung gehört: „Grüßt mir die Begabte, falls ihr sie findet.“"
+					],
+					"choices": [
+						{
+							"text": "Die Bedingungen annehmen",
+							"effects": [
+								{
+									"hint": "Der Gläubiger spricht von einer „Begabten“. Wer ist sie, und warum interessiert ihn das?"
+								},
+								{
+									"step": "kapitel1"
+								}
+							],
+							"result": "Die Schleuse schließt sich. Zurück bleiben eine Rechnung und eine Frage: Wer ist die Begabte?"
+						},
+						{
+							"text": "Bessere Bedingungen aushandeln",
+							"check": {
+								"skill": "verhandeln",
+								"diff": "schwer"
+							},
+							"results": {
+								"erfolg": {
+									"text": "Ein Nicken, ein Federstrich: Die erste Rate ist erst in 15 Tagen fällig.",
+									"effects": [
+										{
+											"goal": "schulden",
+											"due": 5
+										},
+										{
+											"hint": "Der Gläubiger spricht von einer „Begabten“. Wer ist sie?"
+										},
+										{
+											"step": "kapitel1"
+										}
+									]
+								},
+								"fehlschlag": {
+									"text": "„Nein.“ Mehr sagt der Besuch dazu nicht.",
+									"effects": [
+										{
+											"hint": "Der Gläubiger spricht von einer „Begabten“. Wer ist sie?"
+										},
+										{
+											"step": "kapitel1"
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "glaeubiger_rate",
+			"kind": "haupt",
+			"title": "Rate an {glaeubiger}",
+			"repeat": true,
+			"trigger": {
+				"type": "kontakt",
+				"requires": [
+					{
+						"goal_open": "schulden"
+					}
+				]
+			},
+			"contact": "{glaeubiger}: Rate zahlen",
+			"start": "zahlen",
+			"scenes": {
+				"zahlen": {
+					"title": "Rate zahlen",
+					"image": "k1_rate",
+					"text": "Ein Bote des Gläubigers ({glaeubiger}) nimmt Zahlungen entgegen. Alle zehn Tage sind 500 Credits fällig, mehr tilgt die Schuld schneller. Stand und Frist: Logbuch, Ziele.",
+					"choices": [
+						{
+							"text": "500 Credits zahlen",
+							"requires": [
+								{
+									"credits": 500
+								}
+							],
+							"effects": [
+								{
+									"credits": -500
+								},
+								{
+									"goal": "schulden",
+									"add": 500,
+									"pay": true
+								},
+								{
+									"log": "Rate gezahlt: 500 Credits."
+								}
+							]
+						},
+						{
+							"text": "1 000 Credits zahlen",
+							"requires": [
+								{
+									"credits": 1000
+								}
+							],
+							"effects": [
+								{
+									"credits": -1000
+								},
+								{
+									"goal": "schulden",
+									"add": 1000,
+									"pay": true
+								},
+								{
+									"log": "Doppelte Rate gezahlt: 1 000 Credits."
+								}
+							]
+						},
+						{
+							"text": "Später"
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "rueck_zins",
+			"kind": "haupt",
+			"title": "Rückschlag: Strafzinsen",
+			"trigger": {
+				"type": "keiner"
+			},
+			"start": "s",
+			"scenes": {
+				"s": {
+					"title": "Strafzinsen",
+					"image": "k1_rueck_zins",
+					"text": "Die Rate ist ausgeblieben. Der Gläubiger ({glaeubiger}) schlägt zehn Prozent auf die Restschuld. Freundlich lächeln tut dabei niemand.",
+					"choices": [
+						{
+							"text": "Zähneknirschend weiter",
+							"effects": [
+								{
+									"goal": "schulden",
+									"target_pct": 10
+								},
+								{
+									"log": "Rückschlag: Strafzinsen"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "rueck_pfaendung",
+			"kind": "haupt",
+			"title": "Rückschlag: Pfändung",
+			"trigger": {
+				"type": "keiner"
+			},
+			"start": "s",
+			"scenes": {
+				"s": {
+					"title": "Pfändung",
+					"image": "k1_rueck_pfaendung",
+					"text": "Die Rate ist ausgeblieben. Leute des Gläubigers kommen an Bord und holen sich, was sie tragen können: ein Viertel der Credits, Schiffsmaterial, ein Stück aus dem Lager.",
+					"choices": [
+						{
+							"text": "Zähneknirschend weiter",
+							"effects": [
+								{
+									"credits_pct": -25
+								},
+								{
+									"material": -2
+								},
+								{
+									"item_random": "take"
+								},
+								{
+									"log": "Rückschlag: Pfändung"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "rueck_gefangen",
+			"kind": "haupt",
+			"title": "Rückschlag: Geisel",
+			"trigger": {
+				"type": "keiner"
+			},
+			"start": "s",
+			"scenes": {
+				"s": {
+					"title": "Geisel",
+					"image": "k1_rueck_gefangen",
+					"text": "Die Rate ist ausgeblieben. Als Pfand nehmen sie jemanden aus der Crew mit. „Zahlt alles, oder holt sie euch zurück.“",
+					"choices": [
+						{
+							"text": "Zähneknirschend weiter",
+							"effects": [
+								{
+									"capture": true
+								},
+								{
+									"hint": "Ein Crewmitglied ist gefangen. Befreien oder die ganze Schuld zahlen."
+								},
+								{
+									"log": "Rückschlag: Geisel"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "rueck_verfolgung",
+			"kind": "haupt",
+			"title": "Rückschlag: Kopfgeld",
+			"trigger": {
+				"type": "keiner"
+			},
+			"start": "s",
+			"scenes": {
+				"s": {
+					"title": "Kopfgeld",
+					"image": "k1_rueck_kopfgeld",
+					"text": "Die Rate ist ausgeblieben. Der Gläubiger setzt ein Kopfgeld aus. Im nächsten Raumhafen wird man auf euch warten.",
+					"choices": [
+						{
+							"text": "Zähneknirschend weiter",
+							"effects": [
+								{
+									"flag": "kopfgeld"
+								},
+								{
+									"hint": "Kopfgeldjäger warten im nächsten Raumhafen."
+								},
+								{
+									"log": "Rückschlag: Kopfgeld"
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "kapitel1_finale",
+			"kind": "haupt",
+			"title": "Kapitel 1: Die Begabte",
+			"trigger": {
+				"type": "auftrag",
+				"requires": [
+					{
+						"flag": "kapitel1_spuren"
+					},
+					{
+						"ship_level": 2
+					}
+				]
+			},
+			"start": "plan",
+			"scenes": {
+				"plan": {
+					"title": "Die Station",
+					"image": "k1_station",
+					"text": "Die Spuren laufen zusammen. Abteilung 9, das Psi-Waffenprogramm von {konzern}, hält in einer Forschungsstation eine junge Psi-Begabte fest. Ihr Name ist Lio. Sie ist der Grund, warum sich so viele für euch interessieren.",
+					"choices": [
+						{
+							"text": "Frontal angreifen",
+							"effects": [
+								{
+									"mission": {
+										"kind": "boden",
+										"title": "Station von Abteilung 9",
+										"difficulty": "schwer",
+										"faction": "abteilung9",
+										"sieg": "befreit",
+										"niederlage": "zurueck",
+										"rueckzug": "plan"
+									}
+								}
+							]
+						},
+						{
+							"text": "Durch die Wartungsschächte",
+							"check": {
+								"skill": "computer",
+								"diff": "schwer"
+							},
+							"results": {
+								"erfolg": {
+									"text": "Die Schleusen öffnen sich lautlos. Die Wachen merken nichts, noch nicht.",
+									"next": "drin"
+								},
+								"fehlschlag": {
+									"text": "Ein Sensor schlägt an. Sirenen.",
+									"next": "alarm"
+								}
+							}
+						}
+					]
+				},
+				"drin": {
+					"title": "Drinnen",
+					"text": "Ihr seid drin, bevor jemand Alarm gibt.",
+					"choices": [
+						{
+							"text": "Zuschlagen",
+							"effects": [
+								{
+									"mission": {
+										"kind": "boden",
+										"title": "Station von Abteilung 9",
+										"difficulty": "mittel",
+										"faction": "abteilung9",
+										"sieg": "befreit",
+										"niederlage": "zurueck",
+										"rueckzug": "plan"
+									}
+								}
+							]
+						}
+					]
+				},
+				"alarm": {
+					"title": "Alarm",
+					"text": "Die Station ist hellwach. Psi-Soldaten nehmen Stellung.",
+					"choices": [
+						{
+							"text": "Durchbrechen",
+							"effects": [
+								{
+									"mission": {
+										"kind": "boden",
+										"title": "Station von Abteilung 9",
+										"difficulty": "schwer",
+										"faction": "abteilung9",
+										"sieg": "befreit",
+										"niederlage": "zurueck",
+										"rueckzug": "plan"
+									}
+								}
+							]
+						}
+					]
+				},
+				"zurueck": {
+					"title": "Zurückgeschlagen",
+					"text": "Ihr kommt mit knapper Not davon. Lio bleibt in der Station, vorerst.",
+					"choices": [
+						{
+							"text": "Neu planen",
+							"next": "plan"
+						}
+					]
+				},
+				"befreit": {
+					"title": "Lio",
+					"image": "k1_lio",
+					"text": "Lio sitzt in einer Zelle aus Glas, um sie herum flackern Messgeräte. Sie ist jünger, als ihr dachtet. In den Daten der Station findet ihr Überweisungen an Abteilung 9. Absender ist jedes Mal eine graue, offene Hand: die Stille Hand.\nJetzt müsst ihr entscheiden, was aus Lio wird.",
+					"choices": [
+						{
+							"text": "Lio an Bord nehmen",
+							"effects": [
+								{
+									"recruit": "begabte"
+								},
+								{
+									"flag": "k2_anheuern"
+								},
+								{
+									"hint": "Die Stille Hand finanziert Abteilung 9. Lio fliegt jetzt mit euch, und jemand wird sie zurückhaben wollen."
+								},
+								{
+									"log": "Kapitel 1 abgeschlossen: Lio ist an Bord."
+								},
+								{
+									"end": "fertig"
+								}
+							]
+						},
+						{
+							"text": "Lio zu den Hirten der Wacht bringen",
+							"effects": [
+								{
+									"credits": 600
+								},
+								{
+									"flag": "k2_hirten"
+								},
+								{
+									"hint": "Die Stille Hand finanziert Abteilung 9. Die Hirten der Wacht schulden euch etwas."
+								},
+								{
+									"log": "Kapitel 1 abgeschlossen: Lio ist bei den Hirten."
+								},
+								{
+									"end": "fertig"
+								}
+							]
+						},
+						{
+							"text": "Lio verkaufen",
+							"effects": [
+								{
+									"credits": 1500
+								},
+								{
+									"flag": "k2_verkauft"
+								},
+								{
+									"hint": "Die Stille Hand finanziert Abteilung 9. Die Klingen haben gut gezahlt. Lio hat euch nicht angesehen, als man sie wegbrachte."
+								},
+								{
+									"log": "Kapitel 1 abgeschlossen: Lio wurde verkauft."
+								},
+								{
+									"end": "fertig"
+								}
+							]
+						}
+					]
+				}
+			}
+		}
+	]
+}

@@ -1,6 +1,7 @@
 extends Control
 ## Demo der Story-Engine mit der Test-Kette (im Editor: Szene öffnen, F6). Ohne Spielstand, Test-Crew, 1000 Credits.
 ## Screenshots (Zielordner PTF_OUT): godot --path godot res://tests/story_demo.tscn -- --shot
+## Kapitel 1 mit Sektor und erzeugtem Schritt: … -- --shot-k1 (ohne Schalter mit F6: Test-Kette)
 
 var story: Story
 
@@ -22,14 +23,23 @@ func _ready() -> void:
 	bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-	story = Story.create()
+	var k1 := "--shot-k1" in OS.get_cmdline_user_args()
+	story = Story.create(null, HubState.new_game(4711, "Demo", 0) if k1 else null)
 	story.res.credits = 1000
 	story.crew_override = [_member("Mara", 6), _member("Jax", 2), _member("Ivo", 0)]
-	story.start("test_kette")
-	var d := StoryDialog.show_on(self, story, "test_kette")
+	if k1:
+		story.state.vars = {"ausgangslage": "pump", "glaeubiger": "syndikat", "konzern": "semidrug", "hand": "ja"}
+		story.game.day = 3
+		story.on_day()
+	var first := "kapitel1" if k1 else "test_kette"
+	if not k1:
+		story.start(first)
+	var d := StoryDialog.show_on(self, story, first)
 	d.finished.connect(func(_id: String) -> void: StoryLog.show_on(self, story, 3))
 	if "--shot" in OS.get_cmdline_user_args():
 		_shots.call_deferred(d)
+	elif k1:
+		_shots_k1.call_deferred(d)
 
 
 func _member(n: String, verhandeln: int) -> Character:
@@ -65,6 +75,35 @@ func _shots(d: StoryDialog) -> void:
 	story.start("test_ort")
 	d.show_chain(story, "test_ort")
 	await _shot("st8_langer_text")
+	get_tree().quit()
+
+
+func _shots_k1(d: StoryDialog) -> void:
+	await _shot("k1_1_glaeubiger")
+	d._show_result(story.choose("kapitel1", 0))
+	await _shot("k1_2_ergebnis")
+	var step := ""
+	for id in story.state.generated:
+		step = id
+	story.start(step)
+	d.show_chain(story, step)
+	await _shot("k1_3_schritt")
+	story.state.goals.spuren.value = story.state.goals.spuren.target
+	story.state.goals.spuren.done = true
+	story.state.flags.kapitel1_spuren = true
+	story.reveal("kapitel1_finale")
+	var log := StoryLog.show_on(self, story, 0)
+	await _shot("k1_4_logbuch")
+	log.tab = 2
+	log._fill()
+	await _shot("k1_5_ziele")
+	log.close()
+	story.state.chains.kapitel1_finale.status = ""
+	story.start("kapitel1_finale")
+	story.choose("kapitel1_finale", 0)
+	story.mission_done("sieg")
+	d.show_chain(story, "kapitel1_finale")
+	await _shot("k1_6_lio")
 	get_tree().quit()
 
 

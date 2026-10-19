@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_ar"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_soldier.tres" id="4_vi"]
+[ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="5_w0"]
+
+[resource]
+script = ExtResource("2_ud")
+id = &"psi_soldat"
+name = "Psi-Soldat"
+letter = "M"
+role = "Psi-Soldat (Abteilung 9)"
+color = Color(0.4, 0.6, 0.9, 1)
+attrs = {
+"EMP": 70,
+"GEW": 60,
+"INT": 60,
+"KON": 65,
+"KOO": 65,
+"MEN": 80,
+"STA": 60
+}
+skills = {
+"ausweichen": 3,
+"gewehre": 6,
+"kampfsinn": 4,
+"lAngriff": 3,
+"psiAngriff": 6,
+"psiVerteidigung": 5,
+"psiWirken": 4
+}
+weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0")])
+armor = ExtResource("1_ar")
+threat = 12
+visual = ExtResource("4_vi")

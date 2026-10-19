@@ -42,6 +42,84 @@ Hinweis zu Artisly.ai: Den Dienst kenne ich nicht genau. Die Prompts schreibe ic
 | Bedingungen für Wahlen | **Fertigkeitsrang**, **Story-Flags**, **Ressourcen**, **Psi-Begabung** (eine Psi-Liste an Bord). |
 | Mockup | Szenenfenster und Logbuch **passen** (Artifact „Frontire Story-Mockup“). Umsetzung in Godot nach zwei Fehlversuchen im Stil der vorhandenen Fenster abgenommen (19.10.2026). |
 
+## Story-Fraktionen (Entscheidungen des Nutzers, 19.10.2026)
+
+Oberart aller drei: eigene Oberart **„Story“** (außerhalb von Konzern, Söldner, Piraten, Syndikat, Kult).
+
+| Fraktion | Was sie will / ist | Im Kampf (für die Fraktionsdaten im Bodenkampf) |
+|---|---|---|
+| **Die Stille Hand** (Geheimbund) | Macht über die Sektoren, hütet ein altes Geheimnis, will Psi kontrollieren, nutzt Geld und Schulden als Werkzeug. Lenkt Fraktionen verdeckt. | **Angeheuerte**: kämpft kaum selbst, schickt gemischte Söldner, dazu wenige eigene Agenten (Pistolen, Tarnung). |
+| **Die Wacht von Seraph** (Psi-Orden) | **Gespalten** in zwei Flügel: die **Hirten** (sammeln und schützen Begabte, bilden sie aus) und die **Klingen** (sehen unkontrolliertes Psi als Gefahr und jagen Begabte). | **Psi-lastig**: viele Psi-Nutzer (Angriff, Schutz), Nahkampfklingen. |
+| **Abteilung 9** (Konzern-Projekt) | Erforscht **Psi als Waffe** (Psi-Begabte als Soldaten). Gehört zu einem Konzern, der **je Spiel ausgewürfelt** wird: **Vantar-Konzern** oder **Semidrug Inc.** (neuer Konzern der Oberart Konzern). | **Psi-Soldaten**: gezwungene Psi-Begabte, dazu schwer gepanzerte Wachen. |
+
+Beziehungen (alle gewählt): Die Stille Hand **lenkt und finanziert Abteilung 9** heimlich. Die **Klingen** arbeiten mit Abteilung 9 zusammen und liefern Begabte. Die **Hirten** bekämpfen die Stille Hand. Darüber hinaus **wechselnde Bündnisse** je nach Lage. Der **Gläubiger** hängt **manchmal** mit der Stillen Hand zusammen, je nach ausgewürfeltem Gläubiger (wird in Kapitel 1 festgelegt).
+
+Für die Bausteine: neue Gruppe `konzern` (vantar, semidrug), ausgewürfelt beim Spielstart wie Ausgangslage und Gläubiger.
+
+Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei Story-Fraktionen und für Semidrug Inc. anlegen (Einheiten wie oben). Die Raumkampf-Seite (Schiffsvorlagen) wird bei Bedarf für Kapitel 1 nachgereicht.
+
+## Kapitel 1 und Ereignisketten (Entscheidungen des Nutzers, Auftrag 3, 19.10.2026)
+
+| Thema | Entscheidung |
+|---|---|
+| Art | **Ganz erzeugt**: Story-Schritte entstehen aus Vorlagen (wer, was, wo). Fest sind nur **Anfang** und **Ende**. Das gilt auch für die drei Ereignisketten. |
+| Anfang | Der Gläubiger meldet sich **nach ein paar Tagen** freien Spiels. |
+| Schulden | **5 000 Cr**, Rate **500 Cr je 10 Tage**. |
+| Verpasste Rate | Rückschlag **zufällig** aus: Schuld steigt, Pfändung, Crew gefangen, Verfolgung. |
+| Fortschritt | **Spuren sammeln**: erzeugte Schritte geben bei Erfolg eine Spur. Bei Fehlschlag gibt es keine Spur, und ein neuer Schritt wird erzeugt. Bis zum Finale braucht es **3–4 Spuren** (je Spiel ausgewürfelt). |
+| Arten von Schritten | **Person befreien/holen** (Boden), **Daten/Ware bergen** (Boden), **Schiff abfangen** (Raum, ggf. Entern), **Gespräch/Probe** (ohne Kampf). |
+| Gegner in Schritten | Story-Fraktionen (Abteilung 9, Klingen der Wacht, Angeheuerte der Stillen Hand) **und passende normale Fraktionen** der Gegend. |
+| Einstieg der Schritte | alle vier Wege: Hafenkontakt, Story-Ort, Auftragsliste (ohne Zeitlimit), Reise-Ereignis. |
+| Ende Kapitel 1 | **Rettung führt zur Spur**: Die Crew befreit eine Psi-Begabte aus Abteilung 9 und findet dabei die Spur zur Stillen Hand. |
+| Die Begabte | **Der Spieler entscheidet** im Finale: anheuern, an die Hirten der Wacht übergeben oder verkaufen (an Abteilung 9 bzw. die Klingen). **Jede Entscheidung führt zu einer anderen Linie in Kapitel 2.** |
+| Ereignisketten | **Notruf/Wrack**: Ausgänge Überlebende, Beute, Falle, Story-Spur (Wrack von Abteilung 9). **Blinder Passagier**: Flüchtling, Psi-Begabte(r), Dieb/Saboteur, Harmloser. **Schmuggelware**: Angebot im Hafen, Zoll/Kontrolle, Käufer verrät, Ware ist lebendig. Alle Ausgänge möglich, zufällig gewählt. |
+| Kampagnenziele | **Story-Schlüssel**: Schiffsausbau, Crew-Ränge und Sektoren/Orte werden mitgezählt. Bestimmte Story-Schritte öffnen sich erst ab einem Stand, z. B. das Finale ab einer Ausbaustufe. Das Logbuch zeigt, was fehlt. Keine eigene Belohnung. |
+| Crew gefangen | Die Figur ist **gesperrt, bis sie befreit ist** (erzeugter Befreiungs-Einsatz) oder die Schuld bezahlt ist. |
+| Verfolgung | **Kopfgeldjäger**: sicher ein Hinterhalt beim nächsten Hafenbesuch. |
+| Lager | **Ja, in V1**: Szenen können Gegenstände im Schiffslager prüfen (z. B. ein Medikit) und Ausrüstung ins Lager geben oder daraus nehmen. Umsetzung über `Stock.count/add/take`, keine Hub-Änderung nötig. |
+| Bilder | Stil **Comic/Graphic Novel** (klare Linien, Schraffur, kräftige Schatten). |
+
+## Story-Generator (gebaut, Auftrag 3)
+
+- **`core/story_gen.gd` (StoryGen):** `make(story, vorlage, extra)` baut aus einer Vorlage eine Kette im Format der JSON-Ketten und legt sie in `StoryState.generated` ab. Damit bleibt sie im Spielstand und ist nach dem Laden gleich. `step(story, rahmen)` erzeugt den nächsten Schritt eines Rahmens. Gewürfelt werden die Werte der Vorlage (Ziel, Gegner, Schwierigkeit …), der Einstieg (Kontakt in einem Hafen, Story-Ort, Auftrag, Reise), der Ort, ein Kontaktname und bei Ereignisketten der Ausgang.
+- **Vorlagen** (`data/story/vorlagen/`):
+  - Schritte: `befreien`, `bergen`, `abfangen` (Raumkampf: abfangen oder Blockade mit Entern), `gespraech` (nur Proben, Bestechen, Psi).
+  - Rückschlag: `hinterhalt` (Kopfgeldjäger).
+  - Ereignisketten: `wrack` (Überlebende, Beute, Falle, Spur), `passagier` (Flüchtling, Begabte, Dieb, Ausreißer), `schmuggel` (Zoll, Verrat, lebende Fracht).
+  - Platzhalter: `{wert}`/`{wert.feld}`, `{gegner}`, `{gegner_id}`, `{diff}`, `{diff_leichter}`, `{diff_schwerer}`, `{system}`, `{kontakt}`, `{einstieg}`.
+- **Kapitel 1** (`data/story/kapitel1.json`):
+  - Rahmen `kapitel1`: startet ab Tag 3, mit den Zielen „Schulden“ (5 000, Rate 500 alle 10 Tage) und „Spuren“ (3–4).
+  - `glaeubiger_rate`: wiederholbarer Hafenkontakt „Rate zahlen“.
+  - Rückschläge `rueck_zins` (+10 % der Restschuld), `rueck_pfaendung` (−25 % Credits, −2 Material, ein Stück aus dem Lager), `rueck_gefangen` (Crewmitglied gefangen, Befreiung wird erzeugt) und `rueck_verfolgung` (Kopfgeldjäger im nächsten Hafen).
+  - Finale `kapitel1_finale`: Station von Abteilung 9, Begabte „Lio“, drei Wahlen mit den Flags `k2_anheuern`, `k2_hirten`, `k2_verkauft` für Kapitel 2.
+- **Ablauf:** Ein erfolgreicher Schritt gibt eine Spur, ein Fehlschlag keine; in beiden Fällen wird der nächste Schritt erzeugt (höchstens einer offen). Ereignisketten wie Wrack, Passagier und Schmuggel können ebenfalls eine Spur geben. Sind die Spuren voll, wird das Finale bekannt. Es erscheint in der Auftragsliste, sobald die Bedingungen erfüllt sind; bis dahin zeigt das Logbuch, was fehlt.
+- **Neu in der Engine:**
+  - Bedingungen `day`, `item`/`count`, `ship_level`, `crew_ranks`, `sectors`, `goal_open`.
+  - Folgen `item` (`add`/`take`), `item_random`, `credits_pct`, `goal` mit `pay` und `target_pct`, `step`, `step_done`, `step_failed`, `spur`, `capture`, `recruit`.
+  - Ziele mit `target_rand`, `rate`/`every`/`backlash`; Ketten mit `repeat`; Dateien mit mehreren Ketten unter `chains`.
+  - Gefangene fehlen in `Story.crew()`. Sind die Schulden getilgt, kommen sie frei.
+- **Eigener Zufall:** Die Story würfelt mit einem eigenen Generator (`Story.rng`), damit sie die Zufallsfolge von Hub und Kampf nicht verschiebt.
+- **Häufigkeiten:**
+  - Story-Schritt mit Einstieg „Reise“: 45 % je Reisetag.
+  - Ereigniskette Wrack oder Passagier: 8 % je Reisetag, wenn keine offen ist.
+  - Schmuggel-Kontakt: 25 % je Hafenankunft, wenn keiner offen ist.
+  - Diese Werte sind vorläufig und noch nicht mit dem Nutzer abgestimmt.
+- **Vorschlag, noch zu bestätigen:** Das Finale braucht **Schiffsausbau 2** (Summe der Ausbaustufen).
+- **Gegner-Fraktionen:** Die Schritte nennen die gewünschten Missionsfraktionen `abteilung9`, `seraph`, `stille_hand` und `pluenderer`. Solange der Bodenkampf sie nicht angelegt hat, nimmt der Generator vorhandene Fraktionen als Ersatz: `konzern`, `leeres_licht`, `rote_sonne`, `schmuggler`. Das Finale nennt `abteilung9` fest; der Hub fällt dann auf die Fraktion des Systems zurück.
+- **Bilder:** Liste und Prompts in `docs/Story_Bilder.md`.
+
+### Nötige Anbindungen anderer Module
+
+- **Hub:**
+  - Kopfgeldjäger und Schmuggel-Kontakte laufen über das vorhandene `on_arrive`. Die Kontakte erscheinen über `contacts()`, das jetzt nur Kontakte des Hafens liefert, in dem das Schiff liegt.
+  - Offen: Der Story-Einsatz sollte die Kartenart aus der Vorlage übernehmen; heute zufällig.
+  - Offen: Gefangene Crew (`Story.state.captured`, Character.id als Text) muss in Truppwahl, Reiseposten und Krankenstation gesperrt sein. Heute fehlt sie nur bei Proben in Szenen.
+  - Offen: Sektoren für den Story-Schlüssel `sectors`, nach dem Sektorumbau.
+- **Charakter:**
+  - Status „gefangen“ (gesperrt wie verwundet, mit Text „gefangen“).
+  - Eine Psi-Begabte „Lio“ als Figur, wenn `state.recruits` den Eintrag `begabte` enthält. Anheuern über `Campaign.hire`.
+- **Bodenkampf:** Fraktionsdaten `abteilung9`, `seraph` (Wacht von Seraph), `stille_hand`, `semidrug` und gern `pluenderer`, Einheiten wie im Abschnitt „Story-Fraktionen“.
+
 ## Gebaut (Auftrag 2)
 
 | Datei | Inhalt |
@@ -70,7 +148,7 @@ Eine Datei je Kette:
   "goals": [{"id": "schulden", "name": "Schulden tilgen", "value": 0, "target": 6000, "due_in": 5, "fail": "szenen-id"}],
   "scenes": {
     "szenen-id": {"title": "…", "image": "bild-id", "text": Text,
-      "choices": [{"text": Text, "requires": [Bedingungen], "hide_locked": false,
+      "choices": [{"text": Text, "requires": [Bedingungen], "hide_locked": false, "result": Text (Ergebnistext ohne Probe),
         "check": {"skill": "verhandeln", "diff": "mittel", "mod": 0},
         "effects": [Folgen], "next": "szenen-id",
         "results": {"erfolg": {"text": Text, "effects": [Folgen], "next": "…"}, "fehlschlag": {…}}}]}
@@ -93,14 +171,14 @@ Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul ändert kei
 
 | Was | Story-Seite (gebaut) | Hub-Seite (Auftrag) |
 |---|---|---|
-| Speicherstand | `StoryState.to_dict()` / `StoryState.from_dict(d)`, neues Spiel: `StoryState.create()` | Feld `HubState.story: Dictionary` in `to_dict`/`from_dict`, beim neuen Spiel `StoryState.create().to_dict()`. **Stub:** `Story.for_game(g)` hält den Zustand bis dahin nur im Speicher (je Slot). |
+| Speicherstand | `StoryState.to_dict()` / `StoryState.from_dict(d)`, neues Spiel: `StoryState.create()` | **gebaut** (`main` `6aebcfb`): `HubState.story`, `HubState.story_engine()` hält das Story-Objekt. Der frühere Stub `Story.for_game` ist entfernt. |
 | Story-Objekt | `Story.create(state, game)`; `crew()` = `Voyage.available(game)`, `today()` = `game.day` | ein `Story` je Spiel erzeugen und `HubState.story` beim Speichern zurückschreiben |
 | Auftragsliste | `Story.offers()` → `[{chain, title, kind}]`, ohne Zeitlimit; Annehmen = `start(chain)` und `StoryDialog.show_on(parent, story, chain)` | markiert in der Auftragsliste (Brücke), ohne Ablauf |
 | Sternenkarte | `Story.markers()` → `[{system, chain, title}]`; `Story.on_arrive(system)` → Kette oder "" | Marker zeichnen; bei Ankunft aufrufen und ggf. das Szenenfenster öffnen |
 | Reise | `Story.travel_event(rng)` → Kette oder "" (Chance `TRAVEL_CHANCE` je Tag) | in `_travel` je Reisetag neben dem Feindkontakt |
 | Raumhafen | `Story.contacts()` → `[{chain, title}]` | Bereich „Kontakte“; Ansprechen = `start(chain)` + Szenenfenster |
 | Tagesende | `Story.on_day()` → Ketten mit verpasster Frist (Rückschlag-Szene ist dann aktiv) | nach `advance_days` aufrufen, Szenenfenster öffnen |
-| Ressourcen | `Story.add_resource(feld, n)`; **Stub:** schreibt direkt in `HubState.credits/material/provisions/fuel` (nicht unter 0) | auf Wunsch `HubState.apply_story(effects)`, damit die Regeln im Hub bleiben |
+| Ressourcen | `Story.add_resource(feld, n)` → tatsächliche Änderung; im Spiel über `HubState.apply_story({feld: n})` | **gebaut**: Credits dürfen unter 0, Material und Proviant nicht, Treibstoff 0 bis Tankgröße |
 | Logbuch | `StoryLog.show_on(parent, story)` | Knopf auf der Brücke und im Burgermenü |
 | Sektorkarte | Story-Orte zurzeit ein ganzes System (`_pick_place`, Stub) | Umbau in `core/sector.gd` und der Sternenkarte: 15–20 Systeme, 2–4 Orte je System, besser vernetzt, mehrere Sektoren mit Sprungtoren (Nutzungsgebühr, Erlaubnis, Rückreise). Danach Story-Orte als Ort im System. |
 
@@ -122,13 +200,13 @@ Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul ändert kei
 ## Bilder
 
 - Szenen haben ein optionales Feld `image`; die Datei liegt unter `godot/art/story/<image>.png`. Ohne Datei zeigt das Fenster nur Text.
-- Die Bildliste mit Prompts (für einen Bildgenerator, vom Nutzer genannt: Artisly.ai) entsteht zusammen mit den Inhalten von Kapitel 1.
+- Bildliste mit Prompts: `docs/Story_Bilder.md` (Stil Comic/Graphic Novel).
 
 ## Offene Punkte
 
-1. **Inhalte schreiben**: Kapitel 1 (Szenen, Einsätze, Gegner, Textbausteine je Ausgangslage und Gläubiger), die drei Ereignisketten. Erst Ablauf und Eckpunkte mit dem Nutzer klären.
-2. **Story-Fraktionen** ausarbeiten: Namen, Ziele, wie sie zueinander stehen.
-3. **Kampagnenziele** Schiffsausbau, Crew-Ränge, Sektoren/Orte: wie gemessen (aus `HubState.upgrades`, Rängen, bekannten Sektoren), welche Schwellen.
-4. **Rückschläge** „Crew gefangen“ (Crewmitglied gesperrt, Befreiungseinsatz) und „Verfolgung“ (mehr Feindkontakte) brauchen Hub-Anbindung.
-5. Lager-Gegenstände als Bedingung/Folge (`Stock`), noch nicht gebaut.
+1. **Inhalte**: Ablauf und Eckpunkte geklärt (Abschnitt „Kapitel 1 und Ereignisketten“). Offen: Generator bauen, Vorlagen und Texte schreiben, Werte der Story-Schlüssel (z. B. welche Ausbaustufe für das Finale).
+2. ~~Story-Fraktionen~~ erledigt (Abschnitt „Story-Fraktionen“).
+3. ~~Kampagnenziele~~ entschieden: Story-Schlüssel. Offen sind nur die Schwellenwerte.
+4. ~~Rückschläge~~ entschieden: gefangen bis befreit, Verfolgung durch Kopfgeldjäger. Anbindung siehe Generator-Entwurf.
+5. Lager-Gegenstände: entschieden (ja, V1), noch nicht gebaut.
 6. Export: JSON-Dateien in `data/story/` müssen beim Export mitgenommen werden (Exportfilter `*.json`), sobald es einen Export gibt.

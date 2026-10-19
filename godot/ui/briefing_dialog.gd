@@ -5,6 +5,8 @@ extends Modal
 ## Angeschlagene markiert, Warnung bei weniger als der Höchstzahl). "Neu würfeln" erzeugt eine andere Mission (wahlweise mit fester Schwierigkeit).
 
 signal reroll(difficulty: String)
+## Entern: „Ausrüstung“ (Waffenkammer) statt „Zurück ins Schiff“ – Entern lässt sich nicht absagen (Bodenkampf Auftrag 2)
+signal equip
 ## beim Schließen: gewählter Trupp in Listenreihenfolge (leer = nichts gewählt, bisheriger Trupp bleibt)
 signal accepted(squad: Array[Character])
 
@@ -59,7 +61,11 @@ func show_mission(m: Mission, cands: Array[Dictionary], selected: Array[Characte
 		else "Vorbelegt: Trupp des letzten Einsatzes, Gesperrte entfernt, freie Plätze aufgefüllt", 12, UiTheme.MUTED)
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(hint)
-	if hub_mode:
+	if hub_mode and m.boarding != "":
+		var eq := UiTheme.button("Ausrüstung", "Waffenkammer: Waffen, Rüstung und Medikits der Crew ändern. Entern lässt sich nicht absagen.")
+		eq.pressed.connect(func() -> void: equip.emit())
+		footer.add_child(eq)
+	elif hub_mode:
 		var back := UiTheme.button("Zurück ins Schiff", "Auftrag nicht jetzt erledigen; er bleibt auf der Sternenkarte offen")
 		back.pressed.connect(func() -> void:
 			hide()

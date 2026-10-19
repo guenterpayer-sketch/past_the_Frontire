@@ -1,0 +1,249 @@
+{
+	"id": "passagier",
+	"kind": "kette",
+	"title": "Blinder Passagier",
+	"trigger": "reise",
+	"werte": {
+		"gegner": [
+			"hand",
+			"klingen",
+			"lokal"
+		],
+		"diff": [
+			"leicht",
+			"mittel"
+		]
+	},
+	"start": "start",
+	"scenes": {
+		"start": {
+			"title": "Jemand an Bord",
+			"image": "ev_passagier",
+			"text": "Im Frachtraum raschelt es. Zwischen den Kisten hockt jemand, der nicht zur Crew gehört.",
+			"choices": [
+				{
+					"text": "Hervorholen",
+					"next": "ausgang"
+				}
+			]
+		}
+	},
+	"ausgaenge": {
+		"fluechtling": {
+			"ausgang": {
+				"title": "Auf der Flucht",
+				"text": "Ein Mann in abgetragener Hafenkleidung. Er ist auf der Flucht vor {gegner}, und die sind ihm dicht auf den Fersen.",
+				"choices": [
+					{
+						"text": "Ihn verstecken und beschützen",
+						"effects": [
+							{
+								"mission": {
+									"kind": "boden",
+									"title": "Die Verfolger",
+									"difficulty": "{diff}",
+									"faction": "{gegner_id}",
+									"sieg": "sieg",
+									"niederlage": "niederlage",
+									"rueckzug": "niederlage"
+								}
+							}
+						]
+					},
+					{
+						"text": "Ihn ausliefern",
+						"effects": [
+							{
+								"credits": 150
+							},
+							{
+								"log": "Den Flüchtling ausgeliefert."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"sieg": {
+				"title": "Dankbar",
+				"text": "Die Verfolger geben auf. Der Mann drückt euch alles in die Hand, was er hat.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"credits": 250
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"niederlage": {
+				"title": "Geholt",
+				"text": "Sie nehmen ihn mit. Ihr könnt nur zusehen.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"end": "gescheitert"
+							}
+						]
+					}
+				]
+			}
+		},
+		"begabt": {
+			"ausgang": {
+				"title": "Eine Begabte",
+				"text": "Ein Mädchen, vielleicht vierzehn. Als ihr näher kommt, beginnen die Lampen zu flackern. Psi. Die Klingen der Wacht jagen sie.",
+				"choices": [
+					{
+						"text": "Sie beschützen",
+						"effects": [
+							{
+								"mission": {
+									"kind": "boden",
+									"title": "Die Klingen der Wacht",
+									"difficulty": "{diff}",
+									"faction": "seraph",
+									"sieg": "sieg",
+									"niederlage": "niederlage",
+									"rueckzug": "niederlage"
+								}
+							}
+						]
+					},
+					{
+						"text": "Den Hirten der Wacht übergeben",
+						"effects": [
+							{
+								"credits": 200
+							},
+							{
+								"hint": "Die Hirten der Wacht nehmen junge Begabte auf. Die Klingen jagen sie."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					},
+					{
+						"text": "An die Klingen verraten",
+						"effects": [
+							{
+								"credits": 400
+							},
+							{
+								"log": "Das Mädchen an die Klingen verraten."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"sieg": {
+				"title": "In Sicherheit",
+				"text": "Die Klingen ziehen ab. Das Mädchen erzählt von Glaszellen und einer Nummer: 9.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"spur": "kapitel1"
+							},
+							{
+								"hint": "Ein gejagtes Mädchen erzählt von Glaszellen und der Nummer 9."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"niederlage": {
+				"title": "Verloren",
+				"text": "Die Klingen nehmen sie mit.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"end": "gescheitert"
+							}
+						]
+					}
+				]
+			}
+		},
+		"dieb": {
+			"ausgang": {
+				"title": "Ein Dieb",
+				"text": "Weg, bevor ihr ihn greifen könnt. Später fehlen Proviant und ein Stück aus dem Lager.",
+				"choices": [
+					{
+						"text": "Das Schiff durchsuchen",
+						"check": {
+							"skill": "gassenwissen",
+							"diff": "mittel"
+						},
+						"results": {
+							"erfolg": {
+								"text": "Hinter einer Wartungsklappe sitzt er, mitsamt Beute. Ihr setzt ihn im nächsten Hafen ab.",
+								"effects": [
+									{
+										"end": "fertig"
+									}
+								]
+							},
+							"fehlschlag": {
+								"text": "Er bleibt verschwunden, die Sachen auch.",
+								"effects": [
+									{
+										"provisions": -4
+									},
+									{
+										"item_random": "take"
+									},
+									{
+										"end": "fertig"
+									}
+								]
+							}
+						}
+					}
+				]
+			}
+		},
+		"harmlos": {
+			"ausgang": {
+				"title": "Ein Ausreißer",
+				"text": "Ein Junge, der von zu Hause weggelaufen ist. Er will nur heim.",
+				"choices": [
+					{
+						"text": "Ihn heimbringen",
+						"effects": [
+							{
+								"credits": 100
+							},
+							{
+								"log": "Einen Ausreißer heimgebracht."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			}
+		}
+	}
+}

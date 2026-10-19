@@ -1,0 +1,145 @@
+{
+	"id": "gespraech",
+	"kind": "haupt",
+	"title": "Gespräch: {ziel.titel}",
+	"contact": "{kontakt}",
+	"einstieg": [
+		"kontakt",
+		"ort",
+		"auftrag",
+		"reise"
+	],
+	"werte": {
+		"ziel": [
+			{
+				"name": "ein nervöser Buchhalter",
+				"titel": "Der Buchhalter"
+			},
+			{
+				"name": "eine Hafenbeamtin",
+				"titel": "Die Beamtin"
+			},
+			{
+				"name": "ein Prediger der Wacht",
+				"titel": "Der Prediger"
+			}
+		],
+		"bild": [
+			"schritt_gespraech"
+		]
+	},
+	"scenes": {
+		"start": {
+			"title": "{ziel.titel}",
+			"image": "{bild}",
+			"text": "{einstieg} {ziel.titel} weiß etwas über die Hintermänner, will aber nicht reden.",
+			"choices": [
+				{
+					"text": "Überzeugen",
+					"check": {
+						"skill": "verhandeln",
+						"diff": "mittel"
+					},
+					"results": {
+						"erfolg": {
+							"next": "erfolg"
+						},
+						"fehlschlag": {
+							"next": "fehlschlag"
+						}
+					}
+				},
+				{
+					"text": "Im Hafen herumhören",
+					"check": {
+						"skill": "gassenwissen",
+						"diff": "schwer"
+					},
+					"results": {
+						"erfolg": {
+							"next": "erfolg"
+						},
+						"fehlschlag": {
+							"next": "fehlschlag"
+						}
+					}
+				},
+				{
+					"text": "Die Akten knacken",
+					"check": {
+						"skill": "computer",
+						"diff": "schwer"
+					},
+					"results": {
+						"erfolg": {
+							"next": "erfolg"
+						},
+						"fehlschlag": {
+							"next": "fehlschlag"
+						}
+					}
+				},
+				{
+					"text": "Bestechen (300 Credits)",
+					"requires": [
+						{
+							"credits": 300
+						}
+					],
+					"effects": [
+						{
+							"credits": -300
+						}
+					],
+					"next": "erfolg"
+				},
+				{
+					"text": "Gedanken lesen",
+					"requires": [
+						{
+							"psi": "lWahrnehmung"
+						}
+					],
+					"next": "erfolg"
+				}
+			]
+		},
+		"erfolg": {
+			"title": "Ein Name",
+			"text": "Am Ende redet {ziel.name}: Das Geld kommt nicht vom Gläubiger allein. Es fließt weiter, an ein Projekt namens Abteilung 9.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"hint": "{ziel.titel} in {system}: Das Geld fließt an Abteilung 9."
+						},
+						{
+							"step_done": true
+						},
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		},
+		"fehlschlag": {
+			"title": "Kein Wort",
+			"text": "{ziel.titel} schweigt und ist am nächsten Tag verschwunden.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"step_failed": true
+						},
+						{
+							"end": "gescheitert"
+						}
+					]
+				}
+			]
+		}
+	}
+}

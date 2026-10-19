@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/psi_soldat.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/sicherheitsagent.tres" id="5_u2"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Abteilung 9"
+description = "Konzern-Projekt: gezwungene Psi-Soldaten und schwer gepanzerte Wachen."
+kind = &"story"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
+weights = Array[int]([4, 2, 2])
+max_same = 4
+color = Color(0.45, 0.65, 1, 1)
+trait_name = "Konditioniert"
+trait_text = "+5 Initiative, +5 Angriff mit Psi"
+trait_mods = {
+"init": 5,
+"psi_ob": 5
+}

@@ -27,12 +27,4 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 2 (19.10.2026): Entern-Briefing ohne Absagen.** Fehlermeldung des Nutzers, gemeldet über den Raumkampf: Im Briefing des Enter-Bodenkampfs beendet „Zurück ins Schiff“ (`ui/briefing_dialog.gd`) das Entern endgültig. Danach ruft `view/hub.gd` `HubState.abort_mission()` auf, das `board_pending` löscht bzw. die Abwehr als verloren wertet.
-  - Entscheidung des Nutzers: Beim Entern (selbst entern und Abwehr) fällt „Zurück ins Schiff“ weg. Stattdessen kommt ein Knopf **„Ausrüstung“** ins Briefing, der den Waffenkammer-Dialog öffnet (`ArmoryDialog`, Charakter-Modul, nur aufrufen). Entern lässt sich **nicht absagen**.
-  - Bei normalen Einsätzen bleibt „Zurück ins Schiff“. Hub-Dateien nur ändern, wenn es nötig ist, und das vermerken.
-  - Bitte auch prüfen: „Einsatz abbrechen und zurück ins Schiff?“ im laufenden Kampf (`view/battle.gd`, `return_to_ship`) führt beim Entern ebenso zu `abort_mission()`. Nach der Entscheidung oben dürfte auch das beim Entern nicht gehen. Das nehme ich an, entschieden ist es nicht, deshalb kurz mit dem Nutzer klären. Den Rückzug als eigenen Ausgang betrifft das nicht.
-  - Der Hub sichert parallel `abort_mission()` ab (Prompt an den Hub-Chat). Im Hub-Code ist „Abwehrsieg = gewonnener Raumkampf, `board_loot` buchen“ schon drin (`hub_state.gd` `_book_board_loot`, seit `da5886b`).
-- **Auftrag 3 (19.10.2026): Story-Fraktionen anlegen.** Angaben: `docs/Planung_Story.md`, Abschnitt „Story-Fraktionen“, auf dem Story-Branch `claude/zen-sagan-9yn0le` (`git show origin/claude/zen-sagan-9yn0le:docs/Planung_Story.md`; noch nicht in `main`).
-  - Drei Fraktionen mit `kind` = Story: **Die Stille Hand** (Angeheuerte: gemischte Söldner, wenige eigene Agenten mit Pistolen und Tarnung), **Die Wacht von Seraph** (psi-lastig, Nahkampfklingen; zwei Flügel Hirten und Klingen, ob als zwei Fraktionen, mit dem Nutzer klären), **Abteilung 9** (Psi-Soldaten und schwer gepanzerte Wachen). Semidrug Inc. gibt es schon.
-  - Story-Fraktionen gehören **nicht** in die zufällige Verteilung je Sektor (`Mission.sector_factions`). Sie kommen nur über Story-Einsätze.
-  - Abstimmen per Simulation wie bei Auftrag 1. Die IDs dem Raumkampf und dem Story-Chat nennen.
+- **Auftrag 4 (19.10.2026): Fehlermeldung beim Briefing.** Seit Auftrag 2 meldet `test_rules` (Ausgabe trotzdem „OK“): `Signal 'resized' is already connected to given callable 'Control(BriefingDialog)::_layout'`, aus `ui/modal.gd:50` in `_ready`. Vor dem Merge (`48af1ac`) gab es die Meldung nicht. Ich nehme an, `_ready` läuft beim neuen Ausrüstungsweg zweimal, weil der Dialog neu in den Baum gehängt wird. Geprüft habe ich das nicht. Bitte beheben, ohne `ui/modal.gd` für alle Fenster zu ändern; falls das doch nötig ist, vermerken.
