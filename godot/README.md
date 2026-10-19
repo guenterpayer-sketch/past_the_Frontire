@@ -11,6 +11,8 @@ Regeln wie in der HTML-Version (docs/Skillsystem.md): W100 aus zwei W10, offen n
 
 Neuer Stand: *Fetch origin* → *Pull origin*, dann F5. Fehlermeldungen bleiben sichtbar, wenn Godot über `Godot_v4.7.2-stable_win64_console.exe` gestartet wird.
 
+**App-Icon** (`assets/icon/`): Launcher-Icon „Kurs über die Grenze“ in den Farben aus `ui_theme.gd`. Im Android-Export (*Projekt → Exportieren → Android → Launcher Icons*): Main 192×192 = `icon_192.png`, Adaptive Foreground 432×432 = `icon_foreground_432.png`, Adaptive Background 432×432 = `icon_background_432.png`, Adaptive Monochrome 432×432 = `icon_monochrome_432.png`. Die `.svg`-Dateien sind die Quellen (sichtbar ist bei adaptiven Icons nur die Mitte, 288×288).
+
 ## Spielablauf: Startmenü und Schiff (Hub)
 
 F5 startet das **Startmenü** (`start.tscn`): Fortsetzen (zuletzt gespeicherter Spielstand), Neues Spiel (Slot wählen und benennen, dann die Crew aus dem Roster wählen: `CrewPicker` des Charakter-Moduls, 1–8 Figuren), Laden, Roster (`roster.tscn`, Charakter-Modul), Ausrüstung, Karteneditor (siehe unten), Schnellkampf (einzelner Bodenkampf mit den Figuren des Rosters, Trupp im Briefing; nichts wird verbucht, danach zurück ins Startmenü), Schnellkampf im All (`SpaceSetup.quick()`: Startschiff gegen Piraten, nichts wird verbucht), Einstellungen (Ton, Würfelanimation, **UI-Größe** 75/90/100/125 %), Beenden. Die UI-Größe (`ui/ui_scale.gd`, gespeichert in `user://ui.cfg`) skaliert alle Oberflächen im ganzen Spiel über `Window.content_scale_factor`; die 3D-Ansicht bleibt gleich. Auch im Schiff über das Menü oben rechts („UI-Größe …“).

@@ -40,3 +40,9 @@ Vom Nutzer ausgewählt und abgelegt (15.10.2026). Zuordnung zur Quelle nach dem 
 | Dateien | Quelle / Urheber | Lizenz | Herkunft |
 |---|---|---|---|
 | `audio/sfx/revolver.ogg` (Smith & Wesson 642, V_22P), `pistole.ogg` (Walther PPQ, X_31P), `schrotflinte.ogg` (Mossberg, N_26P), `gewehr_schwer.ogg` (Mosin Nagant, M_21P), `mp.ogg` (PPSh, P_22P), `sturmgewehr.ogg` (AK-47, C_34P), `minigun.ogg` (AK-47, C_27P, auf 1,8-fache Geschwindigkeit gebracht) | The Free Firearm Sound Library (Kickstarter 2014) | CC0 1.0 | https://opengameart.org/content/the-free-firearm-sound-library, Kopie `buddingmonkey/FreeFirearmsSFXLibrary` (`Prepared SFX/`); geschnitten (erster Schuss bzw. Salve), Mono, 44,1 kHz, Ogg Vorbis |
+
+## App-Icon
+
+| Dateien | Herkunft | Lizenz |
+|---|---|---|
+| `icon/*` (Launcher-Icon „Kurs über die Grenze“, SVG-Quellen und PNG) | für dieses Projekt erstellt (Claude Code) | gehört zum Projekt |
