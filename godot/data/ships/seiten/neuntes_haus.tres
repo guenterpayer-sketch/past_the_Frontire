@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SpaceFactionData" format=3]
+
+[ext_resource type="Script" path="res://data/ships/space_faction_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+name = "Das Neunte Haus"
+on_win = "entern"
+ransom = 500
+flee_at = 0.35
+leicht = PackedStringArray("schattenkorvette", "jaeger,jaeger,jaeger")
+mittel = PackedStringArray("schattenkorvette,jaeger", "schattenkorvette,jaeger,jaeger")
+schwer = PackedStringArray("fregatte,jaeger", "kreuzer", "schattenkorvette,schattenkorvette")

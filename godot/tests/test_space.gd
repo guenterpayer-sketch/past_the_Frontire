@@ -84,7 +84,7 @@ func _test_build() -> void:
 			for s in c.ships:
 				check(not seen.has(s.pos), "kein Feld doppelt")
 				seen[s.pos] = true
-	check(SpaceTemplates.ships().size() == 5 and SpaceTemplates.faction_ids().size() == 7, "Vorlagen aus data/ships geladen")
+	check(SpaceTemplates.ships().size() == 11 and SpaceTemplates.faction_ids().size() == 13, "Vorlagen aus data/ships geladen")
 	for f in SpaceTemplates.faction_ids():
 		for d in ["leicht", "mittel", "schwer"]:
 			for g in SpaceTemplates.faction(f).get("groups", SpaceTemplates.DEFAULT_GROUPS)[d]:
