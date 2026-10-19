@@ -21,6 +21,7 @@ static func show_on(parent: Node, s: Story, tab_index := 0) -> StoryLog:
 		d.name = NAME
 		parent.add_child(d)
 	d.show_log(s, tab_index)
+	d.move_to_front()   # über dem Szenenfenster, auch wenn das Logbuch schon früher angelegt wurde
 	return d
 
 
