@@ -39,17 +39,15 @@ Weitere Tests der Module (z. B. `tests/test_hub.gd`, Selbsttests mit `--autotest
 
 Es gelten die Regeln aus `CLAUDE.md` (Deutsch, Wissen und Annahme trennen, erst klären dann handeln, Auswahl-Buttons).
 
-## Übergabe (18.10.2026)
+## Übergabe (19.10.2026)
 
 Dritter Koordinations-Chat beendet (langer Verlauf). Ein neuer Chat startet nur von diesen Dateien aus.
 
-**Stand `main` (19.10.2026):** alle Module zusammengeführt und ohne offene Aufträge: Bodenkampf bis `514a72b` (Kartentypen, Startlagen inkl. „Überfall“, Startausrichtung, Truppgröße, Karteneditor), Hub bis `2c531ec` (Hüllenreparatur als Arbeit, schwer Verwundete arbeiten nicht, Raumkampf in der Enzyklopädie), Charakter bis `9228e24`, Raumkampf bis `c0e578c`. `docs/Skillsystem.md` 9 mit dem Nutzer abgeglichen (fast alles bestätigt). Verlauf: `docs/Zusammenfuehrung.md`.
+**Stand `main` (19.10.2026, abends):** alle Module ohne offene Aufträge. Neu seit der letzten Übergabe: Story/Kampagne (Engine, Generator, Kapitel 1, Ketten, Logbuch; Branch `claude/zen-sagan-9yn0le`), Hub-Anbindung der Story, Sektorumbau (3 Sektoren, Orte, Sprungtore), Fraktions-Oberarten mit 6 neuen und 4 Story-Fraktionen (Bodenkampf), Raumkampf-Seiten der neuen Fraktionen, Entern nicht absagbar, Layoutregeln `docs/Layout.md`, Sparregel in `CLAUDE.md`. Verlauf: `docs/Zusammenfuehrung.md`.
 
-**Offen:**
-- **Neues Modul Story/Kampagne:** `docs/module/story.md`, Auftrag 1 (nur Planung); Branch trägt der Story-Chat ein. Nach seiner Planung die Anbindungen an Hub/Bodenkampf/Raumkampf verteilen.
-- Ideen für später: Fraktionen mit Ober-/Unterarten (`docs/Planung_Kampfkarten.md`), eigene Jäger/Hangar (V2), Raumkarte mit Trümmern/Nebel.
+**Offen (ohne Auftrag):** Story: Lager-Gegenstände als Bedingung/Folge, Schwellen der Story-Schlüssel, Kapitel 2; Raumkampf-Seiten der Story-Fraktionen, wenn Kapitel 1 sie braucht; Probespiel durch den Nutzer (Story, Sektoren, neue Fraktionen zusammen nur per Tests geprüft). Ideen: eigene Jäger/Hangar (V2), Raumkarte mit Trümmern/Nebel.
 
-**Branches:** `claude/confident-edison-6mxzke` (Bodenkampf), `claude/elegant-gauss-hq5bus` (Charakter), `claude/happy-lamport-u4fvya` (Hub), `claude/raumkampf-modul` (Raumkampf). Immer `git fetch origin` ohne Branch-Angabe.
+**Branches:** `claude/confident-edison-6mxzke` (Bodenkampf), `claude/elegant-gauss-hq5bus` (Charakter), `claude/happy-lamport-u4fvya` (Hub), `claude/raumkampf-modul` (Raumkampf), `claude/zen-sagan-9yn0le` (Story). Immer `git fetch origin` ohne Branch-Angabe.
 
 **Arbeitsweise, die sich bewährt hat:**
 - Pro Fertigmeldung: `git fetch origin`; `git rev-list --count <branch>..main` (0 = enthält `main`); `git merge-tree --write-tree --name-only main <branch>` auf Konflikte; `git merge --no-ff`. Eigene Tests (`test_rules`, `test_hub`, bei Raumkampf `test_space`, bei Kampf-Änderungen `test_sim -- 10`; Godot 4.7.2 unter `~/godot/`, vorher `--headless --import`) nur, wenn der Branch `main` nicht enthielt. Dann Zeile in `docs/Zusammenfuehrung.md`, erledigten Auftrag der Moduldatei ins Archiv (`docs/module/archiv/`), pushen.
