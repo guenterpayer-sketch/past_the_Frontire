@@ -10,7 +10,7 @@ Jedes Modul wird in einem eigenen Chat auf einem eigenen Branch gebaut. Diese Da
 | `hub.md` | Hub: Startmenü, Schiff, Sternenkarte, Spielstände | `claude/happy-lamport-u4fvya` |
 | `raumkampf.md` | Raumkampf (Mutterschiff, Jäger) | `claude/raumkampf-modul` |
 | `story.md` | Story/Kampagne | `claude/zen-sagan-9yn0le` |
-| – (noch keine Moduldatei) | Export (Android-Tablet, Windows), App-Icon `godot/assets/icon/` | `claude/inspiring-hypatia-5l2tq8` |
+| `export.md` | Export (Android-Tablet, Windows), App-Icon `godot/assets/icon/` | `claude/inspiring-hypatia-5l2tq8` |
 
 ## Ablauf für jeden Modul-Chat
 
