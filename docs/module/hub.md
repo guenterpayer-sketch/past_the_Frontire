@@ -56,4 +56,7 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+- **Auftrag 6 (19.10.2026): Touch im Schiff und auf der Sternenkarte** (Wunsch des Nutzers nach Tests am Tablet, Einzelheiten `docs/module/export.md` Punkte 5 und 6).
+  - Wischen zum Verschieben und Zwei-Finger-Zoom im Schiff (`view/hub.gd`) und auf der Sternenkarte inkl. Systemansicht (`ui/star_map.gd`). Vorbild: `_touch_input` in `view/battle.gd`.
+  - Drehen im Schiff (heute Q/E): **Zwei-Finger-Drehen und dazu Drehknöpfe ⟲ ⟳**, die nur auf Touch-Geräten erscheinen (`DisplayServer.is_touchscreen_available()`; Entscheidung des Nutzers). Zoom und Drehen dürfen sich nicht stören.
+  - Am PC ändert sich nichts. Parallel baut der Export-Chat Touch-Grundlagen in `ui/modal.gd`, `ui/ui_theme.gd` und `ui/ui_scale.gd` (Export Auftrag 1); diese Dateien hier nicht anfassen.

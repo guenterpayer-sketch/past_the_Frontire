@@ -27,4 +27,4 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+- **Auftrag 6 (19.10.2026): Karte per Touch drehen** (Wunsch des Nutzers nach Tests am Tablet, `docs/module/export.md` Punkt 6). Heute nur Q/E. Entscheidung des Nutzers: **Zwei-Finger-Drehen und dazu Drehknöpfe ⟲ ⟳**, die nur auf Touch-Geräten erscheinen (`DisplayServer.is_touchscreen_available()`). Dazu `_touch_input` in `view/battle.gd` erweitern; Zoom und Drehen dürfen sich nicht stören. Gilt auch für den Karteneditor (3D-Ansicht), falls dort einfach möglich. Am PC ändert sich nichts. `ui/modal.gd`, `ui/ui_theme.gd` und `ui/ui_scale.gd` nicht anfassen (Export Auftrag 1).

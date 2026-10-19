@@ -9,11 +9,11 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e635702`), nichts offen |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e635702`), offen: Auftrag 6 (Touch-Drehen) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77608b1`), nichts offen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77608b1`), offen: Auftrag 6 (Touch) |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
-| `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`697e182`), nichts offen |
+| `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`00ace7c`), offen: Auftrag 1 (Touch-Grundlagen) |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), offen: Auftrag 6 (Szenenfenster schließt nicht, dringend) |
 
 ## Verlauf
