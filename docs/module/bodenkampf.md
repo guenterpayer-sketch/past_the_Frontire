@@ -27,4 +27,4 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 4 (19.10.2026): Fehlermeldung beim Briefing.** Seit Auftrag 2 meldet `test_rules` (Ausgabe trotzdem „OK“): `Signal 'resized' is already connected to given callable 'Control(BriefingDialog)::_layout'`, aus `ui/modal.gd:50` in `_ready`. Vor dem Merge (`48af1ac`) gab es die Meldung nicht. Ich nehme an, `_ready` läuft beim neuen Ausrüstungsweg zweimal, weil der Dialog neu in den Baum gehängt wird. Geprüft habe ich das nicht. Bitte beheben, ohne `ui/modal.gd` für alle Fenster zu ändern; falls das doch nötig ist, vermerken.
+- **Fertig (19.10.2026): Auftrag 4 Fehlermeldung beim Briefing.** Ursache war der Test `_test_boarding_briefing` in `tests/test_rules.gd`, nicht das Spiel: Er hängte das Briefing in `_init` an die Wurzel und rief `_ready()` von Hand auf; beim Start der Hauptschleife lief `_ready` ein zweites Mal (doppelte Verbindung von `resized`). Jetzt wird das Briefing nicht in den Baum gehängt, `_ready` läuft einmal, danach `free()`. `ui/modal.gd` unverändert. Die Meldung ist weg; übrig sind nur die bekannten Meldungen beim Beenden (Speicher noch belegt).
