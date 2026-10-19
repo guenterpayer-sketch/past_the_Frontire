@@ -33,6 +33,14 @@ var _status: Label
 var _hover := -1
 ## Systemansicht (Doppelklick auf ein System): System, gewählter Ort; gewähltes Tor in der Sektorkarte (Index in gates)
 var zoom := -1
+## Touch (Hub Auftrag 6): Ansicht der Karte bzw. Systemansicht, verschoben und vergrößert (1 = alles; am PC immer 1)
+const VIEW_MAX := 3.0
+var _view_k := 1.0
+var _view_off := Vector2.ZERO
+var _touches := {}
+var _touch_moved := false
+var _drag_accum := Vector2.ZERO
+var _pinch_dist := 0.0
 var selected_place := -1
 var selected_gate := -1
 var _to_map: Button
@@ -137,6 +145,7 @@ func open(g: HubState) -> void:
 	game = g
 	_missions.clear()
 	zoom = -1
+	_reset_view()
 	selected_gate = -1
 	if selected < 0 or selected >= g.sector.systems.size():
 		selected = g.position
@@ -206,12 +215,13 @@ func _to_screen(p: Vector2) -> Vector2:
 
 
 func system_screen_pos(i: int) -> Vector2:
-	return _canvas.global_position + _to_screen(game.sector.systems[i].pos)
+	return _canvas.global_position + _view_off + _to_screen(game.sector.systems[i].pos) * _view_k
 
 
 func _draw_map() -> void:
 	if game == null:
 		return
+	_canvas.draw_set_transform(_view_off, 0.0, Vector2(_view_k, _view_k))
 	if zoom >= 0:
 		_draw_system(zoom)
 		return
@@ -309,34 +319,113 @@ func _system_at(p: Vector2) -> int:
 func _map_input(e: InputEvent) -> void:
 	if game == null:
 		return
+	if e is InputEventScreenTouch or e is InputEventScreenDrag:
+		_touch_input(e)
+		return
+	if e is InputEventMouse and e.device == InputEvent.DEVICE_ID_EMULATION:
+		return  # vom Touch erzeugte Mausereignisse: die Touch-Behandlung übernimmt
 	if e is InputEventMouseMotion:
-		var h := _system_at(e.position)
+		var h := _system_at(_unview(e.position))
 		if h != _hover:
 			_hover = h
 			_canvas.queue_redraw()
 	elif e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
-		if zoom >= 0:
-			var pi := _place_at(e.position)
-			if pi >= 0:
-				Sfx.play(&"klick")
-				selected_place = pi
-				selected_offer = -1
-				refresh()
-			return
-		var gi := _gate_at(e.position)
-		if gi >= 0:
+		_click(_unview(e.position), e.double_click)
+
+
+## Klick oder Antippen (p in Kartenkoordinaten der Fläche): Ort, Tor oder System wählen; doppelt = Systemansicht
+func _click(p: Vector2, double: bool) -> void:
+	if zoom >= 0:
+		var pi := _place_at(p)
+		if pi >= 0:
 			Sfx.play(&"klick")
-			selected_gate = gi
+			selected_place = pi
+			selected_offer = -1
 			refresh()
-			return
-		var i := _system_at(e.position)
-		if i >= 0:
-			Sfx.play(&"klick")
-			if e.double_click:
-				select(i)
-				set_zoom(i)
+		return
+	var gi := _gate_at(p)
+	if gi >= 0:
+		Sfx.play(&"klick")
+		selected_gate = gi
+		refresh()
+		return
+	var i := _system_at(p)
+	if i >= 0:
+		Sfx.play(&"klick")
+		if double:
+			select(i)
+			set_zoom(i)
+		else:
+			select(i)
+
+
+## Bildschirm (Fläche) → Kartenkoordinaten bei verschobener/vergrößerter Ansicht
+func _unview(p: Vector2) -> Vector2:
+	return (p - _view_off) / _view_k
+
+
+func _reset_view() -> void:
+	_view_k = 1.0
+	_view_off = Vector2.ZERO
+	_touches.clear()
+	if _canvas:
+		_canvas.clip_contents = false
+
+
+## Ansicht verschieben/vergrößern; nie kleiner als alles, der Rand bleibt im Bild
+func _set_view(k: float, off: Vector2) -> void:
+	_view_k = clampf(k, 1.0, VIEW_MAX)
+	var sz := _canvas.size
+	_view_off = off.clamp(sz * (1.0 - _view_k), Vector2.ZERO)
+	_canvas.clip_contents = _view_k > 1.0
+	_canvas.queue_redraw()
+
+
+## Tablet (Hub Auftrag 6): wischen = verschieben, zwei Finger = zoomen, antippen = wählen, doppelt antippen = Systemansicht
+func _touch_input(e: InputEvent) -> void:
+	if e is InputEventScreenTouch:
+		if e.pressed:
+			_touches[e.index] = e.position
+			if _touches.size() == 1:
+				_touch_moved = false
+				_drag_accum = Vector2.ZERO
+				if e.double_tap:
+					_click(_unview(e.position), true)
+					_touch_moved = true
 			else:
-				select(i)
+				_touch_moved = true
+				_pinch_dist = _pinch().d
+		else:
+			var was: bool = _touches.has(e.index)
+			_touches.erase(e.index)
+			if was and _touches.is_empty() and not _touch_moved:
+				_click(_unview(e.position), false)
+	elif e is InputEventScreenDrag:
+		if not _touches.has(e.index):
+			return
+		_touches[e.index] = e.position
+		if _touches.size() >= 2:
+			var st := _pinch()
+			if _pinch_dist > 0:
+				var f: float = st.d / _pinch_dist
+				var k := clampf(_view_k * f, 1.0, VIEW_MAX)
+				# Punkt unter der Fingermitte bleibt stehen
+				_set_view(k, st.c - (st.c - _view_off) * (k / _view_k) + e.relative / 2.0)
+			_pinch_dist = st.d
+		else:
+			if not _touch_moved:
+				_drag_accum += e.relative
+				if _drag_accum.length() < 10.0:
+					return
+				_touch_moved = true
+			_set_view(_view_k, _view_off + e.relative)
+
+
+func _pinch() -> Dictionary:
+	var ps: Array = _touches.values()
+	var a: Vector2 = ps[0]
+	var b: Vector2 = ps[1]
+	return {"d": a.distance_to(b), "c": (a + b) / 2.0}
 
 
 func _gate_at(p: Vector2) -> int:
@@ -349,6 +438,7 @@ func _gate_at(p: Vector2) -> int:
 ## Systemansicht öffnen (system) oder schließen (-1)
 func set_zoom(system: int) -> void:
 	zoom = system
+	_reset_view()
 	selected_place = 0 if system >= 0 else -1
 	if system >= 0:
 		selected = system
