@@ -15,6 +15,11 @@ var toggles := {}
 var _popup: PopupMenu
 
 
+## Touch-Gerät: zusätzliche Drehknöpfe ⟲ ⟳ (Bodenkampf und Karteneditor); am PC nur mit „-- --touch“ (Selbsttest)
+static func touch_ui() -> bool:
+	return DisplayServer.is_touchscreen_available() or "--touch" in OS.get_cmdline_user_args()
+
+
 func _ready() -> void:
 	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 5))
 	var row := HBoxContainer.new()
@@ -32,6 +37,11 @@ func _ready() -> void:
 	col.add_child(round_label)
 	col.add_child(mission_label)
 	row.add_child(col)
+	if touch_ui():
+		for spec in [[&"rot_l", "Karte drehen (gegen den Uhrzeigersinn)"], [&"rot_r", "Karte drehen (im Uhrzeigersinn)"]]:
+			var rb := IconButton.new(spec[0], spec[1], false, ICON)
+			rb.pressed.connect(func() -> void: action.emit(spec[0], null))
+			row.add_child(rb)
 	for spec in [[&"sheet", &"person", "Charakterbogen", false], [&"tables", &"table", "Tabellen (Enzyklopädie bei der gewählten Waffe)", false],
 			[&"auto", &"chip", "KI für Crew (zuschauen)", true], [&"sound", &"speaker", "Ton an/aus", true],
 			[&"dice", &"dice", "Würfelanimation an/aus (2 W10: rot = Zehner, weiß = Einer)", true]]:
