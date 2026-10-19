@@ -47,7 +47,7 @@ func _patients() -> Control:
 			g.add_child(UiTheme.label("%s %s" % [c.letter, c.name], 15, UiTheme.CREW))
 			g.add_child(UiTheme.label(Injury.name(c.injury), 15, UiTheme.BAD if c.is_locked() else UiTheme.ACCENT))
 			g.add_child(UiTheme.label("%d %s · %s" % [c.injury_days, "Tag" if c.injury_days == 1 else "Tage",
-				"gesperrt" if c.is_locked() else "darf mit (Malus %d)" % Injury.LIGHT_MALUS], 14))
+				"gefangen, heilt nicht" if game.is_captured(c) else ("gesperrt" if c.is_locked() else "darf mit (Malus %d)" % Injury.LIGHT_MALUS)], 14))
 		v.add_child(g)
 	var sp := Control.new()
 	sp.custom_minimum_size.y = 12
@@ -78,12 +78,14 @@ func _staff() -> Control:
 	for c in Campaign.crew():
 		var on := String(c.id) in game.medics
 		var row := HBoxContainer.new()
-		var name := UiTheme.label("%s %s" % [c.letter, c.name], 14, UiTheme.TEXT if not c.is_locked() else UiTheme.MUTED)
+		var away := c.is_locked() or game.is_captured(c)
+		var name := UiTheme.label("%s %s%s" % [c.letter, c.name, " · gefangen" if game.is_captured(c) else ""], 14, UiTheme.TEXT if not away else UiTheme.MUTED)
 		name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(name)
 		row.add_child(UiTheme.label(Dice.fmt(Rules.skill_total(c, Medbay.SKILL)), 14))
-		var b := UiTheme.button("abziehen" if on else "zuweisen", "verwundet: zählt nicht, solange gesperrt" if c.is_locked() else "")
-		b.disabled = not on and game.medics.size() >= Medbay.MAX_STAFF
+		var b := UiTheme.button("abziehen" if on else "zuweisen", "gefangen: zählt nicht" if game.is_captured(c)
+			else ("verwundet: zählt nicht, solange gesperrt" if c.is_locked() else ""))
+		b.disabled = (not on and game.medics.size() >= Medbay.MAX_STAFF) or (not on and game.is_captured(c))
 		b.custom_minimum_size.x = 96
 		b.pressed.connect(func() -> void:
 			Medbay.toggle(game, c)

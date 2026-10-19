@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_encyclopedia()
 	_test_galaxy()
 	_test_story_hub()
+	_test_auftrag3()
 	_test_gear_models()
 	_test_training()
 	_test_upgrades()
@@ -283,7 +284,7 @@ func _test_medbay_and_harbor() -> void:
 	check(g.medics.size() == Medbay.MAX_STAFF, "höchstens 2 Personal")
 	check(Medbay.doctor(g) == best and Medbay.helper(g) == other, "Arzt = höchste Zweite Hilfe, Helfer der andere")
 	check(Medbay.bonus(g) == Rules.skill_total(best, Medbay.SKILL) + Rules.skill_total(other, Medbay.SKILL) / 2, "Bonus Arzt + Helfer/2")
-	check(Medbay.blocked_ids(g) == [best.id] and HubState.blocked_ids() == [best.id], "Arzt gesperrt für die Truppwahl")
+	check(Medbay.blocked_ids(g) == [best.id] and HubState.blocked_ids().keys() == [best.id], "Arzt gesperrt für die Truppwahl")
 	var cands := Campaign.candidates(false, HubState.blocked_ids())
 	var locked_doc := false
 	for k in cands:
@@ -581,6 +582,72 @@ func _test_ammo() -> void:
 
 
 ## Story-Anbindung (Auftrag 1, Entscheidungen des Nutzers 19.10.2026)
+## Auftrag 3 (19.10.2026): Beuteplätze, Lohn der neuen Fraktionen, Entern nicht absagbar, Story-Orte je Sektor,
+## Kartenart, gefangene Crew, Story-Schlüssel sectors
+func _test_auftrag3() -> void:
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(77)
+	HubState.game = g
+	# Beuteplätze = Figuren + loot_extra
+	g.loot_pending = {}
+	g.set_loot({"units": {"a": {}, "b": {}}, "loot_extra": 1, "loot": [{"key": "res://data/weapons/sturmgewehr.tres", "damage": 0}]})
+	check(int(g.loot_pending.slots) == 3, "Beuteplätze: Figuren + loot_extra")
+	g.loot_pending = {}
+	# Lohn: neue Fraktionen wie der alte Partner gleicher Art, Story-Fraktionen ohne Lohn
+	check(is_equal_approx(float(Voyage.payout("mittel", "res://data/missions/semidrug.tres", true).factor), 1.2)
+		and is_equal_approx(float(Voyage.payout("mittel", "res://data/missions/eisenwoelfe.tres", true).factor), 1.2)
+		and int(Voyage.payout("mittel", "res://data/missions/neuntes_haus.tres", true).loot) == 2
+		and is_equal_approx(float(Voyage.payout("mittel", "res://data/missions/aasgeier.tres", true).factor), 1.0), "Lohn der neuen Fraktionen")
+	check(Voyage.payout("mittel", "res://data/missions/abteilung_9.tres", true).is_empty(), "Story-Fraktion: kein Lohn")
+	# Entern und Abwehr lassen sich nicht absagen
+	g.active = {"id": -1, "board": true}
+	g.board_pending = {"faction": "", "ship": "x", "difficulty": "mittel"}
+	g.abort_mission()
+	check(g.boarding_active() and not g.board_pending.is_empty(), "abort_mission verwirft Entern nicht")
+	g.active = {"id": -1, "defend": true}
+	g.abort_mission()
+	check(g.boarding_active() and g.space_report.is_empty(), "abort_mission verwirft Abwehr nicht")
+	g.active = {"id": 5}
+	g.abort_mission()
+	check(g.active.is_empty(), "normaler Einsatz: abort_mission räumt auf")
+	g.board_pending = {}
+	# Story-Orte: alte und neue Form, Marker nur im aktuellen Sektor
+	check(HubState.story_place(4) == {"sector": 0, "system": 4, "place": -1}
+		and HubState.story_place({"sector": 2, "system": 3, "place": 1}) == {"sector": 2, "system": 3, "place": 1}, "Story-Ort in einheitlicher Form")
+	var st := g.story_engine()
+	st.state.chains["kapitel1"] = {"status": "fertig", "scene": "", "place": -1}
+	st.reveal("test_ort")
+	check(g.story_markers().size() == 1, "Story-Ort im Startsektor sichtbar")
+	g.cur_sector = 1
+	g.sector = g.sectors[1]
+	check(g.story_markers().is_empty(), "Story-Ort eines anderen Sektors nicht auf der Karte")
+	g.cur_sector = 0
+	g.sector = g.sectors[0]
+	# Kartenart: Feld map der Vorlage, sonst Ort, sonst zufällig
+	check(g.story_map({"map": "tempel"}) == "tempel" and g.story_map({"map": "gibtsnicht"}) == "", "Story-Karte aus der Vorlage")
+	st.state.chains["test_kette"] = {"status": "wartet", "scene": "start", "place": {"sector": 0, "system": g.position, "place": 0}}
+	var k0 := String(g.sector.systems[g.position].places[0].kind)
+	var sm := g.story_map({"chain": "test_kette"})
+	check((sm != "" and StringName(sm) in Places.MAPS[k0]) if Places.has_ground(k0) else sm == "", "Story-Karte aus dem Story-Ort")
+	var gm := g.mission_of({"story": true, "seed": 5, "difficulty": "leicht", "system": g.position, "map": "bar"})
+	check(gm.map_type == &"bar", "Story-Einsatz mit Kartentyp")
+	# Story-Schlüssel sectors
+	check(g.sectors_reached() == 1, "erreichte Sektoren")
+	# Gefangene Crew
+	var c: Character = Campaign.crew()[0]
+	st.state.captured.append(String(c.id))
+	check(not c in Voyage.available(g) and not Crafting.can_work(c) and Crafting.status_text(g, c).begins_with("gefangen"), "Gefangene: kein Reiseposten, keine Arbeit")
+	var cands := Campaign.candidates(false, HubState.blocked_ids())
+	check(cands.any(func(x: Dictionary) -> bool: return x.ch == c and x.locked and x.reason == "gefangen"), "Gefangene in der Truppwahl gesperrt")
+	check(not (ShipArms.setup(g, {}, "test").crew as Array).has(c), "Gefangene nicht im Raumkampf")
+	var xp := c.free_xp
+	g.day = HubState.TRAINING_DAYS - 1
+	g.wait_days(1)
+	check(c.free_xp == xp, "Gefangene: kein Training")
+	st.state.captured.clear()
+	st.state.chains.erase("test_kette")
+
+
 func _test_story_hub() -> void:
 	var g := HubState.new_game(11)
 	check(not g.story.is_empty() and g.story_engine().game == g, "Story: neues Spiel mit Story-Zustand und Story-Objekt")

@@ -44,7 +44,9 @@ func _cooks() -> Control:
 			roles.append("Krankenstation")
 		if game.jobs.has(String(c.id)):
 			roles.append("Werkstatt")
-		if c.is_locked():
+		if game.is_captured(c):
+			roles.append("gefangen, kocht nicht")
+		elif c.is_locked():
 			roles.append("verwundet, kocht nicht")
 		var b := UiTheme.button("%s%s%s   Kochen %s" % ["▸ " if c == cur else "", c.name, (" · " + ", ".join(roles)) if not roles.is_empty() else "",
 			Dice.fmt(Rules.skill_total(c, Galley.SKILL))], "%s als Koch einstellen" % c.name)

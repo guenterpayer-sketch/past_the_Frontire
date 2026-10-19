@@ -89,7 +89,7 @@ static func pass_day(g: HubState, day_no: int, harbor: bool) -> Dictionary:
 		return {}
 	var c := cook(g)
 	var e := {"day": day_no, "cook": "", "result": String(NONE), "result_name": "ohne Koch", "total": 0, "xp": 0}
-	if c and not c.is_locked():
+	if c and not c.is_locked() and not g.is_captured(c):
 		var r := Voyage.check(c, SKILL, malus(g))
 		e.cook = c.name
 		e.result = String(r.result)
@@ -97,7 +97,7 @@ static func pass_day(g: HubState, day_no: int, harbor: bool) -> Dictionary:
 		e.total = r.total
 		e.xp = r.xp
 	elif c:
-		e.result_name = "Koch verwundet"
+		e.result_name = "Koch gefangen" if g.is_captured(c) else "Koch verwundet"
 	e.p0 = g.provisions
 	e.use = mini(g.provisions, need(StringName(e.result)) * ShipArms.provision_factor(g))
 	g.provisions -= e.use

@@ -78,10 +78,11 @@ static func finish_mission(result: Dictionary) -> void:
 
 ## Tage vergehen (Reisen, Warten, Einsatz): alle Verwundeten heilen um days Tage, dazu bonus_days
 ## (Ergebnis der Zweite-Hilfe-Probe der Krankenstation, vom Hub). Gibt die wieder Gesunden zurück.
-static func pass_days(days: int, bonus_days := 0) -> Array[Character]:
+## skip_ids: heilen nicht (Gefangene, vom Hub)
+static func pass_days(days: int, bonus_days := 0, skip_ids: Array = []) -> Array[Character]:
 	var healed: Array[Character] = []
 	for c in crew():
-		if c.injury != "" and c.heal(days + bonus_days):
+		if c.injury != "" and not String(c.id) in skip_ids and c.heal(days + bonus_days):
 			healed.append(c)
 	for c in _harbor:
 		c.heal(days)
@@ -95,9 +96,10 @@ static func patients() -> Array[Character]:
 
 
 ## Kandidaten für die Truppwahl im Briefing: [{ch, locked, reason, marked, note}].
-## Im Spiel: Crew (Einsatz + Reserve); gesperrt = kampfunfähig, schwer verwundet oder Arzt (blocked_ids vom Hub);
+## Im Spiel: Crew (Einsatz + Reserve); gesperrt = kampfunfähig, schwer verwundet oder vom Hub gesperrt (blocked_ids:
+## Liste der IDs = Arzt, oder {ID: Grund}, z. B. „Arzt in der Krankenstation“, „gefangen“);
 ## markiert = angeschlagen (Malus). Im Schnellkampf (quick): Kopien aus dem globalen Roster, nichts gesperrt.
-static func candidates(quick := false, blocked_ids: Array = []) -> Array[Dictionary]:
+static func candidates(quick := false, blocked_ids: Variant = []) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var list: Array[Character] = []
 	if quick:
@@ -109,7 +111,9 @@ static func candidates(quick := false, blocked_ids: Array = []) -> Array[Diction
 		var reason := ""
 		if c.is_locked():
 			reason = c.injury_text()
-		elif c.id in blocked_ids:
+		elif blocked_ids is Dictionary and blocked_ids.has(c.id):
+			reason = String(blocked_ids[c.id])
+		elif blocked_ids is Array and c.id in blocked_ids:
 			reason = "Arzt in der Krankenstation"
 		out.append({"ch": c, "locked": reason != "", "reason": reason,
 			"marked": c.injury == Injury.LIGHT, "note": c.injury_text()})

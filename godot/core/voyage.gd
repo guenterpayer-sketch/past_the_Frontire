@@ -28,12 +28,13 @@ const FUEL_PRICE_EMERGENCY := 10
 const MATERIAL_PRICE := 60
 const YARD_HULL := 25
 const YARD_COST := 40
-## Lohn bei Sieg je Schwierigkeit, Faktor je Fraktion (Dateiname der FactionData)
+## Lohn bei Sieg je Schwierigkeit, Faktor je Fraktion (Dateiname der FactionData; fehlt sie: 1,0).
+## Neue Fraktionen wie die alte gleicher Oberart (Entscheidung des Nutzers 19.10.2026); Story-Fraktionen: kein Lohn.
 const PAY := {"leicht": 80, "mittel": 140, "schwer": 220}
-const PAY_FACTOR := {"rote_sonne": 1.2, "konzern": 1.2}
-## Beute (Schiffsmaterial) bei Sieg je Schwierigkeit, Zuschlag je Fraktion
+const PAY_FACTOR := {"rote_sonne": 1.2, "eisenwoelfe": 1.2, "konzern": 1.2, "semidrug": 1.2}
+## Beute (Schiffsmaterial) bei Sieg je Schwierigkeit, Zuschlag je Fraktion (fehlt sie: 0)
 const LOOT := {"leicht": 0, "mittel": 1, "schwer": 2}
-const LOOT_BONUS := {"schmuggler": 1}
+const LOOT_BONUS := {"schmuggler": 1, "neuntes_haus": 1}
 ## Munition (Arten Ammo.TYPES): Startvorrat, Preis je Schuss, Kaufpakete, Beute bei Sieg (eine zufällige Art)
 const AMMO_START := {"energie": 200, "projektil": 300, "raketen": 6}
 const AMMO_PRICE := {"energie": 2, "projektil": 2, "raketen": 50}
@@ -55,7 +56,7 @@ static var _expect := {}
 static func available(g: HubState) -> Array[Character]:
 	var out: Array[Character] = []
 	for c in Campaign.crew():
-		if not c.is_locked() and not String(c.id) in g.medics:
+		if not c.is_locked() and not String(c.id) in g.medics and not g.is_captured(c):
 			out.append(c)
 	return out
 
@@ -299,6 +300,14 @@ static func use_ammo(g: HubState, used: Dictionary) -> Dictionary:
 	return out
 
 
+## Story-Fraktion (FactionData.kind „story“): bekommt keinen Lohn
+static func is_story_faction(faction_path: String) -> bool:
+	if faction_path == "" or not ResourceLoader.exists(faction_path):
+		return false
+	var f := load(faction_path) as FactionData
+	return f != null and f.kind == &"story"
+
+
 ## Munitions-Beute bei Sieg: eine zufällige Art, Menge aus AMMO_LOOT
 static func ammo_loot() -> Dictionary:
 	var types := AMMO_LOOT.keys()
@@ -308,7 +317,7 @@ static func ammo_loot() -> Dictionary:
 
 ## Lohn und Beute für einen Auftrag; leer bei Niederlage/Rückzug
 static func payout(difficulty: String, faction_path: String, win: bool) -> Dictionary:
-	if not win:
+	if not win or is_story_faction(faction_path):
 		return {}
 	var key := faction_path.get_file().get_basename()
 	var base: int = PAY.get(difficulty, 0)

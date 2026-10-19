@@ -158,12 +158,14 @@ static func is_busy(g: HubState, c: Character) -> bool:
 ## Darf arbeiten (Handwerk und alle Arbeiten): nicht schwer verwundet (Entscheidung des Nutzers 18.10.2026);
 ## kampfunfähig und angeschlagen dürfen
 static func can_work(c: Character) -> bool:
-	return c != null and c.injury != Injury.SEVERE
+	return c != null and c.injury != Injury.SEVERE and not HubState.captured(c)
 
 
 ## Kurzer Stand einer Figur für Auswahllisten: schwer verwundet, laufende Arbeit oder frei
 static func status_text(g: HubState, c: Character) -> String:
 	var job := job_of(g, c)
+	if HubState.captured(c):
+		return "gefangen: arbeitet nicht" + ("" if job.is_empty() else " (pausiert: %s)" % job_text(job))
 	if not can_work(c):
 		return "schwer verwundet: arbeitet nicht" + ("" if job.is_empty() else " (pausiert: %s)" % job_text(job))
 	return "frei" if job.is_empty() else job_text(job)

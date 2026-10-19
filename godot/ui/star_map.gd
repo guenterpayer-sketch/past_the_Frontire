@@ -552,12 +552,20 @@ func _kind_text(o: Dictionary, m: Mission) -> String:
 
 # ---------------------------------------------------------------- Story (Auftrag 1, 19.10.2026)
 
-## Story-Orte {System: Titel} für Karte und Seitenleiste
+## Story-Orte im aktuellen Sektor {System: Titel} für Karte und Seitenleiste
 func _story_places() -> Dictionary:
 	var out := {}
-	for m in game.story_engine().markers():
+	for m in game.story_markers():
 		out[int(m.system)] = String(m.title)
 	return out
+
+
+## Titel des Story-Orts an Ort k im System ("" = keiner)
+func _story_at(system: int, k: int) -> String:
+	for m in game.story_markers():
+		if int(m.system) == system and int(m.place) == k:
+			return String(m.title)
+	return ""
 
 
 ## Abschnitt STORY oben rechts: offener Story-Einsatz und Story-Aufträge (ohne Ablauf)
@@ -703,6 +711,8 @@ func _draw_system(system: int) -> void:
 			_canvas.draw_arc(p, 22, 0, TAU, 40, col, 3.0, true)
 		if k == selected_place:
 			_canvas.draw_arc(p, 34, 0, TAU, 40, UiTheme.ACCENT, 2.0, true)
+		if _story_at(system, k) != "":
+			_canvas.draw_arc(p + Vector2(-30, -26), 7.0, 0, TAU, 20, StoryDialog.STORY_COLOR, 3.0, true)
 		var n := game.offers_at(system).filter(func(o: Dictionary) -> bool: return int(o.get("place", -1)) == k).size()
 		for j in n:
 			_diamond(p + Vector2(28 + j * 14, -26), 7.0, UiTheme.ACCENT)
@@ -733,6 +743,9 @@ func _render_place() -> void:
 	var ft := UiTheme.label(Places.function_text(kind), 13, UiTheme.MUTED)
 	ft.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_side.add_child(ft)
+	var story_t := _story_at(zoom, selected_place)
+	if story_t != "":
+		_wrap(UiTheme.label("Story-Ort: %s" % story_t, 14, StoryDialog.STORY_COLOR))
 	_side.add_child(UiTheme.label("MÖGLICHKEITEN", 13, UiTheme.MUTED))
 	if not here:
 		var nl := UiTheme.label("Nur, wenn das Schiff in diesem System liegt.", 14, UiTheme.MUTED)
