@@ -11,7 +11,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 |---|---|---|
 | `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e635702`), nichts offen |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`45e5177`), nichts offen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`45e5177`), offen: Auftrag 5 (Enzyklopädie) |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), nichts offen |
 
