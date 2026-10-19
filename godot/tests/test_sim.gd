@@ -1,5 +1,5 @@
 extends SceneTree
-## KI gegen KI: godot --headless --path godot --script res://tests/test_sim.gd -- [Anzahl Kämpfe] [missionen] [leicht|mittel|schwer] [trupp=N] [ab=K] [budget=N]
+## KI gegen KI: godot --headless --path godot --script res://tests/test_sim.gd -- [Anzahl Kämpfe] [missionen] [leicht|mittel|schwer] [trupp=N] [ab=K] [budget=N] [fraktion=ID]
 ## Mit "missionen": Gegner aus dem Missionsgenerator (Schwierigkeit reihum leicht/mittel/schwer, oder nur die genannte),
 ## Siege je Schwierigkeit. Truppgröße wie im Spiel (Campaign.max_squad: schwer 8, sonst 6) oder fest mit trupp=N;
 ## mehr als 6 Figuren: Kopien der Startcrew der Reihe nach (Vela, Ikko, …).
@@ -14,6 +14,7 @@ func _init() -> void:
 	var only := ""
 	var squad_n := 0
 	var offset := 0   # ab=K: andere Kämpfe (Würfel und Missionen ab K), z. B. für parallele Läufe
+	var faction := ""   # fraktion=ID: nur Gegner dieser Fraktion (data/missions/ID.tres)
 	for a in args.slice(2):
 		if a in ["leicht", "mittel", "schwer"]:
 			only = a
@@ -21,6 +22,8 @@ func _init() -> void:
 			squad_n = int(a.substr(6))
 		elif a.begins_with("ab="):
 			offset = int(a.substr(3))
+		elif a.begins_with("fraktion="):
+			faction = "res://data/missions/%s.tres" % a.substr(9)
 		elif a.begins_with("budget="):
 			Mission.budget_override[only if only != "" else "schwer"] = int(a.substr(7))
 	var by_diff := {}
@@ -33,7 +36,7 @@ func _init() -> void:
 		var lage_name := ""
 		if missions:
 			diff = only if only != "" else ["leicht", "mittel", "schwer"][i % 3]
-			var mi := Mission.generate(5000 + i, diff)
+			var mi := Mission.generate(5000 + i, diff, faction)
 			lage_name = String(mi.lage)
 			var n := squad_n if squad_n > 0 else Campaign.max_squad(diff)
 			c = Combat.new(MapGenerator.for_mission(mi.map_seed, mi), _crew(n), Roster.build_units(mi.enemies, &"enemy"))

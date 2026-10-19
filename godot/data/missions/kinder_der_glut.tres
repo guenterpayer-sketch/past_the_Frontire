@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/seherin.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/klingentaenzer.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/weapons/energiehammer.tres" id="10_w0"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Kinder der Glut"
+description = "Feuerkult mit Seherinnen, schweren Hämmern und Raketen."
+kind = &"kult"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
+weights = Array[int]([3, 3, 2])
+max_same = 3
+color = Color(1, 0.45, 0.1, 1)
+trait_name = "Glut"
+trait_text = "+5 Angriff mit Psi"
+trait_mods = {
+"psi_ob": 5
+}
+weapon_swap = {
+"vibroklinge": ExtResource("10_w0")
+}
+maps = Array[StringName]([&"tempel", &"halle"])

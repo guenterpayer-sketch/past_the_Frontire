@@ -68,7 +68,10 @@ func _test_sector() -> void:
 		for sys in s.systems:
 			if sys.faction != "":
 				fset[sys.faction] = true
-		check(fset.size() == Mission.all_factions().size(), "Seed %d: jede Fraktion hat Systeme" % seed_value)
+		var kinds := {}
+		for p in fset:
+			kinds[(load(p) as FactionData).kind] = true
+		check(fset.size() == kinds.size() and kinds.size() == Mission.sector_factions(RandomNumberGenerator.new()).size(), "Seed %d: je Oberart eine Fraktion mit Systemen" % seed_value)
 	var c := Sector.from_dict(JSON.parse_string(JSON.stringify(a.to_dict())))
 	check(c.to_dict() == a.to_dict(), "Sektor übersteht Speichern als JSON")
 	# Weg: Summe der Reisetage entlang des Pfads

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/sicherheitsagent.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/units/enemies/hexer.tres" id="6_u3"]
+[ext_resource type="Resource" path="res://data/weapons/laserkarabiner.tres" id="10_w0"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Semidrug Inc."
+description = "Pharmakonzern mit Laserwaffen; die eigenen Leute stehen unter Kampfdrogen."
+kind = &"konzern"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2"), ExtResource("6_u3")])
+weights = Array[int]([4, 3, 2, 1])
+max_same = 3
+color = Color(0.25, 0.8, 0.75, 1)
+trait_name = "Kampfdrogen"
+trait_text = "+5 Initiative, je 1 Medikit"
+trait_mods = {
+"init": 5,
+"medkits": 1
+}
+weapon_swap = {
+"sturmgewehr": ExtResource("10_w0")
+}
+maps = Array[StringName]([&"buero", &"strasse"])
