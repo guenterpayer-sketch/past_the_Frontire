@@ -6,7 +6,7 @@ signal closed
 
 ## größte Fenstergröße (kleinere Dialoge setzen sie herab)
 var max_size := Vector2(1180, 860)
-## false = bleibt offen (Klick daneben und Esc schließen nicht), z. B. als ganzer Bildschirm
+## false = bleibt offen (Esc schließt nicht), z. B. als ganzer Bildschirm
 var closable := true
 var content: VBoxContainer
 ## Titelzeile: Titel links, Platz für Knöpfe rechts (z. B. Burgermenü)
@@ -22,10 +22,7 @@ func _ready() -> void:
 	var dim := ColorRect.new()
 	dim.color = Color(0, 0, 0, 0.6)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.gui_input.connect(func(e: InputEvent) -> void:
-		if e is InputEventMouseButton and e.pressed:
-			close())
-	add_child(dim)
+	add_child(dim)  # Klick daneben bewirkt nichts (Nutzer 19.10.2026: am Tablet zu leicht ausgelöst)
 	_panel = PanelContainer.new()
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_panel.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL, UiTheme.LINE, 10, 16))

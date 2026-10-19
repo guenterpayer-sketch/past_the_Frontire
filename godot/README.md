@@ -73,6 +73,8 @@ Die Karte nutzt den ganzen Bildschirm, die Bedienung schwebt darüber:
 
 Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bildschirme skalieren die Oberfläche mit.
 
+**Touch (Tablet, Handy)** – Autoload `TouchInput` (`ui/touch_input.gd`), für alle Szenen: Ziehen auf einer Liste (auch auf Knöpfen) scrollt sie, ein kurzer Tipp bleibt ein Klick (am PC ebenso mit gedrückter linker Maustaste); die Android-Zurück-Taste wirkt wie Esc (`application/config/quit_on_go_back=false`). Auf Mobilgeräten (`UiTheme.is_touch()`) sind Knöpfe und Eingabefelder mindestens 44 px hoch und die Scrollbalken breiter; am PC zum Ansehen mit `PTF_TOUCH=1`. Ein Klick neben ein Fenster (`Modal`) bewirkt nichts; geschlossen wird über „Schließen“ bzw. Esc.
+
 ## Ablauf eines Einsatzes
 
 1. **Briefing** in zwei Spalten: links Auftrag, Gegnergruppe (Fraktion, Typen, Ausrüstung), Schwierigkeit, Hallengröße, Belohnung; rechts die **Truppwahl** (bis 6 Kacheln, bei „schwer“ bis 8 – `Campaign.max_squad()`; mit Rolle, TP/PP, Waffen, Rüstung, Zustand; Kachel anklicken = dazu/heraus). Vorbelegt ist der letzte Trupp ohne Gesperrte, aufgefüllt; Gesperrte (kampfunfähig, schwer verwundet, Arzt der Krankenstation) sind ausgegraut, Angeschlagene markiert; Warnung bei weniger als der Höchstzahl. Schnellkampf: Figuren aus dem Roster, die Startfiguren vorbelegt (bei „schwer“ bis 8, die bisherige Auswahl bleibt erhalten und wird aufgefüllt). „Andere Mission“ würfelt neu (Schwierigkeit wählbar oder zufällig). Ein anderer Trupp baut Runde 0 mit derselben Karte neu auf; das Briefing lässt sich in Runde 0 wieder öffnen.
@@ -177,6 +179,7 @@ Die Crew (vollständige Charaktere mit Rängen und EP, Eigenschaften, gesparten 
 ```
 godot --headless --path godot --script res://tests/test_rules.gd
 godot --headless --path godot --script res://tests/test_hub.gd       # Sektor, Reisen, Aufträge, Spielstände
+godot --headless --path godot --script res://tests/test_touch.gd     # Wischen in Listen, Tippen, Klick neben Fenster
 godot --headless --path godot --script res://tests/test_space.gd     # Raumkampf: Regelkern, Selbstlauf
 godot --headless --path godot --script res://tests/test_story.gd     # Story-Engine: Szenen, Proben, Ziele, Speichern
 godot --headless --path godot --script res://tests/sim_space.gd -- 150          # Raumkampf: Siege je Schwierigkeit

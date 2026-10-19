@@ -59,11 +59,36 @@ static func build() -> Theme:
 	t.set_stylebox("background", "ProgressBar", box(Color(BG, 0.8), LINE, 4, 0))
 	t.set_stylebox("fill", "ProgressBar", box(GOOD, GOOD, 4, 0, 0))
 	t.set_color("font_color", "ProgressBar", Color.WHITE)
+	if is_touch():
+		_touch_sizes(t)
 	t.set_constant("separation", "VBoxContainer", 6)
 	t.set_constant("separation", "HBoxContainer", 6)
 	t.set_constant("h_separation", "GridContainer", 4)
 	t.set_constant("v_separation", "GridContainer", 4)
 	return t
+
+
+## Touch-Gerät (Tablet, Handy): größere Flächen. Am PC zum Ansehen mit Umgebungsvariable PTF_TOUCH=1.
+static func is_touch() -> bool:
+	return OS.has_feature("mobile") or OS.get_environment("PTF_TOUCH") == "1"
+
+
+## Mindesthöhe 44 für Knöpfe und Eingabefelder (über die Innenabstände), breitere Scrollbalken
+static func _touch_sizes(t: Theme) -> void:
+	for cls in ["Button", "OptionButton"]:
+		for st in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+			var sb: StyleBoxFlat = t.get_stylebox(st, cls)
+			sb.content_margin_top = 12
+			sb.content_margin_bottom = 12
+	var edit := box(BG, LINE, 6, 8)
+	edit.content_margin_top = 12
+	edit.content_margin_bottom = 12
+	t.set_stylebox("normal", "LineEdit", edit)
+	for cls in ["VScrollBar", "HScrollBar"]:
+		t.set_stylebox("scroll", cls, box(Color(BG, 0.6), Color(BG, 0.6), 6, 9))
+		t.set_stylebox("grabber", cls, box(LINE, LINE, 6, 9))
+		t.set_stylebox("grabber_highlight", cls, box(MUTED, MUTED, 6, 9))
+		t.set_stylebox("grabber_pressed", cls, box(ACCENT, ACCENT, 6, 9))
 
 
 static func label(text: String, size := 14, color := TEXT) -> Label:
