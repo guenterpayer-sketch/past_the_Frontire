@@ -19,6 +19,7 @@
 - (19.10.2026) Auftrag 1 erledigt: Entscheidungen des Nutzers und Planung in `docs/Planung_Story.md`, offene Punkte dort. Nichts gebaut.
 - (19.10.2026) Auftrag 2 erledigt: offene Punkte geklärt, Mockup abgenommen, gebaut: `core/story.gd`, `core/story_state.gd`, `core/story_data.gd`, `ui/story_dialog.gd`, `ui/story_log.gd`, `data/story/` (Bausteine, Test-Ketten), `tests/test_story.gd`, Demo `tests/story_demo.tscn`. Fremde Datei geändert: nur `godot/README.md` (Einträge Aufbau und Tests). Noch nicht im Hub angebunden.
 - (19.10.2026) Auftrag 3, Hub-Punkt erledigt: `Story.add_resource` nutzt `HubState.apply_story` (gibt die tatsächliche Änderung zurück), Stub `Story.for_game` entfernt, Tests angepasst.
+- (19.10.2026) Auftrag 3, Inhalte: Fraktionen, Kapitel 1 und Ereignisketten mit dem Nutzer geklärt („ganz erzeugt“). Gebaut: Generator `core/story_gen.gd`, Vorlagen `data/story/vorlagen/` (8), `data/story/kapitel1.json` (Rahmen, Rate, 4 Rückschläge, Finale), Engine-Erweiterungen (Raten, Rückschläge, Lager, Story-Schlüssel, erzeugte Ketten im Spielstand), Logbuch zeigt Wartepunkt und fehlende Bedingung, Bildliste `docs/Story_Bilder.md`. **Fremde Dateien:** `tests/test_hub.gd` (eine Zeile: Kapitel 1 im Story-Test ausgeschlossen, weil es ab Tag 3 von selbst startet), `tests/autotest_hub.gd` (eine Zeile: `Story.auto_start = false`, sonst hält das Szenenfenster von Kapitel 1 den Selbsttest an).
 
 ## Hinweise und Bitte an den Koordinator
 

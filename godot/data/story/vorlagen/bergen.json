@@ -1,0 +1,166 @@
+{
+	"id": "bergen",
+	"kind": "haupt",
+	"title": "Bergung: {ziel.titel}",
+	"contact": "{kontakt}",
+	"einstieg": [
+		"kontakt",
+		"ort",
+		"auftrag",
+		"reise"
+	],
+	"werte": {
+		"ziel": [
+			{
+				"name": "einen Datenkern",
+				"titel": "Der Datenkern",
+				"kurz": "Der Datenkern"
+			},
+			{
+				"name": "eine versiegelte Frachtkiste",
+				"titel": "Die Frachtkiste",
+				"kurz": "Die Frachtkiste"
+			},
+			{
+				"name": "Beweise gegen {konzern}",
+				"titel": "Die Beweise",
+				"kurz": "Die Beweise"
+			}
+		],
+		"gegner": [
+			"abteilung9",
+			"hand",
+			"lokal"
+		],
+		"diff": [
+			"leicht",
+			"mittel",
+			"mittel",
+			"schwer"
+		],
+		"bild": [
+			"schritt_bergen"
+		]
+	},
+	"scenes": {
+		"start": {
+			"title": "{ziel.titel}",
+			"image": "{bild}",
+			"text": "{einstieg} In {system} lagert {ziel.name}, bewacht von {gegner}. Wer das in die Finger bekommt, sieht, wer hier wen bezahlt.",
+			"choices": [
+				{
+					"text": "Zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Bergung: {ziel.titel}",
+								"difficulty": "{diff}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				},
+				{
+					"text": "Das Sicherheitssystem knacken",
+					"check": {
+						"skill": "computer",
+						"diff": "mittel"
+					},
+					"results": {
+						"erfolg": {
+							"next": "vorteil"
+						},
+						"fehlschlag": {
+							"next": "entdeckt"
+						}
+					}
+				}
+			]
+		},
+		"vorteil": {
+			"title": "Gut vorbereitet",
+			"text": "Ihr kennt jetzt Wege, Wachen und Zeiten.",
+			"choices": [
+				{
+					"text": "Zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Bergung: {ziel.titel}",
+								"difficulty": "{diff_leichter}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				}
+			]
+		},
+		"entdeckt": {
+			"title": "Entdeckt",
+			"text": "Jemand hat geredet. Sie erwarten euch.",
+			"choices": [
+				{
+					"text": "Trotzdem zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Bergung: {ziel.titel}",
+								"difficulty": "{diff_schwerer}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				}
+			]
+		},
+		"erfolg": {
+			"title": "Geschafft",
+			"text": "{ziel.kurz} ist an Bord. Vieles ist verschlüsselt, aber ein Projektname taucht immer wieder auf: Abteilung 9.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"hint": "{ziel.kurz} ist an Bord. Vieles ist verschlüsselt, aber ein Projektname taucht immer wieder auf: Abteilung 9."
+						},
+						{
+							"step_done": true
+						},
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		},
+		"fehlschlag": {
+			"title": "Zu spät",
+			"text": "Ihr kommt mit leeren Händen zurück. Jemand war schneller.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"step_failed": true
+						},
+						{
+							"end": "gescheitert"
+						}
+					]
+				}
+			]
+		}
+	}
+}

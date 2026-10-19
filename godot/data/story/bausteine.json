@@ -32,5 +32,13 @@
 		"semidrug": {
 			"name": "Semidrug Inc."
 		}
+	},
+	"hand": {
+		"ja": {
+			"name": "mit der Stillen Hand verbunden"
+		},
+		"nein": {
+			"name": "ohne Verbindung zur Stillen Hand"
+		}
 	}
 }

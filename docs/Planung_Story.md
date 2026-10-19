@@ -79,19 +79,45 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
 | Lager | **Ja, in V1**: Szenen können Gegenstände im Schiffslager prüfen (z. B. ein Medikit) und Ausrüstung ins Lager geben oder daraus nehmen. Umsetzung über `Stock.count/add/take`, keine Hub-Änderung nötig. |
 | Bilder | Stil **Comic/Graphic Novel** (klare Linien, Schraffur, kräftige Schatten). |
 
-## Entwurf: Story-Generator (noch nicht gebaut)
+## Story-Generator (gebaut, Auftrag 3)
 
-- **Vorlagen** in `data/story/vorlagen/`: je Art von Schritt eine Datei mit Varianten (Ziel, z. B. Zeuge/Begabte/Informant oder Datenkern/Fracht/Beweise; Kartentyp; Gegnergruppe; Einstieg) und Textbausteinen mit Platzhaltern (`{ziel}`, `{system}`, `{gegner}`, `{kontakt}`, `{glaeubiger}`, `{konzern}`).
-- **Erzeugte Ketten** werden wie geschriebene Ketten behandelt (gleiches Format) und **im Spielstand gespeichert** (`StoryState.generated`), damit sie nach dem Laden gleich bleiben. Die Engine (`view`, `choose`, Folgen, Einsätze) bleibt, wie sie ist.
-- **Rahmen von Kapitel 1** (`data/story/kapitel1.json`): Anfangsszene mit dem Gläubiger (Auslöser „start“ ab Tag 3), Ziel „Schulden“ mit wiederkehrender Rate, Spurenzähler, Finale (geschrieben, mit den drei Wahlen und Flags für Kapitel 2). Ist kein Schritt offen, erzeugt der Rahmen den nächsten.
-- **Neue Engine-Teile:** wiederkehrende Rate (Ziel mit Betrag und Abstand), zufälliger Rückschlag, Bedingungen und Folgen für Lager-Gegenstände (`item`), Story-Schlüssel als Bedingung (`ship_level`, `crew_ranks`, `sectors`).
-- **Ereignisketten:** je Kette eine Vorlage mit Eckpunkten (z. B. Wrack: anfliegen → untersuchen → Ausgang). Der Ausgang wird zufällig gewählt, Kampf und Proben über die vorhandenen Folgen.
+- **`core/story_gen.gd` (StoryGen):** `make(story, vorlage, extra)` baut aus einer Vorlage eine Kette im Format der JSON-Ketten und legt sie in `StoryState.generated` ab. Damit bleibt sie im Spielstand und ist nach dem Laden gleich. `step(story, rahmen)` erzeugt den nächsten Schritt eines Rahmens. Gewürfelt werden die Werte der Vorlage (Ziel, Gegner, Schwierigkeit …), der Einstieg (Kontakt in einem Hafen, Story-Ort, Auftrag, Reise), der Ort, ein Kontaktname und bei Ereignisketten der Ausgang.
+- **Vorlagen** (`data/story/vorlagen/`):
+  - Schritte: `befreien`, `bergen`, `abfangen` (Raumkampf: abfangen oder Blockade mit Entern), `gespraech` (nur Proben, Bestechen, Psi).
+  - Rückschlag: `hinterhalt` (Kopfgeldjäger).
+  - Ereignisketten: `wrack` (Überlebende, Beute, Falle, Spur), `passagier` (Flüchtling, Begabte, Dieb, Ausreißer), `schmuggel` (Zoll, Verrat, lebende Fracht).
+  - Platzhalter: `{wert}`/`{wert.feld}`, `{gegner}`, `{gegner_id}`, `{diff}`, `{diff_leichter}`, `{diff_schwerer}`, `{system}`, `{kontakt}`, `{einstieg}`.
+- **Kapitel 1** (`data/story/kapitel1.json`):
+  - Rahmen `kapitel1`: startet ab Tag 3, mit den Zielen „Schulden“ (5 000, Rate 500 alle 10 Tage) und „Spuren“ (3–4).
+  - `glaeubiger_rate`: wiederholbarer Hafenkontakt „Rate zahlen“.
+  - Rückschläge `rueck_zins` (+10 % der Restschuld), `rueck_pfaendung` (−25 % Credits, −2 Material, ein Stück aus dem Lager), `rueck_gefangen` (Crewmitglied gefangen, Befreiung wird erzeugt) und `rueck_verfolgung` (Kopfgeldjäger im nächsten Hafen).
+  - Finale `kapitel1_finale`: Station von Abteilung 9, Begabte „Lio“, drei Wahlen mit den Flags `k2_anheuern`, `k2_hirten`, `k2_verkauft` für Kapitel 2.
+- **Ablauf:** Ein erfolgreicher Schritt gibt eine Spur, ein Fehlschlag keine; in beiden Fällen wird der nächste Schritt erzeugt (höchstens einer offen). Ereignisketten wie Wrack, Passagier und Schmuggel können ebenfalls eine Spur geben. Sind die Spuren voll, wird das Finale bekannt. Es erscheint in der Auftragsliste, sobald die Bedingungen erfüllt sind; bis dahin zeigt das Logbuch, was fehlt.
+- **Neu in der Engine:**
+  - Bedingungen `day`, `item`/`count`, `ship_level`, `crew_ranks`, `sectors`, `goal_open`.
+  - Folgen `item` (`add`/`take`), `item_random`, `credits_pct`, `goal` mit `pay` und `target_pct`, `step`, `step_done`, `step_failed`, `spur`, `capture`, `recruit`.
+  - Ziele mit `target_rand`, `rate`/`every`/`backlash`; Ketten mit `repeat`; Dateien mit mehreren Ketten unter `chains`.
+  - Gefangene fehlen in `Story.crew()`. Sind die Schulden getilgt, kommen sie frei.
+- **Häufigkeiten:**
+  - Story-Schritt mit Einstieg „Reise“: 45 % je Reisetag.
+  - Ereigniskette Wrack oder Passagier: 8 % je Reisetag, wenn keine offen ist.
+  - Schmuggel-Kontakt: 25 % je Hafenankunft, wenn keiner offen ist.
+  - Diese Werte sind vorläufig und noch nicht mit dem Nutzer abgestimmt.
+- **Vorschlag, noch zu bestätigen:** Das Finale braucht **Schiffsausbau 2** (Summe der Ausbaustufen).
+- **Gegner-Fraktionen:** Die Schritte nennen die gewünschten Missionsfraktionen `abteilung9`, `seraph`, `stille_hand` und `pluenderer`. Solange der Bodenkampf sie nicht angelegt hat, nimmt der Generator vorhandene Fraktionen als Ersatz: `konzern`, `leeres_licht`, `rote_sonne`, `schmuggler`. Das Finale nennt `abteilung9` fest; der Hub fällt dann auf die Fraktion des Systems zurück.
+- **Bilder:** Liste und Prompts in `docs/Story_Bilder.md`.
 
-### Nötige Anbindungen anderer Module (Vorschlag)
+### Nötige Anbindungen anderer Module
 
-- **Hub:** Kopfgeldjäger-Hinterhalt beim Hafenbesuch (Story-Einsatz bei `on_arrive` im Hafen). Werte für die Story-Schlüssel: Summe der Ausbaustufen aus `HubState.upgrades`, später Sektoren und Orte nach dem Sektorumbau.
-- **Charakter:** Status „gefangen“ (Figur gesperrt wie verwundet, mit Text „gefangen“), außerdem eine Psi-Begabte als anheuerbare Figur für das Finale (über `Campaign.hire`).
-- **Bodenkampf:** Fraktionsdaten für die drei Story-Fraktionen und Semidrug Inc.
+- **Hub:**
+  - Kopfgeldjäger und Schmuggel-Kontakte laufen über das vorhandene `on_arrive`. Die Kontakte erscheinen über `contacts()`, das jetzt nur Kontakte des Hafens liefert, in dem das Schiff liegt.
+  - Offen: Der Story-Einsatz sollte die Kartenart aus der Vorlage übernehmen; heute zufällig.
+  - Offen: Gefangene Crew (`Story.state.captured`, Character.id als Text) muss in Truppwahl, Reiseposten und Krankenstation gesperrt sein. Heute fehlt sie nur bei Proben in Szenen.
+  - Offen: Sektoren für den Story-Schlüssel `sectors`, nach dem Sektorumbau.
+- **Charakter:**
+  - Status „gefangen“ (gesperrt wie verwundet, mit Text „gefangen“).
+  - Eine Psi-Begabte „Lio“ als Figur, wenn `state.recruits` den Eintrag `begabte` enthält. Anheuern über `Campaign.hire`.
+- **Bodenkampf:** Fraktionsdaten `abteilung9`, `seraph` (Wacht von Seraph), `stille_hand`, `semidrug` und gern `pluenderer`, Einheiten wie im Abschnitt „Story-Fraktionen“.
 
 ## Gebaut (Auftrag 2)
 
@@ -121,7 +147,7 @@ Eine Datei je Kette:
   "goals": [{"id": "schulden", "name": "Schulden tilgen", "value": 0, "target": 6000, "due_in": 5, "fail": "szenen-id"}],
   "scenes": {
     "szenen-id": {"title": "…", "image": "bild-id", "text": Text,
-      "choices": [{"text": Text, "requires": [Bedingungen], "hide_locked": false,
+      "choices": [{"text": Text, "requires": [Bedingungen], "hide_locked": false, "result": Text (Ergebnistext ohne Probe),
         "check": {"skill": "verhandeln", "diff": "mittel", "mod": 0},
         "effects": [Folgen], "next": "szenen-id",
         "results": {"erfolg": {"text": Text, "effects": [Folgen], "next": "…"}, "fehlschlag": {…}}}]}
@@ -173,7 +199,7 @@ Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul ändert kei
 ## Bilder
 
 - Szenen haben ein optionales Feld `image`; die Datei liegt unter `godot/art/story/<image>.png`. Ohne Datei zeigt das Fenster nur Text.
-- Die Bildliste mit Prompts (für einen Bildgenerator, vom Nutzer genannt: Artisly.ai) entsteht zusammen mit den Inhalten von Kapitel 1.
+- Bildliste mit Prompts: `docs/Story_Bilder.md` (Stil Comic/Graphic Novel).
 
 ## Offene Punkte
 

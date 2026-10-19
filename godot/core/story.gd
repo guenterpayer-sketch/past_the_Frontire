@@ -12,6 +12,15 @@ const RESOURCE_NAMES := {"credits": "Credits", "material": "Schiffsmaterial", "p
 const RESULT_FALLBACK := {"herausragend": "erfolg", "teilerfolg": "fehlschlag", "patzer": "fehlschlag"}
 ## Chance je Reisetag, dass eine Reise-Kette auslöst (wenn eine bereitsteht)
 const TRAVEL_CHANCE := 0.15
+## Chance je Reisetag, dass ein erzeugter Story-Schritt mit Einstieg „Reise“ auslöst
+const STEP_TRAVEL_CHANCE := 0.45
+## Chance je Reisetag für eine erzeugte Ereigniskette (Wrack, Passagier), wenn keine offen ist
+const EVENT_CHANCE := 0.08
+## Chance je Hafenankunft für einen Schmuggel-Kontakt, wenn keiner offen ist
+const SMUGGLE_CHANCE := 0.25
+## Ereignisketten des Generators: Reise bzw. Hafen
+const TRAVEL_EVENTS := ["wrack", "passagier"]
+const HARBOR_EVENTS := ["schmuggel"]
 
 var state: StoryState
 ## Spielstand (null in Tests und der Demo; dann gelten res und day)
@@ -24,6 +33,8 @@ var res := {"credits": 0, "material": 0, "provisions": 0, "fuel": 0}
 var day := 1
 ## Tests: feste Reise-Auslösung (-1 = würfeln, 0 = nie, 1 = immer)
 static var fixed_travel := -1
+## false = Ketten mit Auslöser „start“ (Kapitel 1) beginnen nicht von selbst (Selbsttests, die keine Szenen wegklicken)
+static var auto_start := true
 
 
 static func create(st: StoryState = null, g: HubState = null) -> Story:
@@ -39,12 +50,12 @@ func today() -> int:
 	return game.day if game != null else day
 
 
+## ohne Gefangene (StoryState.captured)
 func crew() -> Array[Character]:
-	if not crew_override.is_empty():
-		return crew_override
-	if game != null:
-		return Voyage.available(game)
-	return Campaign.crew()
+	var all: Array[Character] = crew_override if not crew_override.is_empty() else (Voyage.available(game) if game != null else Campaign.crew())
+	if state.captured.is_empty():
+		return all
+	return all.filter(func(c: Character) -> bool: return not String(c.id) in state.captured)
 
 
 func resource(key: String) -> int:
@@ -63,11 +74,98 @@ func add_resource(key: String, n: int) -> int:
 	return int(res[key]) - v0
 
 
+## Lager: Stückzahl, hinzufügen, nehmen (im Spiel Stock auf HubState.stock, sonst res.stock)
+func item_count(key: String) -> int:
+	if game != null:
+		return Stock.count(game, key)
+	return int(res.get("stock", {}).get(key, 0))
+
+
+func item_add(key: String, n: int) -> int:
+	if n > 0:
+		if game != null:
+			Stock.add(game, key, n)
+		else:
+			if not res.has("stock"):
+				res.stock = {}
+			res.stock[key] = int(res.stock.get(key, 0)) + n
+		return n
+	var took := 0
+	for i in -n:
+		if game != null:
+			if not Stock.take(game, key):
+				break
+		elif int(res.get("stock", {}).get(key, 0)) > 0:
+			res.stock[key] = int(res.stock[key]) - 1
+			if res.stock[key] == 0:
+				res.stock.erase(key)
+		else:
+			break
+		took += 1
+	return -took
+
+
+func item_name(key: String) -> String:
+	return Stock.name_of(key) if key.contains("/") or key == Stock.MEDKIT else key
+
+
+## Schlüssel aller Gegenstände im Lager
+func item_keys() -> Array:
+	if game != null:
+		return game.stock.keys()
+	return res.get("stock", {}).keys()
+
+
+## Story-Schlüssel: Summe der Ausbaustufen, Summe der Crew-Ränge, erreichte Sektoren
+func ship_level() -> int:
+	if game == null:
+		return int(res.get("ship_level", 0))
+	var n := 0
+	for k in game.upgrades:
+		n += int(game.upgrades[k])
+	return n
+
+
+func crew_ranks() -> int:
+	var n := 0
+	for c in crew():
+		for k in c.skills:
+			n += int(c.skills[k].get("rank", 0))
+	return n
+
+
+## Stub bis zum Sektorumbau des Hubs: ein Sektor
+func sectors() -> int:
+	return int(res.get("sectors", 1)) if game == null else 1
+
+
 # ---------------------------------------------------------------- Ketten
+
+## Kette nach Kennung: geschriebene (StoryData) oder erzeugte (StoryState.generated)
+func chain_of(id: String) -> Dictionary:
+	if state.generated.has(id):
+		return state.generated[id]
+	return StoryData.chain(id)
+
+
+func scene_of(id: String, sid: String) -> Dictionary:
+	return chain_of(id).get("scenes", {}).get(sid, {})
+
+
+## Ziel aus der Beschreibung einer Kette: target_rand [a, b] würfelt das Ziel, rate/every = wiederkehrende Rate
+func _make_goal(g: Dictionary, chain_id: String) -> void:
+	var target := int(g.get("target", 0))
+	if g.has("target_rand"):
+		target = randi_range(int(g.target_rand[0]), int(g.target_rand[1]))
+	var every := int(g.get("every", 0))
+	var due := today() + int(g.due_in) if g.has("due_in") else (today() + every if every > 0 else 0)
+	state.goals[String(g.id)] = {"name": String(g.get("name", g.id)), "chain": chain_id, "value": int(g.get("value", 0)),
+		"target": target, "due": due, "fail": String(g.get("fail", "")), "done": false,
+		"rate": int(g.get("rate", 0)), "every": every, "paid": 0, "backlash": g.get("backlash", []).duplicate()}
 
 ## Kette beginnen (Startszene, Ziele anlegen). false, wenn sie fehlt oder schon läuft.
 func start(chain_id: String) -> bool:
-	var c := StoryData.chain(chain_id)
+	var c := chain_of(chain_id)
 	if c.is_empty() or state.is_open(chain_id):
 		return false
 	var entry: Dictionary = state.chains.get(chain_id, {"place": -1})
@@ -75,9 +173,7 @@ func start(chain_id: String) -> bool:
 	entry.scene = String(c.start)
 	state.chains[chain_id] = entry
 	for g in c.get("goals", []):
-		state.goals[String(g.id)] = {"name": String(g.get("name", g.id)), "chain": chain_id,
-			"value": int(g.get("value", 0)), "target": int(g.get("target", 0)),
-			"due": today() + int(g.due_in) if g.has("due_in") else 0, "fail": String(g.get("fail", "")), "done": false}
+		_make_goal(g, chain_id)
 	state.add_log(today(), "verlauf", chain_id, "Begonnen: %s" % c.get("title", chain_id))
 	return true
 
@@ -88,9 +184,9 @@ func current_scene_id(chain_id: String) -> String:
 
 ## Anzeige der aktuellen Szene: {chain, kind, title, text, image, choices: [{index, text, enabled, reason, check}]}
 func view(chain_id: String) -> Dictionary:
-	var c := StoryData.chain(chain_id)
+	var c := chain_of(chain_id)
 	var sid := current_scene_id(chain_id)
-	var s := StoryData.scene(chain_id, sid)
+	var s := scene_of(chain_id, sid)
 	if s.is_empty():
 		return {}
 	var out := {"chain": chain_id, "scene": sid, "kind": String(c.get("kind", "kette")), "chain_title": String(c.get("title", "")),
@@ -122,7 +218,7 @@ func roller_options(skill: StringName) -> Array[Dictionary]:
 ## Wahl treffen. roller = wer würfelt (null = Bester). Ergebnis:
 ## {ok, check: {} oder Probe (Voyage.check + result), text, effects: [Textzeilen], next, ended, mission}
 func choose(chain_id: String, index: int, roller: Character = null) -> Dictionary:
-	var s := StoryData.scene(chain_id, current_scene_id(chain_id))
+	var s := scene_of(chain_id, current_scene_id(chain_id))
 	var choices: Array = s.get("choices", [])
 	if state.status(chain_id) != "aktiv" or index < 0 or index >= choices.size():
 		return {"ok": false}
@@ -131,6 +227,8 @@ func choose(chain_id: String, index: int, roller: Character = null) -> Dictionar
 		return {"ok": false}
 	var out := {"ok": true, "check": {}, "text": "", "effects": [], "next": String(ch.get("next", "")), "ended": "", "mission": {}}
 	var line := "%s: %s" % [text_of(s.get("title", "")), text_of(ch.get("text", ""))]
+	if ch.has("result"):
+		out.text = text_of(ch.result)
 	_apply(chain_id, ch.get("effects", []), out)
 	if ch.has("check"):
 		var skill := StringName(ch.check.skill)
@@ -156,7 +254,14 @@ func choose(chain_id: String, index: int, roller: Character = null) -> Dictionar
 		state.chains[chain_id].status = "fertig"
 	else:
 		state.chains[chain_id].scene = out.next
+	_finish_repeat(chain_id)
 	return out
+
+
+## wiederholbare Ketten (repeat, z. B. Rate zahlen) stehen nach dem Ende wieder bereit
+func _finish_repeat(chain_id: String) -> void:
+	if chain_of(chain_id).get("repeat", false) and state.status(chain_id) in ["fertig", "gescheitert"]:
+		state.chains.erase(chain_id)
 
 
 func _result_branch(results: Dictionary, id: String) -> Dictionary:
@@ -194,6 +299,20 @@ func _condition(c: Dictionary) -> String:
 			if Rules.skill_rank(m, StringName(c.psi)) > 0:
 				return ""
 		return "braucht: %s" % Rules.skill_name(StringName(c.psi))
+	if c.has("day"):
+		return "" if today() >= int(c.day) else "ab Tag %d" % int(c.day)
+	if c.has("item"):
+		var need_items := int(c.get("count", 1))
+		return "" if item_count(String(c.item)) >= need_items else "braucht: %d × %s im Lager" % [need_items, item_name(String(c.item))]
+	if c.has("ship_level"):
+		return "" if ship_level() >= int(c.ship_level) else "braucht: Schiffsausbau %d (jetzt %d)" % [int(c.ship_level), ship_level()]
+	if c.has("crew_ranks"):
+		return "" if crew_ranks() >= int(c.crew_ranks) else "braucht: Crew-Ränge %d (jetzt %d)" % [int(c.crew_ranks), crew_ranks()]
+	if c.has("sectors"):
+		return "" if sectors() >= int(c.sectors) else "braucht: %d Sektoren (jetzt %d)" % [int(c.sectors), sectors()]
+	if c.has("goal_open"):
+		var g: Dictionary = state.goals.get(String(c.goal_open), {})
+		return "" if not g.is_empty() and not g.done else String(c.get("reason", "nicht mehr nötig"))
 	for k in RESOURCES:
 		if c.has(k):
 			return "" if resource(k) >= int(c[k]) else "braucht: %d %s" % [int(c[k]), RESOURCE_NAMES[k]]
@@ -232,6 +351,35 @@ func _apply(chain_id: String, effects: Array, out: Dictionary) -> void:
 			start(String(e.chain))
 		elif e.has("reveal"):
 			reveal(String(e.reveal))
+		elif e.has("item"):
+			var d := item_add(String(e.item), int(e.get("add", 0)) - int(e.get("take", 0)))
+			if d != 0:
+				out.effects.append("%+d %s (Lager)" % [d, item_name(String(e.item))])
+		elif e.has("item_random"):
+			var keys := item_keys()
+			if not keys.is_empty():
+				var k: String = keys[randi_range(0, keys.size() - 1)]
+				if item_add(k, -1) != 0:
+					out.effects.append("−1 %s (Lager)" % item_name(k))
+		elif e.has("credits_pct"):
+			var cr := resource("credits")
+			if cr > 0:
+				var d := add_resource("credits", roundi(cr * int(e.credits_pct) / 100.0))
+				if d != 0:
+					out.effects.append("%+d Credits" % d)
+		elif e.has("step_done"):
+			_step_result(chain_id, true, out)
+		elif e.has("step_failed"):
+			_step_result(chain_id, false, out)
+		elif e.has("step"):
+			StoryGen.step(self, String(e.step))
+			out.effects.append("Logbuch: neue Spur zu verfolgen")
+		elif e.has("spur"):
+			_add_spur(String(e.spur), out)
+		elif e.has("capture"):
+			_capture(out)
+		elif e.has("recruit"):
+			state.recruits.append(String(e.recruit))
 		else:
 			for k in RESOURCES:
 				if e.has(k):
@@ -247,20 +395,113 @@ func _goal_effect(e: Dictionary, out: Dictionary) -> void:
 		return
 	if e.has("add"):
 		g.value = int(g.value) + int(e.add)
+	if e.get("pay", false):
+		g.paid = int(g.get("paid", 0)) + int(e.get("add", 0))
 	if e.has("target"):
 		g.target = int(g.target) + int(e.target)
 		out.effects.append("%s: Ziel %+d" % [g.name, int(e.target)])
+	if e.has("target_pct"):
+		var inc := roundi((int(g.target) - int(g.value)) * int(e.target_pct) / 100.0)
+		g.target = int(g.target) + inc
+		out.effects.append("%s: Schuld %+d" % [g.name, inc])
 	if e.has("due"):
 		g.due = maxi(int(g.due), today()) + int(e.due)
 		out.effects.append("%s: Frist bis Tag %d" % [g.name, g.due])
 	if e.get("done", false) or (int(g.target) > 0 and int(g.value) >= int(g.target)):
 		g.done = true
 		g.due = 0
+		_goal_reached(String(e.goal), out)
+
+
+## Ziel erreicht: Schulden getilgt → Gefangene frei
+func _goal_reached(gid: String, out: Dictionary) -> void:
+	state.add_log(today(), "verlauf", String(state.goals[gid].chain), "Ziel erreicht: %s" % state.goals[gid].name)
+	if gid == "schulden" and not state.captured.is_empty():
+		state.captured.clear()
+		out.effects.append("Gefangene Crew kommt frei")
+
+
+# ---------------------------------------------------------------- Rahmen und erzeugte Schritte
+
+## Ergebnis eines erzeugten Schritts: Rahmen (frame) zählt Spuren und erzeugt den nächsten Schritt; Befreiung (rescue)
+func _step_result(chain_id: String, ok: bool, out: Dictionary) -> void:
+	var c := chain_of(chain_id)
+	if c.has("rescue"):
+		if ok:
+			state.captured.erase(String(c.rescue))
+			out.effects.append("%s ist wieder an Bord" % String(c.get("rescue_name", "Crewmitglied")))
+		else:
+			StoryGen.make(self, "befreien", {"rescue": String(c.rescue), "rescue_name": String(c.get("rescue_name", ""))})
+		return
+	var frame := String(c.get("frame", ""))
+	if frame == "":
+		return
+	if ok:
+		_add_spur(frame, out)
+	elif not _frame_full(frame):
+		StoryGen.step(self, frame)
+		out.effects.append("Logbuch: neue Spur zu verfolgen")
+
+
+func _frame(frame: String) -> Dictionary:
+	return chain_of(frame).get("frame", {})
+
+
+func _frame_full(frame: String) -> bool:
+	var g: Dictionary = state.goals.get(String(_frame(frame).get("goal", "")), {})
+	return not g.is_empty() and g.done
+
+
+## Spur zählen; Ziel voll → Finale bekannt machen, sonst nächsten Schritt erzeugen (höchstens einer offen)
+func _add_spur(frame: String, out: Dictionary) -> void:
+	var f := _frame(frame)
+	var gid := String(f.get("goal", ""))
+	if f.is_empty() or not state.goals.has(gid) or state.goals[gid].done:
+		return
+	_goal_effect({"goal": gid, "add": 1}, out)
+	out.effects.append("Spur gefunden (%d / %d)" % [state.goals[gid].value, state.goals[gid].target])
+	if state.goals[gid].done:
+		state.flags[frame + "_spuren"] = true
+		reveal(String(f.get("finale", "")))
+		out.effects.append("Logbuch: das Finale ist bekannt")
+	elif _open_steps(frame) == 0:
+		StoryGen.step(self, frame)
+		out.effects.append("Logbuch: neue Spur zu verfolgen")
+
+
+## offene erzeugte Schritte eines Rahmens (außer dem gerade laufenden Ende)
+func _open_steps(frame: String) -> int:
+	var n := 0
+	for id in state.generated:
+		if String(state.generated[id].get("frame", "")) == frame and state.status(id) in ["", "bekannt", "aktiv", "wartet"]:
+			var sc := scene_of(id, current_scene_id(id))
+			if state.status(id) != "aktiv" or not _is_end_scene(sc):
+				n += 1
+	return n
+
+
+func _is_end_scene(sc: Dictionary) -> bool:
+	for ch in sc.get("choices", []):
+		for e in ch.get("effects", []):
+			if e.has("step_done") or e.has("step_failed"):
+				return true
+	return false
+
+
+## Rückschlag „Crew gefangen“: ein zufälliges Crewmitglied an Bord, Befreiung als erzeugter Schritt
+func _capture(out: Dictionary) -> void:
+	var list := crew()
+	if list.size() <= 1:
+		return
+	var c: Character = list[randi_range(0, list.size() - 1)]
+	state.captured.append(String(c.id))
+	out.effects.append("%s ist gefangen" % c.name)
+	StoryGen.make(self, "befreien", {"rescue": String(c.id), "rescue_name": c.name})
 
 
 ## Kette bekannt machen (Logbuch, bei Auslöser „ort“ ein Story-Ort auf der Karte)
 func reveal(chain_id: String) -> void:
-	var c := StoryData.chain(chain_id)
+	var c := chain_of(chain_id)
 	if c.is_empty():
 		return
 	var entry: Dictionary = state.chains.get(chain_id, {"status": "bekannt", "scene": "", "place": -1})
@@ -269,7 +510,22 @@ func reveal(chain_id: String) -> void:
 	state.chains[chain_id] = entry
 
 
+## Stub: zufälliger Hafen (neutrales System) für einen Kontakt; ohne Spielstand -1 (überall)
+func pick_harbor() -> int:
+	if game == null or game.sector == null:
+		return -1
+	var list: Array[int] = []
+	for i in game.sector.systems.size():
+		if game.is_harbor(i):
+			list.append(i)
+	return list[randi_range(0, list.size() - 1)] if not list.is_empty() else -1
+
+
 ## Stub: zufälliges System außer dem aktuellen; später Orte im System (Sektorumbau im Hub)
+func pick_place() -> int:
+	return _pick_place()
+
+
 func _pick_place() -> int:
 	if game == null or game.sector == null:
 		return -1
@@ -308,15 +564,19 @@ func text_of(t: Variant, roller: Character = null) -> String:
 
 # ---------------------------------------------------------------- Einhängepunkte für den Hub
 
-func _ready_chains(trigger: String) -> Array[String]:
+## bereite Ketten eines Auslösers (geschriebene und erzeugte, noch nicht begonnen); Kontakte nur im eigenen Hafen
+func _ready_chains(trigger: String, system := -2) -> Array[String]:
 	var out: Array[String] = []
-	var ids: Array = StoryData.chains().keys()
+	var ids: Array = StoryData.chains().keys() + state.generated.keys()
 	ids.sort()
 	for id in ids:
-		var c: Dictionary = StoryData.chain(id)
+		var c: Dictionary = chain_of(id)
 		if c.get("test", false) or c.get("trigger", {}).get("type", "") != trigger:
 			continue
-		if state.status(id) in ["aktiv", "wartet", "fertig", "gescheitert"]:
+		if not state.status(id) in ["", "bekannt"]:
+			continue
+		var place := int(state.chains.get(id, {}).get("place", -1))
+		if system != -2 and place >= 0 and place != system:
 			continue
 		if blocked_reason(c.trigger.get("requires", [])) == "":
 			out.append(id)
@@ -327,49 +587,90 @@ func _ready_chains(trigger: String) -> Array[String]:
 func offers() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id in _ready_chains("auftrag"):
-		var c := StoryData.chain(id)
+		var c := chain_of(id)
 		out.append({"chain": id, "title": text_of(c.get("title", id)), "kind": String(c.get("kind", "kette"))})
 	return out
 
 
 ## Ankunft in einem System: Kette mit Story-Ort dort beginnen. Gibt die Kette zurück oder "".
+## Im Hafen: Kopfgeldjäger (Verfolgung) oder vielleicht ein Schmuggel-Kontakt.
 func on_arrive(system: int) -> String:
 	for id in state.chains:
 		var e: Dictionary = state.chains[id]
-		if e.get("status", "") == "bekannt" and int(e.get("place", -1)) == system:
+		if e.get("status", "") == "bekannt" and int(e.get("place", -1)) == system \
+				and chain_of(id).get("trigger", {}).get("type", "") == "ort":
 			start(id)
 			return id
+	var harbor := game != null and game.is_harbor(system)
+	if harbor and state.flags.has("kopfgeld"):
+		state.flags.erase("kopfgeld")
+		var hid := StoryGen.make(self, "hinterhalt", {"start": true})
+		start(hid)
+		return hid
+	if harbor and not _event_open(HARBOR_EVENTS) and randf() < SMUGGLE_CHANCE:
+		StoryGen.make(self, "schmuggel", {"place": system})
 	return ""
 
 
+## ist eine erzeugte Ereigniskette dieser Vorlagen offen?
+func _event_open(kinds: Array) -> bool:
+	for id in state.generated:
+		if String(state.generated[id].get("template", "")) in kinds and state.status(id) in ["", "bekannt", "aktiv", "wartet"]:
+			return true
+	return false
+
+
 ## Ein Reisetag: vielleicht löst eine Reise-Kette aus. Gibt die Kette zurück oder "".
+## Reihenfolge: erzeugte Story-Schritte mit Einstieg „Reise“, geschriebene Reise-Ketten, erzeugte Ereignisketten.
 func travel_event(rng: RandomNumberGenerator = null) -> String:
+	if rng == null:
+		rng = RandomNumberGenerator.new()
+		rng.randomize()
+	if fixed_travel == 0:
+		return ""
 	var ready := _ready_chains("reise")
-	if ready.is_empty():
-		return ""
-	var roll := randf() if rng == null else rng.randf()
-	if fixed_travel == 0 or (fixed_travel < 0 and roll >= TRAVEL_CHANCE):
-		return ""
-	var id: String = ready[randi_range(0, ready.size() - 1) if rng == null else rng.randi_range(0, ready.size() - 1)]
-	start(id)
-	return id
+	var steps := ready.filter(func(id: String) -> bool: return state.generated.has(id))
+	if not steps.is_empty() and (fixed_travel == 1 or rng.randf() < STEP_TRAVEL_CHANCE):
+		start(steps[0])
+		return steps[0]
+	var written := ready.filter(func(id: String) -> bool: return not state.generated.has(id))
+	if not written.is_empty() and (fixed_travel == 1 or rng.randf() < TRAVEL_CHANCE):
+		var id: String = written[rng.randi_range(0, written.size() - 1)]
+		start(id)
+		return id
+	if not _event_open(TRAVEL_EVENTS) and (fixed_travel == 1 or rng.randf() < EVENT_CHANCE):
+		var eid := StoryGen.make(self, TRAVEL_EVENTS[rng.randi_range(0, TRAVEL_EVENTS.size() - 1)], {"start": true})
+		if eid != "":
+			start(eid)
+			return eid
+	return ""
 
 
 ## Kontakte im Raumhafen: [{chain, title}]; Ansprechen = start(chain)
 func contacts() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for id in _ready_chains("kontakt"):
-		var c := StoryData.chain(id)
+	for id in _ready_chains("kontakt", game.position if game != null else -2):
+		var c := chain_of(id)
 		out.append({"chain": id, "title": text_of(c.get("contact", c.get("title", id)))})
 	return out
 
 
 ## Tageswechsel: abgelaufene Fristen lösen den Rückschlag aus (Szene „fail“ der Kette). Gibt die betroffenen Ketten zurück.
+## Außerdem: Ketten mit Auslöser „start“ beginnen, sobald ihre Bedingung erfüllt ist (z. B. Kapitel 1 ab Tag 3);
+## wiederkehrende Raten: zu wenig gezahlt → zufälliger Rückschlag aus „backlash“.
 func on_day() -> Array[String]:
 	var out: Array[String] = []
+	for id in _ready_chains("start") if auto_start else []:
+		if start(id):
+			out.append(id)
 	for gid in state.goals:
 		var g: Dictionary = state.goals[gid]
 		if g.done or int(g.due) <= 0 or today() <= int(g.due):
+			continue
+		if int(g.get("rate", 0)) > 0:
+			var bid := _rate_due(g)
+			if bid != "" and not bid in out:
+				out.append(bid)
 			continue
 		g.due = 0
 		state.add_log(today(), "verlauf", g.chain, "Frist verpasst: %s" % g.name)
@@ -377,6 +678,25 @@ func on_day() -> Array[String]:
 			state.chains[g.chain] = {"status": "aktiv", "scene": g.fail, "place": int(state.chains.get(g.chain, {}).get("place", -1))}
 			out.append(String(g.chain))
 	return out
+
+
+## Rate fällig: genug gezahlt → nächste Frist; sonst Rückschlag (Kette aus backlash, zufällig). Gibt die Kette zurück oder "".
+func _rate_due(g: Dictionary) -> String:
+	var missed := int(g.get("paid", 0)) < int(g.rate)
+	while today() > int(g.due):
+		g.due = int(g.due) + maxi(1, int(g.every))
+	g.paid = 0
+	if not missed:
+		return ""
+	state.add_log(today(), "verlauf", g.chain, "Rate verpasst: %s" % g.name)
+	var list: Array = g.get("backlash", [])
+	if list.is_empty():
+		return ""
+	var bid := String(list[randi_range(0, list.size() - 1)])
+	if state.is_open(bid):
+		return ""
+	state.chains.erase(bid)
+	return bid if start(bid) else ""
 
 
 ## laufender Story-Einsatz für Hub/Bodenkampf/Raumkampf: {chain, kind, title, difficulty, …} oder leer
@@ -394,6 +714,7 @@ func mission_done(outcome: String) -> String:
 	state.mission = {}
 	if nxt == "":
 		state.chains[id].status = "fertig"
+		_finish_repeat(id)
 		return id
 	state.chains[id].status = "aktiv"
 	state.chains[id].scene = nxt
@@ -406,17 +727,18 @@ func markers() -> Array[Dictionary]:
 	for id in state.chains:
 		var e: Dictionary = state.chains[id]
 		if e.get("status", "") == "bekannt" and int(e.get("place", -1)) >= 0:
-			out.append({"system": int(e.place), "chain": id, "title": text_of(StoryData.chain(id).get("title", id))})
+			out.append({"system": int(e.place), "chain": id, "title": text_of(chain_of(id).get("title", id))})
 	return out
 
 
-## offene Ketten fürs Logbuch: [{chain, title, kind, status, place}]
+## offene Ketten fürs Logbuch: [{chain, title, kind, status, place, trigger, reason (was noch fehlt)}]
 func open_chains() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id in state.chains:
 		var e: Dictionary = state.chains[id]
 		if e.get("status", "") in ["aktiv", "wartet", "bekannt"]:
-			var c := StoryData.chain(id)
+			var c := chain_of(id)
 			out.append({"chain": id, "title": text_of(c.get("title", id)), "kind": String(c.get("kind", "kette")),
-				"status": String(e.status), "place": int(e.get("place", -1))})
+				"status": String(e.status), "place": int(e.get("place", -1)), "trigger": String(c.get("trigger", {}).get("type", "")),
+				"reason": blocked_reason(c.get("trigger", {}).get("requires", [])) if e.status == "bekannt" else ""})
 	return out

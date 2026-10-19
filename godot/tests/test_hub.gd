@@ -515,6 +515,7 @@ func _test_story_hub() -> void:
 	check(g.credits == -50 and g.material == 0 and g.fuel == g.tank_max() and ch.material == -2 and ch.fuel == 5, "apply_story: Credits unter 0, Material ab 0, Tank bis voll")
 	# Story-Ort: Ankunft öffnet die Kette (Szenenfenster vorgemerkt), im Spielstand
 	var st := g.story_engine()
+	st.state.chains["kapitel1"] = {"status": "fertig", "scene": "", "place": -1}   # Kapitel 1 startet ab Tag 3 von selbst (Story-Chat)
 	st.reveal("test_ort")
 	var place := int(st.state.chains.test_ort.place)
 	check(place >= 0 and st.markers().size() == 1, "Story-Ort auf der Karte")
