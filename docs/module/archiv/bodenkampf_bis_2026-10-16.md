@@ -228,3 +228,12 @@ Grundlage: `docs/Planung_Truppgroesse.md` (Entscheidungen des Nutzers). **Zustä
 - Entscheidungen des Nutzers: Bedienung Draufsicht **und** 3D umschaltbar; neue Karte leer, aus Zufallskarte oder als Kopie; im Spiel **je Karte an/aus**. Übrige Fragen hat der Nutzer dem Bodenkampf-Chat überlassen („so selbstständig wie möglich“); gewählt: Startfelder gezeichnet für „Standard“, sonst automatisch je Lage; Pool-Chance 30 %; Größen wie die Zufallskarten (6 Varianten); Probekampf aus dem Editor; Speicherort `user://maps/*.json`.
 - Neu: `map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, `tests/autotest_editor.gd`; Startmenü „Karteneditor“. Schnittstellen: `Mission.custom_map`/`custom_name`, `BattleMap.custom_name`, `MapGenerator.for_mission` fragt zuerst `CustomMaps.for_mission`; Briefing (Schnellkampf) „Ort: Eigene: …“ (`BriefingDialog.place_choices()`). Tests setzen `CustomMaps.dir` auf Testordner. Beschreibung in `godot/README.md` („Karteneditor“).
 
+
+
+# Nachtrag Startausrichtung (in `main` seit 19.10.2026, `514a72b`)
+
+### Fertig (19.10.2026): Startausrichtung nach Startlage, neue Lage „Überfall“
+
+- Alle Figuren schauen zu Kampfbeginn zum nächsten Gegner (`Combat.face_start`, alle Lagen, Entern/Abwehr, eigene Karten); `Combat.deploy` richtet in Runde 0 neu aus, danach dreht die Crew selbst. Hinterhalt wie alle anderen (Nutzer).
+- Neue Lage **Überfall** (Nutzer): Gegner in der Mitte, Crew frei aufstellbar (mit Abstand, auch erhöht), Gegner schauen von der Crew weg und handeln in Runde 1 nicht. In `Mission.LAGEN`/`OTHER_LAGEN`, je Bodentyp ein sechster Auftrag mit Überfall (`job_index` 0–5, Entern weiter 5 Texte). Schnittstelle: `BattleMap.lage` (gesetzt von `MapGenerator._finish` und `CustomMaps.build`), `Combat.surprised(u)`.
+- Tests: `test_rules` `_test_start_facing`; `--autotest-maps` zeigt auch Überfall.

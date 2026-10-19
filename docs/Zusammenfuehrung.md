@@ -9,7 +9,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`7f95a11`), nichts offen |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`514a72b`), nichts offen |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`2c531ec`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`c0e578c`), nichts offen |
@@ -18,6 +18,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | `1c1ce95` | Bodenkampf `claude/confident-edison-6mxzke` (`514a72b`) | ohne Konflikte; es fehlten nur Doku-Commits, Code identisch mit dem getesteten Stand, keine eigenen Tests. Startausrichtung zum Gegner in allen Startlagen, neue Lage „Überfall“. |
 | 19.10.2026 | `9683d69` | Hub `claude/happy-lamport-u4fvya` (`2c531ec`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Enzyklopädie mit Raumkampf: Schiffswaffen, Gegnerschiffe, Gegnerseiten, Ausbau, Munition, Stationen, Kurzregeln. |
 | 18.10.2026 | `83c5582` | Hub `claude/happy-lamport-u4fvya` (`a9ef9fc`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Hüllenreparatur als Arbeit im Maschinenraum (Knopf in der Sternenkarte entfällt, täglich bis voll, Pause an Reisetagen), schwer Verwundete arbeiten nicht (Arbeit pausiert), Händler ohne Überlauf. |
 | 18.10.2026 | `7381fd9` | Bodenkampf `claude/confident-edison-6mxzke` (`7f95a11`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Karteneditor (Draufsicht und 3D, eigene Karten im Spiel, je Karte an/aus, Pool-Chance 30 %). Änderungen in Hub-Dateien: `start_screen.gd` (Knopf), `test_hub.gd` (Testordner für eigene Karten), vermerkt. |
