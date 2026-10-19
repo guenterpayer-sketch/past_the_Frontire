@@ -1577,10 +1577,10 @@ func _test_story_factions() -> void:
 
 ## Entern-Briefing (Bodenkampf Auftrag 2): „Ausrüstung“ statt „Zurück ins Schiff“, normale Einsätze unverändert
 func _test_boarding_briefing() -> void:
+	# nicht in den Baum hängen: sonst ruft Godot _ready beim Start der Hauptschleife ein zweites Mal auf
+	# (doppelte Signalverbindung in Modal._ready, Auftrag 4); _ready hier einmal von Hand
 	var b := BriefingDialog.new()
-	root.add_child(b)
-	if b.footer == null:   # im Test-Skript läuft _ready nicht von selbst
-		b._ready()
+	b._ready()
 	b.hub_mode = true
 	var m := Mission.generate(4711)
 	m.set_map_type(MapTypes.SHIP, "board")
@@ -1593,4 +1593,4 @@ func _test_boarding_briefing() -> void:
 	b.show_mission(n, cands, sel)
 	texts = b.footer.get_children().filter(func(x: Node) -> bool: return x is Button).map(func(x: Button) -> String: return x.text)
 	check("Zurück ins Schiff" in texts and not "Ausrüstung" in texts, "normaler Einsatz: Zurück ins Schiff")
-	b.queue_free()
+	b.free()
