@@ -100,6 +100,7 @@ static func burger(host: Control) -> MenuButton:
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var pop := b.get_popup()
 	pop.add_item("Enzyklopädie", 0)
+	Version.add_to(pop)   # Versionszeile (Hub Auftrag 7)
 	pop.id_pressed.connect(func(id: int) -> void:
 		if id == 0:
 			Encyclopedia.show_on(host).move_to_front())

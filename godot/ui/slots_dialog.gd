@@ -101,7 +101,8 @@ func _slot_row(s: int) -> Control:
 func _describe(v: VBoxContainer, info: Dictionary) -> void:
 	v.add_child(UiTheme.label(info.name if info.name != "" else "(ohne Namen)", 16))
 	v.add_child(UiTheme.label("Tag %d · %s · %d %s" % [info.day, info.system, info.missions, "Einsatz" if info.missions == 1 else "Einsätze"], 13))
-	v.add_child(UiTheme.label("gespeichert %s" % Time.get_datetime_string_from_unix_time(info.saved_at + _tz_bias(), true), 12, UiTheme.MUTED))
+	v.add_child(UiTheme.label("gespeichert %s · %s" % [Time.get_datetime_string_from_unix_time(info.saved_at + _tz_bias(), true),
+		Version.label(String(info.get("game_version", "")))], 12, UiTheme.MUTED))
 	if info.get("outdated", false):
 		v.add_child(UiTheme.label("veraltet: vor dem Umbau der Sektorkarte gespeichert, kann nicht mehr geladen werden", 12, UiTheme.BAD))
 

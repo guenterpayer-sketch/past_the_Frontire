@@ -153,6 +153,7 @@ func _build_ui() -> void:
 	var pop := burger.get_popup()
 	pop.add_item("Enzyklopädie", 0)
 	pop.add_item("Einstellungen …", 1)
+	Version.add_to(pop)
 	pop.id_pressed.connect(func(id: int) -> void:
 		if id == 0:
 			Encyclopedia.show_on(root)
