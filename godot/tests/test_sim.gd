@@ -23,7 +23,7 @@ func _init() -> void:
 		elif a.begins_with("ab="):
 			offset = int(a.substr(3))
 		elif a.begins_with("fraktion="):
-			faction = "res://data/missions/%s.tres" % a.substr(9)
+			faction = a.substr(9) if a.substr(9).begins_with("res://") else "res://data/missions/%s.tres" % a.substr(9)
 		elif a.begins_with("budget="):
 			Mission.budget_override[only if only != "" else "schwer"] = int(a.substr(7))
 	var by_diff := {}
