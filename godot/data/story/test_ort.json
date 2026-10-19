@@ -1,0 +1,36 @@
+{
+	"_info": "Test-Kette mit Story-Ort (Auslöser „ort“), nur für Tests. Texte sind Platzhalter.",
+	"id": "test_ort",
+	"kind": "kette",
+	"title": "Testkette: Das Lagerhaus",
+	"test": true,
+	"trigger": {
+		"type": "ort"
+	},
+	"start": "ankunft",
+	"scenes": {
+		"ankunft": {
+			"title": "Das Lagerhaus",
+			"text": [
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 1. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 2. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 3. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 4. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 5. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 6. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 7. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n",
+				"Platzhalter für einen langen Textblock (Test des Scrollbalkens), Absatz 8. Hier soll später die Szene am Story-Ort stehen: was die Crew sieht, wer dort wartet und welche Spuren es gibt.\n"
+			],
+			"choices": [
+				{
+					"text": "Wieder gehen",
+					"effects": [
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		}
+	}
+}

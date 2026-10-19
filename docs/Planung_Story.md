@@ -1,6 +1,6 @@
 # Planung Story/Kampagne
 
-Stand: 19.10.2026, Story-Chat (Branch `claude/zen-sagan-9yn0le`). Nur Planung, noch nichts gebaut.
+Stand: 19.10.2026, Story-Chat (Branch `claude/zen-sagan-9yn0le`). Auftrag 1: Planung. Auftrag 2: offene Punkte geklärt, Story-Engine, Logbuch und `StoryState` mit Test-Kette gebaut (noch nicht im Hub angebunden).
 
 ## Entscheidungen des Nutzers (19.10.2026)
 
@@ -22,86 +22,113 @@ Stand: 19.10.2026, Story-Chat (Branch `claude/zen-sagan-9yn0le`). Nur Planung, n
 
 Hinweis zu Artisly.ai: Den Dienst kenne ich nicht genau. Die Prompts schreibe ich allgemein (Motiv, Stil, Format) und gebunden an keinen bestimmten Generator.
 
-## Vorschlag: Aufbau
+## Entscheidungen des Nutzers, zweite Runde (19.10.2026)
 
-### Story-Engine (Story-Modul, ohne Grafik)
+| Thema | Entscheidung |
+|---|---|
+| Ausgangslage Kapitel 1 | Alle vier: **Schiff auf Pump**, **Erbe des Kapitäns**, **Alter Verrat**, **Fracht verloren**. |
+| Gläubiger | **Zufällig beim neuen Spiel**, ebenso die Ausgangslage. Umsetzung: **Bausteine kombiniert** (4 Ausgangslagen × 3 Gläubiger: Syndikat, Konzern-Bank, Einzelperson/Kredithai), die Szenen haben Textbausteine je Variante, der Ablauf bleibt gleich. |
+| Story-Fraktionen | Drei: **Geheimbund**, **Psi-Orden**, **Konzern-Projekt**. Sie können sich gegenseitig in die Quere kommen oder zusammenarbeiten. |
+| Gegner in Kapitel 1 | **Alle** möglich: Gläubiger, Story-Fraktionen, bestehende Fraktionen. |
+| Kampagnenziele | **Schulden tilgen**, **Schiffsausbau**, **Crew-Ränge**, **Sektoren/Orte**. |
+| Rückschläge | Alle: **Pfändung**, **Schuld steigt**, **Crew gefangen** (Befreiung als Einsatz), **Verfolgung** (mehr Feindkontakte, bis man zahlt). |
+| Ereignisketten V1 | Drei: **Notruf/Wrack**, **Blinder Passagier**, **Schmuggelware**. **Crew-Vergangenheit** kommt später (braucht das Charakter-Modul). |
+| Sektoren | **Sprungtore am Rand**, Kosten als **Nutzungsgebühr** (Credits, kein Treibstoff), dazu **Erlaubnis/Papiere** möglich, **Rückreise möglich**. |
+| Größe | **15–20 Systeme** je Sektor, **2–4 Orte** je System, das Netz **besser vernetzt** (heute können die Routen fast einen Kreis bilden, dann werden Reisen sehr lang). |
+| Kessler | Oberart **Syndikat**. |
+| Siegbedingungen Bodenkampf | **Später.** In V1 sind Story-Einsätze normale Kämpfe mit eigenem Text und eigenen Gegnern. |
+| Datenformat | **JSON-Dateien** in `godot/data/story/`. |
+| Proben in Szenen | **Der Spieler wählt, wer würfelt**, der Beste an Bord ist vorausgewählt. Es zählen **nur vorhandene Fertigkeiten** (z. B. Verhandeln, Gassenwissen, Handeln, Computer, Pilot, Erste Hilfe, Psi-Listen), es kommen keine neuen dazu. |
+| Bedingungen für Wahlen | **Fertigkeitsrang**, **Story-Flags**, **Ressourcen**, **Psi-Begabung** (eine Psi-Liste an Bord). |
+| Mockup | Szenenfenster und Logbuch **passen** (Artifact „Frontire Story-Mockup“). Umsetzung in Godot nach zwei Fehlversuchen im Stil der vorhandenen Fenster abgenommen (19.10.2026). |
 
-- **Szene** (`StoryScene`, Daten als `.tres` oder JSON in `godot/data/story/`): Text, optional Bild-ID, Liste von **Wahlmöglichkeiten**. Eine Wahl hat: Bedingungen (Flags, Credits, Fertigkeit vorhanden, Crewmitglied an Bord), optional eine **Probe** (Fertigkeit, Modifikator, wer würfelt: beste Crew/gewählt) und **Folgen** je Ergebnis (Flag setzen, Credits/Material/Proviant, EP, Verwundung, nächste Szene, Einsatz starten, Logbuch-Eintrag, Ziel ändern).
-- **Probe**: nutzt die vorhandenen Regeln (W100 offen, Ergebnisstufen wie in `docs/Skillsystem.md`), EP für die benutzte Fertigkeit wie sonst.
-- **Kette** (`StoryChain`): Hauptstrang-Kapitel oder Ereigniskette. Hat einen **Auslöser** (Auftragsliste, Ort, Reise-Ereignis, Hafenkontakt), Bedingungen (Tag, Sektor, Flags) und Schritte.
-- **Zustand** (`StoryState`, im Spielstand): Flags, aktive Ketten mit Schritt, erledigte Ketten, Logbuch-Einträge, Kampagnenziele, bekannte Story-Orte.
-- **Einsatz aus der Story**: eine Szene kann einen Boden- oder Raumkampf als Auftrag erzeugen (Fraktion, Schwierigkeit, Karte, Startlage, besondere Gegner). Ergebnis (Sieg/Niederlage/Rückzug) führt zur Folgeszene.
-- **Rückschlag**: Scheitern löst Folgen aus (z. B. Credits/Schiffsteile gepfändet, Crewmitglied gefangen, Schulden steigen), die Kette läuft mit einem anderen Zweig weiter.
+## Gebaut (Auftrag 2)
 
-### Oberfläche (Story-Modul)
+| Datei | Inhalt |
+|---|---|
+| `core/story_data.gd` (**StoryData**) | lädt die Ketten aus `data/story/*.json` und die Bausteine aus `bausteine.json`, `validate(kette)` prüft Szenen, Sprünge, Fertigkeiten, Psi-Listen, Bedingungen und Folgen |
+| `core/story_state.gd` (**StoryState**) | Fortschritt: `vars` (ausgewürfelte Bausteine), `flags`, `chains`, `goals`, `logbook`, `mission`; `create(rng)` würfelt die Bausteine, `to_dict()`/`from_dict()` |
+| `core/story.gd` (**Story**) | Engine: `start`, `view`, `roller_options`, `choose`, Bedingungen, Folgen, Ziele, Texte mit Bausteinen, Einhängepunkte für den Hub (unten) |
+| `ui/story_dialog.gd` (**StoryDialog**) | Szenenfenster nach Mockup, gestaltet wie Feindkontakt/Krankenstation: goldener Titel, Zeile mit Art, Kette und Tag, oben Bild (`res://art/story/<bild>.png`, sonst Platzhalter) und Text (scrollt) mit Abschnitt ZIELE, darunter WAHL als Karten mit Beschreibung und goldenem Knopf (gesperrte nennen die Bedingung), „Wer würfelt?“ in der Karte (Crew mit Buchstabenkästchen und Bonus), Ergebnis als Karte, Fußleiste „Logbuch“ und „Weiter“ |
+| `ui/story_log.gd` (**StoryLog**) | Logbuch, gestaltet wie die Enzyklopädie: Erklärzeile, links die Reiter mit Anzahl, rechts Überschrift und Karten (Aufträge, Hinweise, Ziele mit Balken und Frist, Verlauf) |
+| `data/story/` | `bausteine.json` (4 Ausgangslagen, 3 Gläubiger, nur Namen), `test_kette.json` und `test_ort.json` (Test-Ketten, Platzhaltertexte, im Spiel nicht angeboten) |
+| `tests/test_story.gd` | Tests ohne Grafik (Daten, Texte, Bedingungen, Proben, Ziele, Rückschlag, Einsatz, Orte, Speichern) |
+| `tests/story_demo.tscn` | Demo mit der Test-Kette (F6), Screenshots mit `-- --shot` |
 
-- **Szenenfenster** auf `Modal`: Text, optional Bild, Wahlknöpfe, Probenergebnis.
-- **Logbuch**: Hinweise, Verlauf, offene Story-Aufträge, Kampagnenziele. Aufruf vom Hub (Vorschlag: Brücke und Burgermenü).
-- Größere UI erst als Mockup (CLAUDE.md).
+Proben nutzen `Voyage.check()` (W100 offen + Gesamtbonus + Schwierigkeit, EP wie bei den Reiseproben: Erfolg voll, sonst halb, Patzer 0). Eine eigene Probenfunktion im Charakter-Modul ist damit nicht nötig.
 
-### Sektoren und Fraktionen
+## Datenformat (JSON)
 
-- **Oberarten**: neuer Datentyp oder Feld in `FactionData` (`kind`: Konzern, Söldner, Piraten, Syndikat, Kult, Story). Die vier vorhandenen Fraktionen werden zugeordnet (Vantar → Konzern, Leeres Licht → Kult, Rote Sonne → Söldner, Kessler → Syndikat oder Piraten, offen).
-- **Fraktionen je Sektor**: jeder Sektor zieht aus jeder Oberart eine oder mehrere benannte Fraktionen.
-- **Mehrere Sektoren**: Sektoren über Sprungpunkte verbunden; ein neuer Sektor wird beim ersten Betreten erzeugt (Seed). Der Spielstand enthält alle bekannten Sektoren.
-- **Größere Systeme**: mehr Systeme je Sektor und mehrere Orte je System (Station, Planet, Wrack …); Story-Orte sind solche Orte.
+Eine Datei je Kette:
 
-## Schnittstellen-Vorschlag für die anderen Module
+```json
+{
+  "id": "…", "kind": "haupt | kette", "title": "…", "test": false,
+  "trigger": {"type": "start | auftrag | ort | reise | kontakt | keiner", "requires": [Bedingungen]},
+  "contact": "Name des Kontakts im Hafen (nur bei kontakt)",
+  "start": "szenen-id",
+  "goals": [{"id": "schulden", "name": "Schulden tilgen", "value": 0, "target": 6000, "due_in": 5, "fail": "szenen-id"}],
+  "scenes": {
+    "szenen-id": {"title": "…", "image": "bild-id", "text": Text,
+      "choices": [{"text": Text, "requires": [Bedingungen], "hide_locked": false,
+        "check": {"skill": "verhandeln", "diff": "mittel", "mod": 0},
+        "effects": [Folgen], "next": "szenen-id",
+        "results": {"erfolg": {"text": Text, "effects": [Folgen], "next": "…"}, "fehlschlag": {…}}}]}
+  }
+}
+```
 
-Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul verändert keine fremden Dateien, sondern bekommt Einhängepunkte.
+- **Text**: Zeichenkette, Liste von Teilen oder Auswahl `{"var": "ausgangslage", "pump": "…", "*": "sonst"}`. Platzhalter: `{gruppe}` (Name des Bausteins), `{gruppe.feld}`, `{wuerfler}`.
+- **Ergebnisstufen** in `results`: herausragend, erfolg, teilerfolg, fehlschlag, patzer. Fehlt eine Stufe, gilt herausragend → erfolg, teilerfolg und patzer → fehlschlag.
+- **Bedingungen**: `{"flag"}`, `{"not_flag"}`, `{"var", "is"}`, `{"skill", "rank"}` (jemand an Bord hat den Rang), `{"psi": "lWahrnehmung"}`, `{"credits"}`, `{"material"}`, `{"provisions"}`, `{"fuel"}` (mindestens). Optional `reason` als Anzeigetext.
+- **Folgen**: `flag`, `unflag`, `var`/`value`, `credits`/`material`/`provisions`/`fuel` (±), `hint` (Logbuch-Hinweis), `log` (Verlauf), `goal` mit `add`/`target`/`due`/`done`, `goal_new`, `mission` (Einsatz mit Folgeszenen `sieg`/`niederlage`/`rueckzug`), `end` (fertig/gescheitert), `chain` (andere Kette starten), `reveal` (Kette bekannt machen, bei Auslöser „ort“ mit Story-Ort).
+- Ohne `next` und ohne `end` ist die Kette nach der Wahl fertig.
+- **Rückschlag**: Läuft die Frist eines Ziels ab, springt die Kette zu dessen Szene `fail` (z. B. Pfändung).
+
+## Schnittstellen (gebauter Stand)
+
+Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul ändert keine fremden Dateien. Wo eine Anbindung fehlt, arbeitet es mit einem Stub.
 
 ### Hub
 
-| Was | Vorschlag |
-|---|---|
-| Speicherstand | `HubState.story: Dictionary` (vom Story-Modul geschrieben/gelesen), in `to_dict`/`from_dict` durchreichen. |
-| Auftragsliste | Story-Aufträge als Angebot mit `"story": "<ketten-id>:<schritt>"`, **kein Ablauf** (`expires` leer/−1) und Markierung in der Liste. Story liefert über `Story.offers(g)` die Angebote. |
-| Sternenkarte | Story-Orte und Sprungpunkte markieren (`Story.markers(g, sector)`); Ankunft in einem System ruft `Story.on_arrive(g, system)` auf, das eine Szene zurückgeben kann. |
-| Reise | in `_travel` je Reisetag `Story.roll_travel_event(g, day)` neben dem Feindkontakt; Rückgabe: Szene oder nichts. |
-| Raumhafen | Bereich „Kontakte“: `Story.contacts(g, system)` liefert Personen mit Szenen. |
-| Tagesende | `Story.on_day(g)` (Fristen in Ketten, Schulden). |
-| Ressourcen | Story-Folgen ändern Credits, Material, Proviant, Hülle, Lager über eine kleine Funktion des Hub (z. B. `HubState.apply_story(effects)`), damit die Regeln dort bleiben. |
-| Logbuch | Knopf auf der Brücke und im Burgermenü. |
-| Sektorkarte | mehrere Sektoren, Sprungpunkte, größere Systeme mit Orten: **Umbau in `core/sector.gd` und der Sternenkarte durch den Hub**, das Story-Modul liefert nur die Anforderungen. |
+| Was | Story-Seite (gebaut) | Hub-Seite (Auftrag) |
+|---|---|---|
+| Speicherstand | `StoryState.to_dict()` / `StoryState.from_dict(d)`, neues Spiel: `StoryState.create()` | Feld `HubState.story: Dictionary` in `to_dict`/`from_dict`, beim neuen Spiel `StoryState.create().to_dict()`. **Stub:** `Story.for_game(g)` hält den Zustand bis dahin nur im Speicher (je Slot). |
+| Story-Objekt | `Story.create(state, game)`; `crew()` = `Voyage.available(game)`, `today()` = `game.day` | ein `Story` je Spiel erzeugen und `HubState.story` beim Speichern zurückschreiben |
+| Auftragsliste | `Story.offers()` → `[{chain, title, kind}]`, ohne Zeitlimit; Annehmen = `start(chain)` und `StoryDialog.show_on(parent, story, chain)` | markiert in der Auftragsliste (Brücke), ohne Ablauf |
+| Sternenkarte | `Story.markers()` → `[{system, chain, title}]`; `Story.on_arrive(system)` → Kette oder "" | Marker zeichnen; bei Ankunft aufrufen und ggf. das Szenenfenster öffnen |
+| Reise | `Story.travel_event(rng)` → Kette oder "" (Chance `TRAVEL_CHANCE` je Tag) | in `_travel` je Reisetag neben dem Feindkontakt |
+| Raumhafen | `Story.contacts()` → `[{chain, title}]` | Bereich „Kontakte“; Ansprechen = `start(chain)` + Szenenfenster |
+| Tagesende | `Story.on_day()` → Ketten mit verpasster Frist (Rückschlag-Szene ist dann aktiv) | nach `advance_days` aufrufen, Szenenfenster öffnen |
+| Ressourcen | `Story.add_resource(feld, n)`; **Stub:** schreibt direkt in `HubState.credits/material/provisions/fuel` (nicht unter 0) | auf Wunsch `HubState.apply_story(effects)`, damit die Regeln im Hub bleiben |
+| Logbuch | `StoryLog.show_on(parent, story)` | Knopf auf der Brücke und im Burgermenü |
+| Sektorkarte | Story-Orte zurzeit ein ganzes System (`_pick_place`, Stub) | Umbau in `core/sector.gd` und der Sternenkarte: 15–20 Systeme, 2–4 Orte je System, besser vernetzt, mehrere Sektoren mit Sprungtoren (Nutzungsgebühr, Erlaubnis, Rückreise). Danach Story-Orte als Ort im System. |
 
-### Bodenkampf
+### Bodenkampf und Raumkampf
 
-- Story-Einsätze über das vorhandene `Mission`-Objekt, erweitert um: feste Karte (eigene Karte aus `user://maps/` oder `res://`), feste Gegnerliste/benannte Gegner (Anführer), Startlage, Text im Briefing, optional Siegbedingung (z. B. Person retten, Gegenstand bergen, Anführer ausschalten). Ob Siegbedingungen jenseits „alle Gegner“ in V1 nötig sind, ist offen.
-- `MissionResult` zurück wie bisher; zusätzlich (wenn Siegbedingungen kommen) welche Bedingung erfüllt ist.
-
-### Raumkampf
-
-- Story-Einsätze über `space_ctx` mit fester Gegnerzusammenstellung, Fraktion und Text; Ergebnis (Sieg, Flucht, Kapitulation, Entern) zurück an die Story.
+- `Story.pending_mission()` → `{chain, kind (boden/blockade/…), title, difficulty, sieg, niederlage, rueckzug, …}`. Der Hub baut daraus ein Angebot (Bodenkampf über `Mission`, Raumkampf über `space_ctx`) mit Story-Text, Fraktion und festen Gegnern, sobald diese Felder in Kapitel 1 feststehen.
+- Ende des Einsatzes: `Story.mission_done("sieg" | "niederlage" | "rueckzug")` → Kette steht auf der Folgeszene, der Hub öffnet das Szenenfenster.
+- Eigene Siegbedingungen kommen später.
 
 ### Charakter
 
-- Proben in Szenen brauchen: bester Wert einer Fertigkeit in der Crew an Bord, Wurf und EP-Gutschrift für die benutzte Fertigkeit (wie im Kampf). Vorschlag: kleine Funktion im Charakter-Modul, die das Story-Modul aufruft.
-- Optional später: Story-Crewmitglieder (feste Personen, die anheuern) über `Campaign.hire()`.
+- Keine neue Funktion nötig: Proben über `Voyage.check()`, Ränge über `Rules.skill_rank()`, Psi über die Listen-Fertigkeiten.
+- Später: Story-Crewmitglieder über `Campaign.hire()`, Kette „Crew-Vergangenheit“.
 
-### Fraktionen (Bodenkampf + Hub)
+### Fraktionen
 
-- `FactionData` um Oberart erweitern, neue benannte Fraktionen je Oberart mit eigenen Gegnern (Bodenkampf für Einheiten, Raumkampf für Schiffsvorlagen). Wer die neuen Fraktionen anlegt, verteilt der Koordinator.
+- `FactionData` bekommt eine Oberart (Konzern, Söldner, Piraten, Syndikat, Kult), neue benannte Fraktionen je Oberart, Fraktionen je Sektor, spielerisch unterschiedliche Unterfraktionen. Dazu kommen die drei Story-Fraktionen (Geheimbund, Psi-Orden, Konzern-Projekt). Zuordnung: Vantar → Konzern, Leeres Licht → Kult, Rote Sonne → Söldner, Kessler → Syndikat.
 
 ## Bilder
 
-- Liste der Bilder (Szenen, Hafenkontakte, Story-Orte) mit Prompts entsteht zusammen mit den Inhalten von Kapitel 1. Ablage-Vorschlag: `godot/art/story/<id>.png`; ohne Bild zeigt das Szenenfenster nur Text.
+- Szenen haben ein optionales Feld `image`; die Datei liegt unter `godot/art/story/<image>.png`. Ohne Datei zeigt das Fenster nur Text.
+- Die Bildliste mit Prompts (für einen Bildgenerator, vom Nutzer genannt: Artisly.ai) entsteht zusammen mit den Inhalten von Kapitel 1.
 
-## Offene Punkte (vor dem Bauen klären)
+## Offene Punkte
 
-1. **Inhalt Kapitel 1**: Ausgangslage (wessen Schulden, welche Vergangenheit), Gegnerfraktion, Einsätze, Szenen. Noch keine Inhalte geschrieben (Absprache „erst klären, dann bauen“).
-2. **Story-Fraktion(en)**: Name, Oberart, Rolle in Verschwörung/Psi-Linie.
-3. **Kampagnenziele**: welche genau (z. B. Schulden, Schiffsausbau, Crew-Ränge), Anzeige wo.
-4. **Rückschläge**: welche Folgen konkret und wie hart.
-5. **Ereignisketten**: Themen der 2–3 Ketten für V1.
-6. **Sektoren**: Anzahl Systeme und Orte, wie man in einen neuen Sektor kommt (Sprungtor, Story-Freischaltung, Treibstoff), ob man zurückreisen kann.
-7. **Kessler**: Oberart Syndikat oder Piraten.
-8. **Siegbedingungen** im Bodenkampf für Story-Einsätze in V1 ja/nein.
-9. **Datenformat** der Szenen (`.tres` im Editor bearbeitbar oder JSON/Text, leichter zu schreiben). Vorschlag: Text-/JSON-Datei, weil Szenen viel Text haben.
-10. Mockup für Szenenfenster und Logbuch.
-
-## Vorschlag Reihenfolge
-
-1. Offene Punkte 1–9 mit dem Nutzer klären, Mockup Szenenfenster/Logbuch.
-2. Story-Engine + Logbuch + Speicherstand (Story-Modul) mit Test-Kette.
-3. Koordinator verteilt: Hub-Einhängepunkte, Oberarten/Fraktionen, Sektorumbau, Story-Einsätze im Boden-/Raumkampf.
-4. Kapitel 1 und Ereignisketten als Inhalte, Bild-Prompts.
+1. **Inhalte schreiben**: Kapitel 1 (Szenen, Einsätze, Gegner, Textbausteine je Ausgangslage und Gläubiger), die drei Ereignisketten. Erst Ablauf und Eckpunkte mit dem Nutzer klären.
+2. **Story-Fraktionen** ausarbeiten: Namen, Ziele, wie sie zueinander stehen.
+3. **Kampagnenziele** Schiffsausbau, Crew-Ränge, Sektoren/Orte: wie gemessen (aus `HubState.upgrades`, Rängen, bekannten Sektoren), welche Schwellen.
+4. **Rückschläge** „Crew gefangen“ (Crewmitglied gesperrt, Befreiungseinsatz) und „Verfolgung“ (mehr Feindkontakte) brauchen Hub-Anbindung.
+5. Lager-Gegenstände als Bedingung/Folge (`Stock`), noch nicht gebaut.
+6. Export: JSON-Dateien in `data/story/` müssen beim Export mitgenommen werden (Exportfilter `*.json`), sobald es einen Export gibt.

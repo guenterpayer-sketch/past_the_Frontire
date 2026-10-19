@@ -1,0 +1,184 @@
+{
+	"_info": "Test-Kette für Engine, Tests und Demo (tests/story_demo.tscn). Wird im Spiel nicht angeboten (test = true). Texte sind Platzhalter.",
+	"id": "test_kette",
+	"kind": "haupt",
+	"title": "Testkette: Die erste Rate",
+	"test": true,
+	"trigger": {
+		"type": "auftrag"
+	},
+	"start": "hafen",
+	"goals": [
+		{
+			"id": "schulden",
+			"name": "Schulden tilgen",
+			"value": 0,
+			"target": 6000,
+			"due_in": 5,
+			"fail": "pfaendung"
+		}
+	],
+	"scenes": {
+		"hafen": {
+			"title": "Die erste Rate",
+			"image": "test_hafen",
+			"text": [
+				"Platzhalter: An der Luftschleuse wartet jemand vom Gläubiger ({glaeubiger}).",
+				{
+					"var": "ausgangslage",
+					"pump": "„Das Schiff gehört euch erst, wenn es bezahlt ist.“",
+					"erbe": "„Euer alter Kapitän schuldet uns noch etwas.“",
+					"*": "„Ihr wisst, warum ich hier bin.“"
+				}
+			],
+			"choices": [
+				{
+					"text": "Rate zahlen",
+					"requires": [
+						{
+							"credits": 2000
+						}
+					],
+					"effects": [
+						{
+							"credits": -2000
+						},
+						{
+							"goal": "schulden",
+							"add": 2000
+						},
+						{
+							"log": "Erste Rate bezahlt."
+						}
+					],
+					"next": "ende"
+				},
+				{
+					"text": "Aufschub aushandeln",
+					"check": {
+						"skill": "verhandeln",
+						"diff": "mittel"
+					},
+					"results": {
+						"erfolg": {
+							"text": "Platzhalter: „Fünf Tage mehr. Nicht länger.“",
+							"effects": [
+								{
+									"goal": "schulden",
+									"due": 5
+								},
+								{
+									"flag": "aufschub"
+								}
+							],
+							"next": "ende"
+						},
+						"fehlschlag": {
+							"text": "Platzhalter: „Keine Spielchen.“ Die Schuld steigt.",
+							"effects": [
+								{
+									"goal": "schulden",
+									"target": 1000
+								}
+							],
+							"next": "ende"
+						}
+					}
+				},
+				{
+					"text": "Herumhören, wer er wirklich ist",
+					"check": {
+						"skill": "gassenwissen",
+						"diff": "schwer"
+					},
+					"results": {
+						"erfolg": {
+							"text": "Platzhalter: Im Hafen kennt man ihn.",
+							"effects": [
+								{
+									"hint": "Der Mittelsmann arbeitet nicht allein."
+								},
+								{
+									"reveal": "test_ort"
+								}
+							],
+							"next": "hafen"
+						},
+						"fehlschlag": {
+							"text": "Platzhalter: Niemand will reden.",
+							"next": "hafen"
+						}
+					}
+				},
+				{
+					"text": "Seine Gedanken lesen",
+					"requires": [
+						{
+							"psi": "lWahrnehmung"
+						}
+					],
+					"effects": [
+						{
+							"hint": "Er hat Angst vor seinem eigenen Auftraggeber."
+						}
+					],
+					"next": "ende"
+				},
+				{
+					"text": "Ihn abwimmeln (Kampf)",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Schlägerei an der Schleuse",
+								"difficulty": "leicht",
+								"sieg": "ende",
+								"niederlage": "pfaendung",
+								"rueckzug": "hafen"
+							}
+						}
+					]
+				}
+			]
+		},
+		"pfaendung": {
+			"title": "Pfändung",
+			"text": "Platzhalter: Die Frist ist vorbei. Leute des Gläubigers holen sich, was sie kriegen können.",
+			"choices": [
+				{
+					"text": "Zähneknirschend hinnehmen",
+					"effects": [
+						{
+							"credits": -500
+						},
+						{
+							"material": -2
+						},
+						{
+							"goal": "schulden",
+							"due": 5
+						},
+						{
+							"log": "Rückschlag: Pfändung."
+						}
+					],
+					"next": ""
+				}
+			]
+		},
+		"ende": {
+			"title": "Fürs Erste",
+			"text": "Platzhalter: Der Besucher verschwindet. Fürs Erste.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		}
+	}
+}
