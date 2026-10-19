@@ -100,6 +100,12 @@ var pending_offer := -1
 var space_report := {}
 ## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
 var last_travel := {}
+## Sektoren (Auftrag 2, 19.10.2026): alle Sektoren des Spiels, der aktuelle (sector = sectors[cur_sector]), bekannte
+## Sektoren (aufgedeckt beim ersten Sprung) und Papiere für Sprungtore (Pfade der FactionData der Betreiber)
+var sectors: Array[Sector] = []
+var cur_sector := 0
+var known_sectors: Array[int] = [0]
+var papers: Array[String] = []
 ## Story (Auftrag 1, 19.10.2026): Zustand StoryState.to_dict() im Spielstand; das Story-Objekt hält story_engine()
 var story := {}
 ## Ketten, deren Szenenfenster noch offen ist (Reise, Ankunft, Frist, Einsatzende); der Hub zeigt sie nacheinander
@@ -113,7 +119,8 @@ var slot_name := ""
 ## Neues Spiel: frischer Sektor, Start im Heimathafen, Crew auf Anfang
 static func new_game(seed_value: int, name := "", slot_no := 0) -> HubState:
 	var g := HubState.new()
-	g.sector = Sector.generate(seed_value)
+	g.sectors = Sector.galaxy(seed_value)
+	g.sector = g.sectors[0]
 	g.position = g.sector.home
 	g.slot = slot_no
 	g.slot_name = name
@@ -144,7 +151,12 @@ func mission_of(offer: Dictionary) -> Mission:
 		# Entern: Raumschiff-Inneres (Bodenkampf, 18.10.2026); Abwehr = Gegner kommen durch die Luftschleuse
 		bm.set_map_type(MapTypes.SHIP, "defend" if offer.get("defend", false) else "board")
 		return bm
-	return Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
+	var m := Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
+	var pl: Array = sector.systems[int(offer.system)].get("places", [])
+	var pi := int(offer.get("place", -1))
+	if pi >= 0 and pi < pl.size() and Places.has_ground(String(pl[pi].kind)):
+		m.set_map_type(Places.map_for(String(pl[pi].kind), int(offer.seed)))
+	return m
 
 
 ## Bodenfraktion zur Raumkampf-Fraktion: Missionsfraktion (data/missions/<id>.tres) oder "" = zufällig
@@ -773,6 +785,12 @@ func refill_offers() -> void:
 		var o := {"id": next_id, "system": sys, "seed": randi() % 1000000,
 			"difficulty": DIFFICULTY_ROLL[randi() % DIFFICULTY_ROLL.size()],
 			"expires": day + randi_range(OFFER_DAYS[0], OFFER_DAYS[1]), "retry": false, "kind": k.kind, "blockade": k.blockade}
+		var grounds := []
+		var pl: Array = sector.systems[sys].get("places", [])
+		for pi in pl.size():
+			if Places.has_ground(String(pl[pi].kind)):
+				grounds.append(pi)
+		o.place = grounds[randi() % grounds.size()] if not grounds.is_empty() else -1
 		if k.kind == "eskorte":
 			o.target = SpaceEvents.escort_target(self, sys)
 			if int(o.target) < 0:
@@ -791,7 +809,8 @@ func offers_at(system: int) -> Array[Dictionary]:
 
 
 func to_dict() -> Dictionary:
-	return {"day": day, "sector": sector.to_dict(), "position": position, "offers": offers.duplicate(true),
+	return {"day": day, "sectors": sectors.map(func(x: Sector) -> Dictionary: return x.to_dict()), "cur_sector": cur_sector,
+		"known_sectors": known_sectors.duplicate(), "papers": papers.duplicate(), "position": position, "offers": offers.duplicate(true),
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
@@ -807,7 +826,14 @@ func to_dict() -> Dictionary:
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	var g := HubState.new()
 	g.day = int(d.get("day", 1))
-	g.sector = Sector.from_dict(d.get("sector", {}))
+	for sd in d.get("sectors", []):
+		g.sectors.append(Sector.from_dict(sd))
+	if g.sectors.is_empty():
+		g.sectors.append(Sector.from_dict(d.get("sector", {})))
+	g.cur_sector = clampi(int(d.get("cur_sector", 0)), 0, g.sectors.size() - 1)
+	g.sector = g.sectors[g.cur_sector]
+	g.known_sectors.assign(d.get("known_sectors", [0]).map(func(x) -> int: return int(x)))
+	g.papers.assign(d.get("papers", []).map(func(x) -> String: return String(x)))
 	g.position = int(d.get("position", g.sector.home))
 	# alte Spielstände ohne Story: frischer Story-Zustand
 	g.story = d.get("story", {}).duplicate(true) if not d.get("story", {}).is_empty() else StoryState.create().to_dict()
@@ -819,6 +845,8 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 			"blockade": bool(o.get("blockade", false))}
 		if o.get("blockade_done", false):
 			no.blockade_done = true
+		if o.has("place"):
+			no.place = int(o.place)
 		if o.has("target"):
 			no.target = int(o.target)
 		g.offers.append(no)
@@ -955,3 +983,71 @@ func _story_ground(m: Dictionary) -> Dictionary:
 ## Story-Einsatz beendet: Folgeszene vormerken
 func _story_done(outcome: String) -> void:
 	queue_story(story_engine().mission_done(outcome))
+
+
+# ---------------------------------------------------------------- Sektoren und Sprungtore (Auftrag 2, 19.10.2026)
+
+## Spielstand vor dem Sektorumbau (ein Sektor ohne Orte und Tore): wird nicht mehr geladen (Entscheidung des Nutzers)
+static func outdated(d: Dictionary) -> bool:
+	return not d.has("sectors")
+
+
+## Preis der Papiere eines Betreibers (Grundpreis, nach Verhandeln, nur im Hafen)
+const PAPERS_PRICE := 500
+
+
+func papers_price() -> int:
+	return TradeSkills.adj(PAPERS_PRICE, TradeSkills.BUY[TradeSkills.result(self, &"verhandeln")])
+
+
+func can_buy_papers(operator: String) -> bool:
+	return operator != "" and is_harbor(position) and not operator in papers and credits >= papers_price()
+
+
+func buy_papers(operator: String) -> bool:
+	if not can_buy_papers(operator):
+		return false
+	credits -= papers_price()
+	papers.append(operator)
+	return true
+
+
+## Gebühr eines Tors nach Verhandeln (ohne Stationsaufschlag)
+func gate_fee(gate: Dictionary) -> int:
+	return TradeSkills.adj(int(gate.fee), TradeSkills.BUY[TradeSkills.result(self, &"verhandeln")])
+
+
+## Grund, warum der Sprung nicht geht ("" = möglich): Schiff muss am Tor liegen, Papiere, Credits, Antrieb
+func jump_block(gate: Dictionary) -> String:
+	if int(gate.system) != position:
+		return "Das Schiff muss im System des Tors liegen."
+	if bool(gate.papers) and not String(gate.operator) in papers:
+		return "Papiere fehlen: %s" % _operator_name(String(gate.operator))
+	if credits < gate_fee(gate):
+		return "Nicht genug Credits für die Gebühr."
+	if stranded():
+		return "Das Schiff ist festgesetzt."
+	return ""
+
+
+func _operator_name(path: String) -> String:
+	var f: FactionData = load(path) if path != "" and ResourceLoader.exists(path) else null
+	return f.name if f else "unbekannt"
+
+
+## Sprung durch ein Tor: Gebühr, 1 Tag, neuer Sektor (beim ersten Mal aufgedeckt); offene Aufträge des alten Sektors
+## entfallen, der neue Sektor bekommt eigene
+func jump(gate: Dictionary) -> bool:
+	if jump_block(gate) != "":
+		return false
+	credits -= gate_fee(gate)
+	cur_sector = int(gate.to_sector)
+	sector = sectors[cur_sector]
+	position = int(gate.to_system)
+	if not cur_sector in known_sectors:
+		known_sectors.append(cur_sector)
+	offers = []
+	pending_offer = -1
+	travel_rest = {}
+	advance_days(1, true)
+	return true

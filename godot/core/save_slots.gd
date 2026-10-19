@@ -20,12 +20,14 @@ static func info(slot: int) -> Dictionary:
 		return {}
 	var g: Dictionary = d.get("game", {})
 	var sys := ""
-	var systems: Array = g.get("sector", {}).get("systems", [])
+	var cur: Array = g.get("sectors", [])
+	var systems: Array = cur[clampi(int(g.get("cur_sector", 0)), 0, cur.size() - 1)].get("systems", []) if not cur.is_empty() \
+		else g.get("sector", {}).get("systems", [])
 	var pos := int(g.get("position", 0))
 	if pos >= 0 and pos < systems.size():
 		sys = systems[pos].get("name", "")
 	return {"name": d.get("name", ""), "day": int(g.get("day", 1)), "system": sys,
-		"missions": int(g.get("missions_done", 0)), "saved_at": int(d.get("saved_at", 0))}
+		"missions": int(g.get("missions_done", 0)), "saved_at": int(d.get("saved_at", 0)), "outdated": HubState.outdated(g)}
 
 
 ## zuletzt gespeicherter Slot (für „Fortsetzen“), 0 = keiner
@@ -34,7 +36,7 @@ static func latest() -> int:
 	var best_t := -1
 	for s in range(1, COUNT + 1):
 		var i := info(s)
-		if not i.is_empty() and i.saved_at > best_t:
+		if not i.is_empty() and not i.outdated and i.saved_at > best_t:
 			best_t = i.saved_at
 			best = s
 	return best
@@ -62,7 +64,8 @@ static func save(slot: int, name: String, g: HubState) -> bool:
 ## Slot laden: setzt HubState.game, schreibt die Crew nach user://crew.json und lädt sie in Campaign neu
 static func load_slot(slot: int) -> bool:
 	var d := _read(slot)
-	if d.is_empty():
+	# vor dem Sektorumbau gespeichert: nicht mehr laden (Entscheidung des Nutzers 19.10.2026)
+	if d.is_empty() or HubState.outdated(d.get("game", {})):
 		return false
 	var crew: Dictionary = d.get("crew", {})
 	if crew.is_empty():
