@@ -560,12 +560,9 @@ func _story_places() -> Dictionary:
 	return out
 
 
-## Titel des Story-Orts an Ort k im System ("" = keiner)
-func _story_at(system: int, k: int) -> String:
-	for m in game.story_markers():
-		if int(m.system) == system and int(m.place) == k:
-			return String(m.title)
-	return ""
+## Liegt an Ort k im System ein Story-Ort?
+func _story_at(system: int, k: int) -> bool:
+	return not game.story_engine().at_place(game.cur_sector, system, k).is_empty()
 
 
 ## Abschnitt STORY oben rechts: offener Story-Einsatz und Story-Aufträge (ohne Ablauf)
@@ -711,7 +708,7 @@ func _draw_system(system: int) -> void:
 			_canvas.draw_arc(p, 22, 0, TAU, 40, col, 3.0, true)
 		if k == selected_place:
 			_canvas.draw_arc(p, 34, 0, TAU, 40, UiTheme.ACCENT, 2.0, true)
-		if _story_at(system, k) != "":
+		if _story_at(system, k):
 			_canvas.draw_arc(p + Vector2(-30, -26), 7.0, 0, TAU, 20, StoryDialog.STORY_COLOR, 3.0, true)
 		var n := game.offers_at(system).filter(func(o: Dictionary) -> bool: return int(o.get("place", -1)) == k).size()
 		for j in n:
@@ -743,10 +740,16 @@ func _render_place() -> void:
 	var ft := UiTheme.label(Places.function_text(kind), 13, UiTheme.MUTED)
 	ft.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_side.add_child(ft)
-	var story_t := _story_at(zoom, selected_place)
-	if story_t != "":
-		_wrap(UiTheme.label("Story-Ort: %s" % story_t, 14, StoryDialog.STORY_COLOR))
+	for m in game.story_engine().at_place(game.cur_sector, zoom, selected_place):
+		_wrap(UiTheme.label("Story-Ort: %s" % m.title, 14, StoryDialog.STORY_COLOR))
 	_side.add_child(UiTheme.label("MÖGLICHKEITEN", 13, UiTheme.MUTED))
+	if here:
+		# Ort anfliegen (Hub Auftrag 4, Entscheidung des Nutzers 19.10.2026): ohne Zeit, bei jedem Ort; startet Story-Ketten hier
+		var fly := UiTheme.button("Anfliegen", "Kostet keine Zeit. Was an diesem Ort wartet, zeigt sich erst vor Ort.")
+		fly.custom_minimum_size.y = 44
+		fly.add_theme_color_override("font_color", UiTheme.ACCENT)
+		fly.pressed.connect(func() -> void: place_action.emit(&"visit", selected_place))
+		_side.add_child(fly)
 	if not here:
 		var nl := UiTheme.label("Nur, wenn das Schiff in diesem System liegt.", 14, UiTheme.MUTED)
 		nl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

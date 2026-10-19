@@ -232,6 +232,14 @@ func _jump(gate: Dictionary) -> void:
 
 ## Funktion an einem Ort: Bergung am Wrack, Treibstoff schöpfen (je 1 Tag, Meldung wie Werkstatt-Einträge)
 func _place_action(action: StringName, index: int) -> void:
+	if action == &"visit":
+		var chain := game.visit_place(index)
+		if chain == "":
+			ui.show_toast("%s angeflogen: nichts Besonderes." % String(Places.place(game, index).get("name", "Ort")))
+			_refresh()
+		else:
+			_show_story(chain)
+		return
 	var e := Places.salvage(game, index) if action == &"salvage" else Places.skim(game, index)
 	if e.is_empty():
 		_refresh()
