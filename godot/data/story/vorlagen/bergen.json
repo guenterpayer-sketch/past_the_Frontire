@@ -9,6 +9,9 @@
 		"auftrag",
 		"reise"
 	],
+	"orte": [
+		"wrack"
+	],
 	"werte": {
 		"ziel": [
 			{

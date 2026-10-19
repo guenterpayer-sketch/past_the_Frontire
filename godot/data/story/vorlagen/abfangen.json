@@ -9,6 +9,11 @@
 		"auftrag",
 		"reise"
 	],
+	"orte": [
+		"gas",
+		"nebel",
+		"wrack"
+	],
 	"werte": {
 		"ziel": [
 			{

@@ -194,9 +194,43 @@ func _test_places_and_hooks() -> void:
 	g.fuel = 0
 	check(gs.add_resource("fuel", 10000) == g.tank_max() and g.fuel == g.tank_max(), "Treibstoff höchstens Tankgröße")
 	gs.reveal("test_ort")
-	var p := int(gs.state.chains.test_ort.place)
-	check(p >= 0 and p < g.sector.systems.size() and p != g.position, "Story-Ort im Sektor, nicht am Standort")
+	var p := gs.loc_of("test_ort")
+	check(not p.is_empty() and (p.sector != g.cur_sector or p.system != g.position) and p.place >= 0, "Story-Ort mit Sektor und Ort, nicht am Standort")
+	_test_sectors(g, gs)
 	check(g.story_engine() == g.story_engine() and g.story_engine().game == g, "HubState.story_engine() hält ein Story-Objekt je Spiel")
+
+
+## Orte mit Sektor (Auftrag 5): Ankunft im System startet keine Kette an einem Ort, erst on_visit; Marker je Sektor;
+## andere bekannte Sektoren, unbekannte nur für die Hauptstory (frame)
+func _test_sectors(g: HubState, s: Story) -> void:
+	var l := s.loc_of("test_ort")
+	check(s.markers(l.sector).size() == 1 and s.markers(-1).size() == 1 and s.markers(l.sector + 1).is_empty(), "Marker nur im eigenen Sektor")
+	check(s.at_place(l.sector, l.system, l.place).size() == 1, "Story-Ort in der Systemansicht")
+	check(s.on_arrive(l.sector, l.system) == "" and s.state.status("test_ort") == "bekannt", "Ankunft im System startet den Ort noch nicht")
+	check(s.on_visit(l.sector, l.system, (l.place + 1) % 9) == "", "anderer Ort im System: nichts")
+	check(s.on_visit(l.sector, l.system, l.place) == "test_ort" and s.state.status("test_ort") == "aktiv", "Ort anfliegen startet die Kette")
+	check(s.place_label(l) != "" and not s.place_label(l).contains("{"), "Ortsname: %s" % s.place_label(l))
+	var other := {}
+	var far := {}
+	var cur := {}
+	for i in 300:
+		var a := s.pick_place([], false)
+		if a.sector != g.cur_sector:
+			other[a.sector] = true
+		else:
+			cur[a.system] = true
+	check(other.is_empty() and not cur.has(g.position), "nur ein Sektor bekannt: immer der aktuelle, nie der Standort")
+	g.known_sectors = [0, 1]
+	check(s.sectors() == 2, "Story-Schlüssel sectors = bekannte Sektoren")
+	for i in 300:
+		var a := s.pick_place([], false)
+		other[a.sector] = true
+		far[s.pick_place([], true).sector] = true
+	check(other.has(1) and not other.has(2), "anderer bekannter Sektor möglich, unbekannter nicht")
+	check(far.has(2), "Hauptstory: selten ein unbekannter Sektor")
+	var u := {"sector": 2, "system": 0, "place": 0}
+	check(s.place_label(u).contains("unbekannten Sektor"), "unbekannter Sektor im Ortsnamen")
+	g.known_sectors = [0]
 
 
 func _test_save() -> void:
@@ -249,11 +283,16 @@ func _test_templates() -> void:
 				return
 			var e: Dictionary = s.state.chains[id]
 			var tt := String(c.trigger.type)
-			if tt == "kontakt" and (e.place < 0 or not g.is_harbor(e.place)):
+			var l: Dictionary = e.place
+			if tt == "kontakt" and (l.is_empty() or not g.sectors[l.sector].is_neutral(l.system)):
 				check(false, "Kontakt liegt in einem Hafen")
 				return
-			if tt == "ort" and (e.place < 0 or e.place == g.position):
+			if tt == "ort" and (l.is_empty() or l.place < 0 or (l.sector == g.cur_sector and l.system == g.position)):
 				check(false, "Story-Ort nicht am Standort")
+				return
+			var kinds: Array = StoryData.templates()[tid].get("orte", [])
+			if tt == "ort" and not kinds.is_empty() and not String(g.sectors[l.sector].systems[l.system].places[l.place].kind) in kinds:
+				check(false, "Story-Ort %s hat eine passende Ortsart" % tid)
 				return
 	check(true, "Vorlagen erzeugen gültige Ketten")
 	var seen := {}

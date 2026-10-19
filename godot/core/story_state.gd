@@ -7,7 +7,8 @@ extends RefCounted
 var vars := {}
 ## gesetzte Story-Flags: {name: true}
 var flags := {}
-## Ketten: {id: {status, scene, place}}; status: bekannt, aktiv, wartet (Einsatz), fertig, gescheitert
+## Ketten: {id: {status, scene, place}}; status: bekannt, aktiv, wartet (Einsatz), fertig, gescheitert;
+## place = Story-Ort {sector, system, place} (place = Index in systems[i].places, -1 = ganzes System) oder {} (überall)
 var chains := {}
 ## Kampagnenziele: {id: {name, chain, value, target, due, fail, done}}
 var goals := {}
@@ -75,6 +76,8 @@ static func from_dict(d: Dictionary) -> StoryState:
 	for e in d.get("log", []):
 		st.logbook.append(e.duplicate())
 	st.mission = d.get("mission", {}).duplicate(true)
+	for k in st.mission.get("loc", {}):
+		st.mission.loc[k] = int(st.mission.loc[k])
 	st.generated = d.get("generated", {}).duplicate(true)
 	st.next_gen = int(d.get("next_gen", 1))
 	for c in d.get("captured", []):
@@ -83,7 +86,13 @@ static func from_dict(d: Dictionary) -> StoryState:
 		st.recruits.append(String(r))
 	# JSON liefert Zahlen als float
 	for id in st.chains:
-		st.chains[id].place = int(st.chains[id].get("place", -1))
+		var p: Variant = st.chains[id].get("place", {})
+		if p is Dictionary:
+			for k in p:
+				p[k] = int(p[k])
+		else:
+			p = int(p)
+		st.chains[id].place = p
 	for id in st.goals:
 		for k in ["value", "target", "due", "rate", "every", "paid"]:
 			st.goals[id][k] = int(st.goals[id].get(k, 0))

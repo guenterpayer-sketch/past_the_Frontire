@@ -664,13 +664,14 @@ func _test_story_hub() -> void:
 	var st := g.story_engine()
 	st.state.chains["kapitel1"] = {"status": "fertig", "scene": "", "place": -1}   # Kapitel 1 startet ab Tag 3 von selbst (Story-Chat)
 	st.reveal("test_ort")
-	var place := int(st.state.chains.test_ort.place)
-	check(place >= 0 and st.markers().size() == 1, "Story-Ort auf der Karte")
+	var loc := st.loc_of("test_ort")
+	var place := int(loc.get("system", -1))
+	check(place >= 0 and st.markers(-1).size() == 1, "Story-Ort auf der Karte")
 	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
-	check(int(h.story_engine().state.chains.test_ort.place) == place, "Story-Zustand im Spielstand")
+	check(h.story_engine().loc_of("test_ort") == loc, "Story-Zustand im Spielstand")
 	g.position = place
-	g.queue_story(g.story_engine().on_arrive(place))
-	check(g.story_queue == ["test_ort"] and st.state.status("test_ort") == "aktiv", "Ankunft am Story-Ort: Szenenfenster vorgemerkt")
+	g.queue_story(g.story_engine().on_visit(int(loc.sector), place, int(loc.place)))   # Story-Ort an einem Ort (Story Auftrag 5)
+	check(g.story_queue == ["test_ort"] and st.state.status("test_ort") == "aktiv", "Story-Ort angeflogen: Szenenfenster vorgemerkt")
 	g.story_queue = []
 	# Frist verpasst → Rückschlag-Szene am Tagesende
 	st.state.chains["test_kette"] = {"status": "aktiv", "scene": "start", "place": -1}

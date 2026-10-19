@@ -115,7 +115,7 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
   - Kopfgeldjäger und Schmuggel-Kontakte laufen über das vorhandene `on_arrive`. Die Kontakte erscheinen über `contacts()`, das jetzt nur Kontakte des Hafens liefert, in dem das Schiff liegt.
   - Offen: Der Story-Einsatz sollte die Kartenart aus der Vorlage übernehmen; heute zufällig.
   - Offen: Gefangene Crew (`Story.state.captured`, Character.id als Text) muss in Truppwahl, Reiseposten und Krankenstation gesperrt sein. Heute fehlt sie nur bei Proben in Szenen.
-  - Offen: Sektoren für den Story-Schlüssel `sectors`, nach dem Sektorumbau.
+  - Erledigt (Auftrag 5): `Story.sectors()` liest `HubState.known_sectors`.
 - **Charakter:**
   - Status „gefangen“ (gesperrt wie verwundet, mit Text „gefangen“).
   - Eine Psi-Begabte „Lio“ als Figur, wenn `state.recruits` den Eintrag `begabte` enthält. Anheuern über `Campaign.hire`.
@@ -123,8 +123,25 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
 - **Offene Hub-Punkte** (gehen über den Koordinator an den Hub, sobald dessen Sektorumbau in `main` liegt; Stand 19.10.2026):
   1. Kartenart des Story-Einsatzes aus der Vorlage übernehmen (heute zufällig).
   2. Gefangene Crew (`Story.state.captured`) in Truppwahl, Reiseposten und Krankenstation sperren.
-  3. Story-Schlüssel `sectors`: Zahl der erreichten Sektoren liefern (`Story.sectors()` ist ein Stub mit 1).
-  4. Story-Orte mit Sektor: Orte liegen heute auf ganzen Systemen des aktuellen Sektors (`Story.pick_place`/`pick_harbor`); nach dem Umbau Ort im System und Sektor mitspeichern.
+  3. ~~Story-Schlüssel `sectors`~~: erledigt auf Story-Seite (Auftrag 5), `Story.sectors()` = Zahl von `HubState.known_sectors`.
+  4. Story-Orte mit Sektor: Story-Seite gebaut (Auftrag 5, Abschnitt „Story-Orte mit Sektor und Ort“). Hub-Seite offen: `on_visit` in der Systemansicht aufrufen, Story-Orte dort zeigen, `on_arrive(sector, system)` mit Sektor aufrufen.
+
+### Story-Orte mit Sektor und Ort (gebaut, Auftrag 5)
+
+Entscheidungen des Nutzers (19.10.2026):
+- **Sektor:** Story-Orte liegen meist im aktuellen Sektor, manchmal in einem anderen bekannten. Nur Schritte der Hauptstory (Ketten mit `frame`, z. B. die Schritte von Kapitel 1) dürfen selten in einem noch unbekannten Sektor liegen; der Text nennt dann „in einem noch unbekannten Sektor, jenseits eines Sprungtors“. Werte (vorläufig, nicht abgestimmt): `Story.OTHER_SECTOR_CHANCE` 30 %, `Story.FAR_CHANCE` 10 %. Kontakte liegen in einem Hafen des aktuellen oder eines bekannten Sektors.
+- **Auslösen:** Eine Kette an einem Story-Ort beginnt erst, wenn das Schiff in der Systemansicht genau diesen Ort anfliegt (`on_visit`). Die Ankunft im System reicht nicht. Ausnahme: Orte ohne Ort im System (`place` = −1, z. B. alte Testdaten) beginnen weiter bei der Ankunft.
+- **Ortsart passend zur Vorlage:** Feld `orte` in der Vorlage (auch in geschriebenen Ketten mit Auslöser „ort“). Gebaut: Bergung → Wrack; Befreiung → Station, Planet; Abfangen → Gasriese, Nebel, Wrack (meine Wahl); Gespräch → Station, Planet (meine Wahl). Fehlt die Ortsart im Sektor, nimmt die Story irgendeinen Ort. Nie im System, in dem das Schiff gerade liegt.
+
+Datenform:
+- `StoryState.chains[id].place` = `{sector, system, place}` (place = Index in `systems[i].places`, −1 = ganzes System) oder `{}` (überall). Eine Zahl (alter Stand, Tests) gilt als System im aktuellen Sektor.
+- `Story.loc_of(chain)`, `system_of(loc)`, `place_label(loc)` (Ortsname für Texte und Logbuch, mit Sektor, wenn es nicht der aktuelle ist).
+- `Story.markers(sector = -2)` → `[{sector, system, place, chain, title}]`; −2 = nur der aktuelle Sektor (Standard, so zeigt die Sternenkarte schon jetzt nichts Falsches), −1 = alle.
+- `Story.at_place(sector, system, place)` → Story-Orte an einem Ort (für die Systemansicht).
+- `Story.on_arrive(sector, system)`; `on_arrive(system)` gilt weiter für den aktuellen Sektor. Startet nur Ketten für das ganze System, dazu Kopfgeldjäger und Schmuggel im Hafen.
+- `Story.on_visit(sector, system, place)` → Kette oder "": beim Anfliegen eines Orts in der Systemansicht.
+- `Story.pending_mission().loc` = Ort der Kette; der Hub kann daraus die Kartenart nehmen (`Places.map_for(kind, seed)`).
+- Platzhalter `{ort}` in Vorlagen; Einstieg „ort“: „Ein Hinweis führt zu {ort}.“
 
 ## Gebaut (Auftrag 2)
 
@@ -180,13 +197,13 @@ Grundsatz wie bisher: Module tauschen nur Daten aus. Das Story-Modul ändert kei
 | Speicherstand | `StoryState.to_dict()` / `StoryState.from_dict(d)`, neues Spiel: `StoryState.create()` | **gebaut** (`main` `6aebcfb`): `HubState.story`, `HubState.story_engine()` hält das Story-Objekt. Der frühere Stub `Story.for_game` ist entfernt. |
 | Story-Objekt | `Story.create(state, game)`; `crew()` = `Voyage.available(game)`, `today()` = `game.day` | ein `Story` je Spiel erzeugen und `HubState.story` beim Speichern zurückschreiben |
 | Auftragsliste | `Story.offers()` → `[{chain, title, kind}]`, ohne Zeitlimit; Annehmen = `start(chain)` und `StoryDialog.show_on(parent, story, chain)` | markiert in der Auftragsliste (Brücke), ohne Ablauf |
-| Sternenkarte | `Story.markers()` → `[{system, chain, title}]`; `Story.on_arrive(system)` → Kette oder "" | Marker zeichnen; bei Ankunft aufrufen und ggf. das Szenenfenster öffnen |
+| Sternenkarte | `Story.markers(sector)` → `[{sector, system, place, chain, title}]`; `Story.on_arrive(sector, system)` und `Story.on_visit(sector, system, place)` → Kette oder ""; `Story.at_place(...)` | Marker im aktuellen Sektor zeichnen; bei Ankunft `on_arrive`, beim Anfliegen eines Orts `on_visit` aufrufen und ggf. das Szenenfenster öffnen |
 | Reise | `Story.travel_event(rng)` → Kette oder "" (Chance `TRAVEL_CHANCE` je Tag) | in `_travel` je Reisetag neben dem Feindkontakt |
 | Raumhafen | `Story.contacts()` → `[{chain, title}]` | Bereich „Kontakte“; Ansprechen = `start(chain)` + Szenenfenster |
 | Tagesende | `Story.on_day()` → Ketten mit verpasster Frist (Rückschlag-Szene ist dann aktiv) | nach `advance_days` aufrufen, Szenenfenster öffnen |
 | Ressourcen | `Story.add_resource(feld, n)` → tatsächliche Änderung; im Spiel über `HubState.apply_story({feld: n})` | **gebaut**: Credits dürfen unter 0, Material und Proviant nicht, Treibstoff 0 bis Tankgröße |
 | Logbuch | `StoryLog.show_on(parent, story)` | Knopf auf der Brücke und im Burgermenü |
-| Sektorkarte | Story-Orte zurzeit ein ganzes System (`_pick_place`, Stub) | Umbau in `core/sector.gd` und der Sternenkarte: 15–20 Systeme, 2–4 Orte je System, besser vernetzt, mehrere Sektoren mit Sprungtoren (Nutzungsgebühr, Erlaubnis, Rückreise). Danach Story-Orte als Ort im System. |
+| Sektorkarte | Story-Orte als `{sector, system, place}` (Auftrag 5) | Sektorumbau gebaut; offen: `on_visit` in der Systemansicht, Story-Orte dort zeigen |
 
 ### Bodenkampf und Raumkampf
 

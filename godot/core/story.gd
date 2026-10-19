@@ -21,6 +21,10 @@ const SMUGGLE_CHANCE := 0.25
 ## Ereignisketten des Generators: Reise bzw. Hafen
 const TRAVEL_EVENTS := ["wrack", "passagier"]
 const HARBOR_EVENTS := ["schmuggel"]
+## Sektor eines neuen Story-Orts (Nutzer 19.10.2026: „bekannte, selten fremd“): Chance für einen anderen bekannten Sektor,
+## Chance für einen noch unbekannten Sektor (nur Schritte der Hauptstory, Ketten mit frame)
+const OTHER_SECTOR_CHANCE := 0.3
+const FAR_CHANCE := 0.1
 
 var state: StoryState
 ## Spielstand (null in Tests und der Demo; dann gelten res und day)
@@ -137,9 +141,9 @@ func crew_ranks() -> int:
 	return n
 
 
-## Stub bis zum Sektorumbau des Hubs: ein Sektor
+## bekannte Sektoren (HubState.known_sectors)
 func sectors() -> int:
-	return int(res.get("sectors", 1)) if game == null else 1
+	return int(res.get("sectors", 1)) if game == null else game.known_sectors.size()
 
 
 # ---------------------------------------------------------------- Ketten
@@ -171,7 +175,7 @@ func start(chain_id: String) -> bool:
 	var c := chain_of(chain_id)
 	if c.is_empty() or state.is_open(chain_id):
 		return false
-	var entry: Dictionary = state.chains.get(chain_id, {"place": -1})
+	var entry: Dictionary = state.chains.get(chain_id, {"place": {}})
 	entry.status = "aktiv"
 	entry.scene = String(c.start)
 	state.chains[chain_id] = entry
@@ -347,6 +351,7 @@ func _apply(chain_id: String, effects: Array, out: Dictionary) -> void:
 		elif e.has("mission"):
 			state.mission = e.mission.duplicate(true)
 			state.mission.chain = chain_id
+			state.mission.loc = loc_of(chain_id)
 			out.mission = state.mission
 		elif e.has("end"):
 			out.ended = String(e.end)
@@ -502,41 +507,124 @@ func _capture(out: Dictionary) -> void:
 	StoryGen.make(self, "befreien", {"rescue": String(c.id), "rescue_name": c.name})
 
 
-## Kette bekannt machen (Logbuch, bei Auslöser „ort“ ein Story-Ort auf der Karte)
+## Kette bekannt machen (Logbuch, bei Auslöser „ort“ ein Story-Ort auf der Karte; Ortsarten aus „orte“)
 func reveal(chain_id: String) -> void:
 	var c := chain_of(chain_id)
 	if c.is_empty():
 		return
-	var entry: Dictionary = state.chains.get(chain_id, {"status": "bekannt", "scene": "", "place": -1})
-	if c.get("trigger", {}).get("type", "") == "ort" and int(entry.place) < 0:
-		entry.place = _pick_place()
+	var entry: Dictionary = state.chains.get(chain_id, {"status": "bekannt", "scene": "", "place": {}})
+	if c.get("trigger", {}).get("type", "") == "ort" and loc_of(chain_id).is_empty():
+		entry.place = pick_place(c.get("orte", []), c.has("frame"))
 	state.chains[chain_id] = entry
 
 
-## Stub: zufälliger Hafen (neutrales System) für einen Kontakt; ohne Spielstand -1 (überall)
-func pick_harbor() -> int:
+# ---------------------------------------------------------------- Orte (Auftrag 5: Sektor, System, Ort)
+## Ort einer Kette: {sector, system, place} mit place = Index in systems[i].places (-1 = ganzes System);
+## leer = überall bzw. dort, wo das Schiff gerade ist.
+
+func loc_of(chain_id: String) -> Dictionary:
+	return _as_loc(state.chains.get(chain_id, {}).get("place", {}))
+
+
+## Systemnummer (Tests, Stand vor Auftrag 5) gilt im aktuellen Sektor für das ganze System
+func _as_loc(p: Variant) -> Dictionary:
+	if p is Dictionary:
+		return p
+	return {} if int(p) < 0 else {"sector": cur_sector(), "system": int(p), "place": -1}
+
+
+func cur_sector() -> int:
+	return game.cur_sector if game != null else 0
+
+
+func _sector(i: int) -> Sector:
+	if game == null:
+		return null
+	return game.sectors[i] if i >= 0 and i < game.sectors.size() else game.sector
+
+
+## System eines Orts ({name, faction, places, …}) oder {}
+func system_of(loc: Dictionary) -> Dictionary:
+	var sec := _sector(int(loc.get("sector", cur_sector())))
+	var i := int(loc.get("system", -1))
+	return sec.systems[i] if sec != null and i >= 0 and i < sec.systems.size() else {}
+
+
+## Name eines Orts für Texte: „Wrack „Ilsa“ im System Kora“, mit Sektor, wenn er nicht der aktuelle ist
+func place_label(loc: Dictionary) -> String:
+	var sys := system_of(loc)
+	if sys.is_empty():
+		return ""
+	var sn := String(sys.name)
+	var pl: Array = sys.get("places", [])
+	var p := int(loc.get("place", -1))
+	var t := "System " + sn
+	if p >= 0 and p < pl.size():
+		var pn := String(pl[p].name)
+		t = pn if pn.contains(sn) else "%s im System %s" % [pn, sn]
+	var s := int(loc.get("sector", cur_sector()))
+	if s != cur_sector():
+		t += " (Sektor %s)" % _sector(s).name if s in game.known_sectors else " in einem noch unbekannten Sektor, jenseits eines Sprungtors"
+	return t
+
+
+## Sektor für einen neuen Ort: meist der aktuelle, manchmal ein anderer bekannter, bei far selten ein unbekannter
+func _pick_sector(far: bool) -> int:
+	if game == null or game.sectors.size() <= 1:
+		return cur_sector()
+	var unknown: Array = range(game.sectors.size()).filter(func(i: int) -> bool: return not i in game.known_sectors)
+	if far and not unknown.is_empty() and rng.randf() < FAR_CHANCE:
+		return unknown[rng.randi_range(0, unknown.size() - 1)]
+	var others: Array = game.known_sectors.filter(func(i: int) -> bool: return i != game.cur_sector)
+	if not others.is_empty() and rng.randf() < OTHER_SECTOR_CHANCE:
+		return others[rng.randi_range(0, others.size() - 1)]
+	return cur_sector()
+
+
+## Hafen (neutrales System) für einen Kontakt, Ort = ganzes System; ohne Spielstand {} (überall)
+func pick_harbor() -> Dictionary:
 	if game == null or game.sector == null:
-		return -1
+		return {}
+	var s := _pick_sector(false)
+	var sec := _sector(s)
 	var list: Array[int] = []
-	for i in game.sector.systems.size():
-		if game.is_harbor(i):
+	for i in sec.systems.size():
+		if sec.is_neutral(i):
 			list.append(i)
-	return list[rng.randi_range(0, list.size() - 1)] if not list.is_empty() else -1
+	return {"sector": s, "system": list[rng.randi_range(0, list.size() - 1)], "place": -1} if not list.is_empty() else {}
 
 
-## Stub: zufälliges System außer dem aktuellen; später Orte im System (Sektorumbau im Hub)
-func pick_place() -> int:
-	return _pick_place()
-
-
-func _pick_place() -> int:
+## Story-Ort: zufälliger Ort (Index in systems[i].places) einer der Ortsarten kinds, sonst irgendein Ort;
+## nie im System, in dem das Schiff gerade liegt. far = darf in einem unbekannten Sektor liegen.
+func pick_place(kinds: Array = [], far := false) -> Dictionary:
 	if game == null or game.sector == null:
-		return -1
-	var n := game.sector.systems.size()
-	var i := rng.randi_range(0, n - 1)
-	if i == game.position and n > 1:
-		i = (i + 1) % n
-	return i
+		return {}
+	var s := _pick_sector(far)
+	var sec := _sector(s)
+	var hits: Array = []
+	var all: Array = []
+	for i in sec.systems.size():
+		if s == game.cur_sector and i == game.position and sec.systems.size() > 1:
+			continue
+		var pl: Array = sec.systems[i].get("places", [])
+		if pl.is_empty():
+			all.append([i, -1])
+		for p in pl.size():
+			all.append([i, p])
+			if kinds.is_empty() or String(pl[p].kind) in kinds:
+				hits.append([i, p])
+	var list := hits if not hits.is_empty() else all
+	var h: Array = list[rng.randi_range(0, list.size() - 1)]
+	return {"sector": s, "system": int(h[0]), "place": int(h[1])}
+
+
+## passt der Ort einer Kette zum Filter {sector, system[, place]}? Ketten ohne Ort passen überall.
+func _loc_match(cl: Dictionary, f: Dictionary) -> bool:
+	if f.is_empty() or cl.is_empty():
+		return true
+	if int(cl.get("sector", 0)) != int(f.sector) or int(cl.system) != int(f.system):
+		return false
+	return not f.has("place") or int(cl.get("place", -1)) == int(f.place)
 
 
 # ---------------------------------------------------------------- Texte
@@ -568,7 +656,7 @@ func text_of(t: Variant, roller: Character = null) -> String:
 # ---------------------------------------------------------------- Einhängepunkte für den Hub
 
 ## bereite Ketten eines Auslösers (geschriebene und erzeugte, noch nicht begonnen); Kontakte nur im eigenen Hafen
-func _ready_chains(trigger: String, system := -2) -> Array[String]:
+func _ready_chains(trigger: String, where := {}) -> Array[String]:
 	var out: Array[String] = []
 	var ids: Array = StoryData.chains().keys() + state.generated.keys()
 	ids.sort()
@@ -578,8 +666,7 @@ func _ready_chains(trigger: String, system := -2) -> Array[String]:
 			continue
 		if not state.status(id) in ["", "bekannt"]:
 			continue
-		var place := int(state.chains.get(id, {}).get("place", -1))
-		if system != -2 and place >= 0 and place != system:
+		if not _loc_match(loc_of(id), where):
 			continue
 		if blocked_reason(c.trigger.get("requires", [])) == "":
 			out.append(id)
@@ -595,24 +682,47 @@ func offers() -> Array[Dictionary]:
 	return out
 
 
-## Ankunft in einem System: Kette mit Story-Ort dort beginnen. Gibt die Kette zurück oder "".
-## Im Hafen: Kopfgeldjäger (Verfolgung) oder vielleicht ein Schmuggel-Kontakt.
-func on_arrive(system: int) -> String:
-	for id in state.chains:
-		var e: Dictionary = state.chains[id]
-		if e.get("status", "") == "bekannt" and int(e.get("place", -1)) == system \
-				and chain_of(id).get("trigger", {}).get("type", "") == "ort":
-			start(id)
-			return id
-	var harbor := game != null and game.is_harbor(system)
+## Ankunft in einem System (on_arrive(sector, system); on_arrive(system) = im aktuellen Sektor): Kette mit Story-Ort
+## für das ganze System beginnen. Gibt die Kette zurück oder "". Im Hafen: Kopfgeldjäger (Verfolgung) oder vielleicht
+## ein Schmuggel-Kontakt. Story-Orte an einem Ort im System beginnen erst mit on_visit.
+func on_arrive(sector: int, system := -1) -> String:
+	if system < 0:
+		system = sector
+		sector = cur_sector()
+	var id := _start_at({"sector": sector, "system": system, "place": -1})
+	if id != "":
+		return id
+	var sec := _sector(sector)
+	var harbor := sec != null and system < sec.systems.size() and sec.is_neutral(system)
 	if harbor and state.flags.has("kopfgeld"):
 		state.flags.erase("kopfgeld")
 		var hid := StoryGen.make(self, "hinterhalt", {"start": true})
 		start(hid)
 		return hid
 	if harbor and not _event_open(HARBOR_EVENTS) and rng.randf() < SMUGGLE_CHANCE:
-		StoryGen.make(self, "schmuggel", {"place": system})
+		StoryGen.make(self, "schmuggel", {"place": {"sector": sector, "system": system, "place": -1}})
 	return ""
+
+
+## Ort im System anfliegen (Systemansicht der Sternenkarte): Kette mit Story-Ort genau dort beginnen. Gibt die Kette zurück oder "".
+func on_visit(sector: int, system: int, place: int) -> String:
+	return _start_at({"sector": sector, "system": system, "place": place})
+
+
+## bekannte Kette mit Auslöser „ort“ genau an diesem Ort beginnen
+func _start_at(where: Dictionary) -> String:
+	for id in state.chains:
+		var cl := loc_of(id)
+		if state.chains[id].get("status", "") == "bekannt" and not cl.is_empty() and _loc_match(cl, where) \
+				and chain_of(id).get("trigger", {}).get("type", "") == "ort":
+			start(id)
+			return id
+	return ""
+
+
+## Story-Orte an einem Ort (für die Systemansicht): [{chain, title}]
+func at_place(sector: int, system: int, place: int) -> Array[Dictionary]:
+	return markers(sector).filter(func(m: Dictionary) -> bool: return m.system == system and m.place == place)
 
 
 ## ist eine erzeugte Ereigniskette dieser Vorlagen offen?
@@ -651,7 +761,7 @@ func travel_event(r: RandomNumberGenerator = null) -> String:
 ## Kontakte im Raumhafen: [{chain, title}]; Ansprechen = start(chain)
 func contacts() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	for id in _ready_chains("kontakt", game.position if game != null else -2):
+	for id in _ready_chains("kontakt", {"sector": cur_sector(), "system": game.position} if game != null else {}):
 		var c := chain_of(id)
 		out.append({"chain": id, "title": text_of(c.get("contact", c.get("title", id)))})
 	return out
@@ -677,7 +787,7 @@ func on_day() -> Array[String]:
 		g.due = 0
 		state.add_log(today(), "verlauf", g.chain, "Frist verpasst: %s" % g.name)
 		if g.fail != "" and state.status(g.chain) != "wartet":
-			state.chains[g.chain] = {"status": "aktiv", "scene": g.fail, "place": int(state.chains.get(g.chain, {}).get("place", -1))}
+			state.chains[g.chain] = {"status": "aktiv", "scene": g.fail, "place": state.chains.get(g.chain, {}).get("place", {})}
 			out.append(String(g.chain))
 	return out
 
@@ -723,17 +833,20 @@ func mission_done(outcome: String) -> String:
 	return id
 
 
-## Story-Orte für die Sternenkarte: [{system, chain, title}]
-func markers() -> Array[Dictionary]:
+## Story-Orte für die Sternenkarte: [{sector, system, place, chain, title}]; sector -2 = nur der aktuelle Sektor, -1 = alle
+func markers(sector := -2) -> Array[Dictionary]:
+	if sector == -2:
+		sector = cur_sector()
 	var out: Array[Dictionary] = []
 	for id in state.chains:
-		var e: Dictionary = state.chains[id]
-		if e.get("status", "") == "bekannt" and int(e.get("place", -1)) >= 0:
-			out.append({"system": int(e.place), "chain": id, "title": text_of(chain_of(id).get("title", id))})
+		var cl := loc_of(id)
+		if state.chains[id].get("status", "") == "bekannt" and not cl.is_empty() and (sector == -1 or int(cl.get("sector", 0)) == sector):
+			out.append({"sector": int(cl.get("sector", 0)), "system": int(cl.system), "place": int(cl.get("place", -1)), "chain": id,
+				"title": text_of(chain_of(id).get("title", id))})
 	return out
 
 
-## offene Ketten fürs Logbuch: [{chain, title, kind, status, place, trigger, reason (was noch fehlt)}]
+## offene Ketten fürs Logbuch: [{chain, title, kind, status, place ({sector, system, place} oder {}), trigger, reason (was noch fehlt)}]
 func open_chains() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for id in state.chains:
@@ -741,6 +854,6 @@ func open_chains() -> Array[Dictionary]:
 		if e.get("status", "") in ["aktiv", "wartet", "bekannt"]:
 			var c := chain_of(id)
 			out.append({"chain": id, "title": text_of(c.get("title", id)), "kind": String(c.get("kind", "kette")),
-				"status": String(e.status), "place": int(e.get("place", -1)), "trigger": String(c.get("trigger", {}).get("type", "")),
+				"status": String(e.status), "place": loc_of(id), "trigger": String(c.get("trigger", {}).get("type", "")),
 				"reason": blocked_reason(c.get("trigger", {}).get("requires", [])) if e.status == "bekannt" else ""})
 	return out
