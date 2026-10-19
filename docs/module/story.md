@@ -26,8 +26,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 2 (19.10.2026): offene Punkte klären, dann Story-Engine
-
-- Offene Punkte 1–9 aus `docs/Planung_Story.md` mit dem Nutzer klären (Auswahl-Buttons, am Ende jeder Runde eine Freitext-Frage), dazu ein Mockup für das Szenenfenster und das Logbuch.
-- Danach im eigenen Bereich bauen: Story-Engine, Logbuch, `StoryState` mit einer Test-Kette. Keine fremden Dateien umbauen. Wo eine Anbindung fehlt, mit einem Stub im eigenen Code arbeiten.
-- Den Schnittstellen-Vorschlag in `docs/Planung_Story.md` auf den gebauten Stand bringen (Funktionsnamen, Daten). Danach fertig melden. Erst dann verteilt der Koordinator die Aufträge an Hub, Bodenkampf und Raumkampf (Entscheidung des Nutzers 19.10.2026).
+(keine offenen Aufträge; nächste Aufträge folgen nach Abstimmung mit dem Nutzer)
