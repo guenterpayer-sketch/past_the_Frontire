@@ -145,6 +145,8 @@ func mission_of(offer: Dictionary) -> Mission:
 		var sm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))) if String(offer.get("faction", "")) != ""
 			else sector.systems[offer.system].faction)
 		sm.title = String(offer.get("title", sm.title))
+		if String(offer.get("map", "")) != "":
+			sm.set_map_type(StringName(offer.map))
 		return sm
 	if offer.get("board", false) or offer.get("defend", false):
 		var bm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
@@ -222,7 +224,8 @@ func advance_days(n: int, traveling := false) -> void:
 	last_healed = Medbay.pass_days(self, n)
 	if last_training > 0:
 		for c in Campaign.crew():
-			c.free_xp += last_training
+			if not is_captured(c):
+				c.free_xp += last_training
 	refill_offers()
 	# Story: verpasste Fristen → Rückschlag-Szene
 	for c in story_engine().on_day():
@@ -274,9 +277,16 @@ func free_berths() -> int:
 	return berths - Campaign.crew().size()
 
 
-## IDs, die in der Truppwahl gesperrt sind (der Arzt der Krankenstation bleibt an Bord); für Campaign.candidates()
-static func blocked_ids() -> Array:
-	return Medbay.blocked_ids(game) if game and not quick_battle else []
+## In der Truppwahl gesperrt {ID: Grund}: der Arzt der Krankenstation bleibt an Bord, Gefangene fehlen; für Campaign.candidates()
+static func blocked_ids() -> Dictionary:
+	var out := {}
+	if game == null or quick_battle:
+		return out
+	for id in Medbay.blocked_ids(game):
+		out[id] = "Arzt in der Krankenstation"
+	for id in game.captured_ids():
+		out[id] = "gefangen"
+	return out
 
 
 ## Schiff festgesetzt: Tank leer oder Hülle 0 → nur noch Kurs zum nächsten Hafen
@@ -329,7 +339,7 @@ func resume_travel() -> int:
 	var days := int(t.days)
 	if days <= 0:
 		position = int(t.target)
-		queue_story(story_engine().on_arrive(position))
+		queue_story(story_arrive())
 		last_travel = {"from": sector.systems[position].name, "to": sector.systems[position].name, "days": 0, "day0": day,
 			"fuel0": fuel, "fuel1": fuel, "hull0": hull, "hull1": hull, "rows": [], "emergency": false, "per_day": fuel_per_day()}
 		_arrive(t)
@@ -375,7 +385,7 @@ func _travel(target: int, days: int, path: Array, escort: int, events: bool) -> 
 	last_travel = rep
 	position = target if contact.is_empty() else stop
 	if contact.is_empty():
-		queue_story(story_engine().on_arrive(position))
+		queue_story(story_arrive())
 	rep.prov0 = provisions
 	advance_days(done, true)
 	rep.prov1 = provisions
@@ -598,17 +608,15 @@ func _space_units(result: Dictionary) -> Array:
 
 ## Einsatz abbrechen (zurück ins Schiff ohne Ergebnis, der Auftrag bleibt offen)
 func abort_mission() -> void:
-	if active.get("board", false):
-		board_pending = {}
-	elif active.get("defend", false):
-		# Abwehr nicht angetreten: wie verloren (Notfall)
-		_drop_offer(offer_by_id(int(active.get("offer_id", -1))), false)
-		if String(active.get("space_kind", "")) == "story":
-			_story_done("niederlage")
-		space_report = {"kind": "abwehr", "title": "Entern abgewehrt?", "outcome": &"niederlage", "plunder": SpaceEvents.plunder(self),
-			"units": [], "day": day, "next": ""}
-		travel_rest = {}
+	if boarding_active():
+		return
 	active = {}
+
+
+## Läuft ein Entern oder eine Abwehr? Beides lässt sich nicht absagen (Entscheidung des Nutzers 19.10.2026):
+## abort_mission() verwirft es nicht, der Hub schickt zurück in den Bodenkampf.
+func boarding_active() -> bool:
+	return active.get("board", false) or active.get("defend", false)
 
 
 ## Einsatz abgeschlossen: Auftrag erledigt (auch bei Niederlage), Lohn und Beute bei Sieg, Zeit vergeht, Bericht fürs Schiff.
@@ -729,7 +737,8 @@ func set_loot(result: Dictionary) -> int:
 		elif String(l.key) != "" and String(l.key) != Equipment.SHIELD:
 			items.append(Stock.damaged_key(String(l.key), int(l.get("damage", 0))))
 	Stock.add(self, Stock.MEDKIT, medkits)
-	loot_pending = {} if items.is_empty() else {"items": items, "slots": result.get("units", {}).size()}
+	# Beuteplätze = Figuren + Eigenheit der Fraktion (MissionResult.loot_extra, z. B. Aasgeier +1)
+	loot_pending = {} if items.is_empty() else {"items": items, "slots": result.get("units", {}).size() + int(result.get("loot_extra", 0))}
 	return medkits
 
 
@@ -977,7 +986,69 @@ func start_story_mission() -> String:
 
 func _story_ground(m: Dictionary) -> Dictionary:
 	return {"id": -3, "system": position, "seed": randi() % 1000000, "difficulty": String(m.get("difficulty", "mittel")),
-		"expires": day, "retry": false, "story": true, "title": String(m.get("title", "")), "faction": String(m.get("faction", ""))}
+		"expires": day, "retry": false, "story": true, "title": String(m.get("title", "")), "faction": String(m.get("faction", "")),
+		"map": story_map(m)}
+
+
+## Kartentyp eines Story-Einsatzes (Entscheidung des Nutzers 19.10.2026): Feld „map“ der Vorlage (MapTypes-ID), sonst
+## der Kartentyp des Story-Orts, wenn das Schiff dort liegt, sonst "" (zufällig)
+func story_map(m: Dictionary) -> String:
+	var id := String(m.get("map", ""))
+	if id != "" and MapTypes.TYPES.has(StringName(id)):
+		return id
+	var e: Dictionary = story_engine().state.chains.get(String(m.get("chain", "")), {})
+	var sp := story_place(e.get("place", -1))
+	if int(sp.sector) == cur_sector and int(sp.system) == position and int(sp.place) >= 0:
+		var pl: Array = sector.systems[position].get("places", [])
+		if int(sp.place) < pl.size() and Places.has_ground(String(pl[int(sp.place)].kind)):
+			return String(Places.map_for(String(pl[int(sp.place)].kind), randi()))
+	return ""
+
+
+## Story-Ort in einheitlicher Form {sector, system, place} (Hub Auftrag 3 / Story Auftrag 5). Neue Form: Dictionary;
+## alte Form: Systemnummer (gilt als Sektor 0, ohne Ort). system < 0 = kein Ort.
+static func story_place(v: Variant) -> Dictionary:
+	if v is Dictionary:
+		return {"sector": int(v.get("sector", 0)), "system": int(v.get("system", -1)), "place": int(v.get("place", -1))}
+	return {"sector": 0, "system": int(v) if v != null else -1, "place": -1}
+
+
+## Story-Orte im aktuellen Sektor: [{system, place, chain, title}]; Orte in anderen Sektoren zeigt nur das Logbuch
+func story_markers() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for m in story_engine().markers():
+		var sp := story_place(m) if m.has("sector") else story_place(m.get("system", -1))
+		if int(sp.sector) == cur_sector and int(sp.system) >= 0 and int(sp.system) < sector.systems.size():
+			out.append({"system": int(sp.system), "place": int(sp.place), "chain": String(m.get("chain", "")), "title": String(m.get("title", ""))})
+	return out
+
+
+## Ankunft für die Story: on_arrive(sector, system), solange die Story noch die alte Form hat on_arrive(system)
+func story_arrive() -> String:
+	var st := story_engine()
+	if st.get_method_argument_count("on_arrive") >= 2:
+		return st.call("on_arrive", cur_sector, position)
+	return st.call("on_arrive", position)
+
+
+## Zahl der erreichten Sektoren (Story-Schlüssel „sectors“)
+func sectors_reached() -> int:
+	return known_sectors.size()
+
+
+## IDs gefangener Crewmitglieder (StoryState.captured): gesperrt für Truppwahl, Reiseposten, Krankenstation, Arbeiten,
+## Geschützposten, Kombüse, Training und Heilung (Entscheidung des Nutzers 19.10.2026)
+func captured_ids() -> Array:
+	return story_engine().state.captured.duplicate()
+
+
+## Mit Spielstand: ist die Figur gefangen? (ohne Spiel nie)
+static func captured(c: Character) -> bool:
+	return game != null and game.is_captured(c)
+
+
+func is_captured(c: Character) -> bool:
+	return c != null and String(c.id) in captured_ids()
 
 
 ## Story-Einsatz beendet: Folgeszene vormerken

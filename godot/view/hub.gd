@@ -24,6 +24,10 @@ func _ready() -> void:
 		HubState.new_game(randi() % 1000000)
 	game = HubState.game
 	game.abort_mission()
+	if game.boarding_active():
+		# Entern/Abwehr lässt sich nicht absagen: zurück in den Bodenkampf
+		get_tree().change_scene_to_file.call_deferred(HubState.BATTLE_SCENE)
+		return
 	# Rückkehr aus dem Raumkampf: Ergebnis auswerten (Bericht nach dem Aufbau der Szene)
 	var space_result := SpaceBattle.take_result()
 	var space_next := ""

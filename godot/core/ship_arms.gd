@@ -640,7 +640,7 @@ static func sell_ammo(g: HubState, type: String, n: int) -> bool:
 static func setup(g: HubState, enemy: Dictionary, source: String, mission := "", return_scene := HubState.HUB_SCENE) -> Dictionary:
 	var crew: Array[Character] = []
 	for c in Campaign.crew():
-		if not c.is_locked():
+		if not c.is_locked() and not g.is_captured(c):
 			crew.append(c)
 	var slots := {}
 	for s in slot_ids(g):

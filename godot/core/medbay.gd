@@ -16,7 +16,7 @@ const LOG_SIZE := 8
 static func staff(g: HubState) -> Array[Character]:
 	var out: Array[Character] = []
 	for c in Campaign.crew():
-		if String(c.id) in g.medics and not c.is_locked():
+		if String(c.id) in g.medics and not c.is_locked() and not g.is_captured(c):
 			out.append(c)
 	out.sort_custom(func(a: Character, b: Character) -> bool: return Rules.skill_total(a, SKILL) > Rules.skill_total(b, SKILL))
 	return out.slice(0, MAX_STAFF)
@@ -70,7 +70,7 @@ static func pass_days(g: HubState, n: int) -> Array[Character]:
 	for i in n:
 		var extra := 0
 		var s := staff(g)
-		if not Campaign.patients().is_empty() and not s.is_empty():
+		if Campaign.patients().any(func(c: Character) -> bool: return not g.is_captured(c)) and not s.is_empty():
 			var roll := Dice.open_d100()
 			var b := bonus(g) + Galley.malus(g)
 			var total: int = roll.total + b
@@ -79,7 +79,7 @@ static func pass_days(g: HubState, n: int) -> Array[Character]:
 				Rules.ensure_skill(c, SKILL).xp += 1
 			_log(g, "Tag %d: Zweite Hilfe %s %+d = %d → %s" % [g.day - n + i + 1, Dice.format_roll(roll), b, total,
 				["normaler Heiltag", "+1 Tag Heilung", "+2 Tage Heilung"][extra]])
-		var h := Campaign.pass_days(1, extra)
+		var h := Campaign.pass_days(1, extra, g.captured_ids())
 		for c in h:
 			_log(g, "Tag %d: %s ist wieder einsatzbereit" % [g.day - n + i + 1, c.name])
 		healed.append_array(h)
