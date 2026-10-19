@@ -9,17 +9,18 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 
 | Branch | Modul | Stand |
 |---|---|---|
-| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e635702`), nichts offen |
+| `claude/confident-edison-6mxzke` | Bodenkampf | in `main` (`e635702`), offen: Auftrag 6 (Touch-Drehen) |
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
-| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77608b1`), nichts offen |
+| `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77608b1`), offen: Auftrag 6 (Touch) |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
-| `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`697e182`), nichts offen |
+| `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`00ace7c`), offen: Auftrag 1 (Touch-Grundlagen) |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), offen: Auftrag 6 (Szenenfenster schließt nicht, dringend) |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | Merge `00ace7c` | Export `claude/inspiring-hypatia-5l2tq8` (`00ace7c`) | nur Doku: Moduldatei `docs/module/export.md` mit Touch-Wünschen (6 Punkte), Verteilung folgt. |
 | 19.10.2026 | Merge `697e182` | Export `claude/inspiring-hypatia-5l2tq8` (`697e182`) | ohne Konflikte; nur neue Dateien (`godot/assets/icon/`, Lizenzeintrag, Zeile in `godot/README.md`), kein Code, keine Tests. App-Icon für den Android-Export; in `project.godot` nicht eingetragen (Export-Einstellung im Editor). |
 | 19.10.2026 | Merge `77608b1` | Hub `claude/happy-lamport-u4fvya` (`77608b1`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Enzyklopädie: Fraktionen (auch Story), Gegnertypen, Gruppe Reise (Orte, Sektoren, Tore). |
 | 19.10.2026 | Merge `45e5177` | Hub `claude/happy-lamport-u4fvya` (`45e5177`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Orte anfliegen ruft `Story.on_visit`, Story-Orte am Ort in der Systemansicht (`at_place`). |
