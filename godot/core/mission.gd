@@ -122,7 +122,9 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	m.faction = factions[rng.randi_range(0, factions.size() - 1)]
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)
-	m.enemies = _compose(rng, m.faction, int(budget_override.get(difficulty_id, diff.budget)))
+	var budget := int(budget_override.get(difficulty_id, diff.budget))
+	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0))
+	m.enemies = _compose(rng, m.faction, budget)
 	m.job_index = rng.randi_range(0, 5)   # 6 Aufträge je Bodentyp (Entern: 5, siehe _set_texts)
 	var r2 := RandomNumberGenerator.new()
 	r2.seed = seed_value + 2
@@ -130,6 +132,11 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	m.square = r2.randf() < 0.5
 	m._lage_roll = r2.randf()
 	m._lage_pick = r2.randi_range(0, OTHER_LAGEN.size() - 1)
+	# bevorzugte Kartentypen der Fraktion (eigener Zufall, damit der Rest gleich bleibt)
+	var r3 := RandomNumberGenerator.new()
+	r3.seed = seed_value + 3
+	if not m.faction.maps.is_empty() and r3.randf() < FactionData.MAP_CHANCE:
+		m.map_type = m.faction.maps[r3.randi_range(0, m.faction.maps.size() - 1)]
 	m._set_texts()
 	var n := m.enemies.size()
 	if n <= 4:
@@ -200,6 +207,22 @@ static func _custom_gear(m: Mission, seed_value: int) -> void:
 			m.enemies[i] = copy
 
 
+## Fraktionen eines Sektors (bis Hub Auftrag 2): je Oberart eine, zufällig (ohne Story-Fraktionen)
+static func sector_factions(rng: RandomNumberGenerator) -> Array[FactionData]:
+	var by_kind := {}
+	for f in all_factions():
+		if f.kind != &"story":
+			if not by_kind.has(f.kind):
+				by_kind[f.kind] = []
+			by_kind[f.kind].append(f)
+	var kinds := by_kind.keys()
+	kinds.sort()
+	var out: Array[FactionData] = []
+	for k in kinds:
+		out.append(by_kind[k][rng.randi_range(0, by_kind[k].size() - 1)])
+	return out
+
+
 static func all_factions() -> Array[FactionData]:
 	var out: Array[FactionData] = []
 	for f in ResourceLoader.list_directory(FACTION_DIR):
@@ -243,11 +266,12 @@ static func _compose(rng: RandomNumberGenerator, f: FactionData, budget: int) ->
 		picked.append(cheapest)
 	picked.sort_custom(func(a: UnitData, b: UnitData) -> bool:
 		return a.threat > b.threat if a.threat != b.threat else String(a.id) < String(b.id))
-	return _individualize(rng, picked)
+	return _individualize(rng, picked, f)
 
 
 ## Jede Figur bekommt eine eigene Kopie: eindeutige Kennung, Buchstabe mit Nummer, Abweichungen in den Werten
-static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData]) -> Array[UnitData]:
+## f: Fraktion (Waffentausch, Medikits, Eigenheit)
+static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], f: FactionData = null) -> Array[UnitData]:
 	var letters := {}
 	for d in picked:
 		letters[d.letter] = letters.get(d.letter, 0) + 1
@@ -274,8 +298,28 @@ static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData]) 
 			d.attrs[a] = clampi(d.attrs[a] + shift * 5 + rng.randi_range(-3, 3), 1, 100)
 		for s in d.skills:
 			d.skills[s] = maxi(0, int(d.skills[s]) + shift)
+		if f:
+			_apply_faction(d, f)
 		out.append(d)
 	return out
+
+
+## Waffentausch (der Rang der alten Fertigkeit gilt auch für die neue), Medikits, Eigenheit
+static func _apply_faction(d: UnitData, f: FactionData) -> void:
+	var ws: Array[WeaponData] = []
+	for w in d.weapons:
+		var to: Variant = f.weapon_swap.get(String(w.id), null)
+		var nw: WeaponData = (load(to) if to is String else to) if to != null else w
+		if nw == null:
+			nw = w
+		if nw.skill != w.skill:
+			d.skills[nw.skill] = maxi(int(d.skills.get(nw.skill, 0)), int(d.skills.get(w.skill, 0)))
+		ws.append(nw)
+	d.weapons = ws
+	d.medkits = maxi(d.medkits, int(f.trait_mods.get("medkits", 0)))
+	if f.trait_name != "":
+		d.faction_trait = f.trait_mods.duplicate()
+		d.faction_trait.name = f.trait_name
 
 
 func difficulty_name() -> String:

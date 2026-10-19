@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/enterer.tres" id="5_u2"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Aasgeier"
+description = "Ausgehungerte Plünderer mit Schrottwaffen, dafür in großer Zahl."
+kind = &"piraten"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
+weights = Array[int]([4, 4, 2])
+max_same = 5
+color = Color(0.7, 0.55, 0.3, 1)
+trait_name = "Überzahl"
+trait_text = "+15 % Gegner, Waffen beschädigt (−10), 1 Beute mehr"
+trait_mods = {
+"budget_pct": 15,
+"wear": -10,
+"loot_extra": 1
+}
+weapon_swap = {}
+maps = Array[StringName]([&"bar", &"halle"])

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/sturmlaeufer.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="10_w0"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Eisenwölfe"
+description = "Harte Söldnerkompanie mit Projektilwaffen und Stoßtrupps."
+kind = &"soeldner"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
+weights = Array[int]([4, 2, 3])
+max_same = 3
+color = Color(0.6, 0.62, 0.66, 1)
+trait_name = "Zäh"
+trait_text = "+10 % Trefferpunkte"
+trait_mods = {
+"hp_pct": 10
+}
+weapon_swap = {
+"laserkarabiner": ExtResource("10_w0")
+}
+maps = Array[StringName]([&"bar", &"halle"])

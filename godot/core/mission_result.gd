@@ -11,7 +11,8 @@ extends RefCounted
 ##          died: tot (nur durch den Todeswurf, wenn die ganze Crew gefallen ist),
 ##          used: {medkits, ammo: {Waffen-ID: Schuss}}}},
 ##  ammo_used: {Munitionsart: Schuss} (ganze Crew, für den Schiffsvorrat; Ammo.TYPES),
-##  loot: Beute bei Sieg [{key (Stock.key_of), name, damage 0/−10…−30}] und Medikits [{key: Stock.MEDKIT, name, count}]}
+##  loot: Beute bei Sieg [{key (Stock.key_of), name, damage 0/−10…−30}] und Medikits [{key: Stock.MEDKIT, name, count}],
+##  loot_extra: zusätzliche Beuteplätze (Eigenheit der Fraktion, z. B. Aasgeier 1; Hub: Plätze = Figuren + loot_extra)}
 ## Je Figur zusätzlich: wear {Platz "w0"/"w1"/"armor": Abzug} (Stand nach dem Kampf, −10 je Schaden, ab −30 unbrauchbar),
 ## lost [Platz, …] (bei Niederlage ohne Rückzug verloren). Entscheidungen des Nutzers 16.10.2026.
 
@@ -46,4 +47,5 @@ static func from_combat(c: Combat, mission: Mission = null) -> Dictionary:
 		}
 	return {"outcome": c.result, "retreated": c.retreated, "mission": mission.title if mission else "", "rounds": c.round_no,
 		"reward_xp": reward, "units": units, "ammo_used": Ammo.used(c.crew()),
-		"loot": c.loot.duplicate(true)}
+		"loot": c.loot.duplicate(true),
+		"loot_extra": mission.faction.trait_mods.get("loot_extra", 0) if mission and mission.faction and win else 0}
