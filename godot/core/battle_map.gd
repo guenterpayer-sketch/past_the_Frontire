@@ -111,6 +111,8 @@ var map_type: StringName = &"halle"
 var floor_name := "Hallenboden"
 ## Name der eigenen Karte (Karteneditor, CustomMaps), leer = Zufallskarte
 var custom_name := ""
+## Startlage, mit der die Startfelder gesetzt wurden (Mission.LAGEN); Überfall: Gegner handeln in Runde 1 nicht
+var lage: StringName = &"standard"
 var _los_cache := {}
 var _peek_cache := {}
 

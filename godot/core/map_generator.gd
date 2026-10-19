@@ -305,10 +305,26 @@ func _group_walls(cols: int, rows: int) -> void:
 ## standard: Crew links (Spalten 1 bis DEPLOY_COLS), Gegner rechts (letzte 5 Spalten, erhöhte Felder zuerst);
 ## hinterhalt: Crew mittig, Gegner abwechselnd links und rechts mit Abstand; zange: 2 von 3 Gegnern rechts, 1 an
 ## einer Flanke; verteilt: Gegner einzeln über die rechten zwei Drittel; verteidigung: Crew rechts (auch erhöht),
-## Gegner links. enemy_start ist so sortiert, dass die ersten n Felder die Lage ergeben.
+## Gegner links; ueberfall (19.10.2026): Gegner in der Mitte, Crew frei auf allen Feldern mit Abstand
+## (mindestens UEBERFALL_GAP Felder weiter von der Mitte als der äußerste Gegner), Startplätze zuerst links.
+## enemy_start ist so sortiert, dass die ersten n Felder die Lage ergeben. Die Lage steht danach in BattleMap.lage.
+const UEBERFALL_GAP := 4
+
 func _finish(cols: int, rows: int) -> BattleMap:
 	var mid_row := (rows - 1) / 2.0
 	var mid_col := (cols - 1) / 2.0
+	var center := Hex.from_offset(cols / 2, rows / 2)
+	var to_center := func(t: T) -> int: return Hex.distance(t.pos, center)
+	var ring := 0   # Überfall: Abstand des äußersten der Mission.MAX_ENEMIES Gegnerfelder zur Mitte
+	if lage == &"ueberfall":
+		var near: Array[T] = []
+		for t in m.list:
+			if m.walkable(t):
+				near.append(t)
+		if near.size() < Mission.MAX_ENEMIES:
+			return null
+		near.sort_custom(func(a: T, b: T) -> bool: return to_center.call(a) < to_center.call(b))
+		ring = to_center.call(near[Mission.MAX_ENEMIES - 1])
 	var by_row := func(a: T, b: T) -> bool:
 		var da := absf(a.row - mid_row)
 		var db := absf(b.row - mid_row)
@@ -326,6 +342,9 @@ func _finish(cols: int, rows: int) -> BattleMap:
 			&"hinterhalt":
 				if t.h == 0 and absf(t.col - mid_col) <= 3.0 and absf(t.row - mid_row) <= 4.0:
 					crew.append(t)
+			&"ueberfall":
+				if to_center.call(t) >= ring + UEBERFALL_GAP:
+					crew.append(t)
 			_:
 				if t.h == 0 and in_cols.call(t, 1, BattleMap.DEPLOY_COLS):
 					crew.append(t)
@@ -334,6 +353,9 @@ func _finish(cols: int, rows: int) -> BattleMap:
 	if lage == &"hinterhalt":
 		crew.sort_custom(func(a: T, b: T) -> bool:
 			return absf(a.col - mid_col) + absf(a.row - mid_row) < absf(b.col - mid_col) + absf(b.row - mid_row))
+	elif lage == &"ueberfall":
+		crew.sort_custom(func(a: T, b: T) -> bool:
+			return a.col < b.col if a.col != b.col else absf(a.row - mid_row) < absf(b.row - mid_row))
 	else:
 		crew.sort_custom(by_row)
 	var reach := m.reachable(crew[0].pos, INF)
@@ -347,6 +369,12 @@ func _finish(cols: int, rows: int) -> BattleMap:
 	match lage:
 		&"verteidigung":
 			enemy = _side(func(t: T) -> bool: return in_cols.call(t, 1, 5) and ok.call(t))
+		&"ueberfall":
+			for t in m.list:
+				if ok.call(t) and to_center.call(t) < ring + UEBERFALL_GAP:
+					enemy.append(t)
+			_shuffle(enemy)
+			enemy.sort_custom(func(a: T, b: T) -> bool: return to_center.call(a) < to_center.call(b))
 		&"hinterhalt":
 			var gap := mini(6, cols / 4)
 			var far := func(t: T) -> bool:
@@ -382,6 +410,7 @@ func _finish(cols: int, rows: int) -> BattleMap:
 		return null
 	m.crew_start = crew
 	m.enemy_start = enemy
+	m.lage = lage
 	return m
 
 

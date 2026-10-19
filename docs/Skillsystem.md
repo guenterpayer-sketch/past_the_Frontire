@@ -396,7 +396,9 @@ Ein Waffenwechsel kostet zusätzlich 10 %.
 
 **Feuerbereitschaft:** Wer noch nicht angegriffen hat und mindestens 30 % übrig hat, kann die gesamte restliche Aktivität zurückhalten; der Zug endet damit. Handelt danach ein Gegner im Sichtfeld und in Reichweite (bewegt sich Feld für Feld oder setzt zum Angriff an), wird sofort geschossen: Modifikator nach den zurückgehaltenen Prozent (Tabelle oben) und −10 für die Reaktion. Ein Treffer kann den Gegner mitten in der Bewegung stoppen. Einmal pro Runde; die Bereitschaft endet mit dem nächsten eigenen Zug. Danach ist keine Ausweichreserve mehr übrig.
 
-**Blickrichtung:** Jede Figur schaut zu einer Hexseite. Nach einer Bewegung schaut sie in Laufrichtung, beim Angriff zum Ziel; im eigenen Zug kann sie sich jederzeit kostenlos drehen.
+**Blickrichtung:** Jede Figur schaut zu einer Hexseite. Nach einer Bewegung schaut sie in Laufrichtung, beim Angriff zum Ziel; im eigenen Zug kann sie sich jederzeit kostenlos drehen. **Zu Kampfbeginn** schaut jede Figur zum nächsten Gegner, in allen Startlagen (Auftrag 19.10.2026); wer in Runde 0 aufgestellt wird, richtet sich neu aus und kann sich danach selbst drehen.
+
+**Überfall** (Startlage, Entscheidung des Nutzers 19.10.2026): Die Crew überrascht die Gegner. Die Gegner stehen in der Mitte der Karte und schauen von der nächsten Figur der Crew weg; die Crew stellt sich frei auf (alle begehbaren Felder, auch erhöhte, mindestens 4 Felder weiter von der Mitte als der äußerste Gegner). In Runde 1 handeln die Gegner nicht (sie stehen nicht in der Initiative-Reihe), ab Runde 2 normal. Je Bodentyp hat ein Auftrag fest diese Lage; Standard-Aufträge bekommen sie wie die anderen Lagen gelegentlich (30 % auf alle anderen Lagen verteilt).
 
 | Lage des Angreifers (vom Ziel aus) | Wirkung |
 |---|---|

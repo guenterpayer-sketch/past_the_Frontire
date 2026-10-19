@@ -47,6 +47,7 @@ func _init() -> void:
 	_test_squad_size()
 	_test_walls()
 	_test_custom_maps()
+	_test_start_facing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
 
@@ -1397,3 +1398,60 @@ func _test_custom_maps() -> void:
 	check(gm.list.all(func(t: BattleMap.Tile) -> bool: return t.terrain == g.tile(t.pos).terrain and t.h == g.tile(t.pos).h), "Vorlage übernimmt das Gelände")
 	check(CustomMaps.delete(id) and CustomMaps.list().is_empty(), "Löschen")
 	_clear_maps()
+
+
+## Startausrichtung (19.10.2026): alle zum nächsten Gegner, je Lage und Kartentyp; Überfall: Gegner in der Mitte,
+## schauen von der Crew weg, handeln in Runde 1 nicht; Crew frei mit Abstand; Aufträge mit Überfall
+func _test_start_facing() -> void:
+	var front := func(c: Combat, u: Combatant) -> bool:
+		var best: Combatant = null
+		for o in c.units:
+			if o.team != u.team and (best == null or Hex.distance(u.pos, o.pos) < Hex.distance(u.pos, best.pos)):
+				best = o
+		return Hex.sector(u.pos, u.facing, best.pos) == &"vorne"
+	for ty in [&"halle", &"bar", MapTypes.SHIP]:
+		for lage in Mission.LAGEN:
+			var mi := Mission.generate(300)
+			var c := Combat.new(MapGenerator.generate(301, "mittel", ty, false, lage), Roster.build_crew(Roster.start_crew()), Roster.build_units(mi.enemies, &"enemy"))
+			var crew_ok := c.crew().all(func(u: Combatant) -> bool: return front.call(c, u))
+			var foe_ok := c.enemies().all(func(u: Combatant) -> bool: return front.call(c, u) != (lage == &"ueberfall"))
+			check(crew_ok and foe_ok, "Startausrichtung %s %s: Crew zum Gegner %s, Gegner %s %s" % [ty, lage, crew_ok, "weg" if lage == &"ueberfall" else "zur Crew", foe_ok])
+	# Verteidigung: nicht mehr Rücken an Rücken (Befund des Nutzers)
+	var dm := MapGenerator.generate(63, "mittel", &"halle", false, &"verteidigung")
+	var dc := Combat.new(dm, Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(5).enemies, &"enemy"))
+	check(dc.crew().all(func(u: Combatant) -> bool: return u.facing in [2, 3, 4]) and dc.enemies().all(func(u: Combatant) -> bool: return u.facing in [0, 1, 5]),
+		"Verteidigung: Crew schaut nach links, Gegner nach rechts")
+	# Überfall: Gegner in der Mitte, Crew mit Abstand, auch erhöht; Gegner setzen Runde 1 aus
+	var um := MapGenerator.generate(64, "mittel", &"halle", false, &"ueberfall")
+	var ctr := Hex.from_offset(um.cols / 2, um.rows / 2)
+	var e9 := um.enemy_start.slice(0, Mission.MAX_ENEMIES)
+	var ring := 0
+	for t in e9:
+		ring = maxi(ring, Hex.distance(t.pos, ctr))
+	check(um.lage == &"ueberfall" and ring <= 6, "Überfall: Gegner in der Mitte (bis %d Felder)" % ring)
+	check(um.crew_start.all(func(t: BattleMap.Tile) -> bool: return Hex.distance(t.pos, ctr) >= ring + MapGenerator.UEBERFALL_GAP)
+		and um.crew_start.size() > 100 and um.crew_start.any(func(t: BattleMap.Tile) -> bool: return t.h > 0),
+		"Überfall: Crew frei aufstellbar mit Abstand (%d Felder, auch erhöht)" % um.crew_start.size())
+	var uc := Combat.new(um, Roster.build_crew(Roster.start_crew()), Roster.build_units(Mission.generate(5).enemies, &"enemy"))
+	var u0 := uc.crew()[0]
+	var far: Vector2i = um.crew_start[-1].pos
+	uc.deploying = true
+	uc.deploy(u0, far)
+	check(u0.pos == far and front.call(uc, u0) and uc.enemies().all(func(u: Combatant) -> bool: return not front.call(uc, u)), "Überfall: Aufstellen richtet neu aus")
+	uc.start()
+	check(uc.order.all(func(u: Combatant) -> bool: return u.is_crew) and uc.order.size() == uc.crew().size(), "Überfall: Runde 1 nur die Crew")
+	while uc.round_no == 1 and uc.result == &"":
+		uc.end_turn()
+	check(uc.round_no == 2 and uc.order.any(func(u: Combatant) -> bool: return not u.is_crew), "Überfall: ab Runde 2 handeln die Gegner")
+	# Aufträge: je Bodentyp einer mit Überfall, Standard-Aufträge bekommen ihn auch per Zufall
+	for ty in MapTypes.GROUND:
+		check(Mission.JOBS[ty].size() == 6 and Mission.JOBS[ty].filter(func(j: Array) -> bool: return j[2] == &"ueberfall").size() == 1, "Auftrag mit Überfall: %s" % ty)
+	var seen := {}
+	for i in 600:
+		var mi := Mission.generate(40000 + i)
+		seen[mi.job_index] = true
+		if mi.lage == &"ueberfall" and Mission.JOBS[mi.map_type][mi.job_index][2] == &"standard":
+			seen["zufall"] = true
+	var sm := Mission.generate(4711)
+	sm.set_map_type(MapTypes.SHIP, "board")
+	check(seen.size() == 7 and sm.title == "Entern", "alle 6 Aufträge kommen vor, Überfall auch per Zufall; Entern ok")

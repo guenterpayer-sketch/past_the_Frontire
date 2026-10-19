@@ -473,7 +473,7 @@ func _run_maps() -> void:
 		await _screenshot(out + "/m%d_%s_nah.png" % [i, ty])
 		i += 1
 	# Startlagen in der Lagerhalle (Aufstellung: blaue Felder der Crew, Gegner)
-	for lage in [&"hinterhalt", &"zange", &"verteilt", &"verteidigung"]:
+	for lage in [&"hinterhalt", &"zange", &"verteilt", &"verteidigung", &"ueberfall"]:
 		var mi := Mission.generate(4711)
 		mi.map_type = &"halle"
 		mi.size_id = "mittel"
