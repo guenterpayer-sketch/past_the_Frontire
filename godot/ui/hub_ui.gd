@@ -13,7 +13,7 @@ signal contact_choice(fight: bool)
 signal space_report_closed
 
 const MARGIN := 14.0
-const MENU := [[&"encyclopedia", "Enzyklopädie"], [&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
+const MENU := [[&"encyclopedia", "Enzyklopädie"], [&"logbook", "Logbuch"], [&"main_menu", "Hauptmenü"], [&"sound", "Ton an/aus"], [&"ui_scale", "Einstellungen …"], [&"help", "Bedienung"]]
 
 ## Größe des Hinweisfensters (Meldungen, Auswahl)
 const NOTICE_SIZE := Vector2(640, 440)
@@ -433,6 +433,12 @@ func _payout(rep: Dictionary) -> void:
 		report.content.add_child(UiTheme.label("Munitionsverbrauch: " + ", ".join(parts), 14))
 	report.content.add_child(UiTheme.label("LOHN UND BEUTE", 13, UiTheme.MUTED))
 	var p: Dictionary = rep.payout
+	if rep.get("story", false):
+		# Story-Einsatz: kein Lohn (Entscheidung des Nutzers 19.10.2026), Belohnung in der Folgeszene
+		report.content.add_child(UiTheme.label("Story-Einsatz: kein Lohn; was er bringt, zeigt die Folgeszene.", 14, StoryDialog.STORY_COLOR))
+		if int(rep.get("medkits", 0)) > 0:
+			report.content.add_child(UiTheme.label("Beute: Medikits (ins Lager) +%d" % int(rep.medkits), 15, UiTheme.GOOD))
+		return
 	if rep.has("board"):
 		# Entern (selbst oder abgewehrt): Beute des Schiffs, Lohn eines Abfang-Auftrags, Medikits aus dem Bodenkampf
 		if int(rep.get("pay", 0)) > 0:
@@ -745,13 +751,18 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 
 func any_dialog_open() -> bool:
 	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible or contact.visible or space_report.visible \
-		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible)
+		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible) or (has_node(StoryLog.NAME) and get_node(StoryLog.NAME).visible) \
+		or (has_node(StoryDialog.NAME) and get_node(StoryDialog.NAME).visible)
 
 
 func close_dialogs() -> bool:
 	var enc := get_node_or_null(Encyclopedia.NAME)
 	if enc and enc.visible:
 		enc.close()
+		return true
+	var lg := get_node_or_null(StoryLog.NAME)
+	if lg and lg.visible:
+		lg.close()
 		return true
 	for d in [sheet, help, notice, slots, report, medbay, galley, armory, travel_report, engine, trade, craft, ship_arms, port, contact, space_report]:
 		if d.visible:

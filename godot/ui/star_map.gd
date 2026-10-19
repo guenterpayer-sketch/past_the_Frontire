@@ -10,7 +10,10 @@ signal wait_day
 signal start(offer: Dictionary)
 ## Raumhafen: eigenes Fenster öffnen (&"ship" Schiffshändler, &"trade" Händler, &"yard" Werft, &"hire" Crew anheuern)
 signal port(kind: StringName)
-## große Reparatur durch die Crew (1 Tag)
+## Story: Kette wurde begonnen (Auftrag angenommen, Kontakt angesprochen) → Szenenfenster; Story-Einsatz starten; Logbuch
+signal story_chain(chain: String)
+signal story_mission
+signal logbook
 signal closed
 
 const PANEL_W := 420.0
@@ -58,6 +61,10 @@ func _ready() -> void:
 	wait.custom_minimum_size.y = 44
 	wait.pressed.connect(func() -> void: wait_day.emit())
 	top.add_child(wait)
+	var lb := UiTheme.button("Logbuch", "Story: Aufträge, Hinweise, Ziele und Verlauf")
+	lb.custom_minimum_size.y = 44
+	lb.pressed.connect(func() -> void: logbook.emit())
+	top.add_child(lb)
 	# unten links: Legende
 	var leg := PanelContainer.new()
 	leg.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 10, 8))
@@ -72,6 +79,7 @@ func _ready() -> void:
 		lrow.add_child(UiTheme.label("● " + f.name, 13, f.color))
 	lrow.add_child(UiTheme.label("◆ Auftrag", 13, UiTheme.ACCENT))
 	lrow.add_child(UiTheme.label("◆ eigenes Schiff", 13, UiTheme.CREW))
+	lrow.add_child(UiTheme.label("○ Story-Ort", 13, StoryDialog.STORY_COLOR))
 	lrow.add_child(UiTheme.label("T = Reisetage je Sprung", 13, UiTheme.MUTED))
 	# rechts: gewähltes System
 	var panel := PanelContainer.new()
@@ -190,6 +198,8 @@ func _draw_map() -> void:
 		var n := game.offers_at(i).size()
 		for k in n:
 			_diamond(p + Vector2(22 + k * 14, -22), 7.0, UiTheme.ACCENT)
+		if _story_places().has(i):
+			_canvas.draw_arc(p + Vector2(-24, -22), 7.0, 0, TAU, 20, StoryDialog.STORY_COLOR, 3.0, true)
 		_canvas.draw_string(font, p + Vector2(-80, r + 20), s.systems[i].name, HORIZONTAL_ALIGNMENT_CENTER, 160, 14,
 			UiTheme.ACCENT if i == selected else UiTheme.TEXT)
 
@@ -230,6 +240,7 @@ func _render_side() -> void:
 	UiTheme.clear(_side)
 	if selected < 0:
 		return
+	_render_story()
 	var s := game.sector
 	var sys: Dictionary = s.systems[selected]
 	_side.add_child(UiTheme.label(sys.name, 28, UiTheme.ACCENT))
@@ -253,6 +264,11 @@ func _render_side() -> void:
 	sep.color = UiTheme.LINE
 	sep.custom_minimum_size.y = 1
 	_side.add_child(sep)
+	var places := _story_places()
+	if places.has(selected):
+		var sl := UiTheme.label("Story-Ort: %s" % places[selected], 14, StoryDialog.STORY_COLOR)
+		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_side.add_child(sl)
 	var here := game.offers_at(selected)
 	if f:
 		_side.add_child(UiTheme.label("AUFTRÄGE HIER", 13, UiTheme.MUTED))
@@ -280,6 +296,12 @@ func _render_side() -> void:
 			grid.add_child(b)
 		var credits := UiTheme.label("Credits: %d Cr" % game.credits, 16, UiTheme.BAD if game.credits < 0 else UiTheme.ACCENT)
 		_side.add_child(credits)
+		var contacts := game.story_engine().contacts()
+		if not contacts.is_empty():
+			_side.add_child(UiTheme.label("KONTAKTE", 13, UiTheme.MUTED))
+			for c in contacts:
+				var chain: String = c.chain
+				_side.add_child(_story_card(String(c.title), "Kontakt im Raumhafen", "Ansprechen", func() -> void: _begin_story(chain)))
 	else:
 		var l := UiTheme.label("Hafen: Schiffshändler, Händler, Werft und Anheuern, wenn das Schiff hier liegt.", 14, UiTheme.MUTED)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -395,6 +417,60 @@ func _kind_text(o: Dictionary, m: Mission) -> String:
 	if o.get("blockade", false):
 		t = "Erst Raumkampf gegen %s, dann Bodenkampf. Flucht im All: Auftrag bleibt offen · Niederlage: Notfall. %s" % [foe, t]
 	return t
+
+
+# ---------------------------------------------------------------- Story (Auftrag 1, 19.10.2026)
+
+## Story-Orte {System: Titel} für Karte und Seitenleiste
+func _story_places() -> Dictionary:
+	var out := {}
+	for m in game.story_engine().markers():
+		out[int(m.system)] = String(m.title)
+	return out
+
+
+## Abschnitt STORY oben rechts: offener Story-Einsatz und Story-Aufträge (ohne Ablauf)
+func _render_story() -> void:
+	var st := game.story_engine()
+	var m := game.story_mission()
+	var list := st.offers()
+	if m.is_empty() and list.is_empty():
+		return
+	_side.add_child(UiTheme.label("STORY", 13, UiTheme.MUTED))
+	if not m.is_empty():
+		var kind := String(m.get("kind", "boden"))
+		var what := "Bodenkampf" if kind == "boden" else ("Raumkampf, dann Bodenkampf" if kind == "blockade" else "Raumkampf")
+		_side.add_child(_story_card(String(m.get("title", "Einsatz")), "Einsatz: %s · %s · hier, wo das Schiff liegt · kein Ablauf, kein Lohn"
+			% [what, String(m.get("difficulty", "mittel"))], "Einsatz starten", func() -> void: story_mission.emit()))
+	for o in list:
+		var chain: String = o.chain
+		_side.add_child(_story_card(String(o.title), "%s · ohne Ablauf" % StoryDialog.KIND_NAMES.get(o.kind, o.kind), "Annehmen",
+			func() -> void: _begin_story(chain)))
+
+
+func _begin_story(chain: String) -> void:
+	Sfx.play(&"klick")
+	game.story_engine().start(chain)
+	story_chain.emit(chain)
+
+
+## Karte wie die Auswahl beim Feindkontakt (docs/Layout.md): Titel, graue Beschreibung, Knopf mit goldener Schrift
+func _story_card(title: String, text: String, action: String, act: Callable) -> Control:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.LINE, 8, 12))
+	var v := VBoxContainer.new()
+	p.add_child(v)
+	var t := UiTheme.label(title, 16, StoryDialog.STORY_COLOR)
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(t)
+	var l := UiTheme.label(text, 13, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(l)
+	var b := UiTheme.button(action)
+	b.add_theme_color_override("font_color", UiTheme.ACCENT)
+	b.pressed.connect(act)
+	v.add_child(b)
+	return p
 
 
 func _offer_card(o: Dictionary) -> Control:

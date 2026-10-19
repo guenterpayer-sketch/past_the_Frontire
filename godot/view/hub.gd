@@ -51,6 +51,9 @@ func _ready() -> void:
 		if int(r.taken) + int(r.scrapped) > 0:
 			ui.show_toast("Beute: %d Stück ins Lager, %d als Schrott (+%d Cr)" % [r.taken, r.scrapped, r.scrap]))
 	ui.star_map.port.connect(_open_port)
+	ui.star_map.story_chain.connect(_show_story)
+	ui.star_map.story_mission.connect(_start_story_mission)
+	ui.star_map.logbook.connect(_show_logbook)
 	ui.travel_report.visibility_changed.connect(func() -> void:
 		if not ui.travel_report.visible and _after_travel.is_valid():
 			var next := _after_travel
@@ -111,6 +114,53 @@ func _refresh() -> void:
 	ship.set_highlight(_hover)
 	if ui.star_map.visible:
 		ui.star_map.refresh()
+	_next_story.call_deferred()
+
+
+# ---------------------------------------------------------------- Story (Auftrag 1, 19.10.2026)
+
+## Nächstes vorgemerktes Szenenfenster zeigen, sobald kein Bericht oder anderes Fenster davor liegt
+func _next_story() -> void:
+	if game.story_queue.is_empty() or not game.active.is_empty() or _story_blocked():
+		return
+	_show_story(game.story_queue.pop_front())
+
+
+func _story_blocked() -> bool:
+	var d := ui.get_node_or_null(StoryDialog.NAME)
+	return (d != null and d.visible) or ui.report.visible or ui.travel_report.visible or ui.space_report.visible \
+		or ui.contact.visible or ui.notice.visible or ui.slots.visible
+
+
+## Szenenfenster einer Kette (schon begonnen); danach Karte auffrischen und das nächste zeigen
+func _show_story(chain: String) -> void:
+	var d := StoryDialog.show_on(ui, game.story_engine(), chain)
+	if not d.visible:
+		_refresh()
+		return
+	d.move_to_front()
+	if not d.finished.is_connected(_story_finished):
+		d.finished.connect(_story_finished)
+
+
+func _story_finished(_chain: String) -> void:
+	Campaign.save()
+	_refresh()
+
+
+## Story-Einsatz von der Brücke: Bodenkampf (Briefing mit Truppwahl) oder Raumkampf
+func _start_story_mission() -> void:
+	match game.start_story_mission():
+		"ground":
+			Campaign.save()
+			Campaign.last_result = {}
+			get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
+		"space":
+			_go_space()
+
+
+func _show_logbook() -> void:
+	StoryLog.show_on(ui, game.story_engine())
 
 
 # ---------------------------------------------------------------- Räume
@@ -319,6 +369,8 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			ui.show_help()
 		&"encyclopedia":
 			Encyclopedia.show_on(ui)
+		&"logbook":
+			_show_logbook()
 
 
 # ---------------------------------------------------------------- Eingabe (Kamera wie im Bodenkampf)

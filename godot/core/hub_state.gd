@@ -100,6 +100,11 @@ var pending_offer := -1
 var space_report := {}
 ## Bericht der letzten Reise (für die Anzeige im Schiff; leer = schon gezeigt)
 var last_travel := {}
+## Story (Auftrag 1, 19.10.2026): Zustand StoryState.to_dict() im Spielstand; das Story-Objekt hält story_engine()
+var story := {}
+## Ketten, deren Szenenfenster noch offen ist (Reise, Ankunft, Frist, Einsatzende); der Hub zeigt sie nacheinander
+var story_queue: Array[String] = []
+var _story: Story
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
 var slot := 0
 var slot_name := ""
@@ -112,6 +117,7 @@ static func new_game(seed_value: int, name := "", slot_no := 0) -> HubState:
 	g.position = g.sector.home
 	g.slot = slot_no
 	g.slot_name = name
+	g.story = StoryState.create().to_dict()
 	g.refill_offers()
 	game = g
 	return g
@@ -128,6 +134,11 @@ static func active_mission() -> Mission:
 
 
 func mission_of(offer: Dictionary) -> Mission:
+	if offer.get("story", false):
+		var sm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))) if String(offer.get("faction", "")) != ""
+			else sector.systems[offer.system].faction)
+		sm.title = String(offer.get("title", sm.title))
+		return sm
 	if offer.get("board", false) or offer.get("defend", false):
 		var bm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
 		# Entern: Raumschiff-Inneres (Bodenkampf, 18.10.2026); Abwehr = Gegner kommen durch die Luftschleuse
@@ -201,6 +212,9 @@ func advance_days(n: int, traveling := false) -> void:
 		for c in Campaign.crew():
 			c.free_xp += last_training
 	refill_offers()
+	# Story: verpasste Fristen → Rückschlag-Szene
+	for c in story_engine().on_day():
+		queue_story(c)
 
 
 ## Werte mit Schiffsausbau
@@ -303,6 +317,7 @@ func resume_travel() -> int:
 	var days := int(t.days)
 	if days <= 0:
 		position = int(t.target)
+		queue_story(story_engine().on_arrive(position))
 		last_travel = {"from": sector.systems[position].name, "to": sector.systems[position].name, "days": 0, "day0": day,
 			"fuel0": fuel, "fuel1": fuel, "hull0": hull, "hull1": hull, "rows": [], "emergency": false, "per_day": fuel_per_day()}
 		_arrive(t)
@@ -320,6 +335,7 @@ func _travel(target: int, days: int, path: Array, escort: int, events: bool) -> 
 		forced = mini(SpaceEvents.fixed_contact, days - 1) if SpaceEvents.fixed_contact >= 0 else randi_range(0, days - 1)
 	var done := days
 	var stop := -1
+	var story_hit := false
 	for i in days:
 		rep.rows.append(Voyage.travel_day(self, day + i + 1))
 		var sys: int = path[mini(path.size() - 1, ceili(float(i + 1) / days * (path.size() - 1)))]
@@ -332,6 +348,12 @@ func _travel(target: int, days: int, path: Array, escort: int, events: bool) -> 
 				"difficulty": String(o.difficulty) if not o.is_empty() else SpaceEvents.roll_difficulty()}
 			travel_rest = {"target": target, "days": days - done, "escort": escort, "won": false}
 			break
+		# Story: höchstens ein Reise-Ereignis je Reise (neben dem Feindkontakt); das Szenenfenster folgt nach der Reise
+		if not story_hit:
+			var sc := story_engine().travel_event()
+			if sc != "":
+				story_hit = true
+				queue_story(sc)
 	rep.days = done
 	rep.fuel1 = fuel
 	rep.hull1 = hull
@@ -340,6 +362,8 @@ func _travel(target: int, days: int, path: Array, escort: int, events: bool) -> 
 		rep.to = sector.systems[stop].name
 	last_travel = rep
 	position = target if contact.is_empty() else stop
+	if contact.is_empty():
+		queue_story(story_engine().on_arrive(position))
 	rep.prov0 = provisions
 	advance_days(done, true)
 	rep.prov1 = provisions
@@ -497,14 +521,24 @@ func finish_space(result: Dictionary) -> String:
 			"eskorte":
 				if not travel_rest.is_empty():
 					travel_rest.won = true
+			"story":
+				if bool(ctx.get("then_ground", false)) and not story_mission().is_empty():
+					active = _story_ground(story_mission())
+					next = "ground"
+				else:
+					_story_done("sieg")
 		if next == "" and book_board(result, String(ctx.get("difficulty", "mittel"))):
 			next = "board"
 	elif rep.retreated:
 		if not o.is_empty():
 			o.retry = true
+		if kind == "story":
+			_story_done("rueckzug")
 	elif rep.surrendered:
 		if kind != "eskorte":
 			_drop_offer(o, false)
+		if kind == "story":
+			_story_done("niederlage")
 	elif bool(result.get("boarding", false)):
 		# Auftrag erst nach der Abwehr abrechnen (gewonnen = wie ein gewonnener Raumkampf, verloren = Notfall)
 		active = {"id": -2, "system": position, "seed": randi() % 1000000, "difficulty": String(ctx.get("difficulty", "mittel")),
@@ -516,6 +550,8 @@ func finish_space(result: Dictionary) -> String:
 		_drop_offer(o, false)
 		rep.plunder = SpaceEvents.plunder(self)
 		travel_rest = {}
+		if kind == "story":
+			_story_done("niederlage")
 	if kind == "auftrag" and next == "":
 		advance_days(MISSION_DAYS)
 	rep.next = next
@@ -555,6 +591,8 @@ func abort_mission() -> void:
 	elif active.get("defend", false):
 		# Abwehr nicht angetreten: wie verloren (Notfall)
 		_drop_offer(offer_by_id(int(active.get("offer_id", -1))), false)
+		if String(active.get("space_kind", "")) == "story":
+			_story_done("niederlage")
 		space_report = {"kind": "abwehr", "title": "Entern abgewehrt?", "outcome": &"niederlage", "plunder": SpaceEvents.plunder(self),
 			"units": [], "day": day, "next": ""}
 		travel_rest = {}
@@ -588,6 +626,16 @@ func finish_mission(rep: Dictionary) -> void:
 			_drop_offer(o, false)
 			rep.plunder = SpaceEvents.plunder(self)
 			travel_rest = {}
+			if String(active.get("space_kind", "")) == "story":
+				_story_done("niederlage")
+	elif active.get("story", false):
+		# Story-Einsatz: kein Lohn (die Folgeszene vergibt Belohnungen), Beuteauswahl bei Sieg; Folgeszene vormerken
+		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
+		rep.story = true
+		rep.payout = {}
+		if won:
+			rep.medkits = set_loot(Campaign.last_result)
+		_story_done("rueckzug" if retreated else ("sieg" if won else "niederlage"))
 	elif active.get("board", false):
 		# Entern: kein Lohn; Beute des Schiffs und Beuteauswahl nur bei Sieg, sonst verloren
 		rep.ammo_used = Voyage.use_ammo(self, Campaign.last_result.get("ammo_used", {}))
@@ -611,7 +659,7 @@ func finish_mission(rep: Dictionary) -> void:
 			pay.difficulty = String(active.difficulty)
 			pay.medkits = set_loot(Campaign.last_result)
 		rep.payout = pay
-	if active.get("board", false) or active.get("defend", false):
+	if active.get("board", false) or active.get("defend", false) or active.get("story", false):
 		pass
 	elif retreated:
 		for o in offers:
@@ -652,6 +700,8 @@ func _defend_won(o: Dictionary, rep: Dictionary) -> bool:
 		"eskorte":
 			if not travel_rest.is_empty():
 				travel_rest.won = true
+		"story":
+			_story_done("sieg")
 	return false
 
 
@@ -750,7 +800,8 @@ func to_dict() -> Dictionary:
 		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true),
 		"ship_slots": ship_slots.duplicate(true), "ship_stock": ship_stock.duplicate(), "ship_ammo": ship_ammo.duplicate(),
 		"ship_damage": ship_damage.duplicate(), "gun_posts": gun_posts.duplicate(), "board_pending": board_pending.duplicate(true),
-		"contact": contact.duplicate(), "travel_rest": travel_rest.duplicate(), "pending_offer": pending_offer}
+		"contact": contact.duplicate(), "travel_rest": travel_rest.duplicate(), "pending_offer": pending_offer,
+		"story": story_engine().state.to_dict(), "story_queue": story_queue.duplicate()}
 
 
 static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
@@ -758,6 +809,10 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.day = int(d.get("day", 1))
 	g.sector = Sector.from_dict(d.get("sector", {}))
 	g.position = int(d.get("position", g.sector.home))
+	# alte Spielstände ohne Story: frischer Story-Zustand
+	g.story = d.get("story", {}).duplicate(true) if not d.get("story", {}).is_empty() else StoryState.create().to_dict()
+	for c in d.get("story_queue", []):
+		g.story_queue.append(String(c))
 	for o in d.get("offers", []):
 		var no := {"id": int(o.id), "system": int(o.system), "seed": int(o.seed), "difficulty": String(o.difficulty),
 			"expires": int(o.expires), "retry": bool(o.get("retry", false)), "kind": String(o.get("kind", "boden")),
@@ -833,3 +888,70 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	g.slot_name = d.get("slot_name", "")
 	g.slot = slot_no
 	return g
+
+
+# ---------------------------------------------------------------- Story (Auftrag 1, Entscheidungen des Nutzers 19.10.2026)
+
+## Das Story-Objekt dieses Spiels (einmal je Spielstand; der Zustand geht beim Speichern nach story)
+func story_engine() -> Story:
+	if _story == null:
+		_story = Story.create(StoryState.from_dict(story) if not story.is_empty() else StoryState.create(), self)
+	return _story
+
+
+## Story-Folgen auf Ressourcen mit den Regeln des Hubs: {credits, material, provisions, fuel: Änderung}. Credits dürfen
+## wie beim Notkredit unter 0, Material und Proviant nicht, der Tank bleibt zwischen 0 und dem Maximum. Gibt die
+## tatsächlichen Änderungen zurück.
+func apply_story(effects: Dictionary) -> Dictionary:
+	var out := {}
+	for k in effects:
+		var n := int(effects[k])
+		match String(k):
+			"credits":
+				credits += n
+				out[k] = n
+			"material", "provisions":
+				var v0 := int(get(k))
+				set(k, maxi(0, v0 + n))
+				out[k] = int(get(k)) - v0
+			"fuel":
+				var f0 := fuel
+				fuel = clampi(fuel + n, 0, tank_max())
+				out[k] = fuel - f0
+	return out
+
+
+## Szenenfenster vormerken (der Hub zeigt sie nacheinander, sobald kein anderes Fenster offen ist)
+func queue_story(chain: String) -> void:
+	if chain != "" and not chain in story_queue:
+		story_queue.append(chain)
+
+
+## Story-Einsatz als Angebot (Brücke, ohne Ablauf): {chain, kind, title, difficulty, …} oder leer
+func story_mission() -> Dictionary:
+	return story_engine().pending_mission()
+
+
+## Story-Einsatz starten, wo das Schiff liegt: "ground" (Bodenkampf, active gesetzt) oder "space" (Raumkampf, space_ctx;
+## Blockade = erst Raumkampf, bei Sieg der Bodenkampf). "" = keiner offen.
+func start_story_mission() -> String:
+	var m := story_mission()
+	if m.is_empty():
+		return ""
+	var kind := String(m.get("kind", "boden"))
+	if kind == "boden":
+		active = _story_ground(m)
+		return "ground"
+	space_ctx = {"kind": "story", "offer_id": -1, "faction": String(m.get("faction", SpaceEvents.faction_id(self, position))),
+		"difficulty": String(m.get("difficulty", "mittel")), "mission": String(m.get("title", "Story")), "then_ground": kind == "blockade"}
+	return "space"
+
+
+func _story_ground(m: Dictionary) -> Dictionary:
+	return {"id": -3, "system": position, "seed": randi() % 1000000, "difficulty": String(m.get("difficulty", "mittel")),
+		"expires": day, "retry": false, "story": true, "title": String(m.get("title", "")), "faction": String(m.get("faction", ""))}
+
+
+## Story-Einsatz beendet: Folgeszene vormerken
+func _story_done(outcome: String) -> void:
+	queue_story(story_engine().mission_done(outcome))
