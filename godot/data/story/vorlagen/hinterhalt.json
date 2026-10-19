@@ -1,0 +1,103 @@
+{
+	"id": "hinterhalt",
+	"kind": "haupt",
+	"title": "Kopfgeldjäger in {system}",
+	"trigger": "keiner",
+	"werte": {
+		"gegner": [
+			"glaeubiger"
+		],
+		"diff": [
+			"mittel"
+		]
+	},
+	"scenes": {
+		"start": {
+			"title": "Kopfgeldjäger",
+			"image": "k1_kopfgeld",
+			"text": "Kaum ist das Schiff in {system} angedockt, versperren Bewaffnete den Weg: Kopfgeldjäger, bezahlt vom Gläubiger.",
+			"choices": [
+				{
+					"text": "Kämpfen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "boden",
+								"title": "Kopfgeldjäger in {system}",
+								"difficulty": "{diff}",
+								"faction": "{gegner_id}",
+								"sieg": "frei",
+								"niederlage": "geschlagen",
+								"rueckzug": "geschlagen"
+							}
+						}
+					]
+				},
+				{
+					"text": "Sofort eine Rate zahlen (500 Credits)",
+					"requires": [
+						{
+							"credits": 500
+						}
+					],
+					"effects": [
+						{
+							"credits": -500
+						},
+						{
+							"goal": "schulden",
+							"add": 500,
+							"pay": true
+						}
+					],
+					"next": "bezahlt"
+				}
+			]
+		},
+		"frei": {
+			"title": "Abgezogen",
+			"text": "Die Jäger ziehen ab und lecken ihre Wunden.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		},
+		"bezahlt": {
+			"title": "Bezahlt",
+			"text": "Der Anführer zählt nach, nickt und gibt den Weg frei.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		},
+		"geschlagen": {
+			"title": "Geschlagen",
+			"text": "Sie nehmen, was sie kriegen können, und lassen euch liegen.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"credits_pct": -10
+						},
+						{
+							"end": "gescheitert"
+						}
+					]
+				}
+			]
+		}
+	}
+}

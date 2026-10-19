@@ -1,0 +1,267 @@
+{
+	"id": "wrack",
+	"kind": "kette",
+	"title": "Notruf: {schiff.name}",
+	"trigger": "reise",
+	"werte": {
+		"schiff": [
+			{
+				"name": "die Kestrel"
+			},
+			{
+				"name": "die Mondfähre 7"
+			},
+			{
+				"name": "die Vagabund"
+			},
+			{
+				"name": "die Eiserne Lilie"
+			}
+		],
+		"gegner": [
+			"pluenderer"
+		],
+		"diff": [
+			"leicht",
+			"mittel"
+		],
+		"fund": [
+			{
+				"name": "ein Sturmgewehr",
+				"key": "res://data/weapons/sturmgewehr.tres"
+			},
+			{
+				"name": "ein Laserkarabiner",
+				"key": "res://data/weapons/laserkarabiner.tres"
+			},
+			{
+				"name": "ein Kampfpanzer",
+				"key": "res://data/armor/mittel.tres"
+			},
+			{
+				"name": "zwei Medikits",
+				"key": "medkit"
+			}
+		]
+	},
+	"start": "start",
+	"scenes": {
+		"start": {
+			"title": "Notsignal",
+			"image": "ev_wrack",
+			"text": "Ein schwaches Notsignal: {schiff.name} treibt manövrierunfähig im All. Keine Antwort auf Funkrufe.",
+			"choices": [
+				{
+					"text": "Andocken und untersuchen",
+					"next": "ausgang"
+				},
+				{
+					"text": "Weiterfliegen",
+					"effects": [
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		}
+	},
+	"ausgaenge": {
+		"ueberlebende": {
+			"ausgang": {
+				"title": "Überlebende",
+				"text": "In der Messe kauern drei Überlebende, halb erfroren. Eine von ihnen ist verletzt.",
+				"choices": [
+					{
+						"text": "Mit einem Medikit versorgen und mitnehmen",
+						"requires": [
+							{
+								"item": "medkit"
+							}
+						],
+						"effects": [
+							{
+								"item": "medkit",
+								"take": 1
+							},
+							{
+								"credits": 300
+							},
+							{
+								"log": "Überlebende gerettet, die Reederei zahlt 300 Credits."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					},
+					{
+						"text": "Mitnehmen (3 Proviant)",
+						"effects": [
+							{
+								"provisions": -3
+							},
+							{
+								"credits": 200
+							},
+							{
+								"log": "Überlebende gerettet, die Reederei zahlt 200 Credits."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					},
+					{
+						"text": "Zurücklassen",
+						"effects": [
+							{
+								"log": "Überlebende zurückgelassen."
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			}
+		},
+		"beute": {
+			"ausgang": {
+				"title": "Verlassen",
+				"text": "Das Wrack ist leer, die Crew längst fort. Im Frachtraum liegt noch einiges.",
+				"choices": [
+					{
+						"text": "Bergen",
+						"check": {
+							"skill": "rsReparatur",
+							"diff": "mittel"
+						},
+						"results": {
+							"erfolg": {
+								"text": "Ihr schneidet den Frachtraum auf: {fund.name} und Schiffsmaterial.",
+								"effects": [
+									{
+										"item": "{fund.key}",
+										"add": 1
+									},
+									{
+										"material": 3
+									},
+									{
+										"end": "fertig"
+									}
+								]
+							},
+							"fehlschlag": {
+								"text": "Die Schotten klemmen. Mehr als ein paar Platten Schiffsmaterial bekommt ihr nicht heraus.",
+								"effects": [
+									{
+										"material": 1
+									},
+									{
+										"end": "fertig"
+									}
+								]
+							}
+						}
+					}
+				]
+			}
+		},
+		"falle": {
+			"ausgang": {
+				"title": "Eine Falle",
+				"text": "Kaum seid ihr drüben, flammen Lampen auf. Das Notsignal war ein Köder von {gegner}.",
+				"choices": [
+					{
+						"text": "Kämpfen",
+						"effects": [
+							{
+								"mission": {
+									"kind": "boden",
+									"title": "Falle im Wrack",
+									"difficulty": "{diff}",
+									"faction": "{gegner_id}",
+									"sieg": "sieg",
+									"niederlage": "niederlage",
+									"rueckzug": "niederlage"
+								}
+							}
+						]
+					}
+				]
+			},
+			"sieg": {
+				"title": "Abgewehrt",
+				"text": "Die Plünderer liegen am Boden. Ihre Kasse auch.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"credits": 150
+							},
+							{
+								"end": "fertig"
+							}
+						]
+					}
+				]
+			},
+			"niederlage": {
+				"title": "Zurück an Bord",
+				"text": "Ihr schafft es zurück aufs Schiff und legt ab.",
+				"choices": [
+					{
+						"text": "Weiter",
+						"effects": [
+							{
+								"end": "gescheitert"
+							}
+						]
+					}
+				]
+			}
+		},
+		"spur": {
+			"ausgang": {
+				"title": "Ein Schiff ohne Namen",
+				"text": "Das Wrack trägt keine Kennung, nur eine Nummer: 9. Im Labor an Bord stehen leere Glaszellen.",
+				"choices": [
+					{
+						"text": "Den Bordrechner auslesen",
+						"check": {
+							"skill": "computer",
+							"diff": "mittel"
+						},
+						"results": {
+							"erfolg": {
+								"text": "Ihr findet Frachtlisten: Psi-Begabte, abgeliefert an eine Station von Abteilung 9.",
+								"effects": [
+									{
+										"spur": "kapitel1"
+									},
+									{
+										"hint": "Wrack mit der Nummer 9: Psi-Begabte, abgeliefert an Abteilung 9."
+									},
+									{
+										"end": "fertig"
+									}
+								]
+							},
+							"fehlschlag": {
+								"text": "Der Rechner löscht sich selbst, als ihr ihn berührt.",
+								"effects": [
+									{
+										"end": "fertig"
+									}
+								]
+							}
+						}
+					}
+				]
+			}
+		}
+	}
+}

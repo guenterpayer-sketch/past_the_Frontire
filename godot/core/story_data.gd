@@ -1,16 +1,19 @@
 class_name StoryData
 extends RefCounted
 ## Story-Daten aus JSON-Dateien in data/story/ (Entscheidung 19.10.2026: JSON statt .tres).
-## Jede Datei außer bausteine.json ist eine Kette (Hauptstrang-Kapitel oder Ereigniskette).
+## Jede Datei außer bausteine.json ist eine Kette oder enthält mehrere unter "chains" (z. B. die Rückschläge).
+## Vorlagen für den Generator (StoryGen) liegen in data/story/vorlagen/.
 ## Aufbau einer Kette, Bedingungen und Folgen: docs/Planung_Story.md, Abschnitt „Datenformat“.
 
 const DIR := "res://data/story"
 const BAUSTEINE := "bausteine.json"
 const KINDS := ["haupt", "kette"]
 const TRIGGERS := ["start", "auftrag", "ort", "reise", "kontakt", "keiner"]
-const CONDITIONS := ["flag", "not_flag", "skill", "psi", "credits", "material", "provisions", "fuel", "var"]
+const CONDITIONS := ["flag", "not_flag", "skill", "psi", "credits", "material", "provisions", "fuel", "var", "day",
+	"item", "ship_level", "crew_ranks", "sectors", "goal_open"]
 const EFFECTS := ["flag", "unflag", "credits", "material", "provisions", "fuel", "hint", "log", "goal", "goal_new",
-	"mission", "end", "chain", "reveal", "var"]
+	"mission", "end", "chain", "reveal", "var", "item", "item_random", "credits_pct", "step_done", "step_failed", "step",
+	"spur", "capture", "recruit"]
 const RESULTS := ["herausragend", "erfolg", "teilerfolg", "fehlschlag", "patzer"]
 const MISSION_OUTCOMES := ["sieg", "niederlage", "rueckzug"]
 
@@ -18,27 +21,46 @@ const MISSION_OUTCOMES := ["sieg", "niederlage", "rueckzug"]
 static var dir := DIR
 static var _chains := {}
 static var _bausteine := {}
+static var _templates := {}
 static var _loaded := false
 
 
 static func reload() -> void:
 	_chains = {}
 	_bausteine = {}
+	_templates = {}
 	_loaded = true
-	var d := DirAccess.open(dir)
+	for f in _json_files(dir):
+		var data: Dictionary = f.data
+		if f.name == BAUSTEINE:
+			_bausteine = data
+		elif data.has("chains"):
+			for c in data.chains:
+				_chains[String(c.id)] = c
+		elif data.has("id"):
+			_chains[String(data.id)] = data
+	for f in _json_files(dir.path_join("vorlagen")):
+		if f.data.has("id"):
+			_templates[String(f.data.id)] = f.data
+
+
+## alle JSON-Objekte eines Ordners: [{name, data}]
+static func _json_files(path: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var d := DirAccess.open(path)
 	if d == null:
-		return
-	for f in d.get_files():
+		return out
+	var files := d.get_files()
+	files.sort()
+	for f in files:
 		if not f.ends_with(".json"):
 			continue
-		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(dir.path_join(f)))
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path.path_join(f)))
 		if not data is Dictionary:
 			push_warning("Story: %s ist kein gültiges JSON-Objekt" % f)
 			continue
-		if f == BAUSTEINE:
-			_bausteine = data
-		elif data.has("id"):
-			_chains[String(data.id)] = data
+		out.append({"name": f, "data": data})
+	return out
 
 
 static func _ensure() -> void:
@@ -58,6 +80,12 @@ static func chain(id: String) -> Dictionary:
 
 static func scene(chain_id: String, scene_id: String) -> Dictionary:
 	return chain(chain_id).get("scenes", {}).get(scene_id, {})
+
+
+## Vorlagen des Generators: {id: Vorlage}
+static func templates() -> Dictionary:
+	_ensure()
+	return _templates
 
 
 ## Bausteine je Gruppe ohne Infotexte: {gruppe: {schlüssel: {name, …}}}

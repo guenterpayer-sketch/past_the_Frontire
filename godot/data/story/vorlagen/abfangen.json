@@ -1,0 +1,174 @@
+{
+	"id": "abfangen",
+	"kind": "haupt",
+	"title": "Abfangen: {ziel.titel}",
+	"contact": "{kontakt}",
+	"einstieg": [
+		"kontakt",
+		"ort",
+		"auftrag",
+		"reise"
+	],
+	"werte": {
+		"ziel": [
+			{
+				"name": "ein Kurier",
+				"titel": "Der Kurier",
+				"kurz": "Der Kurier"
+			},
+			{
+				"name": "ein Gefangenentransport",
+				"titel": "Der Transport",
+				"kurz": "Der Transport"
+			},
+			{
+				"name": "ein Frachtschiff von {konzern}",
+				"titel": "Das Frachtschiff",
+				"kurz": "Das Frachtschiff"
+			}
+		],
+		"gegner": [
+			"abteilung9",
+			"hand",
+			"lokal"
+		],
+		"diff": [
+			"leicht",
+			"mittel",
+			"mittel",
+			"schwer"
+		],
+		"art": [
+			{
+				"name": "abfangen"
+			},
+			{
+				"name": "blockade"
+			}
+		],
+		"bild": [
+			"schritt_abfangen"
+		]
+	},
+	"scenes": {
+		"start": {
+			"title": "{ziel.titel}",
+			"image": "{bild}",
+			"text": "{einstieg} Bei {system} kreuzt {ziel.name}, unterwegs für {gegner}. An Bord: Antworten.",
+			"choices": [
+				{
+					"text": "Zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "{art}",
+								"title": "Abfangen: {ziel.titel}",
+								"difficulty": "{diff}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				},
+				{
+					"text": "Den Kurs vorausberechnen",
+					"check": {
+						"skill": "navigation",
+						"diff": "mittel"
+					},
+					"results": {
+						"erfolg": {
+							"next": "vorteil"
+						},
+						"fehlschlag": {
+							"next": "entdeckt"
+						}
+					}
+				}
+			]
+		},
+		"vorteil": {
+			"title": "Gut vorbereitet",
+			"text": "Ihr kennt jetzt Wege, Wachen und Zeiten.",
+			"choices": [
+				{
+					"text": "Zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "{art}",
+								"title": "Abfangen: {ziel.titel}",
+								"difficulty": "{diff_leichter}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				}
+			]
+		},
+		"entdeckt": {
+			"title": "Entdeckt",
+			"text": "Jemand hat geredet. Sie erwarten euch.",
+			"choices": [
+				{
+					"text": "Trotzdem zuschlagen",
+					"effects": [
+						{
+							"mission": {
+								"kind": "{art}",
+								"title": "Abfangen: {ziel.titel}",
+								"difficulty": "{diff_schwerer}",
+								"faction": "{gegner_id}",
+								"sieg": "erfolg",
+								"niederlage": "fehlschlag",
+								"rueckzug": "start"
+							}
+						}
+					]
+				}
+			]
+		},
+		"erfolg": {
+			"title": "Geschafft",
+			"text": "{ziel.kurz} ist gestellt. Im Bordrechner: Frachtpapiere einer Station, die es offiziell nicht gibt.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"hint": "{ziel.kurz} ist gestellt. Im Bordrechner: Frachtpapiere einer Station, die es offiziell nicht gibt."
+						},
+						{
+							"step_done": true
+						},
+						{
+							"end": "fertig"
+						}
+					]
+				}
+			]
+		},
+		"fehlschlag": {
+			"title": "Zu spät",
+			"text": "Das Schiff entkommt in den Sprung. Die Spur verliert sich.",
+			"choices": [
+				{
+					"text": "Weiter",
+					"effects": [
+						{
+							"step_failed": true
+						},
+						{
+							"end": "gescheitert"
+						}
+					]
+				}
+			]
+		}
+	}
+}
