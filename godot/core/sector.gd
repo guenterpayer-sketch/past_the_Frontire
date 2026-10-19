@@ -119,7 +119,7 @@ func _components() -> Array:
 ## Fraktionen: je Fraktion ein Kernsystem, die übrigen Systeme gehören zum nächsten Kern;
 ## der Heimathafen und weitere NEUTRAL Systeme sind neutral
 func _assign_factions(rng: RandomNumberGenerator) -> void:
-	var factions := Mission.all_factions()
+	var factions := Mission.sector_factions(rng)   # je Oberart eine (Bodenkampf Auftrag 1, bis Hub Auftrag 2)
 	var order := range(systems.size())
 	_shuffle(order, rng)
 	home = order[0]

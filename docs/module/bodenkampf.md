@@ -27,9 +27,12 @@
 
 ## Aufträge vom Koordinator
 
-- **Auftrag 1 (19.10.2026): Fraktions-Oberarten.** Grundlage: `docs/Planung_Story.md` (Abschnitt Fraktionen), `docs/Planung_Kampfkarten.md` (Ober- und Unterarten).
-  - `FactionData` bekommt das Feld `kind` mit den Werten Konzern, Söldner, Piraten, Syndikat, Kult und Story. Zuordnung: Vantar → Konzern, Leeres Licht → Kult, Rote Sonne → Söldner, Kessler → Syndikat.
-  - Je Oberart 2–3 benannte Fraktionen, die sich spielerisch unterscheiden (Waffen, Psi, Truppen). Namen und Eigenheiten erst mit dem Nutzer klären.
-  - Kartentypen an Oberarten binden, wie in `docs/Planung_Kampfkarten.md` vorgeschlagen, falls der Nutzer das will.
-  - Die drei Story-Fraktionen (Geheimbund, Psi-Orden, Konzern-Projekt) kommen erst, wenn der Story-Chat sie benannt hat. Die Fraktionen je Sektor wählt der Hub (Hub Auftrag 2).
-  - Neue Fraktions-IDs auch im Raumkampf nennen: Er wählt Schiffsvorlagen nach `faction`. Wo eine Vorlage fehlt, braucht der Raumkampf einen Ersatz; das in der Fertigmeldung vermerken.
+- **Auftrag 2 (19.10.2026): Entern-Briefing ohne Absagen.** Fehlermeldung des Nutzers, gemeldet über den Raumkampf: Im Briefing des Enter-Bodenkampfs beendet „Zurück ins Schiff“ (`ui/briefing_dialog.gd`) das Entern endgültig. Danach ruft `view/hub.gd` `HubState.abort_mission()` auf, das `board_pending` löscht bzw. die Abwehr als verloren wertet.
+  - Entscheidung des Nutzers: Beim Entern (selbst entern und Abwehr) fällt „Zurück ins Schiff“ weg. Stattdessen kommt ein Knopf **„Ausrüstung“** ins Briefing, der den Waffenkammer-Dialog öffnet (`ArmoryDialog`, Charakter-Modul, nur aufrufen). Entern lässt sich **nicht absagen**.
+  - Bei normalen Einsätzen bleibt „Zurück ins Schiff“. Hub-Dateien nur ändern, wenn es nötig ist, und das vermerken.
+  - Bitte auch prüfen: „Einsatz abbrechen und zurück ins Schiff?“ im laufenden Kampf (`view/battle.gd`, `return_to_ship`) führt beim Entern ebenso zu `abort_mission()`. Nach der Entscheidung oben dürfte auch das beim Entern nicht gehen. Das nehme ich an, entschieden ist es nicht, deshalb kurz mit dem Nutzer klären. Den Rückzug als eigenen Ausgang betrifft das nicht.
+  - Der Hub sichert parallel `abort_mission()` ab (Prompt an den Hub-Chat). Im Hub-Code ist „Abwehrsieg = gewonnener Raumkampf, `board_loot` buchen“ schon drin (`hub_state.gd` `_book_board_loot`, seit `da5886b`).
+- **Auftrag 3 (19.10.2026): Story-Fraktionen anlegen.** Angaben: `docs/Planung_Story.md`, Abschnitt „Story-Fraktionen“, auf dem Story-Branch `claude/zen-sagan-9yn0le` (`git show origin/claude/zen-sagan-9yn0le:docs/Planung_Story.md`; noch nicht in `main`).
+  - Drei Fraktionen mit `kind` = Story: **Die Stille Hand** (Angeheuerte: gemischte Söldner, wenige eigene Agenten mit Pistolen und Tarnung), **Die Wacht von Seraph** (psi-lastig, Nahkampfklingen; zwei Flügel Hirten und Klingen, ob als zwei Fraktionen, mit dem Nutzer klären), **Abteilung 9** (Psi-Soldaten und schwer gepanzerte Wachen). Semidrug Inc. gibt es schon.
+  - Story-Fraktionen gehören **nicht** in die zufällige Verteilung je Sektor (`Mission.sector_factions`). Sie kommen nur über Story-Einsätze.
+  - Abstimmen per Simulation wie bei Auftrag 1. Die IDs dem Raumkampf und dem Story-Chat nennen.

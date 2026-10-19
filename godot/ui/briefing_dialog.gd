@@ -143,7 +143,8 @@ func _mission_column(m: Mission) -> VBoxContainer:
 	var t := UiTheme.label(m.text, 15)
 	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left.add_child(t)
-	var f := UiTheme.label("%s – %s" % [m.faction.name, m.faction.description], 13, UiTheme.MUTED)
+	var f := UiTheme.label("%s (%s) – %s%s" % [m.faction.name, m.faction.kind_name(), m.faction.description,
+		("\nEigenheit: %s (%s)" % [m.faction.trait_name, m.faction.trait_text]) if m.faction.trait_name != "" else ""], 13, UiTheme.MUTED)
 	f.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left.add_child(f)
 	var sz: Dictionary = {}

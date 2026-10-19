@@ -20,6 +20,7 @@ const PANEL_W := 420.0
 const PICK_R := 28.0
 
 var game: HubState
+var _legend_factions: HBoxContainer   # Fraktionen des Sektors in der Legende (beim Öffnen gefüllt)
 var selected := -1
 var selected_offer := -1      # Auftrags-ID
 var _missions := {}           # Auftrags-ID -> Mission (Vorschau)
@@ -75,8 +76,9 @@ func _ready() -> void:
 	var lrow := HBoxContainer.new()
 	lrow.add_theme_constant_override("separation", 14)
 	leg.add_child(lrow)
-	for f in Mission.all_factions():
-		lrow.add_child(UiTheme.label("● " + f.name, 13, f.color))
+	_legend_factions = HBoxContainer.new()
+	_legend_factions.add_theme_constant_override("separation", 14)
+	lrow.add_child(_legend_factions)
 	lrow.add_child(UiTheme.label("◆ Auftrag", 13, UiTheme.ACCENT))
 	lrow.add_child(UiTheme.label("◆ eigenes Schiff", 13, UiTheme.CREW))
 	lrow.add_child(UiTheme.label("○ Story-Ort", 13, StoryDialog.STORY_COLOR))
@@ -107,6 +109,15 @@ func _process(_d: float) -> void:
 
 func open(g: HubState) -> void:
 	game = g
+	# Legende: nur die Fraktionen dieses Sektors (es gibt mehr Fraktionen als Plätze; Bodenkampf Auftrag 1)
+	UiTheme.clear(_legend_factions)
+	var shown := {}
+	for sys in g.sector.systems:
+		var p := String(sys.faction)
+		if p != "" and not shown.has(p) and ResourceLoader.exists(p):
+			shown[p] = true
+			var f: FactionData = load(p)
+			_legend_factions.add_child(UiTheme.label("● " + f.name, 13, f.color))
 	_missions.clear()
 	if selected < 0 or selected >= g.sector.systems.size():
 		selected = g.position

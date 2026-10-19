@@ -219,7 +219,7 @@ func _start_round() -> void:
 	for u in ready:
 		var a := Dice.d(10)
 		var b := Dice.d(10)
-		var bonus := Rules.initiative_bonus(u)
+		var bonus: int = Rules.initiative_bonus(u) + u.trait_val("init")
 		u.init = a + b + bonus
 		u.init_roll = "%d+%d%s" % [a, b, Dice.fmt(bonus)]
 	ready.sort_custom(func(x: Combatant, y: Combatant) -> bool:
@@ -568,7 +568,9 @@ func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: Batt
 		if def.buffs.has("abschirmen"):
 			mods.append({"label": "Abschirmen", "val": def.buffs.abschirmen.val})
 		return mods
-	var dodge := maxi(0, Rules.skill_total(def, &"ausweichen"))
+	if def.trait_val("db"):
+		mods.append({"label": String(def.faction_trait.name), "val": def.trait_val("db")})
+	var dodge := maxi(0, Rules.skill_total(def, &"ausweichen") + def.trait_val("dodge"))
 	var reserve := reserve_of(def)
 	var normal := dodge / 2 + int(dodge / 2.0 * reserve / 100.0)
 	var surprised := Hex.sector(to.pos, facing, from.pos) != &"vorne"
@@ -664,6 +666,10 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 		ob.append({"label": "Ziel geduckt", "val": CROUCH_MELEE_OB})
 	if w.ob_bonus:
 		ob.append({"label": w.name if w.power != "" else "Bonus", "val": w.ob_bonus})
+	# Eigenheit der Fraktion (Bodenkampf Auftrag 1): Angriff allgemein, im Nahkampf, mit Psi
+	var t_ob := att.trait_val("ob") + (att.trait_val("melee_ob") if w.melee else 0) + (att.trait_val("psi_ob") if w.psi or w.power != "" else 0)
+	if t_ob:
+		ob.append({"label": String(att.faction_trait.name), "val": t_ob})
 	if att.weapon_wear(w) != 0:
 		ob.append({"label": "Waffe gutes Stück" if att.weapon_wear(w) > 0 else "Waffe beschädigt", "val": att.weapon_wear(w)})
 	var burst := Ammo.shots_next(w, att.loaded.get(w.id, 0))

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="FactionData" format=3]
+
+[ext_resource type="Script" path="res://data/types/faction_data.gd" id="1_fac"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_unit"]
+[ext_resource type="Resource" path="res://data/units/enemies/enterer.tres" id="3_u0"]
+[ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_u1"]
+[ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="10_w0"]
+
+[resource]
+script = ExtResource("1_fac")
+name = "Schwarze Flagge"
+description = "Piraten-Enterkommandos, die den Kampf Mann gegen Mann suchen."
+kind = &"piraten"
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
+weights = Array[int]([4, 3, 2])
+max_same = 3
+color = Color(0.85, 0.2, 0.25, 1)
+trait_name = "Entern"
+trait_text = "+10 Angriff im Nahkampf"
+trait_mods = {
+"melee_ob": 10
+}
+weapon_swap = {
+"laserkarabiner": ExtResource("10_w0")
+}
+maps = Array[StringName]([&"bar"])

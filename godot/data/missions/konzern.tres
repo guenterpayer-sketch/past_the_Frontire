@@ -5,12 +5,20 @@
 [ext_resource type="Resource" path="res://data/units/enemies/brecher.tres" id="3_br"]
 [ext_resource type="Resource" path="res://data/units/enemies/funke.tres" id="4_fu"]
 [ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="5_pl1"]
+[ext_resource type="Resource" path="res://data/units/enemies/sicherheitsagent.tres" id="9_add"]
 
 [resource]
 script = ExtResource("1_fac")
 name = "Sicherheitsdienst Vantar-Konzern"
 description = "Wenige, schwer gepanzerte Profis mit schweren Waffen."
-units = Array[ExtResource("2_unit")]([ExtResource("3_br"), ExtResource("4_fu"), ExtResource("5_pl1")])
-weights = Array[int]([3, 3, 2])
+units = Array[ExtResource("2_unit")]([ExtResource("3_br"), ExtResource("4_fu"), ExtResource("5_pl1"), ExtResource("9_add")])
+weights = Array[int]([3, 3, 2, 3])
 max_same = 3
 color = Color(0.365, 0.718, 1, 1)
+kind = &"konzern"
+trait_name = "Gute Panzerung"
+trait_text = "+5 Verteidigung"
+trait_mods = {
+"db": 5
+}
+maps = Array[StringName]([&"buero", &"strasse"])

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_ar"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_soldier.tres" id="4_vi"]
+[ext_resource type="Resource" path="res://data/weapons/sturmgewehr.tres" id="5_w0"]
+[ext_resource type="Resource" path="res://data/weapons/vibroklinge.tres" id="6_w1"]
+
+[resource]
+script = ExtResource("2_ud")
+id = &"sturmlaeufer"
+name = "Sturmläufer"
+letter = "S"
+role = "Stoßtrupp"
+color = Color(0.75, 0.35, 0.2, 1)
+attrs = {
+"EMP": 35,
+"GEW": 75,
+"INT": 45,
+"KON": 70,
+"KOO": 70,
+"MEN": 55,
+"STA": 75
+}
+skills = {
+"ausweichen": 5,
+"einhand": 6,
+"gewehre": 6,
+"kampfsinn": 4
+}
+weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0"), ExtResource("6_w1")])
+armor = ExtResource("1_ar")
+threat = 11
+visual = ExtResource("4_vi")
