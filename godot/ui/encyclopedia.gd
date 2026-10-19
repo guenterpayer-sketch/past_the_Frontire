@@ -7,15 +7,19 @@ extends Modal
 ## Bereiche Raumkampf (Entscheidungen des Nutzers 19.10.2026, Daten nur gelesen aus ShipWeapons, SpaceTemplates,
 ## SpaceSetup, ShipUpgrades, ShipArms, docs/Raumkampf.md): s_waffen, s_schiffe, s_seiten, s_ausbau, s_munition,
 ## s_stationen, s_regeln. Leiste mit zwei Gruppen, Werte als Einzelseiten mit „Übersicht“ als Vergleichstabelle.
+## Hub Auftrag 5 (Entscheidungen des Nutzers 19.10.2026): fraktionen, gegner (Bodenkampf, Daten aus data/missions und
+## data/units/enemies), Gruppe REISE mit orte (Places) und sektoren (Sector, Sprungtore, Papiere, Häfen).
 
 const SECTIONS := [
 	[&"waffen", "Waffen"], [&"ruestungen", "Rüstungen"], [&"tabellen", "Angriffstabellen"], [&"kritische", "Kritische Treffer"],
-	[&"patzer", "Patzer"], [&"psi", "Psi-Listen"], [&"fertigkeiten", "Fertigkeiten"], [&"regeln", "Kurzregeln"],
+	[&"patzer", "Patzer"], [&"psi", "Psi-Listen"], [&"fertigkeiten", "Fertigkeiten"], [&"fraktionen", "Fraktionen"],
+	[&"gegner", "Gegnertypen"], [&"regeln", "Kurzregeln"],
 	[&"s_waffen", "Schiffswaffen"], [&"s_schiffe", "Gegnerschiffe"], [&"s_seiten", "Gegnerseiten"], [&"s_ausbau", "Schiffsausbau"],
 	[&"s_munition", "Schiffsmunition"], [&"s_stationen", "Stationen"], [&"s_regeln", "Kurzregeln Raumkampf"],
+	[&"orte", "Orte"], [&"sektoren", "Sektoren und Tore"],
 ]
 ## Zwischenüberschriften der Leiste: vor diesem Bereich beginnt die Gruppe
-const GROUPS := {&"waffen": "BODENKAMPF", &"s_waffen": "RAUMKAMPF"}
+const GROUPS := {&"waffen": "BODENKAMPF", &"s_waffen": "RAUMKAMPF", &"orte": "REISE"}
 ## Kurzregeln Raumkampf: Eintrag → Überschrift-Anfang in docs/Raumkampf.md (ohne „Offene Fragen“)
 const SPACE_RULES := [
 	["Karte und Ablauf", "## 1."], ["Stationen (Regel)", "## 2."], ["Jäger", "## 3."], ["Treffer und Schaden", "## 4."],
@@ -73,7 +77,7 @@ func show_at(sec: StringName = &"", item := "") -> void:
 	content.add_child(cols)
 	_side = VBoxContainer.new()
 	_side.custom_minimum_size.x = 230
-	_side.add_theme_constant_override("separation", 4)
+	_side.add_theme_constant_override("separation", 2)
 	cols.add_child(_side)
 	_list = VBoxContainer.new()
 	_list.custom_minimum_size.x = 240
@@ -98,18 +102,15 @@ func show_at(sec: StringName = &"", item := "") -> void:
 
 func _render_side() -> void:
 	UiTheme.clear(_side)
-	_side.add_child(UiTheme.label("Suche", 12, UiTheme.MUTED))
+	# drei Gruppen in der Leiste: knapp gesetzt, damit alle Bereiche ohne Scrollen sichtbar sind (Hub Auftrag 5)
 	_search = LineEdit.new()
-	_search.placeholder_text = "z. B. Deckung, Psi-Stoß"
+	_search.placeholder_text = "Suche, z. B. Deckung"
 	_search.custom_minimum_size.y = 38
 	_search.text = query
 	_search.text_changed.connect(func(t: String) -> void:
 		query = t.strip_edges()
 		_render())
 	_side.add_child(_search)
-	var gap := Control.new()
-	gap.custom_minimum_size.y = 8
-	_side.add_child(gap)
 	for s in SECTIONS:
 		if GROUPS.has(s[0]):
 			_side.add_child(UiTheme.label(GROUPS[s[0]], 12, UiTheme.MUTED))
@@ -117,7 +118,8 @@ func _render_side() -> void:
 		var b := UiTheme.button("%s   (%d)" % [s[1], n], "", true)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.button_pressed = s[0] == section and query == ""
-		b.custom_minimum_size.y = 34
+		b.custom_minimum_size.y = 28
+		b.add_theme_font_size_override("font_size", 15)
 		var id: StringName = s[0]
 		b.pressed.connect(func() -> void:
 			section = id
@@ -243,6 +245,8 @@ func _build(sec: StringName) -> Array:
 		&"s_regeln":
 			for r in SPACE_RULES:
 				out.append({"name": r[0], "text": rule_text(r[1], SPACE_RULES_FILE)})
+		&"fraktionen", &"gegner", &"orte", &"sektoren":
+			out = world_entries(sec)
 		_:
 			out = space_entries(sec)
 	return out
@@ -658,3 +662,232 @@ static func station_text(title: String, skill: StringName, key := "") -> String:
 static func free_stations_text() -> String:
 	var rows := [["Bord-KI", "fester Bonus %s" % Dice.fmt(SpaceSetup.KI_BONUS)], ["Doppelbesetzung", "eine Person an zwei Stationen, beide Würfe %d" % SpaceSetup.DOUBLE_MALUS]]
 	return _page("Freie Stationen", rows)
+
+
+# ---------------------------------------------------------------- Fraktionen, Gegnertypen, Orte, Sektoren (Hub Auftrag 5)
+
+const ENEMY_DIR := "res://data/units/enemies"
+const ATTRS := ["STA", "GEW", "KOO", "KON", "INT", "EMP", "MEN"]
+
+
+## Einträge der Bereiche fraktionen, gegner, orte, sektoren
+static func world_entries(sec: StringName) -> Array:
+	var out := []
+	match sec:
+		&"fraktionen":
+			out.append({"name": OVERVIEW, "text": factions_overview()})
+			for f in _factions():
+				out.append({"name": f.name, "text": faction_text(f)})
+		&"gegner":
+			out.append({"name": OVERVIEW, "text": enemies_overview()})
+			for u in enemy_units():
+				out.append({"name": unit_label(u), "text": enemy_text(u)})
+		&"orte":
+			out.append({"name": OVERVIEW, "text": places_overview()})
+			for k in Places.KINDS:
+				out.append({"name": Places.kind_name(k), "text": place_text(k)})
+		&"sektoren":
+			out.append({"name": "Sektoren", "text": sectors_text()})
+			out.append({"name": "Sprungtore", "text": gates_text()})
+			out.append({"name": "Häfen", "text": harbors_text()})
+	return out
+
+
+## Fraktionen nach Oberart (Story zuletzt), dann Name
+static func _factions() -> Array[FactionData]:
+	var list := Mission.all_factions()
+	var order := FactionData.KINDS.keys()
+	list.sort_custom(func(a: FactionData, b: FactionData) -> bool:
+		var ka := order.find(a.kind)
+		var kb := order.find(b.kind)
+		return ka < kb or (ka == kb and a.name < b.name))
+	return list
+
+
+## Gegnertypen aus data/units/enemies, nach Name
+static func enemy_units() -> Array[UnitData]:
+	var out: Array[UnitData] = []
+	for f in ResourceLoader.list_directory(ENEMY_DIR):
+		if f.ends_with(".tres"):
+			out.append(load(ENEMY_DIR.path_join(f)))
+	out.sort_custom(func(a: UnitData, b: UnitData) -> bool: return a.name < b.name)
+	return out
+
+
+## Eintragsname eines Gegnertyps; gleiche Namen (Plünderer) werden nach der Datei durchnummeriert
+static func unit_label(u: UnitData) -> String:
+	var same := enemy_units().filter(func(x: UnitData) -> bool: return x.name == u.name)
+	if same.size() < 2:
+		return u.name
+	return "%s %d" % [u.name, same.map(func(x: UnitData) -> String: return x.resource_path).find(u.resource_path) + 1]
+
+
+static func _maps_text(f: FactionData) -> String:
+	if f.maps.is_empty():
+		return "alle gleich oft"
+	return "%s (%d %% der Einsätze)" % [", ".join(Array(f.maps).map(func(m) -> String: return MapTypes.type_name(m))), roundi(FactionData.MAP_CHANCE * 100)]
+
+
+## Raumkampf-Seite der Fraktion: eigene Seite oder Ersatz „Piraten“
+static func _side_link(f: FactionData) -> String:
+	var id := f.resource_path.get_file().get_basename()
+	var sides := SpaceTemplates.factions()
+	if sides.has(id):
+		return _link("s_seiten", String(sides[id].name))
+	return "%s (Ersatz)" % _link("s_seiten", SpaceTemplates.faction_name("piraten"))
+
+
+static func _trait_text(f: FactionData) -> String:
+	return "%s: %s" % [f.trait_name, f.trait_text] if f.trait_name != "" else "–"
+
+
+static func _color_dot(c: Color) -> String:
+	return "[color=#%s]●[/color]" % c.to_html(false)
+
+
+static func factions_overview() -> String:
+	var rows := []
+	for f in _factions():
+		rows.append([_color_dot(f.color) + " " + _link("fraktionen", f.name), f.kind_name(), f.trait_name if f.trait_name != "" else "–",
+			", ".join(Array(f.maps).map(func(m) -> String: return MapTypes.type_name(m))) if not f.maps.is_empty() else "alle", _side_link(f)])
+	return "[font_size=24][b]Fraktionen[/b][/font_size]\n\n" + _grid(["Fraktion", "Oberart", "Eigenheit", "Karten", "Raumkampf"], rows) \
+		+ "\n\n[color=%s]Je Sektor stellt jede Oberart (außer Story) eine Fraktion. Story-Fraktionen treten nur in Story-Einsätzen auf und zahlen keinen Lohn.[/color]" % MUTED
+
+
+static func faction_text(f: FactionData) -> String:
+	var total := 0
+	for w in f.weights:
+		total += w
+	var units := []
+	for i in f.units.size():
+		var u := f.units[i]
+		var w: int = f.weights[i] if i < f.weights.size() else 0
+		units.append([_link("gegner", unit_label(u)), u.role, "%d %%" % roundi(100.0 * w / maxi(1, total))])
+	var swap := []
+	for k in f.weapon_swap:
+		var to = f.weapon_swap[k]
+		swap.append("%s → %s" % [String(k), _link("waffen", to.name) if to is WeaponData else str(to)])
+	var pay := "kein Lohn (Story)" if f.kind == &"story" else "Lohn ×%s%s" % [_num(float(Voyage.PAY_FACTOR.get(f.resource_path.get_file().get_basename(), 1.0))),
+		(", +%d Schiffsmaterial" % int(Voyage.LOOT_BONUS[f.resource_path.get_file().get_basename()])) if Voyage.LOOT_BONUS.has(f.resource_path.get_file().get_basename()) else ""]
+	var rows := [["Oberart", f.kind_name()], ["Farbe", "%s auf der Sternenkarte" % _color_dot(f.color)], ["Eigenheit", _trait_text(f)],
+		["Karten", _maps_text(f)], ["Waffentausch", ", ".join(swap) if not swap.is_empty() else "–"],
+		["Höchstens gleich", "%d Figuren desselben Typs" % f.max_same], ["Auftraggeber", pay], ["Raumkampf", _side_link(f)]]
+	var tail := ("[color=%s]%s[/color]\n\n" % [MUTED, f.description]) if f.description != "" else ""
+	tail += "[color=%s]GEGNERZUSAMMENSTELLUNG (Anteil beim Würfeln)[/color]\n" % MUTED + _grid(["Gegnertyp", "Rolle", "Anteil"], units)
+	return _page(f.name, rows, tail)
+
+
+## Psi-Kräfte eines Gegnertyps aus seinen Listenrängen
+static func _unit_psi(u: UnitData) -> String:
+	var out := []
+	for k in PsiCombat.ATTACKS.keys() + PsiCombat.SUPPORT.keys():
+		var list := PsiCombat.list_of(k)
+		if int(u.skills.get(String(list), 0)) >= PsiCombat.level_of(k):
+			out.append(PsiCombat.name_of(k))
+	return ", ".join(out) if not out.is_empty() else "–"
+
+
+static func _unit_weapons(u: UnitData) -> String:
+	return ", ".join(u.weapons.map(func(w: WeaponData) -> String: return _link("waffen", w.name))) if not u.weapons.is_empty() else "–"
+
+
+static func enemies_overview() -> String:
+	var rows := []
+	for u in enemy_units():
+		rows.append([_link("gegner", unit_label(u)), u.role, str(u.threat), _unit_weapons(u), _link("ruestungen", u.armor.name) if u.armor else "–", _unit_psi(u)])
+	return "[font_size=24][b]Gegnertypen[/b][/font_size]\n\n" + _grid(["Gegner", "Rolle", "Bedrohung", "Waffen", "Rüstung", "Psi"], rows) \
+		+ "\n\n[color=%s]Bedrohung = Kosten im Gegnerbudget des Missionsgenerators.[/color]" % MUTED
+
+
+static func enemy_text(u: UnitData) -> String:
+	var used := []
+	for f in _factions():
+		if u in f.units:
+			used.append(_link("fraktionen", f.name))
+	var skills := []
+	var keys := u.skills.keys()
+	keys.sort()
+	for k in keys:
+		skills.append("%s %d" % [Rules.skill_name(StringName(k)), int(u.skills[k])])
+	var rows := [["Rolle", u.role], ["Bedrohung", str(u.threat)],
+		["Eigenschaften", "  ".join(ATTRS.map(func(a: String) -> String: return "%s %d" % [a, int(u.attrs.get(a, 50))]))],
+		["Fertigkeiten (Rang)", ", ".join(skills) if not skills.is_empty() else "–"], ["Waffen", _unit_weapons(u)],
+		["Rüstung", _link("ruestungen", u.armor.name) if u.armor else "keine"], ["Schild", "ja" if u.shield else "nein"],
+		["Medikits", str(u.medkits)], ["Psi", _unit_psi(u)], ["Fraktionen", ", ".join(used) if not used.is_empty() else "–"]]
+	return _page(unit_label(u), rows, "[color=%s]Die Eigenheit der Fraktion (siehe dort) wirkt zusätzlich auf jede ihrer Figuren.[/color]" % MUTED)
+
+
+static func _result_rows(table: Dictionary, fmt: Callable) -> Array:
+	var rows := []
+	for r in [&"herausragend", &"erfolg", &"teilerfolg", &"fehlschlag", &"patzer"]:
+		rows.append([{&"herausragend": "Herausragend", &"erfolg": "Erfolg", &"teilerfolg": "Teilerfolg", &"fehlschlag": "Fehlschlag", &"patzer": "Patzer"}[r],
+			fmt.call(table.get(r))])
+	return rows
+
+
+static func _salvage_gain(g: Dictionary) -> String:
+	var parts := []
+	if g.has("hull"):
+		parts.append("Hülle %s" % Dice.fmt(int(g.hull)))
+	if g.has("material"):
+		parts.append("+%d Schiffsmaterial" % int(g.material))
+	if g.has("craft"):
+		parts.append("+%d Handwerksmaterial" % int(g.craft))
+	if g.get("weapon", false):
+		parts.append("eine beschädigte Schiffswaffe (−20)")
+	return ", ".join(parts) if not parts.is_empty() else "nichts"
+
+
+static func _place_maps(kind: String) -> String:
+	return ", ".join(Places.MAPS[kind].map(func(m) -> String: return MapTypes.type_name(m))) if Places.has_ground(kind) else "keine Bodeneinsätze"
+
+
+static func places_overview() -> String:
+	var rows := []
+	for k in Places.KINDS:
+		rows.append([_link("orte", Places.kind_name(k)), Places.function_text(k), _place_maps(k)])
+	return "[font_size=24][b]Orte[/b][/font_size]\n\n" + _grid(["Ort", "Möglichkeiten", "Kartentypen"], rows) \
+		+ "\n\n[color=%s]Jedes System hat %d–%d Orte, jeder Hafen eine Station. Doppelklick auf ein System öffnet die Systemansicht; dort Ort wählen und „Anfliegen“ (keine Zeit), Aktionen nur, wenn das Schiff im System liegt.[/color]" % [MUTED, Places.MIN_PLACES, Places.MAX_PLACES]
+
+
+static func place_text(kind: String) -> String:
+	var rows := [["Möglichkeiten", Places.function_text(kind)], ["Kartentypen", _place_maps(kind)]]
+	var tail := ""
+	match kind:
+		"station":
+			rows.append(["Handel", "Händler und Schiffshändler; außerhalb eines Hafens Preise ×%s" % _num(Places.STATION_FACTOR)])
+		"wrack":
+			rows.append(["Bergung", "1 Tag, Probe %s (mittel), wer an Bord am besten ist; danach ist das Wrack leer" % Rules.skill_name(Places.SALVAGE_SKILL)])
+			tail = "[color=%s]ERGEBNISSE[/color]\n" % MUTED + _grid(["Probe", "Ertrag"], _result_rows(Places.SALVAGE, func(g) -> String: return _salvage_gain(g)))
+		"gas", "nebel":
+			rows.append(["Treibstoff schöpfen", "1 Tag, Probe %s (mittel), beliebig oft, bis der Tank voll ist" % Rules.skill_name(Places.SKIM_SKILL)])
+			tail = "[color=%s]ERGEBNISSE[/color]\n" % MUTED + _grid(["Probe", "Ertrag"], _result_rows(Places.SKIM, func(n) -> String:
+				return ("Hülle %s" % Dice.fmt(int(n))) if int(n) < 0 else ("+%d Treibstoff" % int(n)) if int(n) > 0 else "nichts"))
+	rows.append(["Story", "Story-Orte können hier liegen; sie beginnen beim Anfliegen"])
+	return _page(Places.kind_name(kind), rows, tail)
+
+
+static func sectors_text() -> String:
+	var rows := [["Sektoren", "%d je Spiel, im Dreieck durch Sprungtore verbunden" % Sector.SECTOR_COUNT],
+		["Systeme", "%d–%d je Sektor, jedes mit seinen %d nächsten Nachbarn verbunden" % [Sector.SYSTEM_MIN, Sector.SYSTEM_MAX, Sector.NEIGHBORS]],
+		["Reise", "höchstens %d Reisetage je Strecke, Reiseproben je Tag" % Sector.MAX_DAYS],
+		["Fraktionen", "je Sektor eine %s je Oberart; jedes System gehört einer Fraktion oder ist ein Hafen" % _link("fraktionen", OVERVIEW, "Fraktion")],
+		["Bekannt", "der Startsektor; weitere, sobald das Schiff durch ein Tor springt (Knopf „Sektoren“ in der Sternenkarte)"]]
+	return _page("Sektoren", rows, _link("regeln", "Reise, Schiff, Credits", "Regeln zu Reise und Schiff"))
+
+
+static func gates_text() -> String:
+	var rows := [["Lage", "2 je Sektor, am Kartenrand, nie am Heimathafen"],
+		["Gebühr", "%d–%d Cr, nach %s" % [Sector.GATE_FEE[0], Sector.GATE_FEE[1], Rules.skill_name(&"verhandeln")]],
+		["Papiere", "etwa %d %% der Tore verlangen Papiere des Betreibers; Kauf im Hafen, %d Cr nach Verhandeln" % [roundi(Sector.PAPERS_CHANCE * 100), HubState.PAPERS_PRICE]],
+		["Sprung", "das Schiff muss im System des Tors liegen; kostet 1 Tag; offene Aufträge des alten Sektors verfallen"],
+		["Rückweg", "jedes Tor hat im Zielsektor ein Gegenstück zurück"]]
+	return _page("Sprungtore", rows)
+
+
+static func harbors_text() -> String:
+	var rows := [["Anzahl", "%d neutrale Häfen je Sektor" % Sector.NEUTRAL], ["Station", "jeder Hafen hat eine Station"],
+		["Angebot", "Händler, Schiffshändler, Werft, Crew anheuern, Papiere, Treibstoff, Proviant, Munition"],
+		["Preise", "Grundpreise nach Verhandeln (Stationen außerhalb: ×%s)" % _num(Places.STATION_FACTOR)],
+		["Sicherheit", "weniger Feindkontakt auf der Reise als in Fraktionssystemen"]]
+	return _page("Häfen", rows)
