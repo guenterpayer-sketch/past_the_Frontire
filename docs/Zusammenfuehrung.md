@@ -14,7 +14,7 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77608b1`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
 | `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`697e182`), nichts offen |
-| `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), nichts offen |
+| `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), offen: Auftrag 6 (Szenenfenster schließt nicht, dringend) |
 
 ## Verlauf
 
