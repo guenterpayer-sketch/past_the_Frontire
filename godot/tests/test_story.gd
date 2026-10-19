@@ -26,6 +26,12 @@ func _init() -> void:
 	_test_items_and_keys()
 	_test_events_and_harbor()
 	_test_faction_ids()
+
+
+## Oberflächen-Tests erst, wenn der Baum steht (_ready der Fenster)
+func _initialize() -> void:
+	await process_frame
+	await _test_dialog_close()
 	Voyage.fixed_result = &""
 	Story.fixed_travel = -1
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
@@ -493,3 +499,53 @@ func _collect_factions(x: Variant, ids: Dictionary, where: String) -> void:
 	elif x is Array:
 		for e in x:
 			_collect_factions(e, ids, where)
+
+
+## Auftrag 6: Szenenfenster bis zum Ende durchklicken, danach muss es unsichtbar sein (closable = false sperrt Modal.close);
+## Logbuch schließt über „Schließen“ und liegt über dem Szenenfenster
+func _test_dialog_close() -> void:
+	var s := _story()
+	s.start("test_kette")
+	Voyage.fixed_result = &"erfolg"
+	var host := Control.new()
+	root.add_child(host)
+	await process_frame
+	var d := StoryDialog.show_on(host, s, "test_kette")
+	var done := [false]
+	d.finished.connect(func(_id: String) -> void: done[0] = true)
+	var steps := 0
+	while d.visible and steps < 40:
+		var b := _first_button(d, ["Würfeln", "Probe ablegen", "Wählen", "Weiter", "Schließen"])
+		if b == null:
+			break
+		b.pressed.emit()
+		steps += 1
+	check(not d.visible and done[0], "Szenenfenster nach dem Ende geschlossen (%d Klicks, Kette %s)" % [steps, s.state.status("test_kette")])
+	d.show_chain(s, "test_kette")
+	check(not d.visible, "Szenenfenster mit beendeter Kette bleibt zu (%s, %s)" % [s.state.status("test_kette"), s.view("test_kette").keys()])
+	var lg := StoryLog.show_on(host, s)
+	check(lg.visible and lg.get_index() > d.get_index(), "Logbuch offen und über dem Szenenfenster")
+	var c := _first_button(lg, ["Schließen"])
+	if c != null:
+		c.pressed.emit()
+	check(c != null and not lg.visible, "Logbuch schließt")
+	Voyage.fixed_result = &""
+	host.queue_free()
+
+
+## erster sichtbare, nicht gesperrte Knopf mit einem der Texte (in der Reihenfolge der Texte)
+func _first_button(n: Node, texts: Array) -> Button:
+	var all: Array[Button] = []
+	_buttons(n, all)
+	for t in texts:
+		for b in all:
+			if b.text == t and not b.disabled and b.is_visible_in_tree():
+				return b
+	return null
+
+
+func _buttons(n: Node, out: Array[Button]) -> void:
+	for c in n.get_children():
+		if c is Button:
+			out.append(c)
+		_buttons(c, out)
