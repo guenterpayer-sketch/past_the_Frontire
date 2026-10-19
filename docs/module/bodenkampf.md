@@ -27,4 +27,9 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+- **Auftrag 1 (19.10.2026): Fraktions-Oberarten.** Grundlage: `docs/Planung_Story.md` (Abschnitt Fraktionen), `docs/Planung_Kampfkarten.md` (Ober- und Unterarten).
+  - `FactionData` bekommt das Feld `kind` mit den Werten Konzern, Söldner, Piraten, Syndikat, Kult und Story. Zuordnung: Vantar → Konzern, Leeres Licht → Kult, Rote Sonne → Söldner, Kessler → Syndikat.
+  - Je Oberart 2–3 benannte Fraktionen, die sich spielerisch unterscheiden (Waffen, Psi, Truppen). Namen und Eigenheiten erst mit dem Nutzer klären.
+  - Kartentypen an Oberarten binden, wie in `docs/Planung_Kampfkarten.md` vorgeschlagen, falls der Nutzer das will.
+  - Die drei Story-Fraktionen (Geheimbund, Psi-Orden, Konzern-Projekt) kommen erst, wenn der Story-Chat sie benannt hat. Die Fraktionen je Sektor wählt der Hub (Hub Auftrag 2).
+  - Neue Fraktions-IDs auch im Raumkampf nennen: Er wählt Schiffsvorlagen nach `faction`. Wo eine Vorlage fehlt, braucht der Raumkampf einen Ersatz; das in der Fertigmeldung vermerken.

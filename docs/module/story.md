@@ -26,4 +26,8 @@
 
 ## Aufträge vom Koordinator
 
-(keine offenen Aufträge; nächste Aufträge folgen nach Abstimmung mit dem Nutzer)
+### Auftrag 3 (19.10.2026): Inhalte klären und schreiben
+
+- Zuerst die drei Story-Fraktionen mit dem Nutzer ausarbeiten (Namen, Oberart, Ziele, wie sie zueinander stehen) und in `docs/Planung_Story.md` eintragen. Der Bodenkampf legt sie dann als Fraktionsdaten an, Auftrag über den Koordinator.
+- Danach Kapitel 1 und die drei Ereignisketten: erst Ablauf und Eckpunkte klären, dann die Szenen als JSON in `data/story/` schreiben. Dazu die Bildliste mit Prompts. Die offenen Punkte 3–5 aus `docs/Planung_Story.md` mitklären.
+- Parallel bindet der Hub die Story an (Hub Auftrag 1) und baut danach die Sektorkarte um (Hub Auftrag 2). Rückfragen dazu über den Nutzer an den Hub-Chat oder den Koordinator.
