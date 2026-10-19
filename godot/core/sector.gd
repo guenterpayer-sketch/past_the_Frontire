@@ -135,7 +135,8 @@ func _connect() -> void:
 		order.erase(i)
 		order.sort_custom(func(a: int, b: int) -> bool: return _dist(i, a) < _dist(i, b))
 		for j in order.slice(0, NEIGHBORS):
-			_add_route(i, j, seen)
+			if not _crosses(i, j):
+				_add_route(i, j, seen)
 	while true:
 		var comp := _components()
 		if comp.size() <= 1:
@@ -149,6 +150,19 @@ func _connect() -> void:
 						best_d = _dist(i, j)
 						best = [i, j]
 		_add_route(best[0], best[1], seen)
+
+
+## Führt die Strecke a–b dicht an einem anderen System vorbei? (sonst sähe es aus, als liefe sie hindurch)
+func _crosses(a: int, b: int) -> bool:
+	var pa: Vector2 = systems[a].pos
+	var pb: Vector2 = systems[b].pos
+	for k in systems.size():
+		if k == a or k == b:
+			continue
+		var q := Geometry2D.get_closest_point_to_segment(systems[k].pos, pa, pb)
+		if q.distance_to(systems[k].pos) < MIN_DIST * 0.3:
+			return true
+	return false
 
 
 func _add_route(a: int, b: int, seen: Dictionary) -> void:

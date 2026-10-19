@@ -54,6 +54,8 @@ func _ready() -> void:
 	ui.star_map.story_chain.connect(_show_story)
 	ui.star_map.story_mission.connect(_start_story_mission)
 	ui.star_map.logbook.connect(_show_logbook)
+	ui.star_map.jump_gate.connect(_jump)
+	ui.star_map.place_action.connect(_place_action)
 	ui.travel_report.visibility_changed.connect(func() -> void:
 		if not ui.travel_report.visible and _after_travel.is_valid():
 			var next := _after_travel
@@ -209,6 +211,33 @@ func _open_port(kind: StringName) -> void:
 		&"hire":
 			ui.port.show_hire(game)
 	d.move_to_front()
+
+
+## Sprung durch ein Tor (Auftrag 2): Gebühr, 1 Tag, neuer Sektor
+func _jump(gate: Dictionary) -> void:
+	if not game.jump(gate):
+		_refresh()
+		return
+	Sfx.play(&"schritt")
+	ui.star_map.selected = game.position
+	ui.star_map.selected_gate = -1
+	_after_days()
+	ui.show_toast("Sprung nach %s" % game.sector.name)
+	_training_toast()
+
+
+## Funktion an einem Ort: Bergung am Wrack, Treibstoff schöpfen (je 1 Tag, Meldung wie Werkstatt-Einträge)
+func _place_action(action: StringName, index: int) -> void:
+	var e := Places.salvage(game, index) if action == &"salvage" else Places.skim(game, index)
+	if e.is_empty():
+		_refresh()
+		return
+	Sfx.play(&"wuerfel")
+	e.label = "Bergung" if action == &"salvage" else "Treibstoff"
+	_after_days()
+	var crafts: Array = [e]
+	crafts.append_array(game.last_crafts)
+	ui.show_events(game.last_upgrade, crafts)
 
 
 ## Einen Tag warten (Brücke oder Krankenstation)

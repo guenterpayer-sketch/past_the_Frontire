@@ -410,6 +410,21 @@ func _run() -> void:
 	await _frames(5)
 	await _shot("h4t_story_logbuch")
 	hub.ui.close_dialogs()
+	# Sektorumbau (Auftrag 2): Systemansicht, Sprungtor, Sektorübersicht
+	sm.set_zoom(sm.selected)
+	await _frames(5)
+	await _shot("h4u_systemansicht")
+	sm.set_zoom(-1)
+	sm.selected_gate = 0
+	sm.refresh()
+	await _frames(5)
+	await _shot("h4v_sprungtor")
+	sm._show_sectors()
+	await _frames(5)
+	await _shot("h4w_sektoren")
+	sm._sectors.close()
+	sm.selected_gate = -1
+	sm.refresh()
 	stg.state.mission = {}
 	stg.state.chains.erase("test_kette")
 	stg.state.chains.erase("test_ort")
@@ -476,7 +491,8 @@ func _run() -> void:
 	await _frames(5)
 	await _click_button(hub.ui, "Briefing")
 	await _frames(10)
-	if hub.ui.travel_report.visible:
+	# liegt das Schiff schon im System des Auftrags, beginnt der Bodenkampf sofort (Schiffsszene ist dann weg)
+	if is_instance_valid(hub) and hub.ui.travel_report.visible:
 		print("Reisebericht vor dem Einsatz offen")
 		await _click_button(hub.ui, "Weiter")
 	# warten, bis die Kampfszene geladen ist (höchstens 600 Frames)
