@@ -29,7 +29,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 4 (19.10.2026): Fraktions-IDs angleichen, Hub-Punkte sammeln
-
-- **IDs passen nicht:** `core/story_gen.gd` (`GEGNER`) und `data/story/kapitel1.json` nutzen `abteilung9` und `seraph`. Der Bodenkampf hat `abteilung_9`, `wacht_klingen` und `wacht_hirten` angelegt (außerdem `stille_hand`, `aasgeier`, `semidrug`; Vantar heißt `konzern`). Dadurch nimmt die Story für Abteilung 9 und die Klingen stillschweigend die Ersatzfraktion. Bitte auf die echten IDs umstellen und einen Test ergänzen, der jede genannte Fraktion als Datei findet. Ob die Hirten als Gegner vorkommen, mit dem Nutzer klären.
-- Die offenen Hub-Punkte aus `docs/Planung_Story.md` (Kartenart aus der Vorlage, gefangene Crew sperren, Story-Schlüssel `sectors`, Story-Orte mit Sektor) gehen über den Koordinator an den Hub, sobald dessen Sektorumbau in `main` liegt. Den Stand dort aktuell halten.
+Keine offenen Aufträge. Die Hub-Punkte aus `docs/Planung_Story.md` (Kartenart aus der Vorlage, gefangene Crew sperren, Story-Schlüssel `sectors`, Story-Orte mit Ort und Sektor) verteilt der Koordinator, sobald der Sektorumbau des Hubs in `main` liegt.
