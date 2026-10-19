@@ -35,6 +35,11 @@ var _end_shown := false
 # Touch
 var _touches := {}
 var _pinch_dist := 0.0
+## Zwei-Finger-Geste: erst entscheiden, ob gezoomt oder gedreht wird, dann bis zum Loslassen dabei bleiben
+var _pinch_mode := &""
+var _pinch_d0 := 0.0
+var _pinch_a0 := 0.0
+var _pinch_turned := false
 var _touch_moved := false
 var _touch_start_ms := 0
 var _long_fired := false
@@ -85,7 +90,7 @@ func _ready() -> void:
 	else:
 		new_battle(randi() % 1000000)
 	var args := OS.get_cmdline_user_args()
-	if ("--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args or "--autotest-maps" in args) and not get_tree().root.has_node("Autotest"):
+	if ("--autotest" in args or "--autotest-player" in args or "--autotest-psi" in args or "--autotest-maps" in args or "--autotest-touch" in args) and not get_tree().root.has_node("Autotest"):
 		# der Selbsttest hängt an der Wurzel, damit er den Wechsel ins Charakter-Modul übersteht
 		var t: Node = load("res://tests/autotest.gd").new()
 		t.name = "Autotest"
@@ -750,7 +755,13 @@ func _key(e: InputEventKey) -> void:
 	_dirty = true
 
 
-## Handy/Tablet: ziehen = verschieben, zwei Finger = zoomen, Antippen = Vorschau, nochmal = ausführen, lange drücken = drehen
+## Zwei Finger: ab 25° Drehung wird gedreht (danach je weitere 90° ein 90°-Schritt), ab 12 % Abstandsänderung gezoomt
+const PINCH_ROT_DEG := 25.0
+const PINCH_ROT_STEP := 90.0
+const PINCH_ZOOM := 0.12
+
+
+## Handy/Tablet: ziehen = verschieben, zwei Finger = zoomen oder drehen, Antippen = Vorschau, nochmal = ausführen, lange drücken = Figur drehen
 func _touch_input(e: InputEvent) -> void:
 	_touch_used = true
 	if e is InputEventScreenTouch:
@@ -765,10 +776,17 @@ func _touch_input(e: InputEvent) -> void:
 				_touch_start_ms = Time.get_ticks_msec()
 			else:
 				_touch_moved = true
-				_pinch_dist = _pinch_state().d
+				var st := _pinch_state()
+				_pinch_dist = st.d
+				_pinch_d0 = st.d
+				_pinch_a0 = st.a
+				_pinch_mode = &""
+				_pinch_turned = false
 		else:
 			var was: bool = _touches.has(e.index)
 			_touches.erase(e.index)
+			if _touches.size() < 2:
+				_pinch_mode = &""
 			if was and _touches.is_empty() and not _touch_moved and not _long_fired:
 				_tap(e.position)
 	elif e is InputEventScreenDrag:
@@ -776,11 +794,7 @@ func _touch_input(e: InputEvent) -> void:
 			return
 		_touches[e.index] = e.position
 		if _touches.size() >= 2:
-			var st := _pinch_state()
-			if _pinch_dist > 0:
-				rig.zoom_at(st.c, st.d / _pinch_dist)
-			_pinch_dist = st.d
-			rig.pan(e.relative / 2.0)
+			_pinch(_pinch_state(), e.relative)
 		else:
 			if not _touch_moved:
 				_drag_accum += e.relative
@@ -794,7 +808,30 @@ func _pinch_state() -> Dictionary:
 	var ps: Array = _touches.values()
 	var a: Vector2 = ps[0]
 	var b: Vector2 = ps[1]
-	return {"d": a.distance_to(b), "c": (a + b) / 2.0}
+	return {"d": a.distance_to(b), "c": (a + b) / 2.0, "a": (b - a).angle()}
+
+
+## Zwei Finger bewegt: Zoom (mit Verschieben) oder Drehen in 90°-Schritten, je Geste nur eins von beiden
+func _pinch(st: Dictionary, rel: Vector2) -> void:
+	var turn := rad_to_deg(angle_difference(_pinch_a0, st.a))
+	if _pinch_mode == &"":
+		if absf(turn) >= PINCH_ROT_DEG:
+			_pinch_mode = &"drehen"
+		elif _pinch_d0 > 0 and absf(st.d / _pinch_d0 - 1.0) >= PINCH_ZOOM:
+			_pinch_mode = &"zoom"
+			_pinch_dist = st.d
+		else:
+			return
+	if _pinch_mode == &"zoom":
+		if _pinch_dist > 0:
+			rig.zoom_at(st.c, st.d / _pinch_dist)
+		_pinch_dist = st.d
+		rig.pan(rel / 2.0)
+	elif absf(turn) >= (PINCH_ROT_STEP if _pinch_turned else PINCH_ROT_DEG):
+		# Finger im Uhrzeigersinn (Bildschirmwinkel wächst) → Karte im Uhrzeigersinn, wie E
+		rig.rotate_by(90.0 if turn > 0 else -90.0)
+		_pinch_turned = true
+		_pinch_a0 = st.a
 
 
 func _tap(p: Vector2) -> void:
@@ -875,6 +912,10 @@ func _on_action(name: StringName, arg: Variant) -> void:
 				combat.request_jump(arg)
 		&"grid":
 			_toggle_grid()
+		&"rot_l":
+			rig.rotate_by(-90)
+		&"rot_r":
+			rig.rotate_by(90)
 		&"refresh", &"panel":
 			pass
 		&"ui_scale":

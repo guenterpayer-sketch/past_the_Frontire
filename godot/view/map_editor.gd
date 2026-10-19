@@ -65,6 +65,7 @@ var _info_l: Label
 var _height_l: Label
 var _tool_btns := {}
 var _view_btns: Array[Button] = []
+var _rot_btns: Array[Button] = []
 var _brush_btns := {}
 var _right: PanelContainer
 var _new_dlg: Modal
@@ -423,6 +424,13 @@ func _build_top() -> void:
 		b.pressed.connect(func() -> void: set_view(i == 1))
 		h.add_child(b)
 		_view_btns.append(b)
+	if TopMenu.touch_ui():
+		# Touch-Gerät: Drehknöpfe statt Q/E (nur in der 3D-Ansicht sichtbar)
+		for spec in [[&"rot_l", -90.0, "3D-Ansicht drehen (gegen den Uhrzeigersinn)"], [&"rot_r", 90.0, "3D-Ansicht drehen (im Uhrzeigersinn)"]]:
+			var rb := IconButton.new(spec[0], spec[2], false, 36.0)
+			rb.pressed.connect(func() -> void: rig.rotate_by(spec[1]))
+			h.add_child(rb)
+			_rot_btns.append(rb)
 	h.add_child(VSeparator.new())
 	for spec in [[&"pinsel", "Pinsel", "Felder einzeln malen (ziehen malt weiter)"], [&"rechteck", "Rechteck", "Rechteck aufziehen und füllen"],
 			[&"pipette", "Pipette", "Gelände und Höhe eines Felds übernehmen"]]:
@@ -549,6 +557,8 @@ func _refresh_tools() -> void:
 		_brush_btns[k].set_pressed_no_signal(k == brush)
 	_view_btns[0].set_pressed_no_signal(not view_3d)
 	_view_btns[1].set_pressed_no_signal(view_3d)
+	for b in _rot_btns:
+		b.visible = view_3d
 	_height_l.text = "Höhe %d (%s m)" % [brush_h, Combat._m(brush_h * BattleMap.LEVEL_M)]
 
 

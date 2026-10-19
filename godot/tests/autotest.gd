@@ -4,6 +4,7 @@ extends Node
 ##   godot --path godot -- --autotest-player   Bedienung mit simulierten Mausklicks
 ##   godot --path godot -- --autotest-psi      Psi-Zeile und Kontextmenü (Nyx)
 ##   godot --path godot -- --autotest-maps     alle Kartentypen (Übersicht, Nahansicht) und Startlagen aufbauen
+##   godot --path godot -- --autotest-touch --touch   Karte per Touch drehen (zwei Finger, Knöpfe ⟲ ⟳) und zoomen
 ## Optional: PTF_SECONDS = maximale Kampfdauer im KI-Test.
 
 var battle: Battle
@@ -19,6 +20,8 @@ func _ready() -> void:
 		_run_psi.call_deferred()
 	elif "--autotest-maps" in OS.get_cmdline_user_args():
 		_run_maps.call_deferred()
+	elif "--autotest-touch" in OS.get_cmdline_user_args():
+		_run_touch.call_deferred()
 	else:
 		_run_ai.call_deferred()
 
@@ -493,6 +496,71 @@ func _run_maps() -> void:
 
 
 ## Taste drücken (wie vom Spieler)
+## Touch: Knöpfe ⟲ ⟳ (nur mit --touch), zwei Finger drehen (90°-Schritte), zwei Finger spreizen (nur Zoom, keine Drehung)
+func _run_touch() -> void:
+	var out := OS.get_environment("PTF_OUT")
+	if out == "":
+		out = "user://"
+	b.new_battle(4711, "klein", "", false)
+	for i in 10:
+		await get_tree().process_frame
+	b.ui.briefing.hide()
+	await get_tree().create_timer(0.3).timeout
+	await _screenshot(out + "/t0_touch_knoepfe.png")
+	var yaw0 := b.rig.yaw
+	var btns := b.ui.top_menu.find_children("*", "IconButton", true, false).filter(func(n: Node) -> bool: return String(n.icon_id).begins_with("rot"))
+	_mouse_click((btns[1] as Control).get_global_rect().get_center())
+	await get_tree().create_timer(0.5).timeout
+	print("Touch: Knöpfe %d, ⟳ dreht %+d°" % [btns.size(), b.rig.yaw - yaw0])
+	await _screenshot(out + "/t0b_nach_knopf.png")
+	# zwei Finger um die Bildmitte im Uhrzeigersinn um 100° drehen (Abstand bleibt)
+	var mid := get_viewport().get_visible_rect().size / 2.0 + Vector2(-200, 50)
+	yaw0 = b.rig.yaw
+	var size0 := b.rig.camera.size
+	await _two_fingers(mid, 120.0, 120.0, 0.0, 100.0)
+	await get_tree().create_timer(0.5).timeout
+	print("Touch: zwei Finger 100° → Karte %+d°, Zoom unverändert %s" % [b.rig.yaw - yaw0, is_equal_approx(b.rig.camera.size, size0)])
+	await _screenshot(out + "/t1_touch_gedreht.png")
+	# spreizen: Abstand 120 → 240 mit leichter Verdrehung (10°) – nur Zoom
+	yaw0 = b.rig.yaw
+	await _two_fingers(mid, 120.0, 240.0, 0.0, 10.0)
+	await get_tree().create_timer(0.5).timeout
+	print("Touch: spreizen → Zoom %.1f → %.1f, Drehung %+d°" % [size0, b.rig.camera.size, b.rig.yaw - yaw0])
+	print("TOUCH-AUTOTEST FERTIG")
+	get_tree().quit()
+
+
+## zwei Finger symmetrisch um c: Abstand d0 → d1, Winkel a0 → a1 (Grad), in 20 Schritten
+func _two_fingers(c: Vector2, d0: float, d1: float, a0: float, a1: float) -> void:
+	var pos := [Vector2.ZERO, Vector2.ZERO]
+	for i in 21:
+		var t := i / 20.0
+		var r := lerpf(d0, d1, t) / 2.0
+		var off := Vector2.from_angle(deg_to_rad(lerpf(a0, a1, t))) * r
+		var now := [c - off, c + off]
+		for f in 2:
+			if i == 0:
+				var e := InputEventScreenTouch.new()
+				e.index = f
+				e.position = now[f]
+				e.pressed = true
+				b._unhandled_input(e)
+			else:
+				var e := InputEventScreenDrag.new()
+				e.index = f
+				e.position = now[f]
+				e.relative = now[f] - pos[f]
+				b._unhandled_input(e)
+			pos[f] = now[f]
+		await get_tree().process_frame
+	for f in 2:
+		var e := InputEventScreenTouch.new()
+		e.index = f
+		e.position = pos[f]
+		e.pressed = false
+		b._unhandled_input(e)
+
+
 func _key(code: Key, shift := false) -> void:
 	var e := InputEventKey.new()
 	e.keycode = code

@@ -1,6 +1,6 @@
 extends Node
 ## Selbsttest des Karteneditors mit Screenshots (Zielordner PTF_OUT), hängt an der Wurzel:
-##   godot --path godot res://map_editor.tscn -- --autotest-editor
+##   godot --path godot res://map_editor.tscn -- --autotest-editor   (mit --touch zusätzlich die Drehknöpfe)
 ## Eigene Karten landen in user://maps_autotest (die echten bleiben unberührt). Am Ende Probekampf auf der Karte.
 
 var editor: MapEditor
@@ -61,6 +61,11 @@ func _run() -> void:
 	editor.set_view(true)
 	await _frames(20)
 	await _shot("e3_3d")
+	if TopMenu.touch_ui():
+		var yaw0 := editor.rig.yaw
+		editor._rot_btns[1].pressed.emit()
+		print("Touch: Drehknöpfe %d, ⟳ dreht %+d°" % [editor._rot_btns.size(), editor.rig.yaw - yaw0])
+		editor.rig.rotate_by(-90)
 	editor.rig.rotate_by(90)
 	await get_tree().create_timer(0.6).timeout
 	await _shot("e4_3d_gedreht")

@@ -303,6 +303,8 @@ func _footer_log() -> void:
 	footer.add_child(b)
 
 
+## Fenster schließen: closable = false sperrt nur Klick daneben (Modal.close kehrt dann sofort zurück), darum hier hide()
 func _finish() -> void:
-	close()
+	hide()
+	closed.emit()
 	finished.emit(chain_id)

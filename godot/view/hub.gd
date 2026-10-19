@@ -9,6 +9,18 @@ var _hover: StringName = &""
 var _mouse_drag := false
 var _drag_moved := false
 var _drag_accum := Vector2.ZERO
+## Touch (Hub Auftrag 6): Finger, Zwei-Finger-Geste ("" offen, "zoom" oder "rotate"), Abstand und Winkel beim letzten Schritt
+var _touches := {}
+var _touch_moved := false
+var _gesture := ""
+var _pinch_dist := 0.0
+var _pinch_angle := 0.0
+var _pinch_d0 := 0.0
+var _twist := 0.0
+## Zwei-Finger-Geste: ab diesem Abstandsverhältnis (log) zoomen, ab diesem Winkel (rad) drehen; Drehschritt ab TWIST_STEP
+const PINCH_START := 0.12
+const TWIST_START := 0.26
+const TWIST_STEP := 0.6
 ## nach dem Reisebericht ausführen (Einsatz beginnen), egal wie er geschlossen wird
 var _after_travel := Callable()
 
@@ -106,6 +118,10 @@ func _ready() -> void:
 		var t: Node = load("res://tests/autotest_hub.gd").new()
 		t.name = "HubAutotest"
 		get_tree().root.add_child.call_deferred(t)
+	if "--autotest-touch" in args and not get_tree().root.has_node("TouchAutotest"):
+		var tt: Node = load("res://tests/autotest_touch.gd").new()
+		tt.name = "TouchAutotest"
+		get_tree().root.add_child.call_deferred(tt)
 
 
 func _process(_d: float) -> void:
@@ -396,6 +412,8 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			open_room(arg)
 		&"hover_room":
 			_set_hover(arg)
+		&"rotate":
+			rig.rotate_by(float(arg))
 		&"save":
 			ui.slots.show_slots(&"save", true)
 		&"load":
@@ -427,6 +445,11 @@ func _room_under(p: Vector2) -> StringName:
 
 
 func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventScreenTouch or e is InputEventScreenDrag:
+		_touch_input(e)
+		return
+	if e is InputEventMouse and e.device == InputEvent.DEVICE_ID_EMULATION:
+		return  # vom Touch erzeugte Mausereignisse: die Touch-Behandlung übernimmt
 	if e is InputEventMouseMotion:
 		if _mouse_drag and (e.button_mask & (MOUSE_BUTTON_MASK_LEFT | MOUSE_BUTTON_MASK_MIDDLE)):
 			_drag_accum += e.relative
@@ -474,3 +497,72 @@ func _unhandled_input(e: InputEvent) -> void:
 				rig.pan(Vector2(0, 80))
 			KEY_S, KEY_DOWN:
 				rig.pan(Vector2(0, -80))
+
+
+## Tablet (Hub Auftrag 6, Vorbild Battle._touch_input): wischen = verschieben, antippen = Raum öffnen, zwei Finger =
+## zoomen oder drehen. Die Geste entscheidet sich einmal je Berührung (was zuerst deutlich wird), damit sich beides nicht stört;
+## Drehen in 90°-Schritten wie Q/E, die Ansicht folgt der Drehrichtung der Finger.
+func _touch_input(e: InputEvent) -> void:
+	if e is InputEventScreenTouch:
+		if e.pressed:
+			if ui.covers(e.position):
+				return
+			_touches[e.index] = e.position
+			if _touches.size() == 1:
+				_touch_moved = false
+				_drag_accum = Vector2.ZERO
+			else:
+				_touch_moved = true
+				_gesture = ""
+				_twist = 0.0
+				var st := _pinch_state()
+				_pinch_dist = st.d
+				_pinch_d0 = st.d
+				_pinch_angle = st.a
+		else:
+			var was: bool = _touches.has(e.index)
+			_touches.erase(e.index)
+			if _touches.size() < 2:
+				_gesture = ""
+			if was and _touches.is_empty() and not _touch_moved:
+				var id := _room_under(e.position)
+				if id != &"":
+					open_room(id)
+	elif e is InputEventScreenDrag:
+		if not _touches.has(e.index):
+			return
+		_touches[e.index] = e.position
+		if _touches.size() >= 2:
+			var st := _pinch_state()
+			var da := wrapf(st.a - _pinch_angle, -PI, PI)
+			_pinch_angle = st.a
+			if _gesture == "":
+				_twist += da
+				if absf(log(st.d / maxf(_pinch_d0, 1.0))) > PINCH_START:
+					_gesture = "zoom"
+				elif absf(_twist) > TWIST_START:
+					_gesture = "rotate"
+			elif _gesture == "rotate":
+				_twist += da
+			if _gesture == "zoom":
+				if _pinch_dist > 0:
+					rig.zoom_at(st.c, st.d / _pinch_dist)
+				rig.pan(e.relative / 2.0)
+			elif _gesture == "rotate" and absf(_twist) > TWIST_STEP:
+				rig.rotate_by(90 if _twist > 0 else -90)
+				_twist = 0.0
+			_pinch_dist = st.d
+		else:
+			if not _touch_moved:
+				_drag_accum += e.relative
+				if _drag_accum.length() < 10.0:
+					return
+				_touch_moved = true
+			rig.pan(e.relative)
+
+
+func _pinch_state() -> Dictionary:
+	var ps: Array = _touches.values()
+	var a: Vector2 = ps[0]
+	var b: Vector2 = ps[1]
+	return {"d": a.distance_to(b), "c": (a + b) / 2.0, "a": (b - a).angle()}

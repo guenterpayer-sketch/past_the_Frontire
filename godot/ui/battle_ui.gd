@@ -185,7 +185,7 @@ func show_help() -> void:
 Blaues Feld anklicken: bewegen (Gangart in der Seitenleiste rechts; Abschnitte per Klick auf die Überschrift ein-/ausklappen, „›“ klappt die ganze Leiste ein). Rot umrandeten Gegner anklicken: angreifen (Aktivität 20–100 %).
 Rechtsklick: Figur drehen. Sichtfeld 180° nach vorne – Angriffe von der Seite (+15) oder hinten (+30) überraschen.
 Kamera: ziehen (links/Mitte), WASD/Pfeile, Mausrad = Zoom, Q/E = um 90° drehen. Enter oder Tab = Zug beenden (Aufstellung: Tab/Shift+Tab = nächste/vorige Figur, Enter = Kampf beginnen), F/Shift+F = sichtbare Gegner durchschalten, Leertaste = gewählten Gegner angreifen, R = Reichweite, G = Raster, Esc = abbrechen.
-Handy/Tablet: ziehen = verschieben, zwei Finger = zoomen, antippen = Vorschau, „Ausführen“ im Infokasten oder nochmal antippen = ausführen, lange drücken = drehen.""", 15)
+Handy/Tablet: ziehen = verschieben, zwei Finger auseinander/zusammen = zoomen, zwei Finger drehen oder Knöpfe ⟲ ⟳ oben = Karte um 90° drehen, antippen = Vorschau, „Ausführen“ im Infokasten oder nochmal antippen = ausführen, lange drücken = Figur drehen.""", 15)
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.content.add_child(l)
 	help.add_close()

@@ -189,8 +189,11 @@ func current_scene_id(chain_id: String) -> String:
 	return String(state.chains.get(chain_id, {}).get("scene", ""))
 
 
-## Anzeige der aktuellen Szene: {chain, kind, title, text, image, choices: [{index, text, enabled, reason, check}]}
+## Anzeige der aktuellen Szene: {chain, kind, title, text, image, choices: [{index, text, enabled, reason, check}]};
+## leer, wenn die Kette nicht läuft (fertig, gescheitert, noch nicht begonnen), dann bleibt das Szenenfenster zu
 func view(chain_id: String) -> Dictionary:
+	if state.status(chain_id) != "aktiv":
+		return {}
 	var c := chain_of(chain_id)
 	var sid := current_scene_id(chain_id)
 	var s := scene_of(chain_id, sid)

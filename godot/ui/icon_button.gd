@@ -53,6 +53,17 @@ func _draw() -> void:
 		&"menu":
 			for y in [6.0, 12.0, 18.0]:
 				draw_line(p.call(4, y), p.call(20, y), c, w, true)
+		&"rot_l", &"rot_r":
+			# Bogen oben mit Pfeilspitze: rot_r im Uhrzeigersinn (Spitze rechts), rot_l gespiegelt
+			var m := 1.0 if icon_id == &"rot_r" else -1.0
+			var pts := PackedVector2Array()
+			for i in 17:
+				var a := lerpf(PI * 0.9, PI * 2.1, i / 16.0)
+				pts.append(p.call(12 + m * cos(a) * 8, 14 + sin(a) * 8))
+			draw_polyline(pts, c, w, true)
+			var e := pts[pts.size() - 1]
+			draw_line(e, e + Vector2(m * 4, -3) * k, c, w, true)
+			draw_line(e, e + Vector2(m * -1.5, -4.8) * k, c, w, true)
 		&"log":
 			draw_rect(Rect2(p.call(5, 4), Vector2(14, 16) * k), c, false, w)
 			for y in [9.0, 13.0]:
