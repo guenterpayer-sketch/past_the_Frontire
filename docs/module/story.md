@@ -1,6 +1,6 @@
 # Modul Story/Kampagne
 
-- **Branch:** noch offen – der Story-Chat trägt seinen Branchnamen hier und in `docs/module/README.md` ein (bzw. der Nutzer meldet ihn dem Koordinator).
+- **Branch:** `claude/zen-sagan-9yn0le`
 - **Zuständig für (Vorschlag, mit dem Koordinator abstimmen):** eigene Dateien, z. B. `godot/core/story_*.gd`, `godot/ui/story_*.gd`, `godot/data/story/`, Planung `docs/Planung_Story.md`. Keine Dateien anderer Module umbauen; nötige Anbindungen (Hub: Aufträge, Sternenkarte, Berichte; Bodenkampf/Raumkampf: besondere Einsätze) als Schnittstelle vorschlagen und über den Koordinator beauftragen lassen.
 
 ## Grundlagen (in `main`)
@@ -11,11 +11,12 @@
 
 ## Schnittstellen
 
-- Noch festzulegen (Auftrag 1).
+- Vorschlag in `docs/Planung_Story.md`, Abschnitt „Schnittstellen-Vorschlag“ (Hub: `HubState.story`, Story-Aufträge ohne Ablauf, Kartenmarker, Reise-/Ankunfts-/Tages-Haken, Hafenkontakte, Logbuch, Sektorumbau; Bodenkampf/Raumkampf: Story-Einsätze; Charakter: Proben in Szenen; Fraktionen mit Oberarten). Noch nicht abgestimmt.
 
 ## Stand
 
 - (19.10.2026) Moduldatei angelegt.
+- (19.10.2026) Auftrag 1 erledigt: Entscheidungen des Nutzers und Planung in `docs/Planung_Story.md`, offene Punkte dort. Nichts gebaut.
 
 ## Aufträge vom Koordinator
 

@@ -9,7 +9,7 @@ Jedes Modul wird in einem eigenen Chat auf einem eigenen Branch gebaut. Diese Da
 | `charakter.md` | Charakter-Modul und Charakter-Editor | `claude/elegant-gauss-hq5bus` |
 | `hub.md` | Hub: Startmenü, Schiff, Sternenkarte, Spielstände | `claude/happy-lamport-u4fvya` |
 | `raumkampf.md` | Raumkampf (Mutterschiff, Jäger) | `claude/raumkampf-modul` |
-| `story.md` | Story/Kampagne | noch offen |
+| `story.md` | Story/Kampagne | `claude/zen-sagan-9yn0le` |
 
 ## Ablauf für jeden Modul-Chat
 
