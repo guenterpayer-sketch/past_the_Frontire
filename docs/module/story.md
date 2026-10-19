@@ -30,8 +30,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 5 (19.10.2026): Story-Orte mit Sektor und Ort
-
-- Der Sektorumbau ist in `main`: drei Sektoren, Systeme mit Orten (`systems[i].places`), `HubState.cur_sector`, Sprungtore. Story-Orte sind bisher reine Systemnummern. Nach einem Sprung können `markers()` und `on_arrive()` auf das falsche System zeigen, und `StoryLog` (`sector.systems[c.place]`) kann außerhalb der Liste lesen.
-- Bitte `_pick_place` auf `{sector, system, place}` umstellen (Ort = Index in `systems[i].places`) und `on_arrive(sector, system)` anbieten. `StoryLog` und `markers()` müssen mit Orten in anderen Sektoren umgehen können. Story-Orte in noch unbekannten Sektoren nur, wenn das zur Story passt; das mit dem Nutzer klären.
-- Die Hub-Seite (Aufruf mit Sektor, Marker nur im aktuellen Sektor, gefangene Crew, Kartenart, `sectors`) macht der Hub (Hub Auftrag 3). Die Form der Daten über den Nutzer mit dem Hub abstimmen.
+Keine offenen Aufträge. Die Hub-Seite der Story-Orte (`on_visit`, `at_place`) baut der Hub (Hub Auftrag 4).

@@ -13,3 +13,8 @@
 ## Erledigt (in `main`, Merge von `c1a2dcb`)
 
 - **Fertig (19.10.2026): Auftrag 4 Fehlermeldung beim Briefing.** Ursache war der Test `_test_boarding_briefing` in `tests/test_rules.gd`, nicht das Spiel: Er hängte das Briefing in `_init` an die Wurzel und rief `_ready()` von Hand auf; beim Start der Hauptschleife lief `_ready` ein zweites Mal (doppelte Verbindung von `resized`). Jetzt wird das Briefing nicht in den Baum gehängt, `_ready` läuft einmal, danach `free()`. `ui/modal.gd` unverändert. Die Meldung ist weg; übrig sind nur die bekannten Meldungen beim Beenden (Speicher noch belegt).
+
+## Erledigt (in `main`, Merge von `e635702`)
+
+- **Auftrag 5 (19.10.2026): Farbe der Eisenwölfe.** Meldung des Hubs: Die Eisenwölfe haben die Kartenfarbe Grau (0,6/0,62/0,66) und sind auf der Sternenkarte kaum von neutralen Häfen (`UiTheme.MUTED`) zu unterscheiden. Bitte eine Farbe wählen, die sich von allen anderen Fraktionsfarben und von `MUTED` abhebt, und dem Nutzer zeigen.
+  - **Fertig (19.10.2026):** Eisenwölfe Magenta `Color(0.92, 0.35, 0.72)` (vorher Grau, Abstand im RGB-Raum zu `UiTheme.MUTED` 0,11, jetzt mindestens 0,36 zu jeder Farbe). Auf Wunsch des Nutzers zusätzlich: Kinder der Glut Gold `Color(1, 0.8, 0.15)` (vorher Orange wie Rote Sonne), Abteilung 9 Kobaltblau `Color(0.3, 0.4, 1)` (vorher Hellblau wie Konzern), Neuntes Haus Violett `Color(0.6, 0.25, 0.85)` (vorher Graulila, Abstand zu `MUTED` 0,14). Nur `data/missions/*.tres`, keine Schnittstellenänderung.
