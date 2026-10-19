@@ -124,6 +124,12 @@ func _run() -> void:
 	enc2.show_at(&"s_waffen", "Laserbank")
 	await _frames(5)
 	await _shot("h0f_enzyklopaedie_schiffswaffe")
+	# Fraktionen, Gegnertypen, Orte, Sektoren (Hub Auftrag 5)
+	for sh in [[&"fraktionen", Encyclopedia.OVERVIEW, "h0g_enzyklopaedie_fraktionen"], [&"fraktionen", "Aasgeier", "h0h_enzyklopaedie_fraktion"],
+			[&"gegner", "Hexer", "h0i_enzyklopaedie_gegner"], [&"orte", "Wrack", "h0j_enzyklopaedie_ort"], [&"s_seiten", "Eisenwölfe", "h0k_enzyklopaedie_seite"]]:
+		enc2.show_at(sh[0], sh[1])
+		await _frames(5)
+		await _shot(sh[2])
 	enc2.close()
 	print("Schiff: Tag %d, %s, %d Aufträge" % [g.day, g.sector.systems[g.position].name, g.offers.size()])
 	await _shot("h1_schiff")
