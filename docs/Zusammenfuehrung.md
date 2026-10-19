@@ -13,12 +13,14 @@ Stand: 16.10.2026. Ältere Einträge (Verlauf bis 16.10.2026, erledigte Punkte, 
 | `claude/elegant-gauss-hq5bus` | Charakter-Modul und Charakter-Editor | in `main` (`9228e24`), nichts offen |
 | `claude/happy-lamport-u4fvya` | Hub (Startmenü, Schiff, Sternenkarte, Spielstände) | in `main` (`77608b1`), nichts offen |
 | `claude/raumkampf-modul` | Raumkampf (Mutterschiff, Jäger) | in `main` (`49e14ad`), nichts offen |
+| `claude/inspiring-hypatia-5l2tq8` | Export (Android, Windows) | in `main` (`697e182`), nichts offen |
 | `claude/zen-sagan-9yn0le` | Story/Kampagne | in `main` (`e0b5bd3`), nichts offen |
 
 ## Verlauf
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 19.10.2026 | Merge `697e182` | Export `claude/inspiring-hypatia-5l2tq8` (`697e182`) | ohne Konflikte; nur neue Dateien (`godot/assets/icon/`, Lizenzeintrag, Zeile in `godot/README.md`), kein Code, keine Tests. App-Icon für den Android-Export; in `project.godot` nicht eingetragen (Export-Einstellung im Editor). |
 | 19.10.2026 | Merge `77608b1` | Hub `claude/happy-lamport-u4fvya` (`77608b1`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Enzyklopädie: Fraktionen (auch Story), Gegnertypen, Gruppe Reise (Orte, Sektoren, Tore). |
 | 19.10.2026 | Merge `45e5177` | Hub `claude/happy-lamport-u4fvya` (`45e5177`) | ohne Konflikte, enthielt `main`; keine eigenen Tests (Testregel). Orte anfliegen ruft `Story.on_visit`, Story-Orte am Ort in der Systemansicht (`at_place`). |
 | 19.10.2026 | `8ad2a72` | Story `claude/zen-sagan-9yn0le` (`e0b5bd3`) | ohne Konflikte; parallel zu Hub Auftrag 3 gebaut → Koordinator: `test_rules`, `test_hub`, `test_story` OK, Aufrufe `on_arrive(sector, system)`/`markers()` passen. Story-Orte `{sector, system, place}`, `on_visit`, `at_place`, `place_label`. `on_visit` ruft der Hub noch nicht auf → Hub Auftrag 4. |
