@@ -7,10 +7,14 @@ extends RefCounted
 static var dir := "user://saves"
 const COUNT := 3
 const VERSION := 1
+## Auto-Spielstand (Hub Auftrag 8, Entscheidung des Nutzers 20.10.2026): eigener Slot „Automatisch“, überschrieben nach
+## jedem Kampf, jeder Reise und jedem abgeschlossenen Story-Fenster; die Slots 1–COUNT des Nutzers bleiben unberührt.
+const AUTO := 0
+const AUTO_NAME := "Automatisch"
 
 
 static func path(slot: int) -> String:
-	return "%s/slot_%d.json" % [dir, slot]
+	return "%s/auto.json" % dir if slot == AUTO else "%s/slot_%d.json" % [dir, slot]
 
 
 ## Kurzinfo eines Slots: {} wenn leer, sonst {name, day, system, missions, saved_at}
@@ -31,13 +35,14 @@ static func info(slot: int) -> Dictionary:
 		"game_version": String(d.get("game_version", ""))}
 
 
-## zuletzt gespeicherter Slot (für „Fortsetzen“), 0 = keiner
+## zuletzt gespeicherter Slot (für „Fortsetzen“, auch der Auto-Spielstand AUTO = 0), −1 = keiner.
+## Bei gleicher Zeit gewinnt der Slot des Nutzers.
 static func latest() -> int:
-	var best := 0
+	var best := -1
 	var best_t := -1
-	for s in range(1, COUNT + 1):
+	for s in range(AUTO, COUNT + 1):
 		var i := info(s)
-		if not i.is_empty() and not i.outdated and i.saved_at > best_t:
+		if not i.is_empty() and not i.outdated and i.saved_at >= best_t:
 			best_t = i.saved_at
 			best = s
 	return best
@@ -51,10 +56,14 @@ static func save(slot: int, name: String, g: HubState) -> bool:
 		var c = JSON.parse_string(FileAccess.get_file_as_string(Roster.PATH))
 		if typeof(c) == TYPE_DICTIONARY:
 			crew = c
-	g.slot = slot
-	g.slot_name = name
+	var from_slot := g.slot
+	if slot != AUTO:
+		g.slot = slot
+		g.slot_name = name
 	var data := {"version": VERSION, "game_version": Version.current(), "name": name, "saved_at": int(Time.get_unix_time_from_system()),
 		"game": g.to_dict(), "crew": crew}
+	if slot == AUTO:
+		data.from_slot = from_slot
 	var f := FileAccess.open(path(slot), FileAccess.WRITE)
 	if f == null:
 		return false
@@ -77,9 +86,16 @@ static func load_slot(slot: int) -> bool:
 			return false
 		f.store_string(JSON.stringify(crew, "\t"))
 	Campaign.reload()
-	HubState.game = HubState.from_dict(d.get("game", {}), slot)
+	HubState.game = HubState.from_dict(d.get("game", {}), int(d.get("from_slot", 0)) if slot == AUTO else slot)
 	HubState.game.slot_name = d.get("name", HubState.game.slot_name)
 	return true
+
+
+## Auto-Spielstand schreiben (Name und Slot des laufenden Spiels bleiben); nicht im Schnellkampf
+static func autosave(g: HubState) -> bool:
+	if g == null or HubState.quick_battle:
+		return false
+	return save(AUTO, g.slot_name, g)
 
 
 static func delete(slot: int) -> void:

@@ -1,6 +1,6 @@
 class_name SlotsDialog
 extends Modal
-## Spielstände: SaveSlots.COUNT Slots mit Name, Tag, System, Einsätzen und Speicherzeit.
+## Spielstände: SaveSlots.COUNT Slots mit Name, Tag, System, Einsätzen und Speicherzeit; beim Laden oben der Auto-Spielstand „A“.
 ## Modus &"save" (im Schiff), &"load" (Startmenü oder Schiff) oder &"new" (Neues Spiel: Slot wählen und benennen).
 
 signal saved(slot: int)
@@ -30,6 +30,8 @@ func show_slots(m: StringName, switchable := false) -> void:
 			b.pressed.connect(show_slots.bind(t[0], true))
 			tabs.add_child(b)
 		content.add_child(tabs)
+	if mode == &"load":
+		content.add_child(_slot_row(SaveSlots.AUTO))
 	for s in range(1, SaveSlots.COUNT + 1):
 		content.add_child(_slot_row(s))
 	var note := UiTheme.label("Gespeichert wird nur im Schiff, nicht während eines Einsatzes." if mode != &"new"
@@ -47,7 +49,7 @@ func _slot_row(s: int) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	card.add_child(row)
-	var num := UiTheme.label(str(s), 28, UiTheme.ACCENT if not empty else UiTheme.MUTED)
+	var num := UiTheme.label("A" if s == SaveSlots.AUTO else str(s), 28, UiTheme.ACCENT if not empty else UiTheme.MUTED)
 	num.custom_minimum_size.x = 28
 	row.add_child(num)
 	var v := VBoxContainer.new()
@@ -57,9 +59,9 @@ func _slot_row(s: int) -> Control:
 	var name_edit: LineEdit = null
 	if mode == &"load":
 		if empty:
-			v.add_child(UiTheme.label("leer", 15, UiTheme.MUTED))
+			v.add_child(UiTheme.label("%s · leer" % SaveSlots.AUTO_NAME if s == SaveSlots.AUTO else "leer", 15, UiTheme.MUTED))
 		else:
-			_describe(v, info)
+			_describe(v, info, s == SaveSlots.AUTO)
 	else:
 		if not empty:
 			_describe(v, info)
@@ -98,8 +100,9 @@ func _slot_row(s: int) -> Control:
 	return card
 
 
-func _describe(v: VBoxContainer, info: Dictionary) -> void:
-	v.add_child(UiTheme.label(info.name if info.name != "" else "(ohne Namen)", 16))
+func _describe(v: VBoxContainer, info: Dictionary, auto := false) -> void:
+	var n: String = info.name if info.name != "" else "(ohne Namen)"
+	v.add_child(UiTheme.label("%s · %s" % [SaveSlots.AUTO_NAME, n] if auto else n, 16))
 	v.add_child(UiTheme.label("Tag %d · %s · %d %s" % [info.day, info.system, info.missions, "Einsatz" if info.missions == 1 else "Einsätze"], 13))
 	v.add_child(UiTheme.label("gespeichert %s · %s" % [Time.get_datetime_string_from_unix_time(info.saved_at + _tz_bias(), true),
 		Version.label(String(info.get("game_version", "")))], 12, UiTheme.MUTED))

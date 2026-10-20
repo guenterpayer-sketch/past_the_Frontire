@@ -111,13 +111,13 @@ func _build_ui() -> void:
 	gap.custom_minimum_size.y = 26
 	_menu.add_child(gap)
 	var last := SaveSlots.latest()
-	if last > 0:
+	if last >= 0:
 		var i := SaveSlots.info(last)
-		var cont := _item("Fortsetzen   ·   %s, Tag %d" % [i.name, i.day], true)
+		var cont := _item("Fortsetzen   ·   %s, Tag %d%s" % [i.name, i.day, " (automatisch)" if last == SaveSlots.AUTO else ""], true)
 		cont.pressed.connect(func() -> void: _load(last))
 	_item("Neues Spiel").pressed.connect(func() -> void: slots.show_slots(&"new"))
 	var load_b := _item("Laden")
-	load_b.disabled = last == 0
+	load_b.disabled = last < 0
 	load_b.pressed.connect(func() -> void: slots.show_slots(&"load"))
 	var roster := _item("Roster")
 	roster.tooltip_text = "Alle Figuren (Startcharaktere und selbst erschaffene), unabhängig von den Spielständen"
