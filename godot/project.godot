@@ -23,6 +23,10 @@ Sfx="*res://audio/sfx.gd"
 Music="*res://audio/music.gd"
 TouchInput="*res://ui/touch_input.gd"
 
+[debug]
+
+gdscript/warnings/integer_division=0
+
 [display]
 
 window/size/viewport_width=1600

@@ -20,4 +20,6 @@ Jedes Modul wird in einem eigenen Chat auf einem eigenen Branch gebaut. Diese Da
 4. Fertigmeldung an den Nutzer (er gibt sie an den Koordinations-Chat weiter): welcher Commit, was ist neu, was ändert sich an Schnittstellen.
 5. Eigene Moduldatei aktuell halten. Sie wird in `main` gepflegt; Änderungen daran auf dem eigenen Branch werden mit dem nächsten Zusammenführen übernommen.
 
+6. **Warnungen (Nutzer 20.10.2026):** Der Godot-Debugger soll übersichtlich bleiben, damit echte Fehler (rot) auffallen. `integer_division` ist projektweit abgeschaltet (`godot/project.godot`, `[debug]`). Andere GDScript-Warnungen (gelb) in Dateien, die man ohnehin bearbeitet, nebenbei beseitigen (z. B. `_` vor unbenutzten Parametern, keine Namen wie `name`/`action` für lokale Variablen, `as` bei Enums). Keine neuen Warnungen einbauen.
+
 Neues Modul (z. B. Weltraumkampf, Story): Datei nach demselben Muster anlegen und in diese Tabelle eintragen.
