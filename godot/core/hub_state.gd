@@ -272,6 +272,26 @@ func is_harbor(system: int) -> bool:
 	return sector.systems[system].faction == ""
 
 
+## Handel möglich (Hub Auftrag 9, Entscheidung des Nutzers 20.10.2026): im Hafen oder an einer Station im System des
+## Schiffs. Dort geht alles wie im Hafen (kaufen, verkaufen, reparieren, Proben würfeln), an Stationen außerhalb eines
+## Hafens 20 % teurer (TradeSkills.station_factor). Werft, Crew anheuern und Papiere nur im Hafen.
+func at_market() -> bool:
+	return is_harbor(position) or station_name() != ""
+
+
+## Name der Station im System des Schiffs ("" = keine)
+func station_name() -> String:
+	for p in sector.systems[position].get("places", []):
+		if String(p.kind) == "station":
+			return String(p.name)
+	return ""
+
+
+## Fenstertitel für Händler/Schiffshändler: „Raumhafen X“ im Hafen, sonst der Name der Station
+func market_title() -> String:
+	return "Raumhafen %s" % sector.systems[position].name if is_harbor(position) else station_name()
+
+
 ## Freie Plätze an Bord
 func free_berths() -> int:
 	return berths - Campaign.crew().size()

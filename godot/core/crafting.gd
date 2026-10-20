@@ -322,7 +322,7 @@ static func material_sell(g: HubState) -> int:
 
 
 static func can_buy_material(g: HubState, n := 1) -> bool:
-	return g.is_harbor(g.position) and g.credits >= n * material_price(g)
+	return g.at_market() and g.credits >= n * material_price(g)
 
 
 static func buy_material(g: HubState, n := 1) -> bool:
@@ -334,7 +334,7 @@ static func buy_material(g: HubState, n := 1) -> bool:
 
 
 static func can_sell_material(g: HubState, n := 1) -> bool:
-	return g.is_harbor(g.position) and g.craft_material >= n
+	return g.at_market() and g.craft_material >= n
 
 
 static func sell_material(g: HubState, n := 1) -> bool:

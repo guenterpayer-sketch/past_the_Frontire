@@ -65,7 +65,7 @@ static func price(g: HubState) -> int:
 
 
 static func can_buy(g: HubState, n: int) -> bool:
-	return n > 0 and g.is_harbor(g.position) and g.credits >= n * price(g)
+	return n > 0 and g.at_market() and g.credits >= n * price(g)
 
 
 static func buy(g: HubState, n: int) -> bool:
