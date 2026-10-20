@@ -20,3 +20,4 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 20.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`07b2f98`) | Auftrag 8: Story-Fenster erst nach allen anderen Fenstern, Auto-Spielstand (Slot 0). Version 0.3. Hinweis: `--autotest-touch` gehört dem Bodenkampf, Hub-Test heißt `--autotest-hub-touch`. |
