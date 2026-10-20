@@ -12,7 +12,7 @@ var game: HubState
 func show_trade(g: HubState) -> void:
 	game = g
 	max_size = Vector2(1300, 820)
-	open("Raumhafen %s: Händler" % g.sector.systems[g.position].name)
+	open("%s: Händler" % g.market_title())
 	content.add_child(UiTheme.label("Credits: %d Cr · Tag %d · Sortiment wechselt alle %d Tage" % [g.credits, g.day, Stock.SHOP_DAYS], 16, UiTheme.ACCENT))
 	content.add_child(UiTheme.label("PROBEN HEUTE (je Fertigkeit eine pro Tag; ohne Probe wie Fehlschlag: 5 % schlechter)", 13, UiTheme.MUTED))
 	for sk in [&"handeln", &"gassenwissen"]:

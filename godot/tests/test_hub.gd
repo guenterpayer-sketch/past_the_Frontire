@@ -34,6 +34,7 @@ func _init() -> void:
 	_test_upgrades()
 	_test_stock()
 	_test_trade_skills()
+	_test_station_trade()
 	_test_loot()
 	_test_crafting()
 	_test_galley()
@@ -554,7 +555,7 @@ func _test_ammo() -> void:
 	check(Voyage.buy_ammo(g, "energie", 30) and g.ammo.energie == 230 and g.credits == 10, "Energiezellen kaufen (2 Cr je Schuss)")
 	var other := -1
 	for i in g.sector.systems.size():
-		if not g.is_harbor(i):
+		if not g.is_harbor(i) and not g.sector.systems[i].places.any(func(p: Dictionary) -> bool: return p.kind == "station"):   # ohne Station (Auftrag 9)
 			other = i
 			break
 	g.position = other
@@ -959,6 +960,42 @@ func _test_stock() -> void:
 	Campaign.reload()
 
 
+## Handel an Stationen (Auftrag 9): wie im Hafen, 20 % teurer; Werft, Anheuern, Papiere nur im Hafen
+func _test_station_trade() -> void:
+	TradeSkills.fixed = &"teilerfolg"
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(72, "Station", 1)
+	HubState.game = g
+	var sys := -1
+	var none := -1
+	for i in g.sector.systems.size():
+		var has: bool = g.sector.systems[i].places.any(func(p: Dictionary) -> bool: return p.kind == "station")
+		if not g.is_harbor(i) and has and sys < 0:
+			sys = i
+		if not g.is_harbor(i) and not has and none < 0:
+			none = i
+	check(sys >= 0, "Fraktionssystem mit Station gefunden")
+	var sg := "res://data/weapons/sturmgewehr.tres"
+	g.position = g.nearest_harbor()
+	var harbor_price := Stock.buy_price(g, sg)
+	g.position = sys
+	g.credits = 5000
+	check(g.at_market() and not g.is_harbor(sys) and g.market_title() == g.station_name(), "Station: Handel möglich, Titel = Station")
+	check(Stock.buy_price(g, sg) == roundi(harbor_price * Places.STATION_FACTOR) or absi(Stock.buy_price(g, sg) - roundi(harbor_price * 1.2)) <= 1, "Station 20 % teurer")
+	var key: String = Stock.shop(g, sys)[0]
+	var n0 := Stock.count(g, key)
+	check(Stock.can_buy(g, key) and Stock.buy(g, key) and Stock.count(g, key) == n0 + 1, "Kauf an der Station")
+	check(Galley.can_buy(g, 1) and Voyage.can_buy_material(g, 1) and Crafting.can_buy_material(g, 1), "Proviant und Material an der Station")
+	TradeSkills.fixed = &""
+	var c: Character = Campaign.crew()[0]
+	check(TradeSkills.can_roll(g, &"handeln") and not TradeSkills.roll(g, &"handeln", c).is_empty(), "Probe Handeln an der Station")
+	check(not ShipUpgrades.can_yard(g, &"tank") and not g.can_buy_papers("x"), "Werft und Papiere nur im Hafen")
+	if none >= 0:
+		g.position = none
+		check(not g.at_market() and not TradeSkills.can_roll(g, &"verhandeln"), "ohne Station und Hafen kein Handel")
+	TradeSkills.fixed = &"teilerfolg"
+
+
 func _test_trade_skills() -> void:
 	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
 	TradeSkills.fixed = &""
@@ -1042,7 +1079,7 @@ func _test_loot() -> void:
 	Stock.add(g, k20)
 	var away := -1
 	for i in g.sector.systems.size():
-		if not g.is_harbor(i):
+		if not g.is_harbor(i) and not g.sector.systems[i].places.any(func(p: Dictionary) -> bool: return p.kind == "station"):   # ohne Station (Auftrag 9)
 			away = i
 			break
 	g.position = away

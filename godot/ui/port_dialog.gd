@@ -27,7 +27,7 @@ func _render() -> void:
 	max_size = Vector2(1300, 820)
 	var port: String = game.sector.systems[game.position].name
 	if _mode == &"ship":
-		open("Raumhafen %s: Schiffshändler" % port)
+		open("%s: Schiffshändler" % game.market_title())
 		_render_ship()
 	else:
 		open("Raumhafen %s: Crew anheuern" % port)

@@ -206,7 +206,7 @@ static func shop(g: HubState, system: int) -> Array[String]:
 
 
 static func can_buy(g: HubState, key: String) -> bool:
-	return g.is_harbor(g.position) and key in shop(g, g.position) and g.credits >= buy_price(g, key)
+	return g.at_market() and key in shop(g, g.position) and g.credits >= buy_price(g, key)
 
 
 static func buy(g: HubState, key: String) -> bool:
@@ -218,7 +218,7 @@ static func buy(g: HubState, key: String) -> bool:
 
 
 static func can_sell(g: HubState, key: String) -> bool:
-	return g.is_harbor(g.position) and count(g, key) > 0
+	return g.at_market() and count(g, key) > 0
 
 
 static func sell(g: HubState, key: String) -> bool:
@@ -231,7 +231,7 @@ static func sell(g: HubState, key: String) -> bool:
 
 ## Werkstatt im Raumhafen: beschädigtes Stück aus dem Lager, genug Credits
 static func can_repair(g: HubState, key: String) -> bool:
-	return g.is_harbor(g.position) and damage_of(key) < 0 and count(g, key) > 0 and g.credits >= repair_cost(g, key)
+	return g.at_market() and damage_of(key) < 0 and count(g, key) > 0 and g.credits >= repair_cost(g, key)
 
 
 ## Ein Stück ganz reparieren: beschädigtes heraus, intaktes hinein
