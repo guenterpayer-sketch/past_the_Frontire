@@ -37,4 +37,9 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag 9 (20.10.2026): Handel an Stationen geht nicht
+
+1. **Fehler (Nutzer, Screenshots):** An Stationen in Fraktionssystemen (z. B. Rixmo Prime-Ring, Söldner der Roten Sonne) öffnen „Händler“ und „Schiffshändler“ ihr Fenster, aber alles außer Treibstoff ist gesperrt, auch „Würfeln“ und ein Medikit für 38 Cr bei 339 Cr. Ursache laut Code: Die Prüfungen in `core/` verlangen `is_harbor(position)` (z. B. `TradeSkills.can_roll`, `ShipArms.can_buy`/`can_buy_ammo`, `Galley.can_buy`, `Crafting.can_buy_material`, vermutlich auch Kauf, Verkauf und Reparatur im Händler). Alle Stellen suchen.
+2. **Entscheidung des Nutzers (20.10.2026):** An Stationen geht alles wie im Hafen (kaufen, verkaufen, reparieren, Proben Handeln/Verhandeln/Gassenwissen würfeln), nur 20 % teurer. Werft und Crew anheuern bleiben nur im Hafen. Fraktionsruf beeinflusst den Handel vorerst nicht (später).
+3. Der Fenstertitel nennt an Stationen die Station, nicht „Raumhafen“.
+4. Test in `test_hub`: Kauf und Probe an einer Station. `godot/README.md` und, wenn betroffen, `docs/Skillsystem.md` nachtragen. Danach Fertigmeldung.
