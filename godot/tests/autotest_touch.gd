@@ -1,7 +1,7 @@
 extends Node
 ## Selbsttest der Touch-Bedienung im Schiff und auf der Sternenkarte (Hub Auftrag 6) mit nachgestellten Touch-Ereignissen,
 ## Screenshots nach PTF_OUT:
-##   godot --path godot res://hub.tscn -- --autotest-touch
+##   godot --path godot res://hub.tscn -- --autotest-hub-touch
 ## Zeigt die Drehknöpfe auch ohne Touchscreen (HubUI).
 
 var out := ""

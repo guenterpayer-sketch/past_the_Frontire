@@ -136,7 +136,7 @@ func _ready() -> void:
 
 	_hint = PanelContainer.new()
 	_hint.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 8, 8))
-	if DisplayServer.is_touchscreen_available() or "--autotest-touch" in OS.get_cmdline_user_args():
+	if DisplayServer.is_touchscreen_available() or "--autotest-hub-touch" in OS.get_cmdline_user_args():
 		# Tablet (Hub Auftrag 6, Entscheidung des Nutzers): Touch-Hinweis und Drehknöpfe in der Hinweisleiste
 		var hrow := HBoxContainer.new()
 		hrow.add_theme_constant_override("separation", 8)
@@ -767,8 +767,14 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 	help.add_close()
 
 
-func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible or contact.visible or space_report.visible \
+## except_map: die Sternenkarte zählt nicht (Szenenfenster dürfen über ihr erscheinen)
+func any_dialog_open(except_map := false) -> bool:
+	if star_map.visible and not except_map:
+		return true
+	for c in get_children():
+		if c is Modal and c.visible:
+			return true
+	return crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible or contact.visible or space_report.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible) or (has_node(StoryLog.NAME) and get_node(StoryLog.NAME).visible) \
 		or (has_node(StoryDialog.NAME) and get_node(StoryDialog.NAME).visible)
 

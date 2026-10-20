@@ -16,7 +16,7 @@ func _ready() -> void:
 	SpaceEvents.fixed_contact = -2
 	SpaceEvents.fixed_kind = "boden"
 	Story.auto_start = false   # Kapitel 1 (ab Tag 3) würde den Ablauf mit seinem Szenenfenster anhalten (Story-Chat)
-	for s in range(1, SaveSlots.COUNT + 1):
+	for s in range(SaveSlots.AUTO, SaveSlots.COUNT + 1):
 		SaveSlots.delete(s)
 	_run.call_deferred()
 

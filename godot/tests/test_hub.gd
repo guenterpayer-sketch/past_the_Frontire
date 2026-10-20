@@ -236,7 +236,8 @@ func _test_save_slots() -> void:
 	SaveSlots.dir = "user://saves_test"
 	for s in range(1, SaveSlots.COUNT + 1):
 		SaveSlots.delete(s)
-	check(SaveSlots.latest() == 0 and SaveSlots.info(1).is_empty(), "keine Spielstände")
+	SaveSlots.delete(SaveSlots.AUTO)
+	check(SaveSlots.latest() == -1 and SaveSlots.info(1).is_empty(), "keine Spielstände")
 	var crew_before := FileAccess.get_file_as_string(Roster.PATH) if FileAccess.file_exists(Roster.PATH) else ""
 	var g := HubState.new_game(99, "Erster", 2)
 	g.day = 7
@@ -244,6 +245,14 @@ func _test_save_slots() -> void:
 	var i := SaveSlots.info(2)
 	check(i.name == "Erster" and i.day == 7 and i.system == g.sector.systems[g.position].name, "Kurzinfo des Slots")
 	check(SaveSlots.latest() == 2, "Fortsetzen = zuletzt gespeichert")
+	# Auto-Spielstand (Auftrag 8): eigener Slot, Slot und Name des Spiels bleiben, Laden führt zurück zum eigenen Slot
+	g.day = 9
+	check(SaveSlots.autosave(g) and g.slot == 2 and g.slot_name == "Erster" and SaveSlots.info(SaveSlots.AUTO).day == 9
+		and SaveSlots.info(2).day == 7, "Auto-Spielstand: eigener Slot, Slot 2 unberührt")
+	check(SaveSlots.latest() in [SaveSlots.AUTO, 2], "Fortsetzen kennt den Auto-Spielstand")
+	check(SaveSlots.load_slot(SaveSlots.AUTO) and HubState.game.day == 9 and HubState.game.slot == 2 and HubState.game.slot_name == "Erster",
+		"Auto-Spielstand laden: Tag 9, weiter in Slot 2")
+	SaveSlots.delete(SaveSlots.AUTO)
 	check(Version.current() != "" and i.game_version == Version.current(), "Spielstand mit Version (Auftrag 7)")
 	check(Version.label("") == "Version –", "alte Stände ohne Version: „–“")
 	var pm := PopupMenu.new()

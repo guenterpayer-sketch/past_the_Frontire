@@ -660,7 +660,9 @@ func _render_story() -> void:
 	var st := game.story_engine()
 	var m := game.story_mission()
 	var list := st.offers()
-	if m.is_empty() and list.is_empty():
+	# laufende Szenen (z. B. mit Esc/Zurück geschlossen, Hub Auftrag 8): wieder öffnen
+	var running := st.open_chains().filter(func(c: Dictionary) -> bool: return c.status == "aktiv")
+	if m.is_empty() and list.is_empty() and running.is_empty():
 		return
 	_side.add_child(UiTheme.label("STORY", 13, UiTheme.MUTED))
 	if not m.is_empty():
@@ -672,6 +674,12 @@ func _render_story() -> void:
 		var chain: String = o.chain
 		_side.add_child(_story_card(String(o.title), "%s · ohne Ablauf" % StoryDialog.KIND_NAMES.get(o.kind, o.kind), "Annehmen",
 			func() -> void: _begin_story(chain)))
+	for c in running:
+		var rid: String = c.chain
+		_side.add_child(_story_card(String(c.title), "%s · Szene läuft" % StoryDialog.KIND_NAMES.get(c.kind, c.kind), "Fortsetzen",
+			func() -> void:
+				Sfx.play(&"klick")
+				story_chain.emit(rid)))
 
 
 func _begin_story(chain: String) -> void:
