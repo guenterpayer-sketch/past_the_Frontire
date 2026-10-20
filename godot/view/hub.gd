@@ -158,7 +158,8 @@ var _story_wait := false
 
 
 func _next_story() -> void:
-	if _story_wait:
+	# Nach einem Szenenwechsel ist der Hub schon aus dem Baum (get_tree() wäre null): nicht mehr warten
+	if _story_wait or not is_inside_tree():
 		return
 	_story_wait = true
 	await get_tree().process_frame
@@ -173,6 +174,8 @@ func _next_story() -> void:
 ## Offenes Szenenfenster wieder nach oben holen, wenn sich ein anderes Fenster schließt (Hub Auftrag 8): so liegt nie
 ## ein anderes Fenster darüber, außer es wurde aus der Szene geöffnet (Logbuch, Enzyklopädie) und ist noch offen.
 func _story_to_front() -> void:
+	if not is_inside_tree():
+		return
 	var d := ui.get_node_or_null(StoryDialog.NAME) as StoryDialog
 	if d == null or not d.visible:
 		return
