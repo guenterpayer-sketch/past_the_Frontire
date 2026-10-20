@@ -35,4 +35,8 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag 8 (20.10.2026): Hänger Story nach Entern-Sieg, Auto-Spielstand
+
+1. **Fehler (Tablet, Nutzer):** Zufallsereignis auf der Reise → Raumkampf → Entern → gewonnen → nach den Siegfenstern öffnet sich das erste Story-Fenster (Schulden). Dort lässt sich nichts mehr antippen. Nach Aussage des Nutzers war das Siegfenster vermutlich noch im Hintergrund offen. Vermutung des Koordinators (ungeprüft): `_story_blocked()` in `view/hub.gd` kennt das Fenster nach dem Entern-Sieg nicht (Beute, Bericht o. ä.), oder ein unsichtbares Fenster fängt Eingaben ab. Ablauf nachstellen, Ursache finden, beheben. Prüfen, dass Story-Fenster grundsätzlich erst kommen, wenn **kein** anderes Fenster mehr offen ist, und dass sie immer bedienbar sind (auch per Touch). Bei Bedarf mit dem Story-Chat abstimmen (über den Nutzer).
+2. **Auto-Spielstand (Entscheidung Nutzer 20.10.2026):** eigener Slot „Automatisch“ in der Spielstandliste. Er wird nach jedem Kampf (Raum und Boden), jeder Reise und jedem abgeschlossenen Story-Fenster überschrieben. Die Slots des Nutzers bleiben unberührt. Laden wie die anderen Slots, mit Versionsangabe.
+3. `godot/README.md` nachtragen, Tests nach CLAUDE.md, dann Fertigmeldung.
