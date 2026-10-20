@@ -20,4 +20,5 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 20.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`f51c434`) | Auftrag 9: Handel an Stationen wie im Hafen (+20 %), Titel mit Station. Version 0.4. |
 | 20.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`07b2f98`) | Auftrag 8: Story-Fenster erst nach allen anderen Fenstern, Auto-Spielstand (Slot 0). Version 0.3. Hinweis: `--autotest-touch` gehört dem Bodenkampf, Hub-Test heißt `--autotest-hub-touch`. |
