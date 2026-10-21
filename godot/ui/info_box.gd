@@ -12,7 +12,8 @@ var _confirm: Button
 func _ready() -> void:
 	add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.93), UiTheme.LINE, 10, 12))
 	custom_minimum_size.x = 380
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Klicks gehen durch auf die Karte, damit ein Gegner unter dem Kasten angreifbar bleibt; nur der Knopf „Ausführen“ fängt sie
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var v := VBoxContainer.new()
 	add_child(v)
 	_text = RichTextLabel.new()

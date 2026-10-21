@@ -23,6 +23,7 @@
 ## Stand
 
 - Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/bodenkampf_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- **Fertig (21.10.2026, Klick auf verdeckten Gegner):** Ein Klick auf einen Gegner unter dem Infokasten oben rechts griff nicht an. Der Kasten fing alle Klicks ab (`MOUSE_FILTER_STOP`) und zählte in `BattleUI.covers()` als Sperre. Jetzt lässt er Klicks zur Karte durch, nur der Knopf „Ausführen“ fängt sie; `covers()` zählt ihn nicht mehr. Geprüft: temporärer Klick-Test auf einen verdeckten Gegner löste einen Angriff aus (Test danach entfernt). Seitenleiste, Menü und Würfel bleiben Sperren. Keine Schnittstellenänderung.
 
 ## Aufträge vom Koordinator
 

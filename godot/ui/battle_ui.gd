@@ -204,7 +204,8 @@ func hide_tip() -> void:
 func covers(p: Vector2) -> bool:
 	if any_dialog_open():
 		return true
-	for c in [top_menu, info, dice_panel, combat_log, side, _fold, result_banner, context_menu]:
+	# der Infokasten zählt nicht: Klicks auf einen Gegner unter ihm gehen auf die Karte (Auftrag Infokasten-Klick)
+	for c in [top_menu, dice_panel, combat_log, side, _fold, result_banner, context_menu]:
 		if c.visible and c.get_global_rect().has_point(p):
 			return true
 	for c in initiative.get_children():
