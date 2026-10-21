@@ -400,7 +400,8 @@
 								}
 							]
 						}
-					]
+					],
+					"image": "k1_drin"
 				},
 				"alarm": {
 					"title": "Alarm",
@@ -422,7 +423,8 @@
 								}
 							]
 						}
-					]
+					],
+					"image": "k1_alarm"
 				},
 				"zurueck": {
 					"title": "Zurückgeschlagen",
@@ -432,7 +434,8 @@
 							"text": "Neu planen",
 							"next": "plan"
 						}
-					]
+					],
+					"image": "k1_zurueck"
 				},
 				"befreit": {
 					"title": "Lio",

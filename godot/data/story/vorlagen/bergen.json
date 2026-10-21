@@ -105,7 +105,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "bergen_vorteil"
 		},
 		"entdeckt": {
 			"title": "Entdeckt",
@@ -127,7 +128,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "bergen_entdeckt"
 		},
 		"erfolg": {
 			"title": "Geschafft",
@@ -147,7 +149,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "bergen_erfolg"
 		},
 		"fehlschlag": {
 			"title": "Zu spät",
@@ -164,7 +167,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "bergen_fehlschlag"
 		}
 	}
 }

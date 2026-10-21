@@ -96,7 +96,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_zoll_ausgang"
 			},
 			"geliefert": {
 				"title": "Geliefert",
@@ -113,7 +114,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_zoll_geliefert"
 			},
 			"erwischt": {
 				"title": "Erwischt",
@@ -130,7 +132,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_zoll_erwischt"
 			}
 		},
 		"verrat": {
@@ -154,7 +157,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_verrat_ausgang"
 			},
 			"sieg": {
 				"title": "Doch bezahlt",
@@ -171,7 +175,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_verrat_sieg"
 			},
 			"niederlage": {
 				"title": "Ausgeraubt",
@@ -185,7 +190,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_verrat_niederlage"
 			}
 		},
 		"lebendig": {
@@ -227,7 +233,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "schmuggel_lebendig_ausgang"
 			}
 		}
 	}
