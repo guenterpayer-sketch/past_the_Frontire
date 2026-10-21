@@ -1,6 +1,6 @@
 class_name Gear
 extends RefCounted
-## Eigene Waffen und Rüstungen (Editor im Startmenü, docs/Planung_Ausruestungs_Editor.md). Global gespeichert als
+## Eigene Waffen und Rüstungen (Editor im Startmenü, docs/archiv/Planung_Ausruestungs_Editor.md). Global gespeichert als
 ## Ressourcen-Dateien in user://gear/weapons/*.tres und user://gear/armor/*.tres; dadurch speichern Character und
 ## Spielstände sie wie die mitgelieferten über resource_path. Zusatzangaben als Metadaten:
 ##   template (Pfad der Vorlage), free (Werte ohne Grenzen), enemy (auch für Gegner), factions (Pfade, leer = keine).

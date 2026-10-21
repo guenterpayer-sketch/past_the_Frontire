@@ -1,6 +1,6 @@
 class_name Injury
 extends RefCounted
-## Verwundung statt Tod (docs/Skillsystem.md, 8a; docs/Planung_Roster_Verwundung.md, B):
+## Verwundung statt Tod (docs/Skillsystem.md, 8a; docs/archiv/Planung_Roster_Verwundung.md, B):
 ## Stufe und Resttage aus dem Einsatzergebnis einer Figur, Heilung in Spieltagen.
 
 const NONE := ""

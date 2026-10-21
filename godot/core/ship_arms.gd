@@ -578,7 +578,7 @@ static func sell_price(g: HubState, key: String) -> int:
 
 
 static func can_buy(g: HubState, key: String) -> bool:
-	return g.is_harbor(g.position) and key in shop(g, g.position) and g.credits >= buy_price(g, key)
+	return g.at_market() and key in shop(g, g.position) and g.credits >= buy_price(g, key)
 
 
 static func buy(g: HubState, key: String) -> bool:
@@ -590,7 +590,7 @@ static func buy(g: HubState, key: String) -> bool:
 
 
 static func can_sell(g: HubState, key: String) -> bool:
-	return g.is_harbor(g.position) and stock_count(g, key) > 0
+	return g.at_market() and stock_count(g, key) > 0
 
 
 static func sell(g: HubState, key: String) -> bool:
@@ -610,7 +610,7 @@ static func ammo_sell(g: HubState, type: String, n: int) -> int:
 
 
 static func can_buy_ammo(g: HubState, type: String, n: int) -> bool:
-	return g.is_harbor(g.position) and n > 0 and g.credits >= n * ammo_price(g, type)
+	return g.at_market() and n > 0 and g.credits >= n * ammo_price(g, type)
 
 
 static func buy_ammo(g: HubState, type: String, n: int) -> bool:
@@ -622,7 +622,7 @@ static func buy_ammo(g: HubState, type: String, n: int) -> bool:
 
 
 static func can_sell_ammo(g: HubState, type: String, n: int) -> bool:
-	return g.is_harbor(g.position) and n > 0 and int(g.ship_ammo.get(type, 0)) >= n
+	return g.at_market() and n > 0 and int(g.ship_ammo.get(type, 0)) >= n
 
 
 static func sell_ammo(g: HubState, type: String, n: int) -> bool:

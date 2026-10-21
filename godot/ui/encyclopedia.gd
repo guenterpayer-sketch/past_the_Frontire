@@ -1,6 +1,6 @@
 class_name Encyclopedia
 extends Modal
-## Enzyklopädie (docs/Planung_Enzyklopaedie.md): ein Dialog für alle Module. Links Suche und Bereiche, in der Mitte die
+## Enzyklopädie (docs/archiv/Planung_Enzyklopaedie.md): ein Dialog für alle Module. Links Suche und Bereiche, in der Mitte die
 ## Einträge, rechts der Text. Verweise im Text sind anklickbar ([url=bereich:eintrag]).
 ## Öffnen: Encyclopedia.show_on(control, &"waffen", "Sturmgewehr") – legt den Dialog bei Bedarf unter control an.
 ## Bereiche Bodenkampf: waffen, ruestungen, tabellen, kritische, patzer, psi, fertigkeiten, regeln.

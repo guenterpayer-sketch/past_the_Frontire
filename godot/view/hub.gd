@@ -9,6 +9,18 @@ var _hover: StringName = &""
 var _mouse_drag := false
 var _drag_moved := false
 var _drag_accum := Vector2.ZERO
+## Touch (Hub Auftrag 6): Finger, Zwei-Finger-Geste ("" offen, "zoom" oder "rotate"), Abstand und Winkel beim letzten Schritt
+var _touches := {}
+var _touch_moved := false
+var _gesture := ""
+var _pinch_dist := 0.0
+var _pinch_angle := 0.0
+var _pinch_d0 := 0.0
+var _twist := 0.0
+## Zwei-Finger-Geste: ab diesem Abstandsverhältnis (log) zoomen, ab diesem Winkel (rad) drehen; Drehschritt ab TWIST_STEP
+const PINCH_START := 0.12
+const TWIST_START := 0.26
+const TWIST_STEP := 0.6
 ## nach dem Reisebericht ausführen (Einsatz beginnen), egal wie er geschlossen wird
 var _after_travel := Callable()
 
@@ -82,6 +94,14 @@ func _ready() -> void:
 	rig.rotated.connect(func() -> void: ship.update_cutaway(rig.view_dir()))
 	ship.update_cutaway.call_deferred(rig.view_dir())
 	ui.contact_choice.connect(_on_contact)
+	# jedes geschlossene Fenster: vorgemerkte Szene prüfen (Hub Auftrag 8)
+	for c in ui.get_children():
+		if c is Modal:
+			var m := c as Modal
+			m.visibility_changed.connect(func() -> void:
+				if not m.visible:
+					_story_to_front.call_deferred()
+					_next_story())
 	ui.report.visibility_changed.connect(func() -> void:
 		if not ui.report.visible:
 			_continue_journey.call_deferred())
@@ -95,6 +115,7 @@ func _ready() -> void:
 		ui.show_space_report(game.space_report)
 		game.space_report = {}
 	elif not game.report.is_empty():
+		SaveSlots.autosave(game)   # nach dem Bodenkampf (Hub Auftrag 8)
 		ui.show_report(game.report)
 		game.report = {}
 	elif not game.loot_pending.is_empty():
@@ -106,6 +127,10 @@ func _ready() -> void:
 		var t: Node = load("res://tests/autotest_hub.gd").new()
 		t.name = "HubAutotest"
 		get_tree().root.add_child.call_deferred(t)
+	if "--autotest-hub-touch" in args and not get_tree().root.has_node("TouchAutotest"):
+		var tt: Node = load("res://tests/autotest_touch.gd").new()
+		tt.name = "TouchAutotest"
+		get_tree().root.add_child.call_deferred(tt)
 
 
 func _process(_d: float) -> void:
@@ -125,17 +150,61 @@ func _refresh() -> void:
 
 # ---------------------------------------------------------------- Story (Auftrag 1, 19.10.2026)
 
-## Nächstes vorgemerktes Szenenfenster zeigen, sobald kein Bericht oder anderes Fenster davor liegt
+## Nächstes vorgemerktes Szenenfenster zeigen, sobald kein anderes Fenster mehr offen ist (Hub Auftrag 8).
+## Geprüft wird erst im nächsten Bild: Beim Schließen eines Fensters öffnet ein verzögerter Aufruf oft gleich das
+## nächste (Bericht → Reisebericht). Früher kam das Szenenfenster dazwischen und lag dann unter dem Reisebericht,
+## der es per move_to_front verdeckte (Hänger nach Entern-Sieg auf der Reise).
+var _story_wait := false
+
+
 func _next_story() -> void:
+	# Nach einem Szenenwechsel ist der Hub schon aus dem Baum (get_tree() wäre null): nicht mehr warten
+	if _story_wait or not is_inside_tree():
+		return
+	_story_wait = true
+	await get_tree().process_frame
+	_story_wait = false
+	if not is_inside_tree():
+		return
 	if game.story_queue.is_empty() or not game.active.is_empty() or _story_blocked():
 		return
 	_show_story(game.story_queue.pop_front())
 
 
+## Offenes Szenenfenster wieder nach oben holen, wenn sich ein anderes Fenster schließt (Hub Auftrag 8): so liegt nie
+## ein anderes Fenster darüber, außer es wurde aus der Szene geöffnet (Logbuch, Enzyklopädie) und ist noch offen.
+func _story_to_front() -> void:
+	if not is_inside_tree():
+		return
+	var d := ui.get_node_or_null(StoryDialog.NAME) as StoryDialog
+	if d == null or not d.visible:
+		return
+	var lg := ui.get_node_or_null(StoryLog.NAME) as Control
+	var enc := ui.get_node_or_null(Encyclopedia.NAME) as Control
+	if (lg and lg.visible) or (enc and enc.visible):
+		return
+	d.move_to_front()
+
+
+## Szenenfenster mit Esc / Android-Zurück schließen (Entscheidung des Nutzers 20.10.2026): die Szene bleibt offen und
+## lässt sich auf der Brücke (Sternenkarte, Abschnitt STORY, „Fortsetzen“) wieder öffnen. true = war offen.
+func _pause_story() -> bool:
+	var d := ui.get_node_or_null(StoryDialog.NAME) as StoryDialog
+	if d == null or not d.visible:
+		return false
+	for n in [StoryLog.NAME, Encyclopedia.NAME]:
+		var o := ui.get_node_or_null(n) as Control
+		if o and o.visible:
+			return false   # erst Logbuch/Enzyklopädie schließen (close_dialogs)
+	d.hide()
+	ui.show_toast("Szene pausiert: auf der Brücke unter STORY „Fortsetzen“")
+	_refresh()
+	return true
+
+
+## Liegt ein Fenster offen (außer der Sternenkarte, über der Szenen erscheinen dürfen)?
 func _story_blocked() -> bool:
-	var d := ui.get_node_or_null(StoryDialog.NAME)
-	return (d != null and d.visible) or ui.report.visible or ui.travel_report.visible or ui.space_report.visible \
-		or ui.contact.visible or ui.notice.visible or ui.slots.visible
+	return ui.any_dialog_open(true)
 
 
 ## Szenenfenster einer Kette (schon begonnen); danach Karte auffrischen und das nächste zeigen
@@ -151,6 +220,7 @@ func _show_story(chain: String) -> void:
 
 func _story_finished(_chain: String) -> void:
 	Campaign.save()
+	SaveSlots.autosave(game)   # nach jedem abgeschlossenen Story-Fenster (Hub Auftrag 8)
 	_refresh()
 
 
@@ -283,6 +353,7 @@ func _travel(target: int) -> void:
 	game.pending_offer = -1
 	var days := game.travel_to(target)
 	if days > 0:
+		SaveSlots.autosave(game)   # nach der Reise (Hub Auftrag 8)
 		Sfx.play(&"schritt")
 		_after_travel = _after_leg
 		ui.show_travel(game.last_travel)
@@ -342,6 +413,7 @@ func _after_space(next: String) -> void:
 			game.start_boarding()
 			get_tree().change_scene_to_file(HubState.BATTLE_SCENE)
 		_:
+			SaveSlots.autosave(game)   # nach dem Raumkampf (Hub Auftrag 8)
 			_continue_journey()
 
 
@@ -351,6 +423,7 @@ func _continue_journey() -> void:
 		return
 	if not game.travel_rest.is_empty() and not game.stranded():
 		game.resume_travel()
+		SaveSlots.autosave(game)   # nach der Reise (Hub Auftrag 8)
 		_refresh()
 		_after_days()
 		_after_travel = _after_leg
@@ -396,6 +469,8 @@ func _on_action(name: StringName, arg: Variant) -> void:
 			open_room(arg)
 		&"hover_room":
 			_set_hover(arg)
+		&"rotate":
+			rig.rotate_by(float(arg))
 		&"save":
 			ui.slots.show_slots(&"save", true)
 		&"load":
@@ -427,6 +502,11 @@ func _room_under(p: Vector2) -> StringName:
 
 
 func _unhandled_input(e: InputEvent) -> void:
+	if e is InputEventScreenTouch or e is InputEventScreenDrag:
+		_touch_input(e)
+		return
+	if e is InputEventMouse and e.device == InputEvent.DEVICE_ID_EMULATION:
+		return  # vom Touch erzeugte Mausereignisse: die Touch-Behandlung übernimmt
 	if e is InputEventMouseMotion:
 		if _mouse_drag and (e.button_mask & (MOUSE_BUTTON_MASK_LEFT | MOUSE_BUTTON_MASK_MIDDLE)):
 			_drag_accum += e.relative
@@ -461,7 +541,8 @@ func _unhandled_input(e: InputEvent) -> void:
 	elif e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
 			KEY_ESCAPE:
-				ui.close_dialogs()
+				if not _pause_story():
+					ui.close_dialogs()
 			KEY_Q:
 				rig.rotate_by(-90)
 			KEY_E:
@@ -474,3 +555,72 @@ func _unhandled_input(e: InputEvent) -> void:
 				rig.pan(Vector2(0, 80))
 			KEY_S, KEY_DOWN:
 				rig.pan(Vector2(0, -80))
+
+
+## Tablet (Hub Auftrag 6, Vorbild Battle._touch_input): wischen = verschieben, antippen = Raum öffnen, zwei Finger =
+## zoomen oder drehen. Die Geste entscheidet sich einmal je Berührung (was zuerst deutlich wird), damit sich beides nicht stört;
+## Drehen in 90°-Schritten wie Q/E, die Ansicht folgt der Drehrichtung der Finger.
+func _touch_input(e: InputEvent) -> void:
+	if e is InputEventScreenTouch:
+		if e.pressed:
+			if ui.covers(e.position):
+				return
+			_touches[e.index] = e.position
+			if _touches.size() == 1:
+				_touch_moved = false
+				_drag_accum = Vector2.ZERO
+			else:
+				_touch_moved = true
+				_gesture = ""
+				_twist = 0.0
+				var st := _pinch_state()
+				_pinch_dist = st.d
+				_pinch_d0 = st.d
+				_pinch_angle = st.a
+		else:
+			var was: bool = _touches.has(e.index)
+			_touches.erase(e.index)
+			if _touches.size() < 2:
+				_gesture = ""
+			if was and _touches.is_empty() and not _touch_moved:
+				var id := _room_under(e.position)
+				if id != &"":
+					open_room(id)
+	elif e is InputEventScreenDrag:
+		if not _touches.has(e.index):
+			return
+		_touches[e.index] = e.position
+		if _touches.size() >= 2:
+			var st := _pinch_state()
+			var da := wrapf(st.a - _pinch_angle, -PI, PI)
+			_pinch_angle = st.a
+			if _gesture == "":
+				_twist += da
+				if absf(log(st.d / maxf(_pinch_d0, 1.0))) > PINCH_START:
+					_gesture = "zoom"
+				elif absf(_twist) > TWIST_START:
+					_gesture = "rotate"
+			elif _gesture == "rotate":
+				_twist += da
+			if _gesture == "zoom":
+				if _pinch_dist > 0:
+					rig.zoom_at(st.c, st.d / _pinch_dist)
+				rig.pan(e.relative / 2.0)
+			elif _gesture == "rotate" and absf(_twist) > TWIST_STEP:
+				rig.rotate_by(90 if _twist > 0 else -90)
+				_twist = 0.0
+			_pinch_dist = st.d
+		else:
+			if not _touch_moved:
+				_drag_accum += e.relative
+				if _drag_accum.length() < 10.0:
+					return
+				_touch_moved = true
+			rig.pan(e.relative)
+
+
+func _pinch_state() -> Dictionary:
+	var ps: Array = _touches.values()
+	var a: Vector2 = ps[0]
+	var b: Vector2 = ps[1]
+	return {"d": a.distance_to(b), "c": (a + b) / 2.0, "a": (b - a).angle()}

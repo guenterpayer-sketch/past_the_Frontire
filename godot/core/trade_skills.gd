@@ -41,7 +41,7 @@ static func result(g: HubState, skill: StringName) -> StringName:
 
 
 static func can_roll(g: HubState, skill: StringName) -> bool:
-	return g.is_harbor(g.position) and roll_of(g, skill).is_empty()
+	return g.at_market() and roll_of(g, skill).is_empty()
 
 
 ## Probe würfeln (Figur gewählt im Handelsdialog); EP in der Fertigkeit

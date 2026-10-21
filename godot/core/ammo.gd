@@ -1,5 +1,5 @@
 class_name Ammo
-## Munition (Entscheidungen des Nutzers 15.10.2026, docs/Planung_Munition.md, docs/module/bodenkampf.md):
+## Munition (Entscheidungen des Nutzers 15.10.2026, docs/archiv/Planung_Munition.md, docs/module/bodenkampf.md):
 ## - Munitionsarten mit gemeinsamem Schiffsvorrat (TYPES); Waffen ohne Magazin brauchen keine Munition.
 ## - Mitnahme je Waffe: MAGS Magazine (Zweitwaffe: MAGS_SECOND), höchstens „Munition gesamt“, solange der Vorrat reicht
 ##   (Trupp in Reihenfolge); Schnellkampf und Gegner: voll (Vorrat null).

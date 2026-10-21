@@ -201,9 +201,9 @@ static func ammo_sell(g: HubState, type: String, n: int) -> int:
 	return int(floor(n * int(AMMO_PRICE[type]) * TradeSkills.sell_factor(g)))
 
 
-## Tanken (nur im Hafen); geht auch ohne genug Credits (Notkredit). Gibt die getankte Menge zurück.
+## Tanken (im Hafen oder an einer Station); geht auch ohne genug Credits (Notkredit). Gibt die getankte Menge zurück.
 static func buy_fuel(g: HubState, amount: int) -> int:
-	if not g.is_harbor(g.position):
+	if not g.at_market():
 		return 0
 	amount = mini(amount, g.tank_max() - g.fuel)
 	if amount <= 0:
@@ -220,7 +220,7 @@ static func hull_emergency(g: HubState) -> bool:
 
 
 static func can_buy_material(g: HubState, n := 1) -> bool:
-	return g.is_harbor(g.position) and (g.credits >= n * material_price(g) or hull_emergency(g))
+	return g.at_market() and (g.credits >= n * material_price(g) or hull_emergency(g))
 
 
 static func buy_material(g: HubState, n := 1) -> bool:
@@ -264,7 +264,7 @@ static func repairer(g: HubState) -> Character:
 
 ## Munition kaufen (nur im Hafen, nur mit genug Credits)
 static func can_buy_ammo(g: HubState, type: String, n: int) -> bool:
-	return g.is_harbor(g.position) and n > 0 and g.credits >= n * ammo_price(g, type)
+	return g.at_market() and n > 0 and g.credits >= n * ammo_price(g, type)
 
 
 static func buy_ammo(g: HubState, type: String, n: int) -> bool:
@@ -277,7 +277,7 @@ static func buy_ammo(g: HubState, type: String, n: int) -> bool:
 
 ## Munition verkaufen (nur im Hafen, halber Preis)
 static func can_sell_ammo(g: HubState, type: String, n: int) -> bool:
-	return g.is_harbor(g.position) and n > 0 and int(g.ammo.get(type, 0)) >= n
+	return g.at_market() and n > 0 and int(g.ammo.get(type, 0)) >= n
 
 
 static func sell_ammo(g: HubState, type: String, n: int) -> bool:

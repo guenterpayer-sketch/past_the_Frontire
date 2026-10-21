@@ -11,7 +11,7 @@ Entscheidungen des Nutzers (Koordinations-Chat).
 
 ## Entscheidungen
 
-1. **Munitionswerte** trägt der Nutzer selbst ein (über den Ausrüstungs-Editor, `docs/Planung_Ausruestungs_Editor.md`); vorhandene Waffen behalten ihre Werte, bis er sie ändert.
+1. **Munitionswerte** trägt der Nutzer selbst ein (über den Ausrüstungs-Editor, `docs/archiv/Planung_Ausruestungs_Editor.md`); vorhandene Waffen behalten ihre Werte, bis er sie ändert.
 2. **Feuerstoß:** neuer Waffenwert **Schuss pro Angriff** (z. B. 3 bei „3/30“). Wirkung: **ein Angriffswurf mit Bonus** (wie heute `ob_bonus`), verbraucht aber die Schuss pro Angriff. **Fest je Waffe** (keine Wahl Einzel/Feuerstoß).
 3. **Bestand:** **Schiffsvorrat je Munitionsart** (z. B. Energiezellen, Projektil, Raketen; Waffen gleicher Art teilen sich den Vorrat). Neuer Waffenwert **Munitionsart**. Verbrauch nach dem Einsatz vom Vorrat abziehen; **Kauf im Raumhafen**.
 

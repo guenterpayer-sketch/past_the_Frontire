@@ -1,6 +1,6 @@
 class_name GlobalRoster
 extends RefCounted
-## Globaler Roster (docs/Planung_Roster_Verwundung.md, A): die 6 Startcharaktere (schreibgeschützt, aus
+## Globaler Roster (docs/archiv/Planung_Roster_Verwundung.md, A): die 6 Startcharaktere (schreibgeschützt, aus
 ## res://data/units/crew.tres) plus alle selbst erschaffenen Figuren in user://roster.json. Gehört keinem Spielstand;
 ## Spiele bekommen Kopien (Campaign.new_game, Campaign.hire), deren Fortschritt nicht zurückfließt.
 

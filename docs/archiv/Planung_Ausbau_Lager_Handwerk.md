@@ -20,7 +20,7 @@ Ziel des Nutzers: Motivation, Credits zu jagen. Entscheidungen des Nutzers (Koor
 
 **Handwerk**
 - Material: **Schiffsmaterial** (gibt es) und neu **Handwerksmaterial**.
-- Fertigkeiten (gibt es, `core/rules.gd`, Gruppe Handwerk): **Waffen** (`hwWaffen`, auch Munition), **Rüstung** (`hwRuestung`), **Medikamente herstellen** (`medikamente`, Medikits). (Kochen: siehe `docs/Planung_Rueckzug_Proviant_Kochen.md`.)
+- Fertigkeiten (gibt es, `core/rules.gd`, Gruppe Handwerk): **Waffen** (`hwWaffen`, auch Munition), **Rüstung** (`hwRuestung`), **Medikamente herstellen** (`medikamente`, Medikits). (Kochen: siehe `docs/archiv/Planung_Rueckzug_Proviant_Kochen.md`.)
 - **Zerlegen:** Waffen/Rüstungen (auch Beute) zu Handwerksmaterial; Menge je nach Probenerfolg.
 - **Bauen:** alles Verbrauchbare (Munition, Medikits) sowie Waffen und Rüstungen (auch eigene aus dem Editor), z. B. um bessere/teurere Waffen zum Verkaufen herzustellen.
 - **Ort:** Waffenkammer/Werkstatt (Waffen, Rüstungen, Munition; Werkstatt ausbaubar) und Krankenstation (Medikits).

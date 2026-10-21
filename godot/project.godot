@@ -12,13 +12,20 @@ config_version=5
 
 config/name="Past the Frontire"
 config/description="Party-RPG im Weltraum: rundenbasierter Bodenkampf im RMSS-Stil"
+config/version="0.4 (20.10.2026)"
 run/main_scene="res://start.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+config/quit_on_go_back=false
 
 [autoload]
 
 Sfx="*res://audio/sfx.gd"
 Music="*res://audio/music.gd"
+TouchInput="*res://ui/touch_input.gd"
+
+[debug]
+
+gdscript/warnings/integer_division=0
 
 [display]
 

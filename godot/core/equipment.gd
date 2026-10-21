@@ -1,9 +1,9 @@
 class_name Equipment
 extends RefCounted
-## Ausrüstung ändern (Waffenkammer, docs/Planung_Waffenkammer.md): Waffe 1 (Pflicht), Waffe 2 (darf leer sein),
+## Ausrüstung ändern (Waffenkammer, docs/archiv/Planung_Waffenkammer.md): Waffe 1 (Pflicht), Waffe 2 (darf leer sein),
 ## Rüstung, Schild. Psi-Waffen sind nicht wählbar (Psi-Angriffe kommen aus den Psi-Listen).
 ## Keine Waffe doppelt; Schild nur, wenn Waffe 1 und Waffe 2 einhändig sind (Waffe 2 darf leer sein).
-## Lager (Schritt 3, docs/Planung_Ausbau_Lager_Handwerk.md; Entscheidungen des Nutzers 16.10.2026): Ausrüsten nimmt
+## Lager (Schritt 3, docs/archiv/Planung_Ausbau_Lager_Handwerk.md; Entscheidungen des Nutzers 16.10.2026): Ausrüsten nimmt
 ## aus dem Lager des Schiffs (Stock), Ablegen legt zurück; Fäuste und „keine Rüstung“ sind immer da; der Schild ist
 ## ein Lagergegenstand (SHIELD); Medikits aus dem Lager, höchstens MAX_MEDKITS je Figur. g = HubState.game;
 ## g == null (Schnellkampf, Tests ohne Spiel) = unbegrenzt.

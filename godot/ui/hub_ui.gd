@@ -106,6 +106,7 @@ func _ready() -> void:
 	for i in MENU.size():
 		popup.add_item(MENU[i][1], i)
 	popup.add_theme_font_size_override("font_size", 15)
+	Version.add_to(popup)
 	popup.id_pressed.connect(func(id: int) -> void: action.emit(MENU[id][0], null))
 	menu.draw.connect(func() -> void:
 		var o := menu.size / 2.0
@@ -135,7 +136,24 @@ func _ready() -> void:
 
 	_hint = PanelContainer.new()
 	_hint.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL, 0.9), UiTheme.LINE, 8, 8))
-	_hint.add_child(UiTheme.label("Ziehen / WASD: Kamera · Mausrad: Zoom · Q/E: drehen · Raum anklicken", 13, UiTheme.MUTED))
+	if DisplayServer.is_touchscreen_available() or "--autotest-hub-touch" in OS.get_cmdline_user_args():
+		# Tablet (Hub Auftrag 6, Entscheidung des Nutzers): Touch-Hinweis und Drehknöpfe in der Hinweisleiste
+		var hrow := HBoxContainer.new()
+		hrow.add_theme_constant_override("separation", 8)
+		_hint.add_child(hrow)
+		var hl := UiTheme.label("Wischen: Kamera · zwei Finger: Zoom/drehen · Raum antippen", 13, UiTheme.MUTED)
+		hl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		hrow.add_child(hl)
+		for spec in [[-90, "Ansicht nach links drehen (⟲)"], [90, "Ansicht nach rechts drehen (⟳)"]]:
+			var rb := UiTheme.button("", spec[1])
+			rb.custom_minimum_size = Vector2(44, 44)
+			var deg: int = spec[0]
+			# Pfeil im Kreis selbst zeichnen (die Schrift hat ⟲/⟳ nicht sicher), wie das Burgermenü
+			rb.draw.connect(func() -> void: _draw_turn(rb, deg < 0))
+			rb.pressed.connect(func() -> void: action.emit(&"rotate", deg))
+			hrow.add_child(rb)
+	else:
+		_hint.add_child(UiTheme.label("Ziehen / WASD: Kamera · Mausrad: Zoom · Q/E: drehen · Raum anklicken", 13, UiTheme.MUTED))
 	add_child(_hint)
 
 	star_map = StarMap.new()
@@ -749,8 +767,14 @@ Speichern geht nur im Schiff (oben rechts).""", 15)
 	help.add_close()
 
 
-func any_dialog_open() -> bool:
-	return star_map.visible or crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible or contact.visible or space_report.visible \
+## except_map: die Sternenkarte zählt nicht (Szenenfenster dürfen über ihr erscheinen)
+func any_dialog_open(except_map := false) -> bool:
+	if star_map.visible and not except_map:
+		return true
+	for c in get_children():
+		if c is Modal and c.visible:
+			return true
+	return crew.visible or sheet.visible or slots.visible or report.visible or notice.visible or help.visible or medbay.visible or galley.visible or armory.visible or travel_report.visible or engine.visible or trade.visible or craft.visible or ship_arms.visible or port.visible or contact.visible or space_report.visible \
 		or (has_node(Encyclopedia.NAME) and get_node(Encyclopedia.NAME).visible) or (has_node(StoryLog.NAME) and get_node(StoryLog.NAME).visible) \
 		or (has_node(StoryDialog.NAME) and get_node(StoryDialog.NAME).visible)
 
@@ -775,6 +799,19 @@ func close_dialogs() -> bool:
 
 
 ## liegt der Punkt auf der Oberfläche (nicht auf dem Deck)?
+## Drehpfeil ⟲ (links) oder ⟳ (rechts) auf einem Knopf
+static func _draw_turn(b: Button, left: bool) -> void:
+	var c := b.size / 2.0
+	var r := 10.0
+	var a0 := -PI * 0.9 if left else -PI * 0.1
+	var a1 := a0 + (PI * 1.5 if not left else -PI * 1.5)
+	b.draw_arc(c, r, minf(a0, a1), maxf(a0, a1), 24, UiTheme.TEXT, 2.0, true)
+	var tip := c + Vector2(cos(a0), sin(a0)) * r
+	var tang := Vector2(-sin(a0), cos(a0)) * (1.0 if left else -1.0)
+	var side := (tip - c).normalized()
+	b.draw_colored_polygon(PackedVector2Array([tip + tang * 5.0, tip + side * 5.0 - tang * 2.0, tip - side * 5.0 - tang * 2.0]), UiTheme.TEXT)
+
+
 func covers(p: Vector2) -> bool:
 	if any_dialog_open():
 		return true

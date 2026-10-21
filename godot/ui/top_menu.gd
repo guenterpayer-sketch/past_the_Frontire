@@ -61,6 +61,7 @@ func _ready() -> void:
 	for i in MENU.size():
 		popup.add_item(MENU[i][1], i)
 	popup.add_theme_font_size_override("font_size", 15)
+	Version.add_to(popup)   # Versionszeile (Hub Auftrag 7)
 	popup.id_pressed.connect(func(id: int) -> void: action.emit(MENU[id][0], null))
 	menu.draw.connect(func() -> void:
 		var o := menu.size / 2.0
