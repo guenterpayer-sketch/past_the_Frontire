@@ -68,7 +68,7 @@ Die Karte nutzt den ganzen Bildschirm, die Bedienung schwebt darüber:
 - oben links die Initiative-Leiste (Einspringen nach dem Abwarten),
 - oben rechts Runde/Auftrag und Symbolknöpfe (Charakterbogen, Tabellen = Enzyklopädie des Hubs bei der gewählten Waffe bzw. Psi-Liste, KI für Crew, Ton, Würfel, Menü mit Neue Mission, Raster, Reichweite, UI-Größe, Enzyklopädie, Bedienung),
 - darunter rechts die **Seitenleiste** (kompakte Kampf-UI, Variante C): Figurenkarte (TP/PP/Aktivität, AW/VW/INI, Bogen), dann Abschnitte Waffe (mit Psi-Angriffskräften), Gangart, Angriffsaktivität, Psi (Reiter je Liste) und Aktionen (Ducken, Abwarten, Feuerbereit, Nachladen, Reparieren je beschädigter Waffe in Reichweite, Erste Hilfe, Ausrichten) – Waffen mit Feuerstoß zeigen „×3“, mit Magazin „geladen/Magazin“ bzw. „ohne Munition“ (Munition: `core/ammo.gd`, Schiffsvorrat je Art, 3 Magazine je Waffe, Hinweise im Briefing), jeder per Klick auf die Überschrift ein-/ausklappbar (gespeichert), unten immer „Zug beenden“; in Runde 0 die Aufstellung; ist die KI am Zug, nur deren Figurenkarte. Der Knopf „›“ klappt die ganze Leiste ein (Enter beendet weiter den Zug),
-- links neben der Leiste der Infokasten für das Feld bzw. die Figur unter der Maus (auf Touchgeräten mit „Ausführen“),
+- links neben der Leiste der Infokasten für das Feld bzw. die Figur unter der Maus (auf Touchgeräten mit „Ausführen“); Klicks gehen durch den Kasten auf die Karte, ein Gegner unter ihm ist also anklickbar,
 - unten links Würfel und Kampflog (eingeklappt eine Zeile, „Log ▴“ klappt den Verlauf auf).
 
 Basisauflösung der Oberfläche ist 1600×900 (Fenster 1600×900); größere Bildschirme skalieren die Oberfläche mit.
