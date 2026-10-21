@@ -66,7 +66,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "hinterhalt_frei"
 		},
 		"bezahlt": {
 			"title": "Bezahlt",
@@ -80,7 +81,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "hinterhalt_bezahlt"
 		},
 		"geschlagen": {
 			"title": "Geschlagen",
@@ -97,7 +99,8 @@
 						}
 					]
 				}
-			]
+			],
+			"image": "hinterhalt_geschlagen"
 		}
 	}
 }
