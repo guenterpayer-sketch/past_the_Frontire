@@ -20,9 +20,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (21.10.2026): Bild für jede Szene
-
-1. Bilder in `godot/art/story/` sind in `main` (Commit `5cff85f`, 16 PNG). Die Liste mit Prompts steht in `docs/Story_Bilder.md`.
-2. Fehler: Nur die Szene „start“ jeder Kette hat ein Bildfeld (`"image": "{bild}"`, z. B. `godot/data/story/vorlagen/abfangen.json`). Die Szene „Entdeckt“ zeigt deshalb „Bild folgt“ (Screenshot des Nutzers 21.10.2026).
-3. Entscheidung des Nutzers (21.10.2026): **Jede Szene bekommt ein eigenes Bild.** Dafür pro Szene ein Bildfeld setzen, wo es passt, und eine Liste der Szenen ohne Datei in `docs/Story_Bilder.md` eintragen (ID, Szene, Prompt). Fehlende Dateien: nur als Liste, nicht erfinden.
-4. Tests nach CLAUDE.md. Danach Fertigmeldung mit Liste der fehlenden Motive.
+- Keine offenen Aufträge. Offen beim Nutzer: Bilder malen (`docs/Story_Bilder.md`, Abschnitt „Ergänzt am 21.10.2026“, 41 Motive).
