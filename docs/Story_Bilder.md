@@ -39,7 +39,7 @@ Die Prompts sind auf Englisch, weil Bildgeneratoren damit meist genauer arbeiten
 
 ## Ergänzt am 21.10.2026: jede Szene ein eigenes Bild
 
-Der Nutzer hat entschieden: Jede Szene bekommt ein Bildfeld (`"image"`), die Bilder fehlen noch. Die Dateinamen sind `<Kette oder Vorlage>_<Szene>` (bei Ausgängen mit dem Ausgangsnamen dazwischen). Die Startszenen der Vorlagen (`{bild}`) haben schon ein Bild je Vorlage und stehen nicht in dieser Liste. Die Testketten (`test: true`) sind nicht erfasst. Die Prompts unten sind die vom Nutzer überarbeitete Fassung (23.10.2026, gemischte Crew mit Frauen und Männern); der Stilsatz oben gehört weiter an jeden Prompt.
+Der Nutzer hat entschieden: Jede Szene bekommt ein Bildfeld (`"image"`), die Bilder fehlen noch. Die Dateinamen sind `<Kette oder Vorlage>_<Szene>` (bei Ausgängen mit dem Ausgangsnamen dazwischen). Die Startszenen der Vorlagen (`{bild}`) haben schon ein Bild je Vorlage und stehen nicht in dieser Liste. Die Testketten (`test: true`) sind nicht erfasst. Die Prompts unten sind die vom Nutzer überarbeitete Fassung (23.10.2026, gemischte Crew mit Frauen und Männern); der Stilsatz oben gehört weiter an jeden Prompt. Fertige Absätze zum Kopieren (mit Stilsatz): `docs/Story_Bilder_Prompts.docx`.
 
 Hinweis: Mehrere Szenen haben denselben Text („Gut vorbereitet“, „Entdeckt“, „Geschafft“, „Zu spät“) in den drei Vorlagen Abfangen, Befreien und Bergen. Entscheidung des Nutzers (21.10.2026): ein eigenes Bild pro Vorlage, kein geteiltes Bild.
 
