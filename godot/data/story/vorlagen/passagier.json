@@ -64,7 +64,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_fluechtling_ausgang"
 			},
 			"sieg": {
 				"title": "Dankbar",
@@ -81,7 +82,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_fluechtling_sieg"
 			},
 			"niederlage": {
 				"title": "Geholt",
@@ -95,7 +97,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_fluechtling_niederlage"
 			}
 		},
 		"begabt": {
@@ -150,7 +153,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_begabt_ausgang"
 			},
 			"sieg": {
 				"title": "In Sicherheit",
@@ -170,7 +174,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_begabt_sieg"
 			},
 			"niederlage": {
 				"title": "Verloren",
@@ -184,7 +189,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_begabt_niederlage"
 			}
 		},
 		"dieb": {
@@ -223,7 +229,8 @@
 							}
 						}
 					}
-				]
+				],
+				"image": "passagier_dieb_ausgang"
 			}
 		},
 		"harmlos": {
@@ -245,7 +252,8 @@
 							}
 						]
 					}
-				]
+				],
+				"image": "passagier_harmlos_ausgang"
 			}
 		}
 	}

@@ -15,8 +15,13 @@
 
 ## Stand
 
-- Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/story_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- Alles in `main` (21.10.2026, Version 0.6), keine offenen Aufträge. Verlauf: `docs/module/archiv/story_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- Bildfelder: jede Szene hat `image` (Name `<Kette oder Vorlage>_<Szene>`), Startszenen `{bild}`. Prompts: `docs/Story_Bilder.md`. Bilder nur als `.png` (`ui/story_dialog.gd`).
+
+## Gültige Absprachen
+
+- Bilder: Gleiche Szene in mehreren Vorlagen (Abfangen, Befreien, Bergen) bekommt **ein eigenes Bild pro Vorlage** (Nutzer 21.10.2026), kein geteiltes Bild.
 
 ## Aufträge vom Koordinator
 
-Keine offenen Aufträge.
+- Keine offenen Aufträge. Offen beim Nutzer: Bilder malen (`docs/Story_Bilder.md`, Abschnitt „Ergänzt am 21.10.2026“, 41 Motive).
