@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_items_and_keys()
 	_test_events_and_harbor()
 	_test_faction_ids()
+	_test_images()
 
 
 ## Oberflächen-Tests erst, wenn der Baum steht (_ready der Fenster)
@@ -549,3 +550,33 @@ func _buttons(n: Node, out: Array[Button]) -> void:
 		if c is Button:
 			out.append(c)
 		_buttons(c, out)
+
+
+## jede Szene (außer Testketten) hat ein Bildfeld (Nutzer 21.10.2026); erzeugte Ketten aus alten Spielständen ohne Feld
+## bekommen das Bild der Vorlage
+func _test_images() -> void:
+	var missing: Array[String] = []
+	var all := StoryData.chains().duplicate()
+	for tid in StoryData.templates():
+		all["vorlage " + tid] = StoryData.templates()[tid]
+	for id in all:
+		var c: Dictionary = all[id]
+		if c.get("test", false):
+			continue
+		var scs: Dictionary = c.get("scenes", {}).duplicate()
+		for o in c.get("ausgaenge", {}):
+			for sid in c.ausgaenge[o]:
+				scs["%s/%s" % [o, sid]] = c.ausgaenge[o][sid]
+		for sid in scs:
+			if String(scs[sid].get("image", "")) == "":
+				missing.append("%s: %s" % [id, sid])
+	check(missing.is_empty(), "jede Szene hat ein Bildfeld, fehlt: %s" % ", ".join(missing))
+	var s := _story()
+	var id := StoryGen.make(s, "wrack", {"start": true})
+	var c: Dictionary = s.state.generated[id]
+	var sid: String = c.scenes.keys().filter(func(k: String) -> bool: return k != "start")[0]
+	var want := String(c.scenes[sid].image)
+	c.scenes[sid].erase("image")
+	s.start(id)
+	s.state.chains[id].scene = sid
+	check(s.view(id).image == want, "alter Spielstand: Bild aus der Vorlage (%s)" % want)

@@ -16,7 +16,7 @@
 ## Stand
 
 - Alles in `main` (21.10.2026, Version 0.6), keine offenen Aufträge. Verlauf: `docs/module/archiv/story_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
-- Bildfelder: jede Szene hat `image` (Name `<Kette oder Vorlage>_<Szene>`), Startszenen `{bild}`. Prompts: `docs/Story_Bilder.md`. Bilder nur als `.png` (`ui/story_dialog.gd`).
+- Bildfelder: jede Szene hat `image` (Name `<Kette oder Vorlage>_<Szene>`), Startszenen `{bild}`. Prompts: `docs/Story_Bilder.md`. Bilder nur als `.png` (`ui/story_dialog.gd`). Fehlt in einer erzeugten Kette aus einem alten Spielstand das Feld, nimmt `Story.view` das Bild der Vorlage; `test_story` prüft, dass jede Szene ein Bildfeld hat (23.10.2026).
 
 ## Gültige Absprachen
 
