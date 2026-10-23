@@ -125,10 +125,12 @@ func _process(_d: float) -> void:
 	_place(_left, Vector2(MARGIN, size.y - MARGIN - _left.size.y))
 	_place(top_menu, Vector2(size.x - MARGIN - top_menu.size.x, MARGIN))
 	var top := MARGIN + top_menu.size.y + GAP
-	var side_x := size.x - MARGIN - SIDE_W
+	# rechte Kante fest am Rand: verlangt der Inhalt mehr als SIDE_W, wächst die Leiste nach links statt aus dem Bild
+	var side_w := maxf(SIDE_W, side.get_combined_minimum_size().x)
+	var side_x := size.x - MARGIN - side_w
 	_place(side, Vector2(side_x, top))
 	# ohne Aktionen (Gegner/KI am Zug) nur so hoch wie die Figurenkarte
-	var side_size := Vector2(SIDE_W, size.y - top - MARGIN if actions.visible else side.get_combined_minimum_size().y)
+	var side_size := Vector2(side_w, size.y - top - MARGIN if actions.visible else side.get_combined_minimum_size().y)
 	if side.size != side_size:
 		side.size = side_size
 	_place(_fold, Vector2((side_x if side.visible else size.x - MARGIN) - _fold.size.x, top + 16))
