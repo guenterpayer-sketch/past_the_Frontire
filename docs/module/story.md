@@ -15,8 +15,8 @@
 
 ## Stand
 
-- Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/story_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
-- (21.10.2026) Auftrag „Bild für jede Szene“ erledigt: 41 Szenen mit Bildfeld (`image`, Name `<Kette oder Vorlage>_<Szene>`). Alle 41 Motive fehlen noch, Liste mit Prompts in `docs/Story_Bilder.md` (Abschnitt „Ergänzt am 21.10.2026“). Offen (Nutzer): gleiche Texte in Abfangen/Befreien/Bergen mit einem gemeinsamen Bild oder je eigenem.
+- Alles in `main` (21.10.2026, Version 0.6), keine offenen Aufträge. Verlauf: `docs/module/archiv/story_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- Bildfelder: jede Szene hat `image` (Name `<Kette oder Vorlage>_<Szene>`), Startszenen `{bild}`. Prompts: `docs/Story_Bilder.md`. Bilder nur als `.png` (`ui/story_dialog.gd`). Fehlt in einer erzeugten Kette aus einem alten Spielstand das Feld, nimmt `Story.view` das Bild der Vorlage; `test_story` prüft, dass jede Szene ein Bildfeld hat (23.10.2026).
 
 ## Gültige Absprachen
 

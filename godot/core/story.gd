@@ -159,6 +159,17 @@ func scene_of(id: String, sid: String) -> Dictionary:
 	return chain_of(id).get("scenes", {}).get(sid, {})
 
 
+## Bild einer Szene; fehlt es in einer erzeugten Kette (Spielstand von vor dem 21.10.2026), aus der Vorlage
+func _image_of(c: Dictionary, sid: String, sc: Dictionary) -> String:
+	var img := String(sc.get("image", ""))
+	if img != "" or not c.has("template"):
+		return img
+	var t: Dictionary = StoryData.templates().get(String(c.template), {})
+	var ts: Dictionary = t.get("scenes", {}).get(sid, t.get("ausgaenge", {}).get(String(c.get("ausgang", "")), {}).get(sid, {}))
+	img = String(ts.get("image", ""))
+	return "" if img.contains("{") else img
+
+
 ## Ziel aus der Beschreibung einer Kette: target_rand [a, b] würfelt das Ziel, rate/every = wiederkehrende Rate
 func _make_goal(g: Dictionary, chain_id: String) -> void:
 	var target := int(g.get("target", 0))
@@ -200,7 +211,7 @@ func view(chain_id: String) -> Dictionary:
 	if s.is_empty():
 		return {}
 	var out := {"chain": chain_id, "scene": sid, "kind": String(c.get("kind", "kette")), "chain_title": String(c.get("title", "")),
-		"title": String(s.get("title", "")), "text": text_of(s.get("text", "")), "image": String(s.get("image", "")), "choices": []}
+		"title": String(s.get("title", "")), "text": text_of(s.get("text", "")), "image": _image_of(c, sid, s), "choices": []}
 	var choices: Array = s.get("choices", [])
 	for i in choices.size():
 		var ch: Dictionary = choices[i]
