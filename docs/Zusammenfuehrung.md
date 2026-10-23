@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 23.10.2026 | (dieser Merge) | Bodenkampf (`1f2374f`), Story (`e2ceaa5`, `2c9ec4d`, `7fc4daa`) | Seitenleiste bleibt im Bild; Story nimmt Bild der Vorlage für alte Spielstände, Test für Bildfelder, überarbeitete Prompts (+ `docs/Story_Bilder_Prompts.docx`). Tests rules/hub/story OK (Koordinator). Version 0.7. |
 | 21.10.2026 | (dieser Merge) | Story `claude/zen-sagan-9yn0le` (`45adbd4`) | Bild für jede Szene (41 image-Felder). Tests story/rules OK (Koordinator). Version 0.6. |
 | 21.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`8a41542`) | Klick auf einen Gegner unter dem Infokasten greift an. Version 0.5. |
 | 20.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`efa8a0b`) | Absturz behoben: Szenenfenster nach Szenenwechsel (`get_tree()` null). Tests rules/hub/story OK (Koordinator). |
