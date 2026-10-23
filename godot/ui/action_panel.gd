@@ -116,16 +116,30 @@ func refresh(c: Combat, pc: PlayerController, u: Combatant, player_turn: bool) -
 		"Restliche Aktivität (mind. %d %%) zurückhalten: Schuss auf den ersten Gegner, der im Sichtfeld handelt (%d)." % [Combat.MIN_OVERWATCH, Combat.REACTION_MOD])
 	for rw in c.reloadable(u):
 		add_action.call("Nachladen %d %%" % Combat.COST.reload, &"reload", rw, c.can_do(u, Combat.COST.reload), false, "%s nachladen" % rw.name)
+	# Reparieren: lange Texte (Waffe · Figur), je eine volle Zeile, gekürzt wie die Psi-Knöpfe; voller Text im Tooltip
+	var wide := VBoxContainer.new()
+	wide.add_theme_constant_override("separation", 4)
 	for rt in c.repair_targets(u):
 		var o: Combatant = rt.unit
 		var rw: Resource = o.gear_at(rt.slot)
-		add_action.call("Reparieren %s%s (%d) %d %%" % [rw.get("name"), "" if o == u else " · " + o.name, int(o.wear.get(rt.slot, 0)), Combat.COST.repair],
-			&"repair", rt, c.can_do(u, Combat.COST.repair), false,
-			"Waffen-Reparatur (Mittel), einmal je Stück und Kampf: Herausragend +10, Erfolg +5, Patzer −10; höchstens bis %d." % Combat.REPAIR_CAP)
+		var text := "Reparieren %s%s (%d) %d %%" % [rw.get("name"), "" if o == u else " · " + o.name, int(o.wear.get(rt.slot, 0)), Combat.COST.repair]
+		var rb := _btn(text, &"repair", rt, false, dis.call(c.can_do(u, Combat.COST.repair)))
+		rb.tooltip_text = text + "\nWaffen-Reparatur (Mittel), einmal je Stück und Kampf: Herausragend +10, Erfolg +5, Patzer −10; höchstens bis %d." % Combat.REPAIR_CAP
+		rb.custom_minimum_size.x = 0
+		rb.clip_text = true
+		rb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		wide.add_child(rb)
 	add_action.call("Erste Hilfe %d %%" % Combat.COST.aid, &"aid", null, c.can_do(u, Combat.COST.aid) and not c.first_aid_targets(u).is_empty(),
 		pc.mode == PlayerController.Mode.AID, "Benachbarte Figur behandeln (Erste Hilfe, Leicht; Medikit +%d)" % Combat.MEDKIT_BONUS)
 	add_action.call("Ausrichten", &"face", null, true, pc.mode == PlayerController.Mode.FACE, "Feld anklicken, in dessen Richtung die Figur schauen soll (kostenlos). Alternativ Rechtsklick.")
-	_section(&"more", "AKTIONEN (Ducken, Abwarten, Feuerbereit, …)", more)
+	var more_box := VBoxContainer.new()
+	more_box.add_theme_constant_override("separation", 4)
+	more_box.add_child(more)
+	if wide.get_child_count() > 0:
+		more_box.add_child(wide)
+	else:
+		wide.free()
+	_section(&"more", "AKTIONEN (Ducken, Abwarten, Feuerbereit, …)", more_box)
 
 	var hint := _hint(pc)
 	if hint != "":
