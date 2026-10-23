@@ -132,6 +132,12 @@ Entscheidungen des Nutzers: eigene Seiten in `data/ships/seiten/` für `semidrug
 
 Messung (`tests/sim_space.gd -- 100 fraktionen`, neu: Siege je Seite) nach der Abstimmung, Sieg leicht/mittel/schwer: Semidrug 79/69/45, Eisenwölfe 88/56/35, Schwarze Flagge 88/65/42, Aasgeier 85/73/40, Neuntes Haus 88/66/50, Kinder der Glut 90/66/40; zum Vergleich die alten Seiten 87–93 / 58–72 / 39–48 (Drohnen 100/97/59). Die Werte schwanken zwischen Läufen um etwa ±7 Punkte (Würfelfolge hängt von der Reihenfolge der Kämpfe ab; Eisenwölfe mittel z. B. 56–67 % bei gleichen Werten). Die neuen Seiten liegen damit in der Streuung der alten.
 
+## 1g. Gegner-Info und Scan (23.10.2026, Wunsch des Nutzers)
+
+Frage des Nutzers: Infos vom Gegnerschiff (Antrieb beschädigt, Waffen beschädigt usw.). Vorher lag alles im Spielzustand, sichtbar über Klick-Log, Hüllenbalken, Schildring und ein allgemeines ⚠. Entscheidungen: Mouseover über dem Schiff; Umfang „eigene Treffer + Scan“; ohne Scan Hülle und Schilde nur grob; Scan gilt einige Runden (Vorschlag 3 bestätigt), Hülle in 3 Stufen; Mockups bestätigt. Regel in `docs/Raumkampf.md` 4d.
+
+Umsetzung: `SpaceShip.known`/`scan_until`/`scan_live`/`scan_seen`, `seen_damage()`, `hull_stage()`; `SpaceCombat.SCAN_ROUNDS`, Computer-Modus `"scan"`; Tooltip `SpaceUI.hover_ship()`/`enemy_info()`, Hover in `SpaceView._input`; Karte in `SpaceShipView` (Balken 3 Stufen, Schildring an/aus). Test `test_space.gd` `_test_scan`, Screenshots `-- --autotest-space` (8_gegner_grob, 9_gegner_scan). Kein Balancing nötig: Gegner-KI und Bord-KI handeln wie vorher (`test_sim -- 10` OK). Auf Touch-Geräten gibt es keinen Mouseover; dort bleibt der Klick (Log).
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
