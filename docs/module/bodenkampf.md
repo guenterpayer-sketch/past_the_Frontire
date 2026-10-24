@@ -72,6 +72,13 @@
 
 - **Budget 55/75/100 simuliert (24.10.2026, Nutzer: Grundwerte für eine neu erschaffene Crew, Startcrew „muss es langsam angehen“):** Ø Gegner 5,2/7,1/9,4. Squad: leicht 30/30 Siege, 20 % TP-Verlust; mittel 30/30, 41 %, 0,6 kampfunfähig; schwer 15/30, 80 %, 3,9 kampfunfähig. Startcrew: 26/30 (60 %), 16/30 (76 %), 2/30 (99 %).
 
+- **Gesamtzusammenfassung Balancing (24.10.2026, vom Nutzer bestätigt, noch nicht gebaut):**
+  - Normale Gegner: Neuling 15 % (−1 Rang, −5 Eigenschaften, Preis −2), normal 65 %, Veteran 20 % (+1/+5, Preis +3); alle Körper +1.
+  - Elite-Stufen [VW, Körper, Waffe, Preis-Vorschlag]: Basis [+5, +2, +10, +6], Leutnant [+5, +4, +10, +9], Hauptmann [+10, +5, +10, +12], Boss [+15, 4 + 9·m höchstens 10, +20].
+  - Normale Begegnung: Fraktion → Typen/Gewichte; Budget leicht 55 (5–7 Gegner, keine Elite), mittel 75 (6–9, gelegentlich 1 Elite Basis, Vorschlag 25 %), schwer 100 (8–12, bis 2 Elite Basis, Vorschlag 40 %/20 %); Elite aus dem Budget bezahlt; Mitwachsen Körper +7·m, Ränge +2·m; Mission kann Gegner vorgeben.
+  - Reine Elite-Begegnungen: Elite-Auftrag (~13 %, Hub würfelt, „Elite“ im Angebot) als Elite-Trupp (alle Basis) oder Elite-Kern (jeder 3. Leutnant, Rest Basis); Boss-Auftrag (Story-Ende, Personenziel): 1 Boss + 2 Hauptleute + Rest normal, „Boss“ im Angebot. Vorschlag: Anzahl = Mindestzahl der Stufe. Ziel 70–75 % Siege. Beute 10–15 %, 2–3 Elite-Stücke, −20/−30.
+  - Gegnertypen und Scharfschützengewehr wie oben beschlossen. Offen per Simulation: Elite-Wahrscheinlichkeiten, Elite-Preise, Anzahl bei Elite-Begegnungen, Typpreise.
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
