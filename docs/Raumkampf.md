@@ -73,6 +73,13 @@ Grundidee: Schiffe sind kostbar und werden nicht bis zum Letzten zerstört; eine
 - Anzeige: Warnzeichen ⚠ am Namen nur bei bekannten Schäden ab C, Tooltip mit der Maus über dem Schiff, Klick schreibt den bekannten Stand ins Log.
 - Die Gegner-KI kennt weiter alles; die Bord-KI scannt nicht von selbst (der Vorschlag bleibt Zielerfassung), Scannen ist eine Abwägung des Spielers.
 
+## 4e. Gegner nach Crew-Stärke und Elite (Entscheidungen des Nutzers 24.10.2026)
+
+- **Crew-Stärke P** = Mittel aus Pilot und den zwei besten Geschützstationen (ohne Turm), beim Kampfstart nach den Posten.
+- **Normale Kämpfe (moderat):** Gegner-Besatzung + (P − 56) × 0,2, 0 bis +10. Schwache Crews merken nichts, starke etwa +4 bis +10.
+- **Elite-Kämpfe** (`setup.enemy.elite`, gemeinsame Regel mit dem Bodenkampf: etwa jeder 7.–8. Kampf, vorher erkennbar): Waffen eine Stufe besser (Laserbank → Partikelkanone, Massebeschleuniger → Schnellfeuerkanone, Raketenwerfer → Raketenbatterie, Abwehrgeschütz → Abwehrlaser), Schilde +4 je Seite und +1 Aufladung (nicht Jäger), Besatzung (P − 56) × 0,5, −20 bis +30. Ziel: etwa 70–75 % Siege für jede Crew. Im Kampf „★ Elite-…“ in Gold.
+- **Stationstreffer:** 25 % der Systemtreffer (vorher 15 %), damit im Raum Verletzte möglich werden.
+
 ## 5. Erfahrung
 
 Jede Stationsaktion ist eine Probe der jeweiligen Fertigkeit und bringt EP nur dieser Fertigkeit, aber **höchstens 2 EP je Station und Runde** (Entscheidungen des Nutzers 18.10.2026):

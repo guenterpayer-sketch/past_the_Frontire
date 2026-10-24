@@ -51,7 +51,7 @@ func setup(s: SpaceShip) -> void:
 	_name.outline_size = 8
 	_name.position = Vector3(0, 1.8, 0)
 	_name.no_depth_test = true
-	_name.modulate = UiTheme.CREW if s.side == &"crew" else UiTheme.ENEMY
+	_name.modulate = UiTheme.CREW if s.side == &"crew" else (UiTheme.ACCENT if s.elite else UiTheme.ENEMY)
 	_name.text = s.name
 	add_child(_name)
 	_sel = MeshInstance3D.new()
@@ -180,7 +180,7 @@ func refresh() -> void:
 	for sys in seen:
 		if Tables.SEVERITIES.find(String(seen[sys])) >= 2:
 			warn = " ⚠"
-	_name.text = ship.name + (" (Wrack)" if ship.wreck else warn)
+	_name.text = ("★ " if ship.elite else "") + ship.name + (" (Wrack)" if ship.wreck else warn)
 
 
 var _wreck_shown := false

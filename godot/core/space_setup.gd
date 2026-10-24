@@ -126,7 +126,7 @@ static func fill_posts(crew: Array, slots: Dictionary, posts: Dictionary) -> Dic
 
 
 ## Schnellkampf: feste Testwerte ohne HubState. Crew aus Campaign.quick_squad, sonst die Startcrew des Rosters.
-static func quick(difficulty := "mittel", faction := "piraten") -> Dictionary:
+static func quick(difficulty := "mittel", faction := "piraten", elite := false) -> Dictionary:
 	var crew: Array = []
 	if not Campaign.quick_squad.is_empty():
 		crew.assign(Campaign.quick_squad)
@@ -138,5 +138,5 @@ static func quick(difficulty := "mittel", faction := "piraten") -> Dictionary:
 		"ship": {"hull": 100, "hull_max": 100, "levels": {"shields": 0, "armor": 0, "reactor": 0, "slots": 0},
 			"slots": slots, "damage": {}},
 		"ship_ammo": START_AMMO.duplicate(), "fuel": 60, "credits": 1000,
-		"enemy": {"faction": faction, "difficulty": difficulty},
+		"enemy": {"faction": faction, "difficulty": difficulty, "elite": elite},
 		"source": "schnell", "mission": "Schnellkampf im All", "return_scene": HubState.START_SCENE}
