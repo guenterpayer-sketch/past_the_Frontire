@@ -45,3 +45,12 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 1. Spielstand des Nutzers lesen: `spielstaende/24-10-2026/` (`slot_1.json`, `auto.json`, `crew.json`, `roster.json`; Tag 60, 6 Einsätze, 10 Figuren). Eigene Ausrüstung: `spielstaende/24-10-2026/gear/` (7 Waffen, 2 Rüstungen).
 2. Bodenkampf prüfen: Gegnerwerte, Anzahl und Zusammensetzung je Schwierigkeit/Ort gegen die Werte der Crew (Fertigkeiten, Rüstung, Waffen). Die eigene Ausrüstung des Nutzers mit den Standardwaffen und -rüstungen vergleichen und melden, ob sie außerhalb der Regeln liegt (`docs/Skillsystem.md`). Simulation mit der Crew des Nutzers, wenn machbar (`test_sim.gd`).
 3. Ergebnis als Bericht an den Nutzer: Ursachen mit Zahlen (was ist Wissen, was Annahme), dazu 2–3 Wege zum Ausgleich mit Vor- und Nachteilen. Bericht kurz in die Moduldatei unter „Stand“ eintragen. Kein Code ändern, bis der Nutzer entschieden hat.
+
+### Elite-Gegner – gemeinsame Regeln Boden und Raum (Nutzer 24.10.2026)
+
+- **Häufigkeit:** etwa jeder 7.–8. Kampf (Zufall, ca. 13 %), gleich für Boden und Raum.
+- **Stärke:** nach **Ziel-Siegquote**: per Simulation mit der Crew so einstellen, dass der Nutzer etwa 70–75 % der Elite-Kämpfe gewinnt. Nicht an den Durchschnitt der Crew angleichen (Sorge des Nutzers: zu schwer).
+- **Woher die Stärke kommt:** bessere Ausrüstung mit höheren Boni (Boden: Waffen/Rüstung; Raum: stärkere Schiffswaffen/Schilde), dazu Werte nach Bedarf.
+- **Erkennbar:** schon vorher im Auftrag/Feindkontakt („Elite“, ausweichen möglich) und im Kampf markiert (Zeichen/Farbe am Gegner bzw. Schiff).
+- Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
+- **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
