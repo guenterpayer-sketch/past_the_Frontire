@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 24.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`98c1769`) | Elite-/Boss-Beute (20 %/30 % beim Entern), normales Entern höchstens 1 Waffe; Boss-Kreuzer + 2 Jäger (`setup.enemy.boss`, `boss_name`). Version 0.10. |
 | 24.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`9494c15`) | Elite-Gegner (★, Schnittstelle `setup.enemy.elite`), moderate Anpassung an die Crew, Stationstreffer 25 %. Version 0.9. Offen: Hub würfelt Elite und zeigt sie im Angebot/Kontakt. |
 | 24.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`c0538b2`, `ace57e4`) | Gegner-Info aus eigenen Treffern, „Scannen“ an der Computer-Station, Tooltip über dem Gegnerschiff. Version 0.8. Offen: auf Touch kein Mouseover. |
 | 23.10.2026 | (dieser Merge) | Bodenkampf (`1f2374f`), Story (`e2ceaa5`, `2c9ec4d`, `7fc4daa`) | Seitenleiste bleibt im Bild; Story nimmt Bild der Vorlage für alte Spielstände, Test für Bildfelder, überarbeitete Prompts (+ `docs/Story_Bilder_Prompts.docx`). Tests rules/hub/story OK (Koordinator). Version 0.7. |

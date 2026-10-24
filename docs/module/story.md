@@ -34,4 +34,4 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 - **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
 
 1. Jede Kette (Kapitel 1 und Vorlagen) bekommt am Ende einen Boss-Kampf, je Kette am Boden oder im Raum. Vorschlag mit dem Nutzer abstimmen (welche Kette wo, Text, Bild-ID).
-2. Bauen erst, wenn Bodenkampf und Raumkampf ihre Schnittstelle (`elite`/`form` bzw. `boss`) festgelegt haben; der Koordinator meldet das.
+2. Raum ist fertig: Ketten, die im Raum enden, setzen `setup.enemy.boss` (und `boss_name`). Bauen erst, wenn Bodenkampf und Raumkampf ihre Schnittstelle (`elite`/`form` bzw. `boss`) festgelegt haben; der Koordinator meldet das.
