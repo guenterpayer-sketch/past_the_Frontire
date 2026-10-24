@@ -52,6 +52,8 @@
   - „schwer“: Elite-Trupp 57 %, Kern mit Rest Basis 60 %, Boss (+8) 63 % (ohne Elite 90 %).
   - Kämpfe 21–23 Runden. Beute: eigene Elite-Einträge, 10–15 % der Elite-/Boss-Kämpfe (Nutzer).
 
+- **Elite auf „schwer“ über die Gegnerzahl (24.10.2026, simuliert, noch nicht gebaut):** Entscheidungen des Nutzers: Kern = jeder 3. Leutnant, Rest Elite Basis; Boss-Körper wächst mit der Crew (4 + 9 × Mehrstärke, höchstens 10; Startcrew +4, Squad des Nutzers +8). Squad auf „schwer“ (sonst 9 Gegner), 30 Kämpfe: höchstens 8 Gegner → Elite-Trupp 67 %, Kern 63 %, Boss 77 % Siege (TP-Verlust 63–64 %); höchstens 7 Gegner → 90 %, 83 %, 87 % (54 %). Startcrew auf „mittel“ (ohne Mitwachsen, 6 Gegner): Elite-Trupp 57 %, Boss 47 % Siege, TP-Verlust 78–79 % (normaler Kampf Startcrew ca. 70 %).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
