@@ -68,6 +68,8 @@
 
 - **Weitere Entscheidungen (24.10.2026):** Neue starke Typen: Entermeister (Aasgeier, Schwarze Flagge; Energiehammer + Laserpistole, schwere Rüstung, ~13 Pkt.), Kopfgeldjäger (Schmugglerbande; Laserkarabiner + Vibroklinge, mittlere Rüstung, ~12 Pkt.); Psi-Meuchler beim Neunten Haus. Story-Fraktionen ohne schwachen Typ bleiben so. Budget-Startwerte 60/80/105 (Feinabstimmung per Simulation). Mitwachsen nur über TP und Ränge, kein zusätzliches Elite-Budget. Allgemeiner Schwierigkeitsgrad als Spieleinstellung (Budget ×0,8/×1,0/×1,25) dem Koordinator/Hub vorschlagen.
 
+- **Gesamtpaket simuliert (24.10.2026, Prototyp, nicht gebaut):** Budget 60/80/105 mit Mindest-/Höchstzahl 5–7/6–9/8–12, Stufenpreise Neuling −2/Veteran +3, alle Gegner Körper +1, geänderte und neue Typen (Scharfschütze-Schatten, Psi-Meuchler, Entermeister, Kopfgeldjäger, Plünderer/Sturmläufer mittlere Rüstung …), Mitwachsen Körper +7·m, Ränge +2·m. 30 Kämpfe je Fall. Ø Gegner 5,6/7,4/9,8. Startcrew: leicht 24/30 Siege, 63 % TP-Verlust; mittel 6/30, 92 %; schwer 0/30, 100 %. Squad des Nutzers: leicht 30/30, 24 %; mittel 29/30, 44 %; schwer 19/30, 80 %. Befund: für die Startcrew viel zu schwer (Bezugsgröße des Mitwachsens ist die Startcrew); Karten hatten genug Startfelder (keine Kürzung).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
