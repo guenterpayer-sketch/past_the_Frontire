@@ -94,3 +94,11 @@ Der Hub ruft `Mission.generate` mit dem Schwierigkeitsfaktor als 4. Parameter (s
 
 - **Fertig (24.10.2026, Balancing-Paket Boden):** Schritte 1–4 gebaut, main eingemischt, an die Hub-Schnittstelle angepasst (`Mission.generate(…, diff_factor, elite)`, Setter `Mission.elite`). Prüfung mit dem echten Code, Squad des Nutzers, 30 Kämpfe: normal leicht 30/30 (25 % TP-Verlust), mittel 30/30 (42 %), schwer 19/30 (75 %); Elite leicht 27/30 (49 %), mittel 23/30 (67 %), schwer 15/30 (80 %); Boss leicht 30/30 (41 %), mittel 27/30 (56 %), schwer 20/30 (67 %). Offen für andere Module: Preise für Scharfschützengewehr und Elite-Stücke in `Stock.PRICES` (Hub/Charakter).
 
+
+
+### Auftrag (24.10.2026): Schild als Beute (erledigt, `7462c15`)
+
+Wunsch des Nutzers: Gegner mit Schild können ihn nach dem Kampf fallen lassen (wie andere Beute, Häufigkeit sinnvoll wählen). Im `MissionResult.loot` mit dem Schlüssel `Equipment.SHIELD` liefern; der Hub nimmt ihn ins Lager (Hub Auftrag 11). Tests nach CLAUDE.md, Fertigmeldung.
+
+- **Fertig (24.10.2026):** Schildträger = Gegner nur mit einhändigen Waffen (Nutzer): Klingentänzer, Handagent, Hexer, Seherin, Psi-Meuchler (`shield = true`; bei Waffentausch auf zweihändig entfällt er, `Mission._individualize`). Beute: 30 % je besiegtem Schildträger (`Combat.SHIELD_LOOT_CHANCE`), `loot`-Eintrag `{key: Equipment.SHIELD, name: "Schild", count: 1}` ohne `damage`. Test `_test_shield_loot`.
+

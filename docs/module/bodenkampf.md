@@ -88,11 +88,5 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (24.10.2026): Schild als Beute
-
-Wunsch des Nutzers: Gegner mit Schild können ihn nach dem Kampf fallen lassen (wie andere Beute, Häufigkeit sinnvoll wählen). Im `MissionResult.loot` mit dem Schlüssel `Equipment.SHIELD` liefern; der Hub nimmt ihn ins Lager (Hub Auftrag 11). Tests nach CLAUDE.md, Fertigmeldung.
-
-- **Fertig (24.10.2026):** Schildträger = Gegner nur mit einhändigen Waffen (Nutzer): Klingentänzer, Handagent, Hexer, Seherin, Psi-Meuchler (`shield = true`; bei Waffentausch auf zweihändig entfällt er, `Mission._individualize`). Beute: 30 % je besiegtem Schildträger (`Combat.SHIELD_LOOT_CHANCE`), `loot`-Eintrag `{key: Equipment.SHIELD, name: "Schild", count: 1}` ohne `damage`. Test `_test_shield_loot`.
-
-- Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
