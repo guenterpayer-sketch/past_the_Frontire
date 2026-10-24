@@ -138,3 +138,4 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 Bodenkampf-Teil in Schritten bauen (Nutzer hat das Paket mit dir abgestimmt). Jeden Schritt mit Tests melden.
   - **Schritt 1 gebaut (`68a7e6a`):** Gegnertypen, neue Typen, Scharfschützengewehr, Preise, Körper 1.
   - **Schritt 2 gebaut:** Budget 55/75/100, Anzahl 5–7/6–9/8–12, Neuling/Veteran mit Preis, `Mission.MAX_ENEMIES` 12, `MIN_START_FIELDS` 9 (Karten, eigene Karten, Editor), Ersatzaufstellung `Combat._place_enemies`, Schnittstelle Hub: `Mission.difficulty_factor` (Budget-Faktor des Schwierigkeitsgrads).
+  - **Schritt 3 gebaut:** Mitwachsen `Mission.grow(enemies, crew)` / `Mission.extra_strength(crew)` in `Battle.new_battle` (Körper +round(7·m), Waffenfertigkeiten +round(2·m)), Hinweis im Kampflog.

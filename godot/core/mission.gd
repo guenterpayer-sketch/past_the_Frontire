@@ -15,6 +15,11 @@ const MIN_START_FIELDS := 9
 const VETERAN_CHANCE := 0.2
 const NEWBIE_CHANCE := 0.15
 const TIER_COST := {1: 3, -1: -2}
+## Mitwachsen (Balancing 24.10.2026): Gegner bekommen je Mehrstärke des eingesetzten Trupps (0…1, gegen die Startcrew)
+## Körper-Ränge (TP) und Ränge in ihren Waffenfertigkeiten; Waffen und Rüstungen bleiben gleich
+const GROW_KOERPER := 7
+const GROW_RANKS := 2
+static var _ref_strength := {}
 ## Spieleinstellung „Schwierigkeitsgrad“ des Hubs (leicht 0,8 / normal 1,0 / schwer 1,25), multipliziert jedes Budget
 static var difficulty_factor := 1.0
 
@@ -157,6 +162,45 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 		m.size_id = "mittel" if rng.randf() < 0.3 else "gross"
 	_custom_gear(m, seed_value)
 	return m
+
+
+## Ø TP und Ø bester Angriffswert (über alle Waffen und Psi-Angriffe) einer Gruppe
+static func strength(units: Array[Combatant]) -> Dictionary:
+	var tp := 0.0
+	var aw := 0.0
+	for u in units:
+		tp += u.max_hp
+		var best := 0
+		for w in u.weapons:
+			best = maxi(best, Rules.skill_total(u, w.skill) + w.ob_bonus + Ammo.burst_bonus(w.shots))
+		aw += best
+	var n := maxi(1, units.size())
+	return {"tp": tp / n, "aw": aw / n}
+
+
+## Mehrstärke des Trupps gegenüber der Startcrew: Mittel aus TP- und Angriffsverhältnis minus 1, begrenzt auf 0…1
+static func extra_strength(crew: Array[Combatant]) -> float:
+	if _ref_strength.is_empty():
+		_ref_strength = strength(Roster.build_team(GameData.crew(), &"crew"))
+	var s := strength(crew)
+	return clampf((s.tp / maxf(1.0, _ref_strength.tp) + s.aw / maxf(1.0, _ref_strength.aw)) / 2.0 - 1.0, 0.0, 1.0)
+
+
+## Gegner an den eingesetzten Trupp anpassen; liefert [Körper-Ränge, Fertigkeits-Ränge] für die Anzeige
+static func grow(enemies: Array[Combatant], crew: Array[Combatant]) -> Array[int]:
+	var m := extra_strength(crew)
+	var k := roundi(GROW_KOERPER * m)
+	var r := roundi(GROW_RANKS * m)
+	for e in enemies:
+		if k > 0:
+			e.skills[&"koerper"] = {"rank": Rules.skill_rank(e, &"koerper") + k, "xp": 0}
+			e.max_hp += Rules.HP_PER_RANK * k
+			e.hp = e.max_hp
+		if r > 0:
+			for w in e.weapons:
+				if w.skill != &"" and w.power == "":
+					e.skills[w.skill] = {"rank": Rules.skill_rank(e, w.skill) + r, "xp": 0}
+	return [k, r]
 
 
 ## Kartentyp festlegen (Schnellkampf-Auswahl, Entern) und Auftragstext dazu wählen

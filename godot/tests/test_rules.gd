@@ -52,6 +52,7 @@ func _init() -> void:
 	_test_story_factions()
 	_test_enemy_types()
 	_test_enemy_count()
+	_test_enemy_growth()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -1558,6 +1559,22 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Balancing 24.10.2026, Schritt 3: Mitwachsen mit dem eingesetzten Trupp
+func _test_enemy_growth() -> void:
+	var m := Mission.generate(77, "mittel")
+	var start := Roster.build_team(GameData.crew(), &"crew")
+	var ens := Roster.build_units(m.enemies, &"enemy")
+	check(Mission.grow(ens, start) == [0, 0], "Startcrew: Gegner unverändert")
+	var strong := Roster.build_team(GameData.crew(), &"crew")
+	for u in strong:
+		u.max_hp += 22   # etwa Ø 60 TP wie die Crew des Nutzers
+	var ens2 := Roster.build_units(m.enemies, &"enemy")
+	var hp0 := ens2[0].max_hp
+	var g := Mission.grow(ens2, strong)
+	check(g[0] > 0 and ens2[0].max_hp == hp0 + g[0] * Rules.HP_PER_RANK, "starker Trupp: Gegner mit Körper +%d" % g[0])
+	check(g[0] <= Mission.GROW_KOERPER and g[1] <= Mission.GROW_RANKS, "Mitwachsen begrenzt")
+
+
 ## Balancing 24.10.2026, Schritt 2: Anzahl je Stufe, Ersatzaufstellung bei zu wenigen Startfeldern, Schwierigkeitsgrad
 func _test_enemy_count() -> void:
 	var m := Mission.generate(4242, "schwer")
