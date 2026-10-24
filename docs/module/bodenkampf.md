@@ -79,6 +79,11 @@
   - Reine Elite-Begegnungen: Elite-Auftrag (~13 %, Hub würfelt, „Elite“ im Angebot) als Elite-Trupp (alle Basis) oder Elite-Kern (jeder 3. Leutnant, Rest Basis); Boss-Auftrag (Story-Ende, Personenziel): 1 Boss + 2 Hauptleute + Rest normal, „Boss“ im Angebot. Vorschlag: Anzahl = Mindestzahl der Stufe. Ziel 70–75 % Siege. Beute 10–15 %, 2–3 Elite-Stücke, −20/−30.
   - Gegnertypen und Scharfschützengewehr wie oben beschlossen. Offen per Simulation: Elite-Wahrscheinlichkeiten, Elite-Preise, Anzahl bei Elite-Begegnungen, Typpreise.
 
+- **Offene Punkte simuliert (24.10.2026, Squad des Nutzers, Prototyp):**
+  - Elite-Beimischung (Basis, Preis +6, aus dem Budget): mittel 27/30 Siege, 44 % TP-Verlust (ohne 30/30, 41 %); schwer 19/30, 71 % (ohne 15/30, 80 %; Ø 8,9 statt 9,4 Gegner).
+  - Reine Elite-Begegnungen, Mindestzahl 5/6/8: leicht 97–100 %, mittel 83–90 %, schwer 50–60 % Siege. Mit 7 Gegnern überall: leicht 63–77 % (Boss 77, Trupp 70, Kern 63), mittel 63–73 %, schwer 73–83 % → Vorschlag 7 Gegner auf allen Stufen.
+  - Preisprüfung (nur ein Typ, 75 Punkte, 12 Kämpfe; TP-Verlust, fair ≈ 45 %): Handagent 10 %, Kopfgeldjäger 20 %, Sicherheitsagent 25 %, Brecher 39 %, Psi-Meuchler 39 %, Sturmläufer 42 %, Funke 44 %, Hexer 47 %, Seherin 48 %, Enterer 50 %, Entermeister 53 % (8/12 Siege), Plünderer 53 %, Schatten 56 % (9/12), Psi-Soldat 80 % (7/12), Klingentänzer 85 % (3/12). Nur Anhaltspunkt (12 Kämpfe, KI gegen KI).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
