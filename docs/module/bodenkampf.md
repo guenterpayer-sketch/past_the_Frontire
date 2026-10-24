@@ -58,6 +58,7 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 - **Woher die Stärke kommt:** bessere Ausrüstung mit höheren Boni (Boden: Waffen/Rüstung; Raum: stärkere Schiffswaffen/Schilde), dazu Werte nach Bedarf.
 - **Erkennbar:** schon vorher im Auftrag/Feindkontakt („Elite“, ausweichen möglich) und im Kampf markiert (Zeichen/Farbe am Gegner bzw. Schiff).
 - Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
+- **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
 - **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
 
 ### Entscheidungen des Nutzers zum Balancing (24.10.2026)
@@ -67,3 +68,5 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 3. **Elite-Gegner** nach den gemeinsamen Regeln oben.
 4. Nicht gewählt: Erschaffung/Körper der Crew ändern, Stufe „sehr schwer“. Steigerung bleibt wie sie ist.
 5. **Ablauf:** erst Vorschlag mit Simulation (Siegquoten und TP-Verlust mit der Crew aus `spielstaende/24-10-2026/` und mit der Startcrew), an den Nutzer melden, erst nach Zustimmung bauen.
+
+- **Freigabe (24.10.2026):** Vorschlag noch **nicht** freigegeben. Der Nutzer hat weitere Gedanken zum Elite-Status (nur Bodenkampf); erst danach bauen.
