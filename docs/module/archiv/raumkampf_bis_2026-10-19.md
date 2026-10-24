@@ -18,3 +18,14 @@
 - Offen: eigene Jäger erst V2. Neu abstimmen mit `tests/sim_space.gd`, wenn sich Regeln ändern.
 - Neue Fertigmeldungen hier kurz eintragen. Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
+
+
+### Auftrag (24.10.2026): Elite-Beute und Boss-Schiff (erledigt, `98c1769`)
+
+Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/raumkampf.md` (Abschnitt „Elite-Gegner“). Ergänzt vom Nutzer am 24.10.2026:
+- **Boss-Kampf:** Boss + 2 Leibwächter + Fußvolk (Form „Anführer“ aus dem Bodenkampf-Vorschlag), Siegquote wie Elite (70–75 %). Kommt vor (a) am Ende jeder Story-Kette (je nach Kette am Boden **oder** im Raum mit Boss-Schiff) und (b) bei Hub-Aufträgen, deren Ziel eine Person ist (z. B. „Beseitigt den Gangsterboss“).
+- **Beute bei Elite und Boss:** selten (nicht bei jedem Kampf), dann höchstens 2–3 Stück der besseren Ausrüstung, gern stark beschädigt. Boden: Waffen/Rüstungen. Raum: ab und zu eine beschädigte Schiffswaffe.
+- **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
+
+1. Beute nach Elite-Raumkampf: selten eine beschädigte Schiffswaffe (über das bestehende Beute-Ergebnis an den Hub).
+2. Boss-Schiff für Story-Ketten, die im Raum enden: Vorschlag (Schnittstelle z. B. `setup.enemy.boss: bool`), Siegquote wie Elite. Erst Vorschlag mit Simulation, dann bauen.

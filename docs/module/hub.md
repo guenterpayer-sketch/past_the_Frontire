@@ -46,7 +46,7 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 - **Beute bei Elite und Boss:** selten (nicht bei jedem Kampf), dann höchstens 2–3 Stück der besseren Ausrüstung, gern stark beschädigt. Boden: Waffen/Rüstungen. Raum: ab und zu eine beschädigte Schiffswaffe.
 - **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
 
-1. Raum ist fertig: `setup.enemy.elite: bool` (Raumkampf, in `main`). Boden folgt (Bodenkampf schlägt `elite`/`form` vor).
+1. Raum ist fertig: `setup.enemy.elite: bool`, `setup.enemy.boss: bool`, `setup.enemy.boss_name: String` (Boss gilt als Elite; Raumkampf, in `main`). `board_loot` hat jetzt höchstens eine Waffe. Boden folgt (Bodenkampf schlägt `elite`/`form` vor).
 2. Beim Erstellen von Auftrag und Feindkontakt Elite würfeln (ca. 13 %, eine gemeinsame Funktion), „★ Elite“ im Angebot/Kontakt zeigen (Ausweichen möglich), an Boden/Raum weitergeben.
 3. Aufträge mit einer Person als Ziel („Gangsterboss beseitigen“ u. ä.) erzeugen einen Boss-Kampf (Boss + 2 Leibwächter + Fußvolk) und zeigen „Boss“.
 4. Elite-/Boss-Beute aus dem Ergebnis ins Lager übernehmen (wie bisher Beute).
