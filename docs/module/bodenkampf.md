@@ -54,3 +54,11 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 - **Erkennbar:** schon vorher im Auftrag/Feindkontakt („Elite“, ausweichen möglich) und im Kampf markiert (Zeichen/Farbe am Gegner bzw. Schiff).
 - Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
 - **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
+
+### Entscheidungen des Nutzers zum Balancing (24.10.2026)
+
+1. **Gegner bekommen Ränge in Körper** (mehr TP), damit der TP-Abstand zur Crew kleiner wird.
+2. **(a) Gegner wachsen moderat mit:** Die Mission kennt die Stärke der eingesetzten Crew (mehr/stärkere Gegner), aber nur so weit, dass Fortschritt spürbar bleibt. Schnittstelle Hub → `Mission.generate` vorschlagen; den Hub-Teil gibt der Koordinator weiter.
+3. **Elite-Gegner** nach den gemeinsamen Regeln oben.
+4. Nicht gewählt: Erschaffung/Körper der Crew ändern, Stufe „sehr schwer“. Steigerung bleibt wie sie ist.
+5. **Ablauf:** erst Vorschlag mit Simulation (Siegquoten und TP-Verlust mit der Crew aus `spielstaende/24-10-2026/` und mit der Startcrew), an den Nutzer melden, erst nach Zustimmung bauen.
