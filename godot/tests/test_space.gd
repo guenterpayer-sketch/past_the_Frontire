@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_tech()
 	_test_scan()
 	_test_elite()
+	_test_boss_loot()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -340,6 +341,35 @@ func _test_elite() -> void:
 	var n := _combat(22)
 	check(not n.elite and n.power_bonus_for(30) == 0 and n.power_bonus_for(76) == 4 and n.power_bonus_for(200) == 10,
 		"normale Kämpfe moderat (0 bis +10)")
+
+
+## Boss-Kampf und Waffen-Beute (24.10.2026)
+func _test_boss_loot() -> void:
+	var su := SpaceSetup.quick("leicht", "piraten", false, true)
+	su.enemy["boss_name"] = "Kesslers Flaggschiff"
+	var c := SpaceCombat.new(SpaceBattle.prepare(su), 31)
+	var b: SpaceShip = c.enemies()[0]
+	check(c.boss and c.elite and c.enemies().size() == SpaceCombat.BOSS_GROUP.size(), "Boss-Gruppe fest")
+	check(b.boss and b.elite and b.name == "Kesslers Flaggschiff"
+		and b.hull_max == roundi(int(SpaceTemplates.ship("kreuzer").hull) * SpaceCombat.BOSS_HULL), "Boss-Schiff")
+	check(c.enemies().slice(1).all(func(x: SpaceShip) -> bool: return x.is_fighter() and not x.elite), "Leibwache: Jäger")
+	check(c.power_bonus_for(56) == SpaceCombat.BOSS_EXTRA, "Boss-Besatzung wie Elite plus Zusatz")
+	# Beute beim Entern: höchstens eine Waffe, beschädigt
+	var n := _combat(32)
+	var e: SpaceShip = n.enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())[0]
+	var got := 0
+	for i in 200:
+		var bw: Array = n.ship_loot(e).weapons
+		check(bw.size() <= 1 and (bw.is_empty() or int(bw[0].damage) <= -10), "Entern: höchstens eine beschädigte Waffe")
+		got += bw.size()
+	check(got > 70 and got < 130, "Entern: etwa jede zweite Mal eine Waffe (%d/200)" % got)
+	e.elite = true
+	got = 0
+	for i in 200:
+		var bw: Array = n.ship_loot(e).weapons
+		check(bw.is_empty() or int(bw[0].damage) <= -20, "Elite-Entern: −20/−30")
+		got += bw.size()
+	check(got > 35 and got < 90, "Elite-Entern: etwa 30 % (%d/200)" % got)
 
 
 func _test_board() -> void:

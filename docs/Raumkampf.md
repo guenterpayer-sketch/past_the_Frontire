@@ -79,6 +79,8 @@ Grundidee: Schiffe sind kostbar und werden nicht bis zum Letzten zerstört; eine
 - **Normale Kämpfe (moderat):** Gegner-Besatzung + (P − 56) × 0,2, 0 bis +10. Schwache Crews merken nichts, starke etwa +4 bis +10.
 - **Elite-Kämpfe** (`setup.enemy.elite`, gemeinsame Regel mit dem Bodenkampf: etwa jeder 7.–8. Kampf, vorher erkennbar): Waffen eine Stufe besser (Laserbank → Partikelkanone, Massebeschleuniger → Schnellfeuerkanone, Raketenwerfer → Raketenbatterie, Abwehrgeschütz → Abwehrlaser), Schilde +4 je Seite und +1 Aufladung (nicht Jäger), Besatzung (P − 56) × 0,5, −20 bis +30. Ziel: etwa 70–75 % Siege für jede Crew. Im Kampf „★ Elite-…“ in Gold.
 - **Stationstreffer:** 25 % der Systemtreffer (vorher 15 %), damit im Raum Verletzte möglich werden.
+- **Boss-Kampf** (`setup.enemy.boss`, Ende einer Story-Kette im Raum oder Auftrag gegen eine Person): Boss-Kreuzer mit Elite-Ausrüstung, Hülle ×1,3 und Namen (`boss_name`, sonst „Flaggschiff“), flieht nie; dazu 2 Jäger als Leibwache. Besatzung wie Elite −10. Nach 40 Runden drehen die Gegner wie sonst ab. Im Kampf „★★ Boss: …“.
+- **Waffen-Beute** (24.10.2026): Elite/Boss nach dem Sieg mit 20 % eine Elite-Waffe (−20/−30). Entern bringt höchstens eine Waffe: normal mit 50 % (−10…−30), Elite/Boss mit 30 % (−20/−30). Vorher brachte Entern alle Waffen des Schiffs, meist unbeschädigt.
 
 ## 5. Erfahrung
 

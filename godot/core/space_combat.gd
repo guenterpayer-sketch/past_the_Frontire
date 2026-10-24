@@ -91,6 +91,16 @@ const ELITE_SCALE := 0.5
 const ELITE_MIN := -20
 const ELITE_MAX := 30
 const ELITE_SHIELD := 4
+## Boss-Kampf (24.10.2026, docs/Planung_Raumkampf.md 1i): Boss-Kreuzer (Elite, Hülle ×1,3) + 2 Jäger als Leibwache,
+## Besatzung wie Elite plus BOSS_EXTRA; Siege etwa 70–85 % je nach Crew
+const BOSS_GROUP := ["kreuzer", "jaeger", "jaeger"]
+const BOSS_HULL := 1.3
+const BOSS_EXTRA := -10
+## Waffen-Beute (Entscheidungen des Nutzers 24.10.2026): Elite/Boss nach dem Sieg mit 20 % eine Waffe, beim Entern
+## mit 30 % eine (je −20/−30); normales Entern mit 50 % eine Waffe (−10…−30) statt aller Waffen
+const ELITE_LOOT_WIN := 0.2
+const ELITE_LOOT_BOARD := 0.3
+const BOARD_LOOT := 0.5
 ## Elite-Waffen: je eine Stufe besser
 const ELITE_WEAPONS := {"laserbank": "partikelkanone", "massebeschleuniger": "schnellfeuerkanone",
 	"raketenwerfer": "raketenbatterie", "abwehrgeschuetz": "abwehrlaser"}
@@ -128,7 +138,8 @@ var ransom := {}
 var loot := {}
 var faction_id := ""
 var faction := {}
-var elite := false                 # Elite-Kampf (setup.enemy.elite)
+var elite := false                 # Elite-Kampf (setup.enemy.elite; Boss-Kämpfe sind auch Elite)
+var boss := false                  # Boss-Kampf (setup.enemy.boss)
 var power_bonus := 0               # Besatzungsbonus der Gegner nach Crew-Stärke (beim Start gesetzt)
 var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Grund + halber Pilot-Bonus)
 var intercepts := {}
@@ -172,8 +183,12 @@ func _init(s: Dictionary, seed_value := -1) -> void:
 	for st in SpaceSetup.stations_for(own.slots):
 		if not posts.has(st) or (posts[st] != SpaceSetup.KI and not people.has(String(posts[st]))):
 			posts[st] = SpaceSetup.KI
-	elite = bool(s.get("enemy", {}).get("elite", false))
-	_build_enemies(String(s.get("enemy", {}).get("difficulty", "mittel")))
+	boss = bool(s.get("enemy", {}).get("boss", false))
+	elite = boss or bool(s.get("enemy", {}).get("elite", false))
+	if boss:
+		_build_boss(String(s.get("enemy", {}).get("boss_name", "")))
+	else:
+		_build_enemies(String(s.get("enemy", {}).get("difficulty", "mittel")))
 
 
 # ---------------------------------------------------------------- Aufbau
@@ -236,6 +251,23 @@ func _build_enemies(difficulty: String) -> void:
 		ships.append(s)
 
 
+## Boss-Gruppe: Boss-Kreuzer (Elite, Hülle ×1,3, Name aus setup) und 2 Jäger als Leibwache
+func _build_boss(boss_name: String) -> void:
+	for i in BOSS_GROUP.size():
+		var s := SpaceTemplates.make(BOSS_GROUP[i], i)
+		s.id = "g%d" % i
+		var row := MAP_H / 2 + (((i + 1) / 2) * (1 if i % 2 == 0 else -1)) * 2
+		s.pos = _free_cell(Hex.from_offset(MAP_W - 3 - (i % 2), clampi(row, 1, MAP_H - 2)))
+		s.facing = 3
+		if i == 0:
+			_make_elite(s)
+			s.boss = true
+			s.name = boss_name if boss_name != "" else "Flaggschiff"
+			s.hull = roundi(s.hull * BOSS_HULL)
+			s.hull_max = s.hull
+		ships.append(s)
+
+
 ## Elite-Schiff: Waffen eine Stufe besser, Schilde stärker (Jäger nur Waffen); Besatzung folgt beim Start
 func _make_elite(s: SpaceShip) -> void:
 	s.elite = true
@@ -262,10 +294,11 @@ func crew_power() -> int:
 	return (station_bonus("steuer", &"pilot") + int(guns[0]) + int(guns[1])) / 3
 
 
-## Besatzungsbonus der Gegner nach Crew-Stärke: normal moderat (0 bis +10), Elite (P − 52) × 0,45 (−15 bis +30)
+## Besatzungsbonus der Gegner nach Crew-Stärke: normal moderat (0 bis +10), Elite (P − 56) × 0,5 (−20 bis +30),
+## Boss wie Elite plus BOSS_EXTRA
 func power_bonus_for(p: int) -> int:
 	if elite:
-		return clampi(roundi((p - POWER_BASE) * ELITE_SCALE), ELITE_MIN, ELITE_MAX)
+		return clampi(roundi((p - POWER_BASE) * ELITE_SCALE), ELITE_MIN, ELITE_MAX) + (BOSS_EXTRA if boss else 0)
 	return clampi(roundi((p - POWER_BASE) * NORMAL_SCALE), 0, NORMAL_MAX)
 
 
@@ -478,7 +511,8 @@ func start() -> void:
 	power_bonus = power_bonus_for(crew_power())
 	for e in enemies():
 		e.crew_skill += power_bonus
-	log_text("Kontakt: %s%s." % [SpaceTemplates.faction_name(faction_id), " (Elite)" if elite else ""], &"round")
+	var tag := " (Boss: %s)" % enemies()[0].name if boss else (" (Elite)" if elite else "")
+	log_text("Kontakt: %s%s." % [SpaceTemplates.faction_name(faction_id), tag], &"round")
 	_start_round()
 
 
@@ -1138,7 +1172,7 @@ func _hurt(ch: Character, sev: String) -> void:
 func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 	if s != own:
 		var flee := float(faction.get("flee_at", 0.0))
-		if flee > 0.0 and not s.is_fighter() and not s.is_out("antrieb") and s.hull < s.hull_max * flee:
+		if flee > 0.0 and not s.is_fighter() and not s.boss and not s.is_out("antrieb") and s.hull < s.hull_max * flee:
 			s.fled = true
 			log_text("%s dreht ab und flieht." % s.name, &"round")
 			ship_changed.emit(s)
@@ -1373,7 +1407,7 @@ func _roll_loot() -> void:
 			continue
 		am["schiffsraketen"] = int(am.get("schiffsraketen", 0)) + rng.randi_range(0, 2)
 		am["geschosse"] = int(am.get("geschosse", 0)) + rng.randi_range(0, 10)
-		if rng.randf() < 0.35:
+		if not elite and rng.randf() < 0.35:
 			var tradable: Array[String] = []
 			for sl in e.weapon_slots():
 				if ShipWeapons.data(String(e.slots[sl].key)).trade:
@@ -1381,20 +1415,35 @@ func _roll_loot() -> void:
 			if not tradable.is_empty():
 				var key := String(e.slots[tradable[rng.randi_range(0, tradable.size() - 1)]].key)
 				weapons.append({"key": key, "name": ShipWeapons.name(key), "damage": [-10, -20, -30][rng.randi_range(0, 2)]})
+	if elite and rng.randf() < ELITE_LOOT_WIN:
+		var pool: Array[String] = []
+		for e in enemies():
+			if not e.is_fighter():
+				for sl in e.weapon_slots():
+					if ShipWeapons.data(String(e.slots[sl].key)).trade:
+						pool.append(String(e.slots[sl].key))
+		if not pool.is_empty():
+			var key := pool[rng.randi_range(0, pool.size() - 1)]
+			weapons.append({"key": key, "name": ShipWeapons.name(key), "damage": [-20, -30][rng.randi_range(0, 1)]})
 	loot = {"credits": credits, "material": material, "ship_ammo": am, "weapons": weapons}
 	if boarded:
 		# Beute des geenterten Schiffs: gilt erst, wenn die Crew den Bodenkampf gewinnt (bucht der Hub)
 		board_loot = ship_loot(boarded)
 
 
-## Beute an Bord eines Schiffs (Entern gewonnen bzw. Entern abgewehrt): Credits ×1,5, Material ×2, Waffen, Munition
+## Beute an Bord eines Schiffs (Entern gewonnen bzw. Entern abgewehrt): Credits ×1,5, Material ×2, Munition und
+## höchstens eine Waffe (normal mit 50 %, −10…−30; Elite/Boss mit 30 %, −20/−30)
 func ship_loot(e: SpaceShip) -> Dictionary:
 	var t: Dictionary = SpaceTemplates.ship(e.template)
 	var bw: Array = []
+	var keys: Array[String] = []
 	for sl in e.weapon_slots():
-		var key := String(e.slots[sl].key)
-		if ShipWeapons.data(key).trade:
-			bw.append({"key": key, "name": ShipWeapons.name(key), "damage": maxi(-30, int(e.slots[sl].damage))})
+		if ShipWeapons.data(String(e.slots[sl].key)).trade:
+			keys.append(String(e.slots[sl].key))
+	if not keys.is_empty() and rng.randf() < (ELITE_LOOT_BOARD if e.elite else BOARD_LOOT):
+		var key := keys[rng.randi_range(0, keys.size() - 1)]
+		var dmg: int = [-20, -30][rng.randi_range(0, 1)] if e.elite else [-10, -20, -30][rng.randi_range(0, 2)]
+		bw.append({"key": key, "name": ShipWeapons.name(key), "damage": dmg})
 	return {"credits": roundi(int(t.credits) * 1.5), "material": int(t.material) * 2,
 		"ship_ammo": {"schiffsraketen": rng.randi_range(2, 4), "geschosse": rng.randi_range(10, 20)}, "weapons": bw}
 

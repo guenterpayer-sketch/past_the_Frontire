@@ -34,6 +34,8 @@ var init_bonus := 0
 var initiative := 0
 ## Elite-Gegner (bessere Waffen und Schilde, Besatzung nach Crew-Stärke; docs/Raumkampf.md 4e)
 var elite := false
+## Boss-Schiff (Ende einer Story-Kette im Raum; docs/Raumkampf.md 4e): Elite, Hülle ×1,3, flieht nie
+var boss := false
 var destroyed := false
 var fled := false
 ## Wrack: Schiff mit Besatzung bei Hülle 0 – manövrierunfähig, kämpft nicht mehr, bleibt enterbar
