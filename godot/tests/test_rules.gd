@@ -51,6 +51,7 @@ func _init() -> void:
 	_test_factions()
 	_test_story_factions()
 	_test_enemy_types()
+	_test_enemy_count()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -254,10 +255,12 @@ func _test_missions() -> void:
 		var budget := 0
 		for d in m.enemies:
 			ids[d.id] = true
-			budget += d.threat
+			budget += d.threat + (Mission.TIER_COST[1] if d.role.ends_with("Veteran") else (Mission.TIER_COST[-1] if d.role.ends_with("Neuling") else 0))
 		check(ids.size() == n, "eindeutige Kennungen")
+		var dd: Dictionary = Mission.DIFFICULTIES[m.difficulty]
+		check(n >= dd.min and n <= dd.max, "Gegneranzahl %s %d (%d–%d)" % [m.difficulty, n, dd.min, dd.max])
 		var limit := roundi(Mission.DIFFICULTIES[m.difficulty].budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0))
-		check(budget <= limit, "Budget eingehalten (%d von %d)" % [budget, limit])
+		check(budget <= limit or n <= dd.min, "Budget eingehalten (%d von %d)" % [budget, limit])
 		kinds[m.enemy_summary()] = true
 		counts[n] = true
 		var map := MapGenerator.generate(m.map_seed, m.size_id)
@@ -1555,6 +1558,30 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Balancing 24.10.2026, Schritt 2: Anzahl je Stufe, Ersatzaufstellung bei zu wenigen Startfeldern, Schwierigkeitsgrad
+func _test_enemy_count() -> void:
+	var m := Mission.generate(4242, "schwer")
+	var map := MapGenerator.generate(m.map_seed, "klein")
+	map.enemy_start = map.enemy_start.slice(0, Mission.MIN_START_FIELDS)
+	var units: Array[UnitData] = []
+	for i in Mission.MAX_ENEMIES:
+		units.append(m.enemies[i % m.enemies.size()])
+	var c := Combat.new(map, Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(units, &"enemy"))
+	var pos := {}
+	for u in c.units:
+		pos[u.pos] = true
+	check(pos.size() == c.units.size() and c.enemies().all(func(u: Combatant) -> bool: return map.walkable(map.tile(u.pos))),
+		"12 Gegner bei 9 Startfeldern: alle auf eigenen begehbaren Feldern")
+	var sum := func(f: float) -> int:
+		Mission.difficulty_factor = f
+		var n := 0
+		for i in 20:
+			n += Mission.generate(300 + i, "mittel").enemies.size()
+		Mission.difficulty_factor = 1.0
+		return n
+	check(sum.call(0.8) < sum.call(1.25), "Schwierigkeitsgrad: weniger Gegner bei 0,8 als bei 1,25")
+
+
 ## Balancing 24.10.2026, Schritt 1: Gegnertypen, Preise, neue Typen und Scharfschützengewehr
 func _test_enemy_types() -> void:
 	var t := func(id: String) -> UnitData: return load("res://data/units/enemies/%s.tres" % id)

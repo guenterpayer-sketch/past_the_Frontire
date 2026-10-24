@@ -80,9 +80,38 @@ func _init(battle_map: BattleMap, crew: Array[Combatant], enemies: Array[Combata
 	units.append_array(enemies)
 	for i in crew.size():
 		crew[i].pos = map.crew_start[i].pos
-	for i in enemies.size():
-		enemies[i].pos = map.enemy_start[i].pos
+	_place_enemies(enemies)
 	face_start()
+
+
+## Gegner auf ihre Startfelder; mehr Gegner als Startfelder (Karten garantieren Mission.MIN_START_FIELDS, bis zu
+## Mission.MAX_ENEMIES Gegner): der Rest auf das nächste freie begehbare Feld beim zugehörigen Startfeld
+func _place_enemies(enemies: Array[Combatant]) -> void:
+	var taken := {}
+	for t in map.crew_start:
+		taken[t.pos] = true
+	var starts := map.enemy_start
+	for i in enemies.size():
+		var pos: Vector2i
+		if i < starts.size():
+			pos = starts[i].pos
+		else:
+			pos = _free_near(starts[i % starts.size()].pos, taken)
+		enemies[i].pos = pos
+		taken[pos] = true
+
+
+func _free_near(from: Vector2i, taken: Dictionary) -> Vector2i:
+	var best: Vector2i = from
+	var best_d := 1 << 30
+	for t in map.list:
+		if taken.has(t.pos) or not map.walkable(t) or map.enemy_start.has(t):
+			continue
+		var d := Hex.distance(t.pos, from)
+		if d < best_d:
+			best_d = d
+			best = t.pos
+	return best
 
 
 ## Ausrichtung zu Kampfbeginn (Auftrag 19.10.2026): alle schauen zum nächsten Gegner; beim Überfall schauen die

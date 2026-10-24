@@ -1,21 +1,30 @@
 class_name Mission
 extends RefCounted
 ## Missionsgenerator: würfelt Auftrag, Gegnergruppe (Fraktion aus res://data/missions), Schwierigkeit,
-## Hallengröße und Belohnung. Die Gegner werden über ein Punktebudget (UnitData.threat) zusammengestellt;
-## einzelne Gegner können Veteranen (+1 Rang, +5 Eigenschaften) oder Neulinge (−1 Rang, −5) sein.
+## Hallengröße und Belohnung. Die Gegner werden über ein Punktebudget (UnitData.threat) zusammengestellt, mit Mindest-
+## und Höchstzahl je Schwierigkeit; einzelne Gegner können Veteranen (+1 Rang, +5 Eigenschaften, Preis +3) oder
+## Neulinge (−1 Rang, −5, Preis −2) sein (Balancing 24.10.2026, Simulation mit der Crew des Nutzers).
 ## Ziel ist bisher immer: alle Gegner ausschalten.
 
 const FACTION_DIR := "res://data/missions"
-const MAX_ENEMIES := 9
+const MAX_ENEMIES := 12
 const MIN_ENEMIES := 3
+## so viele Gegner-Startfelder muss jede Karte mindestens haben; weitere Gegner stellt der Kampf daneben (Combat._place_enemies)
+const MIN_START_FIELDS := 9
+## Neuling/Veteran: Wahrscheinlichkeit und Aufschlag auf den Punktpreis
+const VETERAN_CHANCE := 0.2
+const NEWBIE_CHANCE := 0.15
+const TIER_COST := {1: 3, -1: -2}
+## Spieleinstellung „Schwierigkeitsgrad“ des Hubs (leicht 0,8 / normal 1,0 / schwer 1,25), multipliziert jedes Budget
+static var difficulty_factor := 1.0
 
 ## nur für Messungen (test_sim budget=N): Budget je Schwierigkeit überschreiben
 static var budget_override := {}
 
 const DIFFICULTIES := {
-	"leicht": {"name": "leicht", "budget": 42, "reward": 2},
-	"mittel": {"name": "mittel", "budget": 58, "reward": 3},
-	"schwer": {"name": "schwer", "budget": 88, "reward": 5},   # 76 → 88 mit bis zu 8 Figuren (Simulation 18.10.2026)
+	"leicht": {"name": "leicht", "budget": 55, "reward": 2, "min": 5, "max": 7},
+	"mittel": {"name": "mittel", "budget": 75, "reward": 3, "min": 6, "max": 9},
+	"schwer": {"name": "schwer", "budget": 100, "reward": 5, "min": 8, "max": 12},
 }
 
 ## Aufträge je Kartentyp: Titel, Einsatzbeschreibung (%s = Fraktion) und Startlage (LAGEN), je 6, Entern 5 (Index aus dem Missionszufall)
@@ -124,8 +133,8 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)
 	var budget := int(budget_override.get(difficulty_id, diff.budget))
-	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0))
-	m.enemies = _compose(rng, m.faction, budget)
+	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0) * difficulty_factor)
+	m.enemies = _compose(rng, m.faction, budget, diff.min, diff.max)
 	m.job_index = rng.randi_range(0, 5)   # 6 Aufträge je Bodentyp (Entern: 5, siehe _set_texts)
 	var r2 := RandomNumberGenerator.new()
 	r2.seed = seed_value + 2
@@ -140,12 +149,12 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 		m.map_type = m.faction.maps[r3.randi_range(0, m.faction.maps.size() - 1)]
 	m._set_texts()
 	var n := m.enemies.size()
-	if n <= 4:
-		m.size_id = "klein"
-	elif n <= 6:
-		m.size_id = "klein" if rng.randf() < 0.2 else "mittel"
+	if n <= 5:
+		m.size_id = "klein" if rng.randf() < 0.5 else "mittel"
+	elif n <= 8:
+		m.size_id = "mittel" if rng.randf() < 0.7 else "gross"
 	else:
-		m.size_id = "mittel" if rng.randf() < 0.4 else "gross"
+		m.size_id = "mittel" if rng.randf() < 0.3 else "gross"
 	_custom_gear(m, seed_value)
 	return m
 
@@ -233,46 +242,80 @@ static func all_factions() -> Array[FactionData]:
 
 
 ## Gegner aus dem Budget: gewichtet würfeln, bis kein Typ mehr ins Restbudget passt
-static func _compose(rng: RandomNumberGenerator, f: FactionData, budget: int) -> Array[UnitData]:
+## Gegner aus dem Budget: je Gegner Typ (gewichtet) und Stufe (Neuling/normal/Veteran mit Aufschlag) würfeln, bis kein
+## Typ mehr ins Restbudget passt oder die Höchstzahl erreicht ist; unter der Mindestzahl billigster Typ als Neuling
+static func _compose(rng: RandomNumberGenerator, f: FactionData, budget: int, lo := MIN_ENEMIES, hi := MAX_ENEMIES) -> Array[UnitData]:
 	var picked: Array[UnitData] = []
+	var tiers := {}
 	var count := {}
 	var left := budget
-	while picked.size() < MAX_ENEMIES:
+	var max_same := maxi(f.max_same, 4)
+	while picked.size() < hi:
+		var tier := _roll_tier(rng)
+		var add: int = TIER_COST.get(tier, 0)
 		var pool: Array[int] = []
 		var total := 0
 		for i in f.units.size():
 			var d: UnitData = f.units[i]
-			if d.threat <= left and count.get(d.id, 0) < f.max_same:
+			if d.threat + add <= left and count.get(d.id, 0) < max_same:
 				pool.append(i)
 				total += f.weights[i] if i < f.weights.size() else 1
+		var base: UnitData
 		if pool.is_empty():
-			break
-		var r := rng.randi_range(1, total)
-		var choice := pool[0]
-		for i in pool:
-			r -= f.weights[i] if i < f.weights.size() else 1
-			if r <= 0:
-				choice = i
+			if picked.size() >= lo:
 				break
-		var base: UnitData = f.units[choice]
+			base = _cheapest(f)
+			tier = -1
+			add = TIER_COST[-1]
+		else:
+			var r := rng.randi_range(1, total)
+			var choice := pool[0]
+			for i in pool:
+				r -= f.weights[i] if i < f.weights.size() else 1
+				if r <= 0:
+					choice = i
+					break
+			base = f.units[choice]
 		count[base.id] = count.get(base.id, 0) + 1
-		left -= base.threat
+		left -= base.threat + add
+		tiers[picked.size()] = tier
 		picked.append(base)
-	# Mindestanzahl: billigsten Typ auffüllen
-	while picked.size() < MIN_ENEMIES:
-		var cheapest: UnitData = f.units[0]
-		for d in f.units:
-			if d.threat < cheapest.threat:
-				cheapest = d
-		picked.append(cheapest)
-	picked.sort_custom(func(a: UnitData, b: UnitData) -> bool:
-		return a.threat > b.threat if a.threat != b.threat else String(a.id) < String(b.id))
-	return _individualize(rng, picked, f)
+	# nach Stärke sortieren, Stufe mitnehmen
+	var order: Array = range(picked.size())
+	order.sort_custom(func(a: int, b: int) -> bool:
+		var da := picked[a]
+		var db := picked[b]
+		return da.threat > db.threat if da.threat != db.threat else (String(da.id) < String(db.id) if da.id != db.id else a < b))
+	var sorted: Array[UnitData] = []
+	var shifts: Array[int] = []
+	for i in order:
+		sorted.append(picked[i])
+		shifts.append(tiers[i])
+	return _individualize(rng, sorted, f, shifts)
+
+
+## Stufe eines normalen Gegners: +1 Veteran, −1 Neuling, 0 normal
+static func _roll_tier(rng: RandomNumberGenerator) -> int:
+	var roll := rng.randf()
+	if roll < VETERAN_CHANCE:
+		return 1
+	if roll < VETERAN_CHANCE + NEWBIE_CHANCE:
+		return -1
+	return 0
+
+
+static func _cheapest(f: FactionData) -> UnitData:
+	var cheapest: UnitData = f.units[0]
+	for d in f.units:
+		if d.threat < cheapest.threat:
+			cheapest = d
+	return cheapest
 
 
 ## Jede Figur bekommt eine eigene Kopie: eindeutige Kennung, Buchstabe mit Nummer, Abweichungen in den Werten
 ## f: Fraktion (Waffentausch, Medikits, Eigenheit)
-static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], f: FactionData = null) -> Array[UnitData]:
+## shifts: Stufe je Figur (+1 Veteran, −1 Neuling); leer = hier würfeln
+static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], f: FactionData = null, shifts: Array[int] = []) -> Array[UnitData]:
 	var letters := {}
 	for d in picked:
 		letters[d.letter] = letters.get(d.letter, 0) + 1
@@ -287,18 +330,16 @@ static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], 
 		d.id = StringName("%s_%d" % [base.id, i + 1])
 		if letters[base.letter] > 1:
 			d.letter = "%s%d" % [base.letter, seen[base.letter]]
-		var roll := rng.randf()
-		var shift := 0
-		if roll < 0.2:
-			shift = 1
+		var shift: int = shifts[i] if i < shifts.size() else _roll_tier(rng)
+		if shift == 1:
 			d.role = "%s, Veteran" % base.role
-		elif roll < 0.35:
-			shift = -1
+		elif shift == -1:
 			d.role = "%s, Neuling" % base.role
 		for a in d.attrs:
 			d.attrs[a] = clampi(d.attrs[a] + shift * 5 + rng.randi_range(-3, 3), 1, 100)
 		for s in d.skills:
-			d.skills[s] = maxi(0, int(d.skills[s]) + shift)
+			if s != "koerper":   # Grundwert Körper (TP) gilt für alle Stufen
+				d.skills[s] = maxi(0, int(d.skills[s]) + shift)
 		if f:
 			_apply_faction(d, f)
 		out.append(d)
