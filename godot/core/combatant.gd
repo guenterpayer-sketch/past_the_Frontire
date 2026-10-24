@@ -80,6 +80,8 @@ var wear := {}
 var lost: Array[String] = []   # bei Niederlage ohne Rückzug verlorene Plätze
 ## Eigenheit der Fraktion (FactionData.trait_mods + name), leer bei der Crew
 var faction_trait := {}
+## Elite-Stufe aus UnitData.elite ("" = normal), für Kennzeichnung, Boss-Mitwachsen und Elite-Beute
+var elite: StringName = &""
 var repaired: Array[String] = []   # Waffen-Plätze, an denen in diesem Kampf schon repariert wurde (einmal je Stück)
 
 
@@ -87,6 +89,7 @@ var repaired: Array[String] = []   # Waffen-Plätze, an denen in diesem Kampf sc
 static func create(d: UnitData, team_id: StringName, saved := {}) -> Combatant:
 	var u := from_character(Character.from_unit(d).apply_progress(saved), team_id)
 	u.faction_trait = d.faction_trait.duplicate()
+	u.elite = d.elite
 	var t := u.faction_trait
 	if t.has("hp_pct"):
 		u.max_hp = roundi(u.max_hp * (1.0 + float(t.hp_pct) / 100.0))

@@ -56,6 +56,8 @@ var retreated := false         # Crew hat sich zurückgezogen (zählt als Nieder
 ## Beute bei Sieg (Ausrüstung der Besiegten): [{key (Stock.key_of), name, damage (0 / −10 … −30)}] bzw. Medikits
 ## [{key: Stock.MEDKIT, name, count}]. Entscheidungen des Nutzers 16.10.2026.
 var loot: Array[Dictionary] = []
+## Elite-Beute: Chance in % je Sieg mit Elite-Gegnern
+const ELITE_LOOT_CHANCE := 12
 const LOOT_DAMAGE := {"weapon": 30, "armor": 60}   # Chance in %, dass ein Beutestück beschädigt ist
 const END_WEAR_CHANCE := 25    # kampfunfähig am Kampfende: je Teil Chance auf einen Schaden
 const LOSS_CHANCE := 50        # Niederlage ohne Rückzug: je Teil Chance auf Verlust
@@ -80,9 +82,38 @@ func _init(battle_map: BattleMap, crew: Array[Combatant], enemies: Array[Combata
 	units.append_array(enemies)
 	for i in crew.size():
 		crew[i].pos = map.crew_start[i].pos
-	for i in enemies.size():
-		enemies[i].pos = map.enemy_start[i].pos
+	_place_enemies(enemies)
 	face_start()
+
+
+## Gegner auf ihre Startfelder; mehr Gegner als Startfelder (Karten garantieren Mission.MIN_START_FIELDS, bis zu
+## Mission.MAX_ENEMIES Gegner): der Rest auf das nächste freie begehbare Feld beim zugehörigen Startfeld
+func _place_enemies(enemies: Array[Combatant]) -> void:
+	var taken := {}
+	for t in map.crew_start:
+		taken[t.pos] = true
+	var starts := map.enemy_start
+	for i in enemies.size():
+		var pos: Vector2i
+		if i < starts.size():
+			pos = starts[i].pos
+		else:
+			pos = _free_near(starts[i % starts.size()].pos, taken)
+		enemies[i].pos = pos
+		taken[pos] = true
+
+
+func _free_near(from: Vector2i, taken: Dictionary) -> Vector2i:
+	var best: Vector2i = from
+	var best_d := 1 << 30
+	for t in map.list:
+		if taken.has(t.pos) or not map.walkable(t) or map.enemy_start.has(t):
+			continue
+		var d := Hex.distance(t.pos, from)
+		if d < best_d:
+			best_d = d
+			best = t.pos
+	return best
 
 
 ## Ausrichtung zu Kampfbeginn (Auftrag 19.10.2026): alle schauen zum nächsten Gegner; beim Überfall schauen die
@@ -400,6 +431,7 @@ func _end_gear() -> void:
 	loot.clear()
 	if result != &"sieg":
 		return
+	var elite_gear: Array = []   # [Resource] der Elite-Ausrüstung, nur selten als Beute (ELITE_LOOT_CHANCE)
 	for e in enemies():
 		var gear: Array = []
 		for w in e.weapons:
@@ -412,12 +444,20 @@ func _end_gear() -> void:
 			var key := Stock.key_of(r)
 			if key == "" or Stock.EXCLUDE.has(key):
 				continue
+			if r.get_meta("elite", false):
+				elite_gear.append(r)
+				continue
 			var dmg := mini(0, int(e.wear.get(g[1], 0))) if g[1] != "" else 0   # Beute ist nie +5
 			if Dice.d(100) <= LOOT_DAMAGE[g[2]]:
 				dmg += Combatant.WEAR_STEP * Dice.d(3)
 			loot.append({"key": key, "name": r.get("name"), "damage": maxi(dmg, Combatant.WEAR_BROKEN)})
 		if e.medkit > 0:
 			loot.append({"key": Stock.MEDKIT, "name": Stock.MEDKIT_NAME, "count": e.medkit})
+	# Elite-Beute (Nutzer 24.10.2026): selten, dann 2–3 Stück, stark beschädigt (−20/−30), Kennzeichen elite
+	if not elite_gear.is_empty() and Dice.d(100) <= ELITE_LOOT_CHANCE:
+		for i in mini(elite_gear.size(), 1 + Dice.d(2)):
+			var r: Resource = elite_gear.pop_at(Dice.d(elite_gear.size()) - 1)
+			loot.append({"key": Stock.key_of(r), "name": r.get("name"), "damage": Combatant.WEAR_STEP * (1 + Dice.d(2)), "elite": true})
 
 
 func check_end() -> bool:

@@ -158,6 +158,10 @@ func _mission_column(m: Mission) -> VBoxContainer:
 		if s.id == m.size_id:
 			sz = s
 	var s := "[b]Ziel:[/b] alle Gegner ausschalten\n"
+	if m.elite == &"boss":
+		s = "[color=#ff8a5d][b]Boss-Auftrag:[/b] ein Anführer mit zwei Hauptleuten und Boss-Ausrüstung[/color]\n" + s
+	elif m.elite != &"":
+		s = "[color=#ffd34d][b]Elite-Auftrag:[/b] %s[/color]\n" % ("alle Gegner mit Elite-Ausrüstung" if m.elite_form == &"trupp" else "Elite-Trupp mit Leutnants") + s
 	s += "[b]Schwierigkeit:[/b] %s · [b]Ort:[/b] %s · [b]Größe:[/b] %s%s\n[b]Belohnung bei Sieg:[/b] +%d freie EP je Figur (zusätzlich zu den %d freien EP pro Einsatz)\n\n" % [
 		m.difficulty_name(), MapTypes.type_name(m.map_type) + (" – eigene Karte „%s“" % m.custom_name if m.custom_name != "" else ""), sz.get("name", m.size_id), ", quadratisch" if m.square else "", m.reward_xp, MissionResult.FREE_XP]
 	s = s.replace("[b]Belohnung bei Sieg:[/b]", "[b]Lage:[/b] %s\n[b]Belohnung bei Sieg:[/b]" % m.lage_text())

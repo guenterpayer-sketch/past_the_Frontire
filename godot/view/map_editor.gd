@@ -477,7 +477,7 @@ func _build_right() -> void:
 	_brush_button(v, CREW_MARK, "Crew-Start (blau)")
 	_brush_button(v, ENEMY_MARK, "Gegner-Start (rot)")
 	_brush_button(v, CLEAR_MARK, "Startfeld löschen")
-	var note := UiTheme.label("Ohne gezeichnete Startfelder (mind. %d Crew, %d Gegner) setzt das Spiel sie je Lage selbst." % [Campaign.HARD_SQUAD, Mission.MAX_ENEMIES], 11, UiTheme.MUTED)
+	var note := UiTheme.label("Ohne gezeichnete Startfelder (mind. %d Crew, %d Gegner) setzt das Spiel sie je Lage selbst." % [Campaign.HARD_SQUAD, Mission.MIN_START_FIELDS], 11, UiTheme.MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(note)
 
@@ -564,7 +564,7 @@ func _refresh_tools() -> void:
 
 ## Kurzinfo (Startfelder, ungespeichert) und Prüfergebnis
 func _refresh_info() -> void:
-	var s := "Startfelder gezeichnet: Crew %d/%d, Gegner %d/%d" % [crew.size(), Campaign.HARD_SQUAD, enemy.size(), Mission.MAX_ENEMIES]
+	var s := "Startfelder gezeichnet: Crew %d/%d, Gegner %d/%d" % [crew.size(), Campaign.HARD_SQUAD, enemy.size(), Mission.MIN_START_FIELDS]
 	if dirty:
 		s += "\nungespeicherte Änderungen"
 	_info_l.text = s

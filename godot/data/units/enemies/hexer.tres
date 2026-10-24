@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="UnitData" format=3]
 
-[ext_resource type="Resource" path="res://data/armor/keine.tres" id="1_18xgb"]
+[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_18xgb"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_3s0aj"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_3ib2r"]
 [ext_resource type="Resource" path="res://data/visuals/characters/women_witch.tres" id="3_3s0aj"]
@@ -25,10 +25,11 @@ attrs = {
 skills = {
 "ausweichen": 3,
 "kampfsinn": 3,
+"koerper": 1,
 "lAngriff": 4,
 "lSchutz": 2,
 "pistolen": 3,
-"psiAngriff": 8,
+"psiAngriff": 9,
 "psiVerteidigung": 7,
 "psiWirken": 4
 }

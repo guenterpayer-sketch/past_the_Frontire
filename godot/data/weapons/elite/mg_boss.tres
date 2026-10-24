@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/ar_6.glb" id="1_acstc"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_sygx0"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="2_acstc"]
+
+[resource]
+script = ExtResource("1_sygx0")
+ammo_type = &"projektil"
+magazine = 60
+id = &"mg_boss"
+name = "Schweres MG Boss (Feuerstoß)"
+ob_bonus = 20
+skill = &"schnellfeuer"
+table = ExtResource("2_acstc")
+inc_m = 20
+stages = 4
+fumble = 5
+damage = 1.1
+shots = 3
+splash = PackedInt32Array()
+model = ExtResource("1_acstc")
+length_m = 1.1
+grip_offset = Vector3(0, 0.198, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+sound_id = &"minigun"
+metadata/elite = true
+metadata/base = "res://data/weapons/mg.tres"

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_ajxnu"]
+[ext_resource type="PackedScene" path="res://assets/weapons/blaster/blaster-d.tscn" id="1_bshaa"]
+[ext_resource type="Resource" path="res://data/tables/attack_strahl.tres" id="2_bshaa"]
+
+[resource]
+script = ExtResource("1_ajxnu")
+ammo_type = &"energie"
+magazine = 20
+id = &"laserkarabiner_elite"
+name = "Laserkarabiner Elite"
+ob_bonus = 10
+skill = &"gewehre"
+table = ExtResource("2_bshaa")
+inc_m = 15
+stages = 4
+max_result = 140
+damage = 0.9
+splash = PackedInt32Array()
+model = ExtResource("1_bshaa")
+length_m = 0.68
+grip_offset = Vector3(0, 0.122, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+two_handed = true
+sound_id = &"laser"
+metadata/elite = true
+metadata/base = "res://data/weapons/laserkarabiner.tres"

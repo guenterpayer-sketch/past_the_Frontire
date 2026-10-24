@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_q7msd"]
+[ext_resource type="Resource" path="res://data/tables/attack_klinge.tres" id="2_awtdl"]
+
+[resource]
+script = ExtResource("1_q7msd")
+id = &"vibroklinge_elite"
+name = "Vibroklinge Elite"
+ob_bonus = 10
+skill = &"einhand"
+two_handed = false
+table = ExtResource("2_awtdl")
+melee = true
+fumble = 3
+damage = 1.1
+splash = PackedInt32Array()
+metadata/elite = true
+metadata/base = "res://data/weapons/vibroklinge.tres"

@@ -1,21 +1,47 @@
 class_name Mission
 extends RefCounted
 ## Missionsgenerator: würfelt Auftrag, Gegnergruppe (Fraktion aus res://data/missions), Schwierigkeit,
-## Hallengröße und Belohnung. Die Gegner werden über ein Punktebudget (UnitData.threat) zusammengestellt;
-## einzelne Gegner können Veteranen (+1 Rang, +5 Eigenschaften) oder Neulinge (−1 Rang, −5) sein.
+## Hallengröße und Belohnung. Die Gegner werden über ein Punktebudget (UnitData.threat) zusammengestellt, mit Mindest-
+## und Höchstzahl je Schwierigkeit; einzelne Gegner können Veteranen (+1 Rang, +5 Eigenschaften, Preis +3) oder
+## Neulinge (−1 Rang, −5, Preis −2) sein (Balancing 24.10.2026, Simulation mit der Crew des Nutzers).
 ## Ziel ist bisher immer: alle Gegner ausschalten.
 
 const FACTION_DIR := "res://data/missions"
-const MAX_ENEMIES := 9
+const MAX_ENEMIES := 12
 const MIN_ENEMIES := 3
+## so viele Gegner-Startfelder muss jede Karte mindestens haben; weitere Gegner stellt der Kampf daneben (Combat._place_enemies)
+const MIN_START_FIELDS := 9
+## Neuling/Veteran: Wahrscheinlichkeit und Aufschlag auf den Punktpreis
+const VETERAN_CHANCE := 0.2
+const NEWBIE_CHANCE := 0.15
+const TIER_COST := {1: 3, -1: -2}
+## Mitwachsen (Balancing 24.10.2026): Gegner bekommen je Mehrstärke des eingesetzten Trupps (0…1, gegen die Startcrew)
+## Körper-Ränge (TP) und Ränge in ihren Waffenfertigkeiten; Waffen und Rüstungen bleiben gleich
+const GROW_KOERPER := 7
+const GROW_RANKS := 2
+static var _ref_strength := {}
+## Elite-Stufen: zusätzliche Körper-Ränge, Waffe aus data/weapons/elite (+10 „elite“, +20 „boss“), Rüstung gleicher
+## Klasse aus data/armor/elite mit VW-Bonus, Preis im Budget (Beimischung); Boss-Körper wächst mit dem Trupp (grow)
+const ELITE := {
+	&"basis": {"name": "Elite", "koerper": 2, "weapon": "elite", "armor": 5, "cost": 6},
+	&"leutnant": {"name": "Leutnant", "koerper": 4, "weapon": "elite", "armor": 5, "cost": 9},
+	&"hauptmann": {"name": "Hauptmann", "koerper": 5, "weapon": "elite", "armor": 10, "cost": 12},
+	&"boss": {"name": "Boss", "koerper": 0, "weapon": "boss", "armor": 15, "cost": 0},
+}
+## Boss: Körper 4 + 9 × Mehrstärke, höchstens 10 (Mission.grow)
+const BOSS_KOERPER := [4, 9, 10]
+## Gegnerzahl reiner Elite- und Boss-Begegnungen je Schwierigkeit (Nutzer 24.10.2026)
+const ELITE_COUNT := {"leicht": 6, "mittel": 7, "schwer": 8}
+## Elite-Basis-Beimischung in normalen Begegnungen: Wahrscheinlichkeit für mindestens 1 und für 2
+const ELITE_MIX := {"leicht": [0.0, 0.0], "mittel": [0.25, 0.0], "schwer": [0.6, 0.2]}
 
 ## nur für Messungen (test_sim budget=N): Budget je Schwierigkeit überschreiben
 static var budget_override := {}
 
 const DIFFICULTIES := {
-	"leicht": {"name": "leicht", "budget": 42, "reward": 2},
-	"mittel": {"name": "mittel", "budget": 58, "reward": 3},
-	"schwer": {"name": "schwer", "budget": 88, "reward": 5},   # 76 → 88 mit bis zu 8 Figuren (Simulation 18.10.2026)
+	"leicht": {"name": "leicht", "budget": 55, "reward": 2, "min": 5, "max": 7},
+	"mittel": {"name": "mittel", "budget": 75, "reward": 3, "min": 6, "max": 9},
+	"schwer": {"name": "schwer", "budget": 100, "reward": 5, "min": 8, "max": 12},
 }
 
 ## Aufträge je Kartentyp: Titel, Einsatzbeschreibung (%s = Fraktion) und Startlage (LAGEN), je 6, Entern 5 (Index aus dem Missionszufall)
@@ -92,6 +118,15 @@ var difficulty := "mittel"
 var size_id := "mittel"
 var enemies: Array[UnitData] = []
 var reward_xp := 0
+## Elite-Auftrag (Hub würfelt beim Erstellen, Story kann setzen): "" | &"elite" | &"boss"; Form wählt der Bodenkampf
+## Setzen (auch nachträglich, Elite.apply des Hubs) stellt die Gegner als Elite-/Boss-Begegnung neu zusammen
+var elite: StringName = &"":
+	set(v):
+		elite = v
+		_apply_elite()
+var elite_form: StringName = &""   # trupp | kern | boss (Anzeige)
+var _seed := 0
+var _normal_enemies: Array[UnitData] = []
 ## Kartentyp (MapTypes), quadratische Form, Entern: "" / "board" (selbst entern) / "defend" (Abwehr an Bord).
 ## Typ und Form werden mit eigenem Zufall (seed + 2) gewürfelt, damit der Rest der Mission gleich bleibt.
 var map_type: StringName = &"halle"
@@ -108,7 +143,9 @@ var _lage_pick := 0
 
 
 ## faction_path: feste Fraktion (z. B. die des Systems auf der Sternenkarte), leer = zufällig
-static func generate(seed_value: int, difficulty_id := "", faction_path := "") -> Mission:
+## diff_factor: Spieleinstellung „Schwierigkeitsgrad“ des Hubs (Elite.LEVELS: 0,8 / 1,0 / 1,25), multipliziert das Budget;
+## elite_kind: "" | &"elite" | &"boss" (wie das Feld elite, das der Hub auch nachträglich setzen kann)
+static func generate(seed_value: int, difficulty_id := "", faction_path := "", diff_factor := 1.0, elite_kind: StringName = &"") -> Mission:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var m := Mission.new()
@@ -124,8 +161,16 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)
 	var budget := int(budget_override.get(difficulty_id, diff.budget))
-	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0))
-	m.enemies = _compose(rng, m.faction, budget)
+	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0) * diff_factor)
+	# Elite-Beimischung: eigener Zufall (seed + 4), damit Fraktion, Karte und Texte gleich bleiben
+	var r4 := RandomNumberGenerator.new()
+	r4.seed = seed_value + 4
+	var mix: Array = ELITE_MIX[difficulty_id]
+	var roll := r4.randf()
+	var n_elite := 2 if roll < mix[1] else (1 if roll < mix[0] else 0)
+	m.enemies = _compose(rng, m.faction, budget, diff.min, diff.max, n_elite)
+	m._seed = seed_value
+	m._normal_enemies = m.enemies
 	m.job_index = rng.randi_range(0, 5)   # 6 Aufträge je Bodentyp (Entern: 5, siehe _set_texts)
 	var r2 := RandomNumberGenerator.new()
 	r2.seed = seed_value + 2
@@ -139,15 +184,81 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "") -
 	if not m.faction.maps.is_empty() and r3.randf() < FactionData.MAP_CHANCE:
 		m.map_type = m.faction.maps[r3.randi_range(0, m.faction.maps.size() - 1)]
 	m._set_texts()
-	var n := m.enemies.size()
-	if n <= 4:
-		m.size_id = "klein"
-	elif n <= 6:
-		m.size_id = "klein" if rng.randf() < 0.2 else "mittel"
-	else:
-		m.size_id = "mittel" if rng.randf() < 0.4 else "gross"
+	m.size_id = _size_for(m.enemies.size(), rng.randf())
 	_custom_gear(m, seed_value)
+	if elite_kind != &"":
+		m.elite = elite_kind
 	return m
+
+
+## Hallengröße nach Gegnerzahl
+static func _size_for(n: int, r: float) -> String:
+	if n <= 5:
+		return "klein" if r < 0.5 else "mittel"
+	if n <= 8:
+		return "mittel" if r < 0.7 else "gross"
+	return "mittel" if r < 0.3 else "gross"
+
+
+## Gegner zur Elite-Stufe passend neu zusammenstellen (fest aus dem Seed, eigener Zufall seed + 5);
+## "" stellt die normale Begegnung wieder her. Form: Boss bei &"boss", sonst Trupp oder Kern (50/50)
+func _apply_elite() -> void:
+	if faction == null or _normal_enemies.is_empty():
+		return
+	if elite == &"":
+		elite_form = &""
+		enemies = _normal_enemies
+		return
+	var r5 := RandomNumberGenerator.new()
+	r5.seed = _seed + 5
+	elite_form = &"boss" if elite == &"boss" else (&"trupp" if r5.randf() < 0.5 else &"kern")
+	enemies = _elite_group(r5, faction, elite_form, ELITE_COUNT.get(difficulty, 7))
+	size_id = _size_for(enemies.size(), r5.randf())
+	_custom_gear(self, _seed)
+
+
+## Ø TP und Ø bester Angriffswert (über alle Waffen und Psi-Angriffe) einer Gruppe
+static func strength(units: Array[Combatant]) -> Dictionary:
+	var tp := 0.0
+	var aw := 0.0
+	for u in units:
+		tp += u.max_hp
+		var best := 0
+		for w in u.weapons:
+			best = maxi(best, Rules.skill_total(u, w.skill) + w.ob_bonus + Ammo.burst_bonus(w.shots))
+		aw += best
+	var n := maxi(1, units.size())
+	return {"tp": tp / n, "aw": aw / n}
+
+
+## Mehrstärke des Trupps gegenüber der Startcrew: Mittel aus TP- und Angriffsverhältnis minus 1, begrenzt auf 0…1
+static func extra_strength(crew: Array[Combatant]) -> float:
+	if _ref_strength.is_empty():
+		_ref_strength = strength(Roster.build_team(GameData.crew(), &"crew"))
+	var s := strength(crew)
+	return clampf((s.tp / maxf(1.0, _ref_strength.tp) + s.aw / maxf(1.0, _ref_strength.aw)) / 2.0 - 1.0, 0.0, 1.0)
+
+
+## Gegner an den eingesetzten Trupp anpassen; liefert [Körper-Ränge, Fertigkeits-Ränge] für die Anzeige
+static func grow(enemies: Array[Combatant], crew: Array[Combatant]) -> Array[int]:
+	var m := extra_strength(crew)
+	var k := roundi(GROW_KOERPER * m)
+	var r := roundi(GROW_RANKS * m)
+	for e in enemies:
+		if e.elite == &"boss":
+			var bk := mini(BOSS_KOERPER[2], BOSS_KOERPER[0] + roundi(BOSS_KOERPER[1] * m))
+			e.skills[&"koerper"] = {"rank": Rules.skill_rank(e, &"koerper") + bk, "xp": 0}
+			e.max_hp += Rules.HP_PER_RANK * bk
+			e.hp = e.max_hp
+		if k > 0:
+			e.skills[&"koerper"] = {"rank": Rules.skill_rank(e, &"koerper") + k, "xp": 0}
+			e.max_hp += Rules.HP_PER_RANK * k
+			e.hp = e.max_hp
+		if r > 0:
+			for w in e.weapons:
+				if w.skill != &"" and w.power == "":
+					e.skills[w.skill] = {"rank": Rules.skill_rank(e, w.skill) + r, "xp": 0}
+	return [k, r]
 
 
 ## Kartentyp festlegen (Schnellkampf-Auswahl, Entern) und Auftragstext dazu wählen
@@ -191,6 +302,8 @@ static func _custom_gear(m: Mission, seed_value: int) -> void:
 	rng.seed = seed_value + 1
 	for i in m.enemies.size():
 		var d: UnitData = m.enemies[i]
+		if d.elite != &"":
+			continue   # Elite-Gegner behalten ihre Elite-Ausrüstung
 		var copy: UnitData = null
 		if not d.weapons.is_empty() and rng.randf() < CUSTOM_CHANCE:
 			var fit := ws.filter(func(w: WeaponData) -> bool: return w.skill == d.weapons[0].skill)
@@ -233,46 +346,145 @@ static func all_factions() -> Array[FactionData]:
 
 
 ## Gegner aus dem Budget: gewichtet würfeln, bis kein Typ mehr ins Restbudget passt
-static func _compose(rng: RandomNumberGenerator, f: FactionData, budget: int) -> Array[UnitData]:
+## Gegner aus dem Budget: je Gegner Typ (gewichtet) und Stufe (Neuling/normal/Veteran mit Aufschlag) würfeln, bis kein
+## Typ mehr ins Restbudget passt oder die Höchstzahl erreicht ist; unter der Mindestzahl billigster Typ als Neuling
+static func _compose(rng: RandomNumberGenerator, f: FactionData, budget: int, lo := MIN_ENEMIES, hi := MAX_ENEMIES, n_elite := 0) -> Array[UnitData]:
 	var picked: Array[UnitData] = []
+	var tiers := {}
+	var elites := {}
 	var count := {}
 	var left := budget
-	while picked.size() < MAX_ENEMIES:
+	var max_same := maxi(f.max_same, 4)
+	while picked.size() < hi:
+		var tier := _roll_tier(rng)
+		var add: int = TIER_COST.get(tier, 0)
+		var is_elite := picked.size() < n_elite   # die ersten n_elite Gegner sind Elite Basis (Preis aus dem Budget)
+		if is_elite:
+			tier = 0
+			add = ELITE.basis.cost
 		var pool: Array[int] = []
 		var total := 0
 		for i in f.units.size():
 			var d: UnitData = f.units[i]
-			if d.threat <= left and count.get(d.id, 0) < f.max_same:
+			if d.threat + add <= left and count.get(d.id, 0) < max_same:
 				pool.append(i)
 				total += f.weights[i] if i < f.weights.size() else 1
+		var base: UnitData
 		if pool.is_empty():
-			break
-		var r := rng.randi_range(1, total)
-		var choice := pool[0]
-		for i in pool:
-			r -= f.weights[i] if i < f.weights.size() else 1
-			if r <= 0:
-				choice = i
+			if picked.size() >= lo:
 				break
-		var base: UnitData = f.units[choice]
+			base = _cheapest(f)
+			tier = -1
+			add = TIER_COST[-1]
+		else:
+			var r := rng.randi_range(1, total)
+			var choice := pool[0]
+			for i in pool:
+				r -= f.weights[i] if i < f.weights.size() else 1
+				if r <= 0:
+					choice = i
+					break
+			base = f.units[choice]
 		count[base.id] = count.get(base.id, 0) + 1
-		left -= base.threat
+		left -= base.threat + add
+		tiers[picked.size()] = tier
+		if is_elite:
+			elites[picked.size()] = true
 		picked.append(base)
-	# Mindestanzahl: billigsten Typ auffüllen
-	while picked.size() < MIN_ENEMIES:
-		var cheapest: UnitData = f.units[0]
-		for d in f.units:
-			if d.threat < cheapest.threat:
-				cheapest = d
-		picked.append(cheapest)
-	picked.sort_custom(func(a: UnitData, b: UnitData) -> bool:
-		return a.threat > b.threat if a.threat != b.threat else String(a.id) < String(b.id))
-	return _individualize(rng, picked, f)
+	# nach Stärke sortieren, Stufe mitnehmen
+	var order: Array = range(picked.size())
+	order.sort_custom(func(a: int, b: int) -> bool:
+		var da := picked[a]
+		var db := picked[b]
+		return da.threat > db.threat if da.threat != db.threat else (String(da.id) < String(db.id) if da.id != db.id else a < b))
+	var sorted: Array[UnitData] = []
+	var shifts: Array[int] = []
+	var marks: Array[StringName] = []
+	for i in order:
+		sorted.append(picked[i])
+		shifts.append(tiers[i])
+		marks.append(&"basis" if elites.has(i) else &"")
+	var out := _individualize(rng, sorted, f, shifts)
+	for i in out.size():
+		if marks[i] != &"":
+			_make_elite(out[i], marks[i])
+	return out
+
+
+## reine Elite-/Boss-Begegnung mit n Gegnern: Trupp = alle Elite Basis, Kern = jeder 3. Leutnant und Rest Basis,
+## Boss = 1 Boss, 2 Hauptleute, Rest normal (mit Neuling/Veteran)
+static func _elite_group(rng: RandomNumberGenerator, f: FactionData, form: StringName, n: int) -> Array[UnitData]:
+	var picked: Array[UnitData] = []
+	var shifts: Array[int] = []
+	var marks: Array[StringName] = []
+	for i in n:
+		var total := 0
+		for j in f.units.size():
+			total += f.weights[j] if j < f.weights.size() else 1
+		var r := rng.randi_range(1, total)
+		var choice := 0
+		for j in f.units.size():
+			r -= f.weights[j] if j < f.weights.size() else 1
+			if r <= 0:
+				choice = j
+				break
+		picked.append(f.units[choice])
+		var mark: StringName = &""
+		match form:
+			&"trupp":
+				mark = &"basis"
+			&"kern":
+				mark = &"leutnant" if i % 3 == 0 else &"basis"
+			&"boss":
+				mark = &"boss" if i == 0 else (&"hauptmann" if i <= 2 else &"")
+		marks.append(mark)
+		shifts.append(_roll_tier(rng) if mark == &"" else 0)
+	var out := _individualize(rng, picked, f, shifts)
+	for i in out.size():
+		if marks[i] != &"":
+			_make_elite(out[i], marks[i])
+	return out
+
+
+## Gegner zur Elite-Stufe machen: Körper, Elite-Waffen und -Rüstung, Rolle mit Stufe
+static func _make_elite(d: UnitData, mark: StringName) -> void:
+	var e: Dictionary = ELITE[mark]
+	d.elite = mark
+	d.skills["koerper"] = int(d.skills.get("koerper", 0)) + int(e.koerper)
+	d.role = "%s, %s" % [d.role, e.name]
+	var ws: Array[WeaponData] = []
+	for w in d.weapons:
+		var p := "res://data/weapons/elite/%s_%s.tres" % [w.id, e.weapon]
+		ws.append(load(p) if ResourceLoader.exists(p) else w)
+	d.weapons = ws
+	if d.armor:
+		var ap := "res://data/armor/elite/%s_vw%d.tres" % [d.armor.id, e.armor]
+		if ResourceLoader.exists(ap):
+			d.armor = load(ap)
+
+
+## Stufe eines normalen Gegners: +1 Veteran, −1 Neuling, 0 normal
+static func _roll_tier(rng: RandomNumberGenerator) -> int:
+	var roll := rng.randf()
+	if roll < VETERAN_CHANCE:
+		return 1
+	if roll < VETERAN_CHANCE + NEWBIE_CHANCE:
+		return -1
+	return 0
+
+
+static func _cheapest(f: FactionData) -> UnitData:
+	var cheapest: UnitData = f.units[0]
+	for d in f.units:
+		if d.threat < cheapest.threat:
+			cheapest = d
+	return cheapest
 
 
 ## Jede Figur bekommt eine eigene Kopie: eindeutige Kennung, Buchstabe mit Nummer, Abweichungen in den Werten
 ## f: Fraktion (Waffentausch, Medikits, Eigenheit)
-static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], f: FactionData = null) -> Array[UnitData]:
+## shifts: Stufe je Figur (+1 Veteran, −1 Neuling); leer = hier würfeln
+static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], f: FactionData = null, shifts: Array[int] = []) -> Array[UnitData]:
 	var letters := {}
 	for d in picked:
 		letters[d.letter] = letters.get(d.letter, 0) + 1
@@ -287,18 +499,16 @@ static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], 
 		d.id = StringName("%s_%d" % [base.id, i + 1])
 		if letters[base.letter] > 1:
 			d.letter = "%s%d" % [base.letter, seen[base.letter]]
-		var roll := rng.randf()
-		var shift := 0
-		if roll < 0.2:
-			shift = 1
+		var shift: int = shifts[i] if i < shifts.size() else _roll_tier(rng)
+		if shift == 1:
 			d.role = "%s, Veteran" % base.role
-		elif roll < 0.35:
-			shift = -1
+		elif shift == -1:
 			d.role = "%s, Neuling" % base.role
 		for a in d.attrs:
 			d.attrs[a] = clampi(d.attrs[a] + shift * 5 + rng.randi_range(-3, 3), 1, 100)
 		for s in d.skills:
-			d.skills[s] = maxi(0, int(d.skills[s]) + shift)
+			if s != "koerper":   # Grundwert Körper (TP) gilt für alle Stufen
+				d.skills[s] = maxi(0, int(d.skills[s]) + shift)
 		if f:
 			_apply_faction(d, f)
 		out.append(d)

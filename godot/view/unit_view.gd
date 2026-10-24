@@ -29,6 +29,13 @@ func setup(u: Combatant) -> void:
 	_build_ring(u)
 	_label = _make_label(26, u.color.lightened(0.5))   # Farbe der Figur, stark aufgehellt (lesbar auch bei Dunkelrot)
 	_label.position = Vector3(0, figure.head_height() + 0.45, 0)
+	# Elite gold, Boss rot umrandet (Balancing 24.10.2026)
+	if u.elite == &"boss":
+		_label.outline_modulate = Color(0.85, 0.2, 0.1, 1)
+		_label.outline_size = 16
+	elif u.elite != &"":
+		_label.outline_modulate = Color(UiTheme.ACCENT, 1)
+		_label.outline_size = 14
 	_status = StatusRow.new()
 	add_child(_status)
 	_fx = StatusFx.new()

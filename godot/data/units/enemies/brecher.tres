@@ -25,6 +25,7 @@ attrs = {
 skills = {
 "ausweichen": 1,
 "kampfsinn": 3,
+"koerper": 1,
 "schnellfeuer": 8
 }
 weapons = Array[ExtResource("3_mewhd")]([ExtResource("4_sdmld")])

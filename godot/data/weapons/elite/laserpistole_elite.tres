@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/blaster/blaster-b.tscn" id="1_6wnhx"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_eafsl"]
+[ext_resource type="Resource" path="res://data/tables/attack_strahl.tres" id="2_6wnhx"]
+
+[resource]
+script = ExtResource("1_eafsl")
+ammo_type = &"energie"
+magazine = 12
+id = &"laserpistole_elite"
+name = "Laserpistole Elite"
+ob_bonus = 10
+skill = &"pistolen"
+table = ExtResource("2_6wnhx")
+inc_m = 10
+stages = 4
+max_result = 130
+damage = 0.8
+splash = PackedInt32Array()
+model = ExtResource("1_6wnhx")
+length_m = 0.32
+two_handed = false
+grip_offset = Vector3(0, 0.058, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+sound_id = &"laser"
+metadata/elite = true
+metadata/base = "res://data/weapons/laserpistole.tres"
