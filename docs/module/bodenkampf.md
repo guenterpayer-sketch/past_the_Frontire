@@ -54,6 +54,12 @@
 
 - **Elite auf „schwer“ über die Gegnerzahl (24.10.2026, simuliert, noch nicht gebaut):** Entscheidungen des Nutzers: Kern = jeder 3. Leutnant, Rest Elite Basis; Boss-Körper wächst mit der Crew (4 + 9 × Mehrstärke, höchstens 10; Startcrew +4, Squad des Nutzers +8). Squad auf „schwer“ (sonst 9 Gegner), 30 Kämpfe: höchstens 8 Gegner → Elite-Trupp 67 %, Kern 63 %, Boss 77 % Siege (TP-Verlust 63–64 %); höchstens 7 Gegner → 90 %, 83 %, 87 % (54 %). Startcrew auf „mittel“ (ohne Mitwachsen, 6 Gegner): Elite-Trupp 57 %, Boss 47 % Siege, TP-Verlust 78–79 % (normaler Kampf Startcrew ca. 70 %).
 
+- **Zusammensetzung je Stufe, Entwurf simuliert (24.10.2026, noch nicht gebaut):** Wunsch des Nutzers: Stufen unterscheiden sich in Anzahl und Stärke, je Stufe 4 Aufstellungen mit ähnlicher Schwierigkeit. Klassen nach Punkten: schwach ≤ 9 (Plünderer, Funke), mittel 10–11, stark ≥ 12 (Seherin, Handagent, Hexer, Brecher). Fehlt einer Fraktion eine Klasse, ersetzt der nächste Typ (schwächer als Veteran, stärker als Neuling). 16 Kämpfe je Fall, TP-Verlust Startcrew / Squad des Nutzers (mit Körper +3, Waffe +1):
+  - leicht: L1 5 schwach (2 Neulinge) 28/13 %; L2 3 schwach + 1 mittel 24/9 %; L3 1 schwach + 2 mittel + 1 stark 33/10 %; L4 2 mittel (Veteranen) + 1 stark (Veteran) 24/9 %. Alle Siege 15–16/16.
+  - mittel: M1 5 schwach + 2 mittel 60/24 % (Startcrew 11/16 Siege); M2 3 schwach + 2 mittel + 1 stark (Veteran) 68/23 % (11/16); M3 2 schwach + 3 mittel + 1 stark 67/24 % (10/16); M4 3 mittel (Veteranen) + 2 stark 52/22 % (14/16).
+  - schwer: S1 4 schwach + 4 mittel + 1 stark 89/54 % (Startcrew 5/16, Squad 14/16); S2 2 schwach + 3 mittel + 2 stark (Veteranen) 79/48 % (9/16, 16/16); S3 2 mittel + 1 stark + 3 stark (Veteranen) 88/42 % (6/16, 16/16); S4 5 stark (Veteranen) 83/47 % (6/16, 13/16).
+  - Befund: Anzahl wirkt stärker als Stärke der Typen. Ersatztypen häufig (viele Fraktionen ohne starke Typen). Für den Squad fehlt der Teil „mehr Gegner“ des Mitwachsens (feste Aufstellungen), er liegt hier unter dem Vorschlag von oben (mittel 22–24 % statt 49 %).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
