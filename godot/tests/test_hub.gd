@@ -35,6 +35,7 @@ func _init() -> void:
 	_test_stock()
 	_test_trade_skills()
 	_test_station_trade()
+	_test_elite()
 	_test_loot()
 	_test_crafting()
 	_test_galley()
@@ -958,6 +959,49 @@ func _test_stock() -> void:
 		var f := FileAccess.open(Roster.PATH, FileAccess.WRITE)
 		f.store_string(crew_before)
 	Campaign.reload()
+
+
+## Elite und Boss, Schwierigkeitsgrad, Elite-Beute (Auftrag 10, Entscheidungen des Nutzers 24.10.2026)
+func _test_elite() -> void:
+	var hits := 0
+	for i in 2000:
+		if Elite.roll(i):
+			hits += 1
+	check(hits > 200 and hits < 320 and Elite.roll(12345) == Elite.roll(12345), "Elite-Wurf ≈ 13 %%, fest je Seed (%d/2000)" % hits)
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(73, "Elite", 1)
+	HubState.game = g
+	check(g.offers.all(func(o: Dictionary) -> bool: return o.has("elite")), "jeder Auftrag hat eine Elite-Stufe")
+	# Kopfgeld: Boss-Kampf mit Titel
+	var o: Dictionary = g.offers[0].duplicate()
+	o.kind = "boden"
+	o.blockade = false
+	o.elite = Elite.BOSS
+	o.bounty = Elite.boss_name(7)
+	var m := g.mission_of(o)
+	check(m.title.begins_with("Kopfgeld: ") and m.title.contains(String(o.bounty)), "Kopfgeld-Auftrag: Titel mit Zielperson")
+	check(not "elite" in m or m.get("elite") == &"boss", "Boss an den Bodenkampf (sobald Mission.elite da ist)")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.offers.size() == g.offers.size() and h.offers.all(func(x: Dictionary) -> bool: return x.has("elite")), "Elite-Stufe im Spielstand")
+	# Raum: Elite und Schwierigkeitsfaktor im setup
+	g.difficulty_level = "schwer"
+	g.space_ctx = {"kind": "reise", "offer_id": -1, "faction": "piraten", "difficulty": "mittel", "elite": Elite.ELITE}
+	var s := g.space_setup()
+	check(bool(s.enemy.elite) and not bool(s.enemy.boss) and is_equal_approx(float(s.difficulty_factor), 1.25), "Raumkampf: elite und difficulty_factor")
+	g.space_ctx = {"kind": "story", "offer_id": -1, "faction": "piraten", "difficulty": "mittel", "elite": Elite.BOSS, "boss_name": "X"}
+	s = g.space_setup()
+	check(bool(s.enemy.elite) and bool(s.enemy.boss) and String(s.enemy.boss_name) == "X", "Raumkampf: Boss mit Namen")
+	g.space_ctx = {}
+	h = HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(h.difficulty_level == "schwer" and is_equal_approx(h.difficulty_factor(), 1.25), "Schwierigkeitsgrad im Spielstand")
+	# Elite-Beute: Anzeige vermerkt, verkaufbar; Elite-Ausrüstung nie im Sortiment
+	g.loot_pending = {}
+	g.set_loot({"units": {"a": {}}, "loot": [{"key": "res://data/weapons/sturmgewehr.tres", "damage": -20, "elite": true},
+		{"key": "res://data/weapons/laserpistole.tres", "damage": 0}]})
+	check(g.loot_pending.get("elite", []) == [0], "Elite-Beute vermerkt")
+	g.loot_pending = {}
+	check(not Stock.goods().any(func(k: String) -> bool: return "/elite/" in k), "Elite-Ausrüstung nicht im Sortiment")
+	g.difficulty_level = "normal"
 
 
 ## Handel an Stationen (Auftrag 9): wie im Hafen, 20 % teurer; Werft, Anheuern, Papiere nur im Hafen

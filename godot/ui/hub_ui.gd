@@ -336,6 +336,9 @@ func show_toast(text: String) -> void:
 ## Einstellungen im Schiff: UI-Größe und Lautstärke Musik/Effekte (gelten fürs ganze Spiel, sofort, gespeichert)
 func show_ui_scale() -> void:
 	notice.open("Einstellungen")
+	if HubState.game:
+		notice.content.add_child(SlotsDialog.difficulty_row(HubState.game.difficulty_level, func(lv: String) -> void:
+			HubState.game.difficulty_level = lv))
 	notice.content.add_child(UiScale.picker(get_tree()))
 	notice.content.add_child(Music.volume_rows())
 	var l := UiTheme.label("UI-Größe: Schrift und Kästen im ganzen Spiel, die 3D-Ansicht bleibt gleich. Alles wird gespeichert.", 13, UiTheme.MUTED)
@@ -547,7 +550,8 @@ func _loot(g: HubState) -> void:
 			update.call())
 		boxes.append(b)
 		grid.add_child(b)
-		grid.add_child(UiTheme.label(Stock.name_of(Stock.base_of(key)), 15))
+		var elite_item: bool = i in g.loot_pending.get("elite", [])
+		grid.add_child(UiTheme.label(Stock.name_of(Stock.base_of(key)) + ("  ★ Elite" if elite_item else ""), 15, UiTheme.ACCENT if elite_item else UiTheme.TEXT))
 		grid.add_child(UiTheme.label("intakt" if d == 0 else Stock.damage_text(d).strip_edges().trim_prefix("(").trim_suffix(")"), 15,
 			UiTheme.GOOD if d == 0 else (UiTheme.BAD if d <= Combatant.WEAR_BROKEN else Color("ff8a3d"))))
 		grid.add_child(UiTheme.label("%d Cr" % Stock.scrap_value(key), 15, UiTheme.MUTED))
@@ -837,6 +841,10 @@ func show_contact(g: HubState) -> void:
 		roundi(SpaceEvents.contact_chance(g, int(ct.system)) * 100)], 16, UiTheme.ACCENT)
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	contact.content.add_child(head)
+	if String(ct.get("elite", "")) != "":
+		var el := UiTheme.label("%s – stärkere Schiffe mit besserer Bewaffnung. Ausweichen ist möglich." % Elite.label(String(ct.elite)), 16, UiTheme.BAD)
+		el.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		contact.content.add_child(el)
 	contact.content.add_child(UiTheme.label("Nimmt Lösegeld: %s · Bei Niederlage der Crew: %s" % ["%d Cr" % int(f.ransom) if int(f.ransom) > 0 else "nein",
 		"entern → Bodenkampf an Bord" if String(f.on_win) == "entern" else "Plünderung, das Schiff treibt"], 14, UiTheme.MUTED))
 	var nav := SpaceEvents.navigator(g)

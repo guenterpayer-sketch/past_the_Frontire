@@ -136,12 +136,19 @@ static func buy_price(g: HubState, key: String) -> int:
 static func goods() -> Array[String]:
 	var out: Array[String] = [Equipment.SHIELD]
 	for w in Gear.base_weapons() + Gear.weapons():
-		if not w.resource_path in EXCLUDE:
+		if not w.resource_path in EXCLUDE and not is_elite(w):
 			out.append(w.resource_path)
 	for a in Gear.base_armors() + Gear.armors():
-		if not a.resource_path in EXCLUDE:
+		if not a.resource_path in EXCLUDE and not is_elite(a):
 			out.append(a.resource_path)
 	return out
+
+
+## Elite-Ausrüstung (Bodenkampf: eigene Einträge, Feld elite oder Ordner „elite“): verkaufbar, nie im Sortiment (Hub Auftrag 10)
+static func is_elite(r: Resource) -> bool:
+	if r == null:
+		return false
+	return "/elite/" in r.resource_path or ("elite" in r and bool(r.get("elite")))
 
 
 # ---------------------------------------------------------------- Lager
