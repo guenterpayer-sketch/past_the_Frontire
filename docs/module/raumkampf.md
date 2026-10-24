@@ -102,4 +102,12 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 ## Aufträge vom Koordinator
 
 - Schnittstellen nur ergänzen und dem Hub über den Nutzer melden.
-- Keine offenen Aufträge. Story-Fraktionen im Raum erst, wenn Kapitel 1 sie braucht.
+- Story-Fraktionen im Raum erst, wenn Kapitel 1 sie braucht.
+
+### Auftrag (24.10.2026): Balancing – Ursache finden
+
+Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen so stark, dass Kämpfe keine Herausforderung mehr sind. Betrifft Boden- **und** Raumkampf. Anzeichen laut Nutzer: Gegner fallen zu schnell, keine Verletzungen oder Verluste, zu wenige Gegner. Entscheidung des Nutzers: erst die Ursache finden, dann Wege vorschlagen.
+
+1. Spielstand des Nutzers lesen: `spielstaende/24-10-2026/` (`slot_1.json`, `auto.json`, `crew.json`, `roster.json`; Tag 60, 6 Einsätze, 10 Figuren). Eigene Ausrüstung: `spielstaende/24-10-2026/gear/` (7 Waffen, 2 Rüstungen).
+2. Raumkampf prüfen: Gegnerschiffe, Anzahl und Stärke gegen das Schiff und die Crew des Nutzers (Stationen, Fertigkeiten, Schiffswaffen, Ausbauten im Spielstand). Woran liegt es, dass Gegner schnell fallen und es kaum Schaden gibt?
+3. Ergebnis als Bericht an den Nutzer: Ursachen mit Zahlen (was ist Wissen, was Annahme), dazu 2–3 Wege zum Ausgleich mit Vor- und Nachteilen. Bericht kurz in die Moduldatei unter „Stand“ eintragen. Kein Code ändern, bis der Nutzer entschieden hat.
