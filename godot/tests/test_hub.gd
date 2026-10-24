@@ -1001,6 +1001,30 @@ func _test_elite() -> void:
 	check(g.loot_pending.get("elite", []) == [0], "Elite-Beute vermerkt")
 	g.loot_pending = {}
 	check(not Stock.goods().any(func(k: String) -> bool: return "/elite/" in k), "Elite-Ausrüstung nicht im Sortiment")
+	# Preise (Auftrag 11): Scharfschützengewehr 450; Elite je +5 Bonus über der Vorlage +15 %
+	check(Stock.price("res://data/weapons/scharfschuetzengewehr.tres") == 450, "Preis Scharfschützengewehr")
+	check(Stock.price("res://data/weapons/elite/sturmgewehr_elite.tres") == 364 and Stock.price("res://data/weapons/elite/sturmgewehr_boss.tres") == 448
+		and Stock.price("res://data/weapons/elite/scharfschuetzengewehr_boss.tres") == 720, "Elite-Waffenpreise (+30 %/+60 %)")
+	check(Stock.price("res://data/armor/elite/mittel_vw5.tres") == 403 and Stock.price("res://data/armor/elite/keine_vw15.tres") == 218,
+		"Elite-Rüstungspreise (Schutzfeld wie Flexanzug)")
+	for dir in ["res://data/weapons/elite", "res://data/armor/elite"]:
+		for f in ResourceLoader.list_directory(dir):
+			if f.ends_with(".tres"):
+				var key: String = dir.path_join(f)
+				var stem: String = f.get_basename()
+				var tpl: String = stem.get_slice("_vw", 0) if "_vw" in stem else stem.substr(0, stem.rfind("_"))
+				var base: int = Stock.SCHUTZFELD_PRICE if tpl == "keine" else Stock.price(dir.replace("/elite", "").path_join(tpl + ".tres"))
+				check(Stock.price(key) > base, "Elite-Preis über der Vorlage: %s (%d > %d)" % [f, Stock.price(key), base])
+	# Elite-Beute aus dem Bodenkampf: ins Lager und verkaufbar (am Markt)
+	g.position = g.nearest_harbor()
+	var ek := "res://data/weapons/elite/laserpistole_boss.tres"
+	g.set_loot({"units": {"a": {}}, "loot": [{"key": ek, "damage": -20, "elite": true}]})
+	g.take_loot([0])
+	var lk := Stock.damaged_key(ek, -20)
+	var cr := g.credits
+	check(Stock.count(g, lk) == 1 and Stock.can_sell(g, lk) and Stock.sell(g, lk) and g.credits > cr and Stock.count(g, lk) == 0,
+		"Elite-Beute im Lager und verkaufbar")
+	check(not Stock.shop(g, g.position).has(ek), "Elite nicht im Sortiment des Hafens")
 	g.difficulty_level = "normal"
 
 
