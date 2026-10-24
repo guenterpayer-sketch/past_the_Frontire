@@ -50,6 +50,7 @@ func _init() -> void:
 	_test_start_facing()
 	_test_factions()
 	_test_story_factions()
+	_test_enemy_types()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -236,7 +237,7 @@ func _test_pass_through_ally() -> void:
 
 func _test_data() -> void:
 	check(GameData.crew().units.size() == 6 and GameData.enemies().units.size() == 6, "6 gegen 6")
-	check(GameData.weapons().size() == 9, "9 Waffen (%d)" % GameData.weapons().size())
+	check(GameData.weapons().size() == 10, "10 Waffen (%d)" % GameData.weapons().size())
 	for t in GameData.crit_tables():
 		check(t.rows.size() == 7, "Kritische Tabelle %s mit 7 Zeilen" % t.name)
 
@@ -1554,6 +1555,28 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Balancing 24.10.2026, Schritt 1: Gegnertypen, Preise, neue Typen und Scharfschützengewehr
+func _test_enemy_types() -> void:
+	var t := func(id: String) -> UnitData: return load("res://data/units/enemies/%s.tres" % id)
+	var all := DirAccess.get_files_at("res://data/units/enemies")
+	check(Array(all).filter(func(f: String) -> bool: return f.ends_with(".tres")).all(func(f: String) -> bool:
+		return int(load("res://data/units/enemies/" + f).skills.get("koerper", 0)) >= 1), "alle Gegner Körper ≥ 1")
+	var sniper: WeaponData = load("res://data/weapons/scharfschuetzengewehr.tres")
+	check(sniper.inc_m == 50 and sniper.stages == 3 and sniper.min_range_m == 5 and is_equal_approx(sniper.damage, 1.3) and sniper.ob_bonus == 10 and sniper.magazine == 5,
+		"Scharfschützengewehr mit den Werten des Nutzers")
+	check(t.call("schatten").weapons[0] == sniper and t.call("schatten").threat == 12, "Schatten = Scharfschütze-Meuchler, 12 Punkte")
+	check(t.call("pluenderer_1").armor.cls == 2 and t.call("pluenderer_1").threat == 8 and t.call("sturmlaeufer").armor.cls == 2 and t.call("hexer").armor.cls == 1,
+		"Rüstungen Plünderer/Sturmläufer mittel, Hexer leicht")
+	check(t.call("klingentaenzer").threat == 15 and t.call("psi_soldat").threat == 14 and t.call("sicherheitsagent").threat == 8 and t.call("handagent").threat == 8,
+		"neue Punktpreise")
+	var has := func(fac: String, id: String) -> bool:
+		return (load("res://data/missions/%s.tres" % fac) as FactionData).units.any(func(u: UnitData) -> bool: return u.id == StringName(id))
+	check(has.call("neuntes_haus", "psi_meuchler") and has.call("aasgeier", "entermeister") and has.call("schwarze_flagge", "entermeister") and has.call("schmuggler", "kopfgeldjaeger"),
+		"neue Typen bei ihren Fraktionen")
+	var pm := Combatant.create(t.call("psi_meuchler"), &"enemy")
+	check(pm.weapons.any(func(w: WeaponData) -> bool: return w.power != ""), "Psi-Meuchler hat Psi-Angriffe")
+
+
 func _test_story_factions() -> void:
 	var ids := ["stille_hand", "wacht_klingen", "wacht_hirten", "abteilung_9"]
 	for id in ids:

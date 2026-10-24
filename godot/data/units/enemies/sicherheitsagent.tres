@@ -25,10 +25,11 @@ attrs = {
 skills = {
 "ausweichen": 4,
 "ersteHilfe": 3,
-"gewehre": 7,
-"kampfsinn": 4
+"gewehre": 8,
+"kampfsinn": 4,
+"koerper": 1
 }
 weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0")])
 armor = ExtResource("1_ar")
-threat = 10
+threat = 8
 visual = ExtResource("4_vi")

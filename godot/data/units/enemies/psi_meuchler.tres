@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Resource" path="res://data/armor/keine.tres" id="1_ar"]
+[ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
+[ext_resource type="Resource" path="res://data/visuals/characters/women_scifi.tres" id="4_vi"]
+[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_w0"]
+
+[resource]
+script = ExtResource("2_ud")
+id = &"psi_meuchler"
+name = "Psi-Meuchler"
+letter = "Q"
+role = "Psi-Meuchler"
+color = Color(0.45, 0.25, 0.55, 1)
+attrs = {
+"EMP": 45,
+"GEW": 85,
+"INT": 60,
+"KON": 55,
+"KOO": 80,
+"MEN": 80,
+"STA": 50
+}
+skills = {
+"ausweichen": 8,
+"kampfsinn": 5,
+"koerper": 1,
+"lAngriff": 3,
+"pistolen": 6,
+"psiAngriff": 6,
+"psiVerteidigung": 4,
+"psiWirken": 3
+}
+weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0")])
+armor = ExtResource("1_ar")
+threat = 12
+visual = ExtResource("4_vi")

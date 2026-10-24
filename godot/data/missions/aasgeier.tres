@@ -5,14 +5,15 @@
 [ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="3_u0"]
 [ext_resource type="Resource" path="res://data/units/enemies/pluenderer_2.tres" id="4_u1"]
 [ext_resource type="Resource" path="res://data/units/enemies/enterer.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/units/enemies/entermeister.tres" id="9_enterm"]
 
 [resource]
 script = ExtResource("1_fac")
 name = "Aasgeier"
 description = "Ausgehungerte Plünderer mit Schrottwaffen, dafür in großer Zahl."
 kind = &"piraten"
-units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
-weights = Array[int]([4, 4, 2])
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2"), ExtResource("9_enterm")])
+weights = Array[int]([4, 4, 2, 2])
 max_same = 5
 color = Color(0.7, 0.55, 0.3, 1)
 trait_name = "Überzahl"

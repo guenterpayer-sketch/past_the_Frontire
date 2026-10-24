@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="UnitData" format=3]
 
-[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_onuma"]
+[ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_onuma"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_bvhrs"]
 [ext_resource type="Resource" path="res://data/visuals/characters/men_swat.tres" id="3_bvhrs"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_jlyln"]
@@ -26,7 +26,8 @@ skills = {
 "ausweichen": 4,
 "ersteHilfe": 5,
 "gewehre": 7,
-"kampfsinn": 3
+"kampfsinn": 3,
+"koerper": 1
 }
 weapons = Array[ExtResource("3_jlyln")]([ExtResource("4_01wph")])
 armor = ExtResource("1_onuma")

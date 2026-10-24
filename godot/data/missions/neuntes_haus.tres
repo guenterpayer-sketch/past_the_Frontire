@@ -5,14 +5,15 @@
 [ext_resource type="Resource" path="res://data/units/enemies/schatten.tres" id="3_u0"]
 [ext_resource type="Resource" path="res://data/units/enemies/hexer.tres" id="4_u1"]
 [ext_resource type="Resource" path="res://data/units/enemies/pluenderer_1.tres" id="5_u2"]
+[ext_resource type="Resource" path="res://data/units/enemies/psi_meuchler.tres" id="9_psi_me"]
 
 [resource]
 script = ExtResource("1_fac")
 name = "Das Neunte Haus"
 description = "Verschwiegenes Syndikat mit Meuchlern, Psi-Begabten und bester Ausrüstung."
 kind = &"syndikat"
-units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2")])
-weights = Array[int]([4, 2, 2])
+units = Array[ExtResource("2_unit")]([ExtResource("3_u0"), ExtResource("4_u1"), ExtResource("5_u2"), ExtResource("9_psi_me")])
+weights = Array[int]([4, 2, 2, 2])
 max_same = 3
 color = Color(0.6, 0.25, 0.85, 1)
 trait_name = "Aus dem Schatten"
