@@ -36,6 +36,11 @@
   - Nicht geprüft: Raumkampf (Modul Raumkampf). Annahme: Ein Mensch spielt besser als die KI, im Spiel ist es also eher leichter als in der Simulation.
   - Wege (Entscheidung des Nutzers offen): (a) Gegner mitwachsen lassen (Crewstärke an `Mission.generate`, Veteranen-Gegner), (b) Körper/Erschaffung anpassen (Regeln, Charakter-Modul), (c) neue Stufe „sehr schwer“ mit Elite-Gegnern und mehr als 9 Gegnern.
 
+- **Vorschlag mit Simulation (24.10.2026, Balancing, noch nicht gebaut):** Prototyp KI gegen KI, Squad aus `spielstaende/24-10-2026` (Stärke 1,43 = Mittel aus Ø TP und Ø bestem Angriffswert, je geteilt durch die Startcrew), 20–30 Kämpfe je Fall; Startcrew unverändert (Mehrstärke 0).
+  - Mitwachsen (Wahl des Nutzers: zwischen A und B): Mehrstärke m = Stärke − 1 (0…1); Gegner Körper +round(7·m), Waffenfertigkeit +round(2·m), Budget ×(1 + m), höchstens 9 Gegner. Squad: Körper +3, Waffe +1, Budget leicht 60/mittel 83/schwer 126. Ergebnis Squad (heute → neu): leicht 5 → 27 % TP-Verlust, mittel 14 → 49 % (1,3 kampfunfähig), schwer 37 → 50 % (Siege 27/30). Zum Vergleich A (ohne Waffe): mittel 39 %, schwer 43 %; B (Waffe +2): mittel 48 %, schwer 53 %; Unterschied A/Mitte/B auf „mittel“ im Rahmen der Streuung (±8–10 Punkte). Kämpfe länger (mittel 7 → 18 Runden).
+  - Elite auf „mittel“ (Ziel 70–75 % Siege, Squad): ganzer Trupp Waffen +12, Körper +2 → 73 %; Elite-Kern (jeder 3. Gegner) Waffen +30, Körper +5 → 70 %; Anführer Waffe +40, Körper +10 mit 2 Begleitern Waffen +20, Körper +3 → 73 %. Bessere Rüstung (Klasse +1) zu stark. Gegen die Startcrew (ganzer Trupp +10/+2): leicht 90 %, mittel 60 %.
+  - Offen beim Nutzer/Koordinator: Elite in allen drei Formen, im Auftrag markiert, auch in Story-Missionen; Kennzeichnung im Angebot (Hub) und im Kampf. Vorschlag Schnittstelle: Elite aus dem Auftrags-Seed (ca. 13 %, gemeinsame Funktion für Boden und Raum), Mitwachsen erst im Briefing nach Truppwahl (keine Hub-Schnittstelle nötig). Neuling/Veteran bleiben wie sie sind (Nutzer).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
