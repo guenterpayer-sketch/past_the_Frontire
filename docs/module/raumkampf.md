@@ -39,6 +39,7 @@ Verbindlich für Hub und Raumkampf. Änderungen nur nach Absprache über den Koo
  "enemy": {"faction": Fraktions-ID oder Raumgegner-ID, "difficulty": "leicht"/"mittel"/"schwer",
            "elite": bool,                  # neu 24.10.2026, fehlend = false (docs/Raumkampf.md 4e)
            "boss": bool, "boss_name": String},   # neu 24.10.2026, optional; Boss-Kampf (feste Gruppe, gilt auch als Elite)
+ "difficulty_factor": float,             # neu 24.10.2026, Spieleinstellung 0.8 / 1.0 / 1.25, fehlend = 1.0
  "source": "reise"/"auftrag"/"vor_einsatz"/"schnell",
  "mission": Titel oder "",
  "return_scene": Szenenpfad}
@@ -105,6 +106,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
   - **Entscheidungen des Nutzers (24.10.2026):** Gegner nur **moderat** anpassen (das Besserwerden der Crew soll sich richtig anfühlen); dazu ab und zu **Elite-Gegner**, die sich an die Crew anpassen – **mit dem Bodenkampf abstimmen** (über den Koordinator). Stationstreffer im Raum **etwas häufiger**, damit Verletzte möglich werden. Noch nichts gebaut; Vorschlag mit Zahlen folgt nach der Abstimmung.
 - (24.10.2026) **Elite-Gegner, moderate Anpassung, Stationstreffer 25 % gebaut** (`docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1h): Elite-Siege 67–79 % je nach Crew (Spielstand 73 %), normale Kämpfe nur für starke Crews etwas härter. **Schnittstelle ergänzt:** `setup.enemy.elite: bool` (fehlend = false). **Für den Hub:** bei Aufträgen und Feindkontakt etwa 13 % Elite würfeln (gleiche Regel wie Boden), im Angebot/Kontakt „Elite“ zeigen (ausweichen möglich) und `elite` in `enemy` mitgeben.
 - (24.10.2026) **Auftrag Elite-Beute und Boss-Schiff gebaut** (`docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1i): Elite/Boss-Beute selten (20 % nach Sieg, 30 % beim Entern, je eine Waffe −20/−30), normales Entern höchstens eine Waffe (50 %, −10…−30). Boss: Kreuzer (Elite, Hülle ×1,3, Name) + 2 Jäger, Siege 66–89 % je nach Crew. **Schnittstelle ergänzt:** `setup.enemy.boss: bool`, `setup.enemy.boss_name: String` (beide optional; Boss gilt auch als Elite). **Für Story/Hub:** Story-Ketten, die im Raum enden, und Aufträge gegen eine Person setzen `boss` (und den Namen); Anzeige „Boss“ im Angebot. **Für den Hub:** `board_loot` hat jetzt höchstens eine Waffe.
+- (24.10.2026) **Auftrag Schwierigkeitsgrad gebaut:** `setup.difficulty_factor` (0,8 / 1,0 / 1,25, fehlend = 1,0) wirkt auf Gegner-Hülle (halb) und Besatzung (+(f − 1) × 25), auch bei Elite und Boss (Entscheidungen des Nutzers; `docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1j). Siege Spielstand normal 97 / 94 / 76–90 %, Testcrew 80 / 66 / 56 %. Schnittstelle wie vom Koordinator bestätigt, keine weitere Änderung.
 
 ## Aufträge vom Koordinator
 
