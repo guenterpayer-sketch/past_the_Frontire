@@ -66,6 +66,8 @@
   - Elite-Stufen [Rüstungs-VW, Körper, Waffe]: Basis [+5, +2, +10], Leutnant [+5, +4, +10], Hauptmann [+10, +5, +10], Boss [+15, 4 + 9 × Mehrstärke höchstens 10, +20]; Elite-Boni fest (wachsen nicht mit). Kern = jeder 3. Leutnant, Rest Basis. Schwer: Elite/Boss höchstens 8 Gegner (alte Zählung). Eigene Elite-Ausrüstung als Einträge; Beute 10–15 % der Elite-/Boss-Kämpfe.
   - Gegnertypen: neue Standardwaffe Scharfschützengewehr (Werte wie Waffe des Nutzers: 50 m × 3 Stufen, min. 5 m, Schaden ×1,3, +10, Magazin 5, Patzer 4). Schatten = Scharfschütze-Meuchler (Scharfschützengewehr + Vibroklinge, Gewehre ~7, keine Rüstung); neuer Psi-Meuchler (Laserpistole, Psi-Angriff Rang 3, Ausw. ~50, keine Rüstung, ~12 Pkt.). Sicherheitsagent Gewehre +1; Sturmläufer mittlere Rüstung, Gewehre +2, Einhand +1; Hexer leichte Rüstung, Psi-Angriff +1; Plünderer mittlere Rüstung. Jede Fraktion mindestens ein starker Typ (offen: welche neuen Typen).
 
+- **Weitere Entscheidungen (24.10.2026):** Neue starke Typen: Entermeister (Aasgeier, Schwarze Flagge; Energiehammer + Laserpistole, schwere Rüstung, ~13 Pkt.), Kopfgeldjäger (Schmugglerbande; Laserkarabiner + Vibroklinge, mittlere Rüstung, ~12 Pkt.); Psi-Meuchler beim Neunten Haus. Story-Fraktionen ohne schwachen Typ bleiben so. Budget-Startwerte 60/80/105 (Feinabstimmung per Simulation). Mitwachsen nur über TP und Ränge, kein zusätzliches Elite-Budget. Allgemeiner Schwierigkeitsgrad als Spieleinstellung (Budget ×0,8/×1,0/×1,25) dem Koordinator/Hub vorschlagen.
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
