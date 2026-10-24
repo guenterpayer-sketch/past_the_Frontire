@@ -26,6 +26,16 @@
 - **Fertig (21.10.2026, Klick auf verdeckten Gegner):** Ein Klick auf einen Gegner unter dem Infokasten oben rechts griff nicht an. Der Kasten fing alle Klicks ab (`MOUSE_FILTER_STOP`) und zählte in `BattleUI.covers()` als Sperre. Jetzt lässt er Klicks zur Karte durch, nur der Knopf „Ausführen“ fängt sie; `covers()` zählt ihn nicht mehr. Geprüft: temporärer Klick-Test auf einen verdeckten Gegner löste einen Angriff aus (Test danach entfernt). Seitenleiste, Menü und Würfel bleiben Sperren. Keine Schnittstellenänderung.
 - **Fertig (23.10.2026, Seitenleiste abgeschnitten):** Der Knopf „Reparieren <Waffe> · <Figur> …“ war bis 347 px breit, die Leiste (290 px, an der linken Kante platziert) wuchs dadurch rechts aus dem Bild. Jetzt Reparieren-Knöpfe je eine volle Zeile unter den übrigen Aktionen, gekürzt mit vollem Text im Tooltip (`ActionPanel`); zusätzlich bleibt die rechte Kante fest am Rand, breiterer Inhalt lässt die Leiste nach links wachsen (`BattleUI._process`). Geprüft im Spiel mit temporärem Test: Leiste mit Reparatur-Knopf 290 px, rechte Kante 1586 von 1600; mit künstlich 400 px Inhalt 420 px breit, rechte Kante weiter 1586, Infokasten rückt nach links.
 
+- **Bericht (24.10.2026, Balancing – Ursache finden, nur Analyse):** Spielstand `spielstaende/24-10-2026` (Tag 60, 6 Einsätze), Simulation KI gegen KI mit der Squad des Nutzers (Rino, Vella, Mireaf, Bum Gun, Ilmu, Lucky), 20 Kämpfe je Fall, gleiche Missionen.
+  - Ergebnis „schwer“: Squad jetzt 18/20 Siege, TP-Verlust 37 %, 1,0 kampfunfähig je Kampf; dieselbe Squad mit den Rängen beim Erschaffen 17/20, 50 %, 1,5; Startcrew 3/15, 93 %, 5,1. „mittel“: Squad 20/20, TP-Verlust 14 %; Startcrew 11/15, 58 %.
+  - Ursache 1 (größter Abstand): Figuren beim Erschaffen. Eigenschaften kaum höher (Summe 455–579, Startcrew 477–500), aber Körper 3–5 (+5 TP je Rang, `Rules.max_hp`), Kampffertigkeiten auf Rang 8, Ausweichen bis 8; TP jetzt 58–75 gegen Gegner 33–45 (Körper 0). 3 von 6 tragen schwere Rüstung (Kl. 3), Gegner meist Kl. 0–1.
+  - Ursache 2: Gegner wachsen nicht mit. `Mission.generate` kennt die Crew nicht, Budget fest (42/58/88), Gegnerwerte fest, höchstens 9 Gegner (schwer Ø 8,4, schon fast am Deckel).
+  - Ursache 3: Steigerung. In 6 Einsätzen +5 bis +7 Ränge (z. B. Rino Zweihand 8→15, Kampfsinn bei allen +5…+7); Kampf-EP Ø 24 (mittel) bzw. 42 (schwer) je Figur und Kampf, Kampfsinn +1 je Runde.
+  - Eigene Ausrüstung: alle 7 Waffen und 2 Rüstungen in den Editor-Regeln, das Scharfschützengewehr mit „Werte frei“ (erlaubt, vermerkt). Wirkung klein: mit Standardausrüstung „schwer“ TP-Verlust 46 % statt 37 %.
+  - Verletzungen kommen vor (Medlog Tag 53/60: Rino, Lucky, Ilmu, Vella), heilen aber schnell (Arzt Zweite Hilfe +85).
+  - Nicht geprüft: Raumkampf (Modul Raumkampf). Annahme: Ein Mensch spielt besser als die KI, im Spiel ist es also eher leichter als in der Simulation.
+  - Wege (Entscheidung des Nutzers offen): (a) Gegner mitwachsen lassen (Crewstärke an `Mission.generate`, Veteranen-Gegner), (b) Körper/Erschaffung anpassen (Regeln, Charakter-Modul), (c) neue Stufe „sehr schwer“ mit Elite-Gegnern und mehr als 9 Gegnern.
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
