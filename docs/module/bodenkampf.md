@@ -60,6 +60,12 @@
   - schwer: S1 4 schwach + 4 mittel + 1 stark 89/54 % (Startcrew 5/16, Squad 14/16); S2 2 schwach + 3 mittel + 2 stark (Veteranen) 79/48 % (9/16, 16/16); S3 2 mittel + 1 stark + 3 stark (Veteranen) 88/42 % (6/16, 16/16); S4 5 stark (Veteranen) 83/47 % (6/16, 13/16).
   - Befund: Anzahl wirkt stärker als Stärke der Typen. Ersatztypen häufig (viele Fraktionen ohne starke Typen). Für den Squad fehlt der Teil „mehr Gegner“ des Mitwachsens (feste Aufstellungen), er liegt hier unter dem Vorschlag von oben (mittel 22–24 % statt 49 %).
 
+- **Entscheidungen des Nutzers zu Gegnern (24.10.2026, noch nicht gebaut, Gesamtpaket erst nach Simulation und Freigabe):**
+  - Anzahl: leicht 5–7, mittel 6–9, schwer 8–12 Gegner. Weiter Budget-System, Grundbudget höher (Vorschlag leicht ~60, mittel ~80, schwer ~105, je Stufe Mindest-/Höchstzahl); Stufen kosten Punkte (Vorschlag Neuling −2, Veteran +3, Elite eigene Preise). Mission kann die Gegner vorgeben (Story, Boss).
+  - Mitwachsen: nur TP (Körper-Ränge) und Fertigkeits-Ränge der Gegner, nicht Waffen/Rüstungen (deren Boni nur bei Elite). Alle Gegner Grundwert Körper +1 (+5 TP).
+  - Elite-Stufen [Rüstungs-VW, Körper, Waffe]: Basis [+5, +2, +10], Leutnant [+5, +4, +10], Hauptmann [+10, +5, +10], Boss [+15, 4 + 9 × Mehrstärke höchstens 10, +20]; Elite-Boni fest (wachsen nicht mit). Kern = jeder 3. Leutnant, Rest Basis. Schwer: Elite/Boss höchstens 8 Gegner (alte Zählung). Eigene Elite-Ausrüstung als Einträge; Beute 10–15 % der Elite-/Boss-Kämpfe.
+  - Gegnertypen: neue Standardwaffe Scharfschützengewehr (Werte wie Waffe des Nutzers: 50 m × 3 Stufen, min. 5 m, Schaden ×1,3, +10, Magazin 5, Patzer 4). Schatten = Scharfschütze-Meuchler (Scharfschützengewehr + Vibroklinge, Gewehre ~7, keine Rüstung); neuer Psi-Meuchler (Laserpistole, Psi-Angriff Rang 3, Ausw. ~50, keine Rüstung, ~12 Pkt.). Sicherheitsagent Gewehre +1; Sturmläufer mittlere Rüstung, Gewehre +2, Einhand +1; Hexer leichte Rüstung, Psi-Angriff +1; Plünderer mittlere Rüstung. Jede Fraktion mindestens ein starker Typ (offen: welche neuen Typen).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
