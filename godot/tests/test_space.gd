@@ -28,6 +28,7 @@ func _init() -> void:
 	_test_scan()
 	_test_elite()
 	_test_boss_loot()
+	_test_factor()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -370,6 +371,19 @@ func _test_boss_loot() -> void:
 		check(bw.is_empty() or int(bw[0].damage) <= -20, "Elite-Entern: −20/−30")
 		got += bw.size()
 	check(got > 35 and got < 90, "Elite-Entern: etwa 30 % (%d/200)" % got)
+
+
+## Schwierigkeitsgrad (Spieleinstellung): Hülle und Besatzung der Gegner
+func _test_factor() -> void:
+	var a := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten")), 41)
+	var b := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", false, false, 1.25)), 41)
+	var c := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", false, false, 0.8)), 41)
+	var ea: SpaceShip = a.enemies()[0]
+	var eb: SpaceShip = b.enemies()[0]
+	var ec: SpaceShip = c.enemies()[0]
+	check(a.difficulty_factor == 1.0 and b.difficulty_factor == 1.25, "Faktor aus setup (fehlend = 1,0)")
+	check(eb.hull_max == roundi(ea.hull_max * 1.125) and ec.hull_max == roundi(ea.hull_max * 0.9), "Hülle halb so stark wie der Faktor")
+	check(eb.crew_skill == ea.crew_skill + 6 and ec.crew_skill == ea.crew_skill - 5, "Besatzung +6 / −5")
 
 
 func _test_board() -> void:

@@ -34,8 +34,6 @@ const BOSS_KOERPER := [4, 9, 10]
 const ELITE_COUNT := {"leicht": 6, "mittel": 7, "schwer": 8}
 ## Elite-Basis-Beimischung in normalen Begegnungen: Wahrscheinlichkeit für mindestens 1 und für 2
 const ELITE_MIX := {"leicht": [0.0, 0.0], "mittel": [0.25, 0.0], "schwer": [0.6, 0.2]}
-## Spieleinstellung „Schwierigkeitsgrad“ des Hubs (leicht 0,8 / normal 1,0 / schwer 1,25), multipliziert jedes Budget
-static var difficulty_factor := 1.0
 
 ## nur für Messungen (test_sim budget=N): Budget je Schwierigkeit überschreiben
 static var budget_override := {}
@@ -121,8 +119,14 @@ var size_id := "mittel"
 var enemies: Array[UnitData] = []
 var reward_xp := 0
 ## Elite-Auftrag (Hub würfelt beim Erstellen, Story kann setzen): "" | &"elite" | &"boss"; Form wählt der Bodenkampf
-var elite: StringName = &""
+## Setzen (auch nachträglich, Elite.apply des Hubs) stellt die Gegner als Elite-/Boss-Begegnung neu zusammen
+var elite: StringName = &"":
+	set(v):
+		elite = v
+		_apply_elite()
 var elite_form: StringName = &""   # trupp | kern | boss (Anzeige)
+var _seed := 0
+var _normal_enemies: Array[UnitData] = []
 ## Kartentyp (MapTypes), quadratische Form, Entern: "" / "board" (selbst entern) / "defend" (Abwehr an Bord).
 ## Typ und Form werden mit eigenem Zufall (seed + 2) gewürfelt, damit der Rest der Mission gleich bleibt.
 var map_type: StringName = &"halle"
@@ -139,7 +143,9 @@ var _lage_pick := 0
 
 
 ## faction_path: feste Fraktion (z. B. die des Systems auf der Sternenkarte), leer = zufällig
-static func generate(seed_value: int, difficulty_id := "", faction_path := "", elite_kind: StringName = &"") -> Mission:
+## diff_factor: Spieleinstellung „Schwierigkeitsgrad“ des Hubs (Elite.LEVELS: 0,8 / 1,0 / 1,25), multipliziert das Budget;
+## elite_kind: "" | &"elite" | &"boss" (wie das Feld elite, das der Hub auch nachträglich setzen kann)
+static func generate(seed_value: int, difficulty_id := "", faction_path := "", diff_factor := 1.0, elite_kind: StringName = &"") -> Mission:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var m := Mission.new()
@@ -155,22 +161,16 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "", e
 	if faction_path != "" and ResourceLoader.exists(faction_path):
 		m.faction = load(faction_path)
 	var budget := int(budget_override.get(difficulty_id, diff.budget))
-	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0) * difficulty_factor)
-	# Elite: eigener Zufall (seed + 4), damit Fraktion, Karte und Texte gleich bleiben
+	budget = roundi(budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0) * diff_factor)
+	# Elite-Beimischung: eigener Zufall (seed + 4), damit Fraktion, Karte und Texte gleich bleiben
 	var r4 := RandomNumberGenerator.new()
 	r4.seed = seed_value + 4
-	m.elite = elite_kind
-	if elite_kind == &"boss":
-		m.elite_form = &"boss"
-		m.enemies = _elite_group(rng, m.faction, &"boss", ELITE_COUNT[difficulty_id])
-	elif elite_kind != &"":
-		m.elite_form = &"trupp" if r4.randf() < 0.5 else &"kern"
-		m.enemies = _elite_group(rng, m.faction, m.elite_form, ELITE_COUNT[difficulty_id])
-	else:
-		var mix: Array = ELITE_MIX[difficulty_id]
-		var roll := r4.randf()
-		var n_elite := 2 if roll < mix[1] else (1 if roll < mix[0] else 0)
-		m.enemies = _compose(rng, m.faction, budget, diff.min, diff.max, n_elite)
+	var mix: Array = ELITE_MIX[difficulty_id]
+	var roll := r4.randf()
+	var n_elite := 2 if roll < mix[1] else (1 if roll < mix[0] else 0)
+	m.enemies = _compose(rng, m.faction, budget, diff.min, diff.max, n_elite)
+	m._seed = seed_value
+	m._normal_enemies = m.enemies
 	m.job_index = rng.randi_range(0, 5)   # 6 Aufträge je Bodentyp (Entern: 5, siehe _set_texts)
 	var r2 := RandomNumberGenerator.new()
 	r2.seed = seed_value + 2
@@ -184,15 +184,37 @@ static func generate(seed_value: int, difficulty_id := "", faction_path := "", e
 	if not m.faction.maps.is_empty() and r3.randf() < FactionData.MAP_CHANCE:
 		m.map_type = m.faction.maps[r3.randi_range(0, m.faction.maps.size() - 1)]
 	m._set_texts()
-	var n := m.enemies.size()
-	if n <= 5:
-		m.size_id = "klein" if rng.randf() < 0.5 else "mittel"
-	elif n <= 8:
-		m.size_id = "mittel" if rng.randf() < 0.7 else "gross"
-	else:
-		m.size_id = "mittel" if rng.randf() < 0.3 else "gross"
+	m.size_id = _size_for(m.enemies.size(), rng.randf())
 	_custom_gear(m, seed_value)
+	if elite_kind != &"":
+		m.elite = elite_kind
 	return m
+
+
+## Hallengröße nach Gegnerzahl
+static func _size_for(n: int, r: float) -> String:
+	if n <= 5:
+		return "klein" if r < 0.5 else "mittel"
+	if n <= 8:
+		return "mittel" if r < 0.7 else "gross"
+	return "mittel" if r < 0.3 else "gross"
+
+
+## Gegner zur Elite-Stufe passend neu zusammenstellen (fest aus dem Seed, eigener Zufall seed + 5);
+## "" stellt die normale Begegnung wieder her. Form: Boss bei &"boss", sonst Trupp oder Kern (50/50)
+func _apply_elite() -> void:
+	if faction == null or _normal_enemies.is_empty():
+		return
+	if elite == &"":
+		elite_form = &""
+		enemies = _normal_enemies
+		return
+	var r5 := RandomNumberGenerator.new()
+	r5.seed = _seed + 5
+	elite_form = &"boss" if elite == &"boss" else (&"trupp" if r5.randf() < 0.5 else &"kern")
+	enemies = _elite_group(r5, faction, elite_form, ELITE_COUNT.get(difficulty, 7))
+	size_id = _size_for(enemies.size(), r5.randf())
+	_custom_gear(self, _seed)
 
 
 ## Ø TP und Ø bester Angriffswert (über alle Waffen und Psi-Angriffe) einer Gruppe
@@ -280,6 +302,8 @@ static func _custom_gear(m: Mission, seed_value: int) -> void:
 	rng.seed = seed_value + 1
 	for i in m.enemies.size():
 		var d: UnitData = m.enemies[i]
+		if d.elite != &"":
+			continue   # Elite-Gegner behalten ihre Elite-Ausrüstung
 		var copy: UnitData = null
 		if not d.weapons.is_empty() and rng.randf() < CUSTOM_CHANCE:
 			var fit := ws.filter(func(w: WeaponData) -> bool: return w.skill == d.weapons[0].skill)

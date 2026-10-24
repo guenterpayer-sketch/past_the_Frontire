@@ -36,28 +36,14 @@
   2. **Auto-Spielstand** (`SaveSlots.AUTO` = 0, Datei `auto.json`): überschrieben nach Bodenkampf (Bericht), Raumkampf (wenn kein Bodenkampf folgt), jeder Reise (auch Fortsetzung) und jedem abgeschlossenen Story-Fenster (`SaveSlots.autosave(g)`). Slot und Name des Spiels bleiben; Laden führt danach im eigenen Slot weiter (`from_slot`). Spielstandliste beim Laden oben „A · Automatisch · Name“ mit Version. `SaveSlots.latest()` liefert jetzt −1 für keinen und kennt den Auto-Spielstand („Fortsetzen … (automatisch)“; bei gleicher Zeit gewinnt der Slot des Nutzers).
 - Danach: **Auftrag 9, Handel an Stationen** (Entscheidung des Nutzers 20.10.2026). Neue Prüfung `HubState.at_market()` (Hafen oder Station im System des Schiffs), `station_name()`, `market_title()`. Umgestellt von `is_harbor` auf `at_market`: `Stock.can_buy/can_sell/can_repair`, `ShipArms.can_buy/can_sell/can_buy_ammo/can_sell_ammo`, `TradeSkills.can_roll`, `Galley.can_buy`, `Crafting.can_buy_material/can_sell_material`, `Voyage.buy_fuel/can_buy_material/can_buy_ammo/can_sell_ammo`. Nur im Hafen bleiben Werft (`Voyage.can_yard_repair`, `ShipArms` Ein-/Ausbau und Werft-Reparatur, `ShipUpgrades.can_yard`), Anheuern und Papiere. Preise an Stationen außerhalb eines Hafens ×1,2 wie bisher (`TradeSkills.station_factor`). Fenstertitel „<Station>: Händler“ bzw. „…: Schiffshändler“ statt „Raumhafen …“. Fraktionsruf wirkt noch nicht auf den Handel.
 - Danach (`efa8a0b`, Fehler aus Auftrag 8, Screenshot des Nutzers): „Parameter data.tree is null“ in `_next_story`. Ursache: „Weiter“ im Reisebericht vor einem Einsatz wechselt per `change_scene_to_file` die Szene (der Hub ist sofort aus dem Baum), danach ruft der allgemeine Fenster-Handler noch `_next_story` → `get_tree()` = null. Abhilfe: `_next_story` und `_story_to_front` prüfen `is_inside_tree()` vor dem Warten. Nachgestellt und geprüft (ohne Abhilfe genau der Fehler, mit Abhilfe sauberer Wechsel in den Bodenkampf).
+- Danach: **Auftrag 10, Elite/Boss, Schwierigkeitsgrad** (Entscheidungen des Nutzers 24.10.2026). Neue Klasse **`Elite`** (`core/elite.gd`): `Elite.roll(seed)` ≈ 13 % (fest je Seed, gemeinsam für Aufträge und Feindkontakt), Stufe als Text `""`/`"elite"`/`"boss"`, `Elite.label()` („★ Elite“/„★ Boss“), `Elite.boss_name(seed)`, Schwierigkeitsgrad `Elite.LEVELS` (leicht 0,8 / normal 1,0 / schwer 1,25).
+  - Aufträge (`offers[].elite`, im Spielstand): Elite-Wurf beim Erstellen; Bodenaufträge ohne Blockade mit 10 % als **Kopfgeld** (`offers[].bounty` = Name, Stufe `boss`, Titel „Kopfgeld: <Name> beseitigen“, Wahl des Nutzers: Hub-Auftragsart). Anzeige „★ ELITE“/„★ BOSS“ in der Auftragskarte. Feindkontakt (`contact.elite`; bei Eskorte die Stufe des Auftrags) mit Zeile „★ Elite …“, Ausweichen bleibt.
+  - Raum: `space_setup()` gibt `enemy.elite`, `enemy.boss`, `enemy.boss_name` und `difficulty_factor` weiter (Abfangen, Blockade, Feindkontakt, Eskorte, Story über `mission.elite`/`boss_name`). Entern/Abwehr übernehmen die Stufe des Raumkampfs für den Bodenkampf.
+  - Boden: `HubState.mission_of` erzeugt über `Elite.generate(seed, diff, faction, factor)` – nimmt `Mission.generate` einen 4. Parameter an, geht der Faktor dorthin, sonst in ein Feld `difficulty_factor`, falls vorhanden; `Elite.apply(m, stufe)` setzt `Mission.elite`, **sobald der Bodenkampf das Feld hat**. **An den Bodenkampf:** `Mission.elite: StringName` und Schwierigkeitsfaktor als 4. Parameter von `Mission.generate` (oder Feld `difficulty_factor`) einbauen; der Hub ruft beides schon (heute ohne Wirkung am Boden). Kopfgeld-Aufträge haben heute noch normale Gegner.
+  - Schwierigkeitsgrad: Wahl beim neuen Spiel (Slot-Dialog, Standard normal), im Spielstand (`difficulty_level`), im Schiff unter Burgermenü → Einstellungen änderbar (Wahl des Nutzers).
+  - Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true` kommen wie andere Beute in die Auswahl („★ Elite“) und ins Lager, verkaufbar; Elite-Ausrüstung (`/elite/` im Pfad oder Feld `elite`) nie im Sortiment (`Stock.is_elite`). Kommt sie als Standardwaffe mit `elite: true`, geht die Elite-Eigenschaft im Lager verloren – **an den Bodenkampf:** Elite-Ausrüstung als eigene Einträge liefern.
+  - **An den Story-Chat:** Boss am Kettenende über `mission.elite = "boss"` (und `boss_name` für den Raum) im Story-Einsatz setzen; der Hub reicht es weiter.
 
 ## Aufträge vom Koordinator
 
-### Auftrag 10 (24.10.2026): Elite und Boss in Aufträgen und Feindkontakt – erst nach Schnittstelle Boden
-
-Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/raumkampf.md` (Abschnitt „Elite-Gegner“). Ergänzt vom Nutzer am 24.10.2026:
-- **Boss-Kampf:** Boss + 2 Leibwächter + Fußvolk (Form „Anführer“ aus dem Bodenkampf-Vorschlag), Siegquote wie Elite (70–75 %). Kommt vor (a) am Ende jeder Story-Kette (je nach Kette am Boden **oder** im Raum mit Boss-Schiff) und (b) bei Hub-Aufträgen, deren Ziel eine Person ist (z. B. „Beseitigt den Gangsterboss“).
-- **Beute bei Elite und Boss:** selten (nicht bei jedem Kampf), dann höchstens 2–3 Stück der besseren Ausrüstung, gern stark beschädigt. Boden: Waffen/Rüstungen. Raum: ab und zu eine beschädigte Schiffswaffe.
-- **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
-
-1. Raum ist fertig: `setup.enemy.elite: bool`, `setup.enemy.boss: bool`, `setup.enemy.boss_name: String` (Boss gilt als Elite; Raumkampf, in `main`). `board_loot` hat jetzt höchstens eine Waffe. Boden folgt (Bodenkampf schlägt `elite`/`form` vor).
-2. Beim Erstellen von Auftrag und Feindkontakt Elite würfeln (ca. 13 %, eine gemeinsame Funktion), „★ Elite“ im Angebot/Kontakt zeigen (Ausweichen möglich), an Boden/Raum weitergeben.
-3. Aufträge mit einer Person als Ziel („Gangsterboss beseitigen“ u. ä.) erzeugen einen Boss-Kampf (Boss + 2 Leibwächter + Fußvolk) und zeigen „Boss“.
-4. Elite-/Boss-Beute aus dem Ergebnis ins Lager übernehmen (wie bisher Beute).
-5. **Erst anfangen, wenn der Koordinator die Boden-Schnittstelle einträgt.**
-
-### Auftrag 10 – Ergänzung (24.10.2026): Schnittstelle Boden steht, jetzt bauen
-
-**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
-- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
-- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
-- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
-- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
-
-Zusätzlich zu den Punkten oben: Einstellung „Schwierigkeitsgrad“ im Menü (Einstellungen) und im Spielstand, Weitergabe an Boden und Raum; Elite-Beute im Lager (`elite: true`), verkaufbar, nicht im Sortiment. Punkt 5 (warten) entfällt.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

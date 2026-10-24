@@ -160,6 +160,19 @@ Grundlage: gemeinsame Elite-Regeln in `docs/module/raumkampf.md` (13 % der Kämp
 - **Boss-Varianten gemessen** (150 Kämpfe, Spielstand / mit KI-Schützen / Testcrew): 5 Elite-Schiffe (Kreuzer, 2 Korvetten, 2 Jäger) selbst mit −20 nur 18 / 30 / 6 %; Fregatte + Korvette + 2 Jäger mit −10: 45 / 69 / 40 %; Fregatte + 2 Jäger mit −10: 80 / 95 / 74 %; **Kreuzer + 2 Jäger mit −10: 76 / 85 / 70 %** (gewählt). Nutzer: Boss dreht nach 40 Runden ab wie sonst.
 - **Nachmessung mit dem eingebauten Code** (200 Kämpfe): Boss-Siege 80 / 89 / 66 %, Abbruch nach 40 Runden 0 / 3 / 9 %; Waffen je Elite-/Boss-Sieg 0,15–0,23, je Entern 0,21–0,34 (Elite/Boss) bzw. 0,47–0,57 (normal). Elite-Siegquoten unverändert (73 / 79 / 67 %).
 
+## 1j. Schwierigkeitsgrad (Auftrag 24.10.2026, gebaut)
+
+- Varianten gemessen (Prototyp, 200 normale Kämpfe, gemischt 1:3:1; Spielstand / Testcrew, Faktor 0,8 / 1,25): **O1 Hülle × f**: 95 / 94 % und 78 / 64 %; **O2 Besatzung + (f − 1) × 50**: 94 / 73 % und 85 / 41 %; **O3 beides halb**: 96 / 90 % und 77 / 51 % (normal: 94 % und 73 %). Nutzer: **O3**, gilt auch für Elite und Boss.
+- **Nachmessung mit dem eingebauten Code** (150 Kämpfe je Zeile; Spielstand / Testcrew):
+
+| Faktor | normal | Elite | Boss |
+|---|---|---|---|
+| 0,8 | 97 / 80 % | 84 / 89 % | 87 / 79 % |
+| 1,0 | 94 / 66 % | 76 / 65 % | 77 / 64 % |
+| 1,25 | 76 / 56 % | 58 / 53 % | 57 / 39 % |
+
+- **Streuung:** Prototyp und eingebauter Code geben mit denselben Zufallszahlen genau dasselbe; andere Kampfserien weichen aber bis 14 Punkte ab (Spielstand normal ×1,25: 90 % bzw. 76 %, mit 400 Kämpfen 82 %). Einzelne Zellen der Tabelle daher etwa ±7 Punkte.
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).

@@ -1562,15 +1562,25 @@ func _test_factions() -> void:
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
 ## Balancing 24.10.2026, Schritt 4: Elite-Stufen, Elite-/Boss-Begegnungen, Beimischung, Beute
 func _test_elite() -> void:
-	var tr := Mission.generate(91, "mittel", "", &"elite")
+	var tr := Mission.generate(91, "mittel", "", 1.0, &"elite")
 	check(tr.enemies.size() == Mission.ELITE_COUNT["mittel"] and tr.enemies.all(func(d: UnitData) -> bool: return d.elite in [&"basis", &"leutnant"]),
 		"Elite-Auftrag: %d Gegner, alle Elite (%s)" % [tr.enemies.size(), tr.elite_form])
-	var bo := Mission.generate(92, "schwer", "", &"boss")
+	var bo := Mission.generate(92, "schwer", "", 1.0, &"boss")
 	check(bo.enemies.size() == 8 and bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"boss").size() == 1
 		and bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"hauptmann").size() == 2, "Boss-Auftrag: 1 Boss, 2 Hauptleute, 8 Gegner")
 	var boss: UnitData = bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"boss")[0]
 	check(boss.weapons.all(func(w: WeaponData) -> bool: return w.resource_path.contains("/elite/") and w.resource_path.ends_with("_boss.tres"))
 		and boss.armor.resource_path.ends_with("_vw15.tres"), "Boss trägt Boss-Ausrüstung (Waffe +20, Rüstung VW +15)")
+	# nachträglich gesetzt wie Elite.apply des Hubs: Gegner neu, fest aus dem Seed; "" stellt die normale Gruppe wieder her
+	var la := Mission.generate(93, "mittel")
+	var normal := la.enemy_summary()
+	la.elite = &"boss"
+	var la2 := Mission.generate(93, "mittel")
+	Elite.apply(la2, "boss")
+	check(la.enemies.size() == 7 and la.enemies.any(func(d: UnitData) -> bool: return d.elite == &"boss") and la.enemy_summary() == la2.enemy_summary(),
+		"Elite nachträglich gesetzt: Boss-Begegnung, gleicher Seed = gleiche Gegner")
+	la.elite = &""
+	check(la.enemy_summary() == normal, "Elite zurückgesetzt: normale Gegner")
 	var sg: WeaponData = load("res://data/weapons/elite/sturmgewehr_elite.tres")
 	check(sg.ob_bonus == 10 and sg.get_meta("elite", false), "Elite-Sturmgewehr +10")
 	var ba := Roster.build_units(bo.enemies, &"enemy")
@@ -1632,11 +1642,9 @@ func _test_enemy_count() -> void:
 	check(pos.size() == c.units.size() and c.enemies().all(func(u: Combatant) -> bool: return map.walkable(map.tile(u.pos))),
 		"12 Gegner bei 9 Startfeldern: alle auf eigenen begehbaren Feldern")
 	var sum := func(f: float) -> int:
-		Mission.difficulty_factor = f
 		var n := 0
 		for i in 20:
-			n += Mission.generate(300 + i, "mittel").enemies.size()
-		Mission.difficulty_factor = 1.0
+			n += Mission.generate(300 + i, "mittel", "", f).enemies.size()
 		return n
 	check(sum.call(0.8) < sum.call(1.25), "Schwierigkeitsgrad: weniger Gegner bei 0,8 als bei 1,25")
 

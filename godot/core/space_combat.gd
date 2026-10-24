@@ -91,6 +91,10 @@ const ELITE_SCALE := 0.5
 const ELITE_MIN := -20
 const ELITE_MAX := 30
 const ELITE_SHIELD := 4
+## Spieleinstellung „Schwierigkeitsgrad“ (setup.difficulty_factor 0,8 / 1,0 / 1,25; Entscheidung des Nutzers 24.10.2026,
+## Variante „beides halb“): Gegner-Hülle × (1 + (f − 1) × 0,5), Besatzung + (f − 1) × 25; gilt auch für Elite und Boss
+const DIFF_HULL := 0.5
+const DIFF_SKILL := 25.0
 ## Boss-Kampf (24.10.2026, docs/Planung_Raumkampf.md 1i): Boss-Kreuzer (Elite, Hülle ×1,3) + 2 Jäger als Leibwache,
 ## Besatzung wie Elite plus BOSS_EXTRA; Siege etwa 70–85 % je nach Crew
 const BOSS_GROUP := ["kreuzer", "jaeger", "jaeger"]
@@ -140,6 +144,7 @@ var faction_id := ""
 var faction := {}
 var elite := false                 # Elite-Kampf (setup.enemy.elite; Boss-Kämpfe sind auch Elite)
 var boss := false                  # Boss-Kampf (setup.enemy.boss)
+var difficulty_factor := 1.0       # Spieleinstellung Schwierigkeitsgrad (setup.difficulty_factor)
 var power_bonus := 0               # Besatzungsbonus der Gegner nach Crew-Stärke (beim Start gesetzt)
 var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Grund + halber Pilot-Bonus)
 var intercepts := {}
@@ -189,6 +194,9 @@ func _init(s: Dictionary, seed_value := -1) -> void:
 		_build_boss(String(s.get("enemy", {}).get("boss_name", "")))
 	else:
 		_build_enemies(String(s.get("enemy", {}).get("difficulty", "mittel")))
+	difficulty_factor = float(s.get("difficulty_factor", 1.0))
+	if difficulty_factor != 1.0:
+		_apply_difficulty_factor(difficulty_factor)
 
 
 # ---------------------------------------------------------------- Aufbau
@@ -249,6 +257,14 @@ func _build_enemies(difficulty: String) -> void:
 		if elite:
 			_make_elite(s)
 		ships.append(s)
+
+
+## Schwierigkeitsgrad auf alle Gegner: Hülle und Besatzung (je halb so stark wie der Faktor)
+func _apply_difficulty_factor(f: float) -> void:
+	for e in enemies():
+		e.hull_max = maxi(1, roundi(e.hull_max * (1.0 + (f - 1.0) * DIFF_HULL)))
+		e.hull = e.hull_max
+		e.crew_skill += roundi((f - 1.0) * DIFF_SKILL)
 
 
 ## Boss-Gruppe: Boss-Kreuzer (Elite, Hülle ×1,3, Name aus setup) und 2 Jäger als Leibwache
