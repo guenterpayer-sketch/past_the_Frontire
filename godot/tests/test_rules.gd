@@ -54,6 +54,7 @@ func _init() -> void:
 	_test_enemy_count()
 	_test_enemy_growth()
 	_test_elite()
+	_test_shield_loot()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -1560,6 +1561,31 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Schild als Beute (Auftrag 24.10.2026): nur Träger einhändiger Waffen, 30 % je besiegtem Schildträger, ohne Schaden
+func _test_shield_loot() -> void:
+	var kt: UnitData = load("res://data/units/enemies/klingentaenzer.tres")
+	check(kt.shield and not (load("res://data/units/enemies/sicherheitsagent.tres") as UnitData).shield, "Klingentänzer mit Schild, Sicherheitsagent ohne")
+	var glut := Mission.generate(1, "mittel", "res://data/missions/kinder_der_glut.tres")
+	check(glut.enemies.all(func(d: UnitData) -> bool: return not (d.shield and d.weapons.any(func(w: WeaponData) -> bool: return w.two_handed))),
+		"kein Schild zusammen mit zweihändiger Waffe (Waffentausch)")
+	var units: Array[UnitData] = []
+	for i in 10:
+		units.append(kt)
+	var drops := 0
+	for i in 20:
+		Dice.set_seed(4000 + i)
+		var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(units, &"enemy"))
+		for e in c.enemies():
+			e.state = Combatant.State.DEAD
+			e.hp = -50
+		c.check_end()
+		for l in c.loot:
+			if l.key == Equipment.SHIELD:
+				drops += int(l.count)
+				check(not l.has("damage"), "Schild ohne Schaden")
+	check(drops > 20 and drops < 100, "Schild in etwa 30 %% der Fälle (%d von 200)" % drops)
+
+
 ## Balancing 24.10.2026, Schritt 4: Elite-Stufen, Elite-/Boss-Begegnungen, Beimischung, Beute
 func _test_elite() -> void:
 	var tr := Mission.generate(91, "mittel", "", 1.0, &"elite")

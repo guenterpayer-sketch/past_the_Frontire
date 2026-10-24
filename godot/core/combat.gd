@@ -58,6 +58,8 @@ var retreated := false         # Crew hat sich zurückgezogen (zählt als Nieder
 var loot: Array[Dictionary] = []
 ## Elite-Beute: Chance in % je Sieg mit Elite-Gegnern
 const ELITE_LOOT_CHANCE := 12
+## Schild eines besiegten Schildträgers als Beute: Chance in %
+const SHIELD_LOOT_CHANCE := 30
 const LOOT_DAMAGE := {"weapon": 30, "armor": 60}   # Chance in %, dass ein Beutestück beschädigt ist
 const END_WEAR_CHANCE := 25    # kampfunfähig am Kampfende: je Teil Chance auf einen Schaden
 const LOSS_CHANCE := 50        # Niederlage ohne Rückzug: je Teil Chance auf Verlust
@@ -453,6 +455,9 @@ func _end_gear() -> void:
 			loot.append({"key": key, "name": r.get("name"), "damage": maxi(dmg, Combatant.WEAR_BROKEN)})
 		if e.medkit > 0:
 			loot.append({"key": Stock.MEDKIT, "name": Stock.MEDKIT_NAME, "count": e.medkit})
+		# Schild (Nutzer 24.10.2026): mit SHIELD_LOOT_CHANCE, nie beschädigt, Lager über Equipment.SHIELD (Hub)
+		if e.shield and Dice.d(100) <= SHIELD_LOOT_CHANCE:
+			loot.append({"key": Equipment.SHIELD, "name": "Schild", "count": 1})
 	# Elite-Beute (Nutzer 24.10.2026): selten, dann 2–3 Stück, stark beschädigt (−20/−30), Kennzeichen elite
 	if not elite_gear.is_empty() and Dice.d(100) <= ELITE_LOOT_CHANCE:
 		for i in mini(elite_gear.size(), 1 + Dice.d(2)):
