@@ -1001,6 +1001,38 @@ func _test_elite() -> void:
 	check(g.loot_pending.get("elite", []) == [0], "Elite-Beute vermerkt")
 	g.loot_pending = {}
 	check(not Stock.goods().any(func(k: String) -> bool: return "/elite/" in k), "Elite-Ausrüstung nicht im Sortiment")
+	# Preise (Auftrag 11): Scharfschützengewehr 450; Elite je +5 Bonus über der Vorlage +15 %
+	check(Stock.price("res://data/weapons/scharfschuetzengewehr.tres") == 450, "Preis Scharfschützengewehr")
+	check(Stock.price("res://data/weapons/elite/sturmgewehr_elite.tres") == 364 and Stock.price("res://data/weapons/elite/sturmgewehr_boss.tres") == 448
+		and Stock.price("res://data/weapons/elite/scharfschuetzengewehr_boss.tres") == 720, "Elite-Waffenpreise (+30 %/+60 %)")
+	check(Stock.price("res://data/armor/elite/mittel_vw5.tres") == 403 and Stock.price("res://data/armor/elite/keine_vw15.tres") == 218,
+		"Elite-Rüstungspreise (Schutzfeld wie Flexanzug)")
+	for dir in ["res://data/weapons/elite", "res://data/armor/elite"]:
+		for f in ResourceLoader.list_directory(dir):
+			if f.ends_with(".tres"):
+				var key: String = dir.path_join(f)
+				var stem: String = f.get_basename()
+				var tpl: String = stem.get_slice("_vw", 0) if "_vw" in stem else stem.substr(0, stem.rfind("_"))
+				var base: int = Stock.SCHUTZFELD_PRICE if tpl == "keine" else Stock.price(dir.replace("/elite", "").path_join(tpl + ".tres"))
+				check(Stock.price(key) > base, "Elite-Preis über der Vorlage: %s (%d > %d)" % [f, Stock.price(key), base])
+	# Elite-Beute aus dem Bodenkampf: ins Lager und verkaufbar (am Markt)
+	g.position = g.nearest_harbor()
+	var ek := "res://data/weapons/elite/laserpistole_boss.tres"
+	g.set_loot({"units": {"a": {}}, "loot": [{"key": ek, "damage": -20, "elite": true}]})
+	g.take_loot([0])
+	var lk := Stock.damaged_key(ek, -20)
+	var cr := g.credits
+	check(Stock.count(g, lk) == 1 and Stock.can_sell(g, lk) and Stock.sell(g, lk) and g.credits > cr and Stock.count(g, lk) == 0,
+		"Elite-Beute im Lager und verkaufbar")
+	check(not Stock.shop(g, g.position).has(ek), "Elite nicht im Sortiment des Hafens")
+	# Schild (Auftrag 11, Punkt 3): immer im Sortiment, in der Werkstatt baubar (heil), als Beute direkt ins Lager
+	check(Stock.shop(g, g.position).has(Equipment.SHIELD), "Schild immer im Sortiment")
+	check(Equipment.SHIELD in Crafting.buildable() and Crafting.skill_of(Equipment.SHIELD) == Crafting.SKILL_ARMOR
+		and Crafting.build_material(Equipment.SHIELD) == 8, "Schild in der Werkstatt baubar (8 Material, Rüstung herstellen)")
+	var sh0 := Stock.count(g, Equipment.SHIELD)
+	g.loot_pending = {}
+	g.set_loot({"units": {"a": {}}, "loot": [{"key": Equipment.SHIELD, "damage": 0}]})
+	check(Stock.count(g, Equipment.SHIELD) == sh0 + 1 and g.loot_pending.is_empty(), "Schild als Beute im Lager")
 	g.difficulty_level = "normal"
 
 
@@ -1049,8 +1081,8 @@ func _test_trade_skills() -> void:
 	var sg := "res://data/weapons/sturmgewehr.tres"
 	check(TradeSkills.result(g, &"handeln") == &"fehlschlag" and Stock.buy_price(g, sg) == 294 and Stock.sell_price(sg, g) == 126, "ohne Probe wie Fehlschlag: +5 %, Verkauf 45 %")
 	check(Voyage.fuel_price(g) == 5 and Voyage.material_price(g) == 63 and ShipUpgrades.yard_cost(g, &"tank") == 630, "Verhandeln ohne Probe: Schiffspreise +5 %")
-	var all := Stock.goods().size()
-	check(Stock.shop(g, g.position).size() - 1 == ceili(all * 0.5), "Gassenwissen ohne Probe: 50 %")
+	var all := Stock.goods().size() - 1   # ohne Schild (immer im Sortiment)
+	check(Stock.shop(g, g.position).size() - 2 == ceili(all * 0.5), "Gassenwissen ohne Probe: 50 % (dazu Medikit und Schild)")
 	var c: Character = Campaign.crew()[0]
 	var xp0: int = Rules.ensure_skill(c, &"handeln").xp
 	var r := TradeSkills.roll(g, &"handeln", c)
@@ -1064,7 +1096,7 @@ func _test_trade_skills() -> void:
 		TradeSkills.fixed = res
 		var share := ceili(all * TradeSkills.SHARE[res])
 		check(Stock.buy_price(g, sg) == ex[res][0] and Stock.sell_price(sg, g) == ex[res][1] and roundi(TradeSkills.shop_share(g) * 100) == ex[res][2]
-			and Stock.shop(g, g.position).size() - 1 == share, "Stufe %s: Kauf %d, Verkauf %d, Sortiment %d %%" % [res, ex[res][0], ex[res][1], ex[res][2]])
+			and Stock.shop(g, g.position).size() - 2 == share, "Stufe %s: Kauf %d, Verkauf %d, Sortiment %d %%" % [res, ex[res][0], ex[res][1], ex[res][2]])
 	TradeSkills.fixed = &"erfolg"
 	check(Voyage.fuel_price(g) == 5 and Voyage.material_price(g) == 54 and Voyage.yard_cost(g) == 36 and ShipUpgrades.yard_cost(g, &"tank") == 540, "Verhandeln Erfolg: −10 %")
 	TradeSkills.fixed = &"fehlschlag"
@@ -1196,7 +1228,7 @@ func _test_crafting() -> void:
 	check(Crafting.difficulty(lp) == "mittel" and Crafting.difficulty(sg) == "schwer" and Crafting.difficulty(mg) == "sehrSchwer" and Crafting.difficulty("res://data/armor/schwer.tres") == "extrem", "Schwierigkeit nach Kaufpreis 150/280/500/700")
 	check(Crafting.difficulty(Stock.damaged_key(sg, -20), "repair") == "schwer" and Crafting.difficulty(sg, "take") == "mittel" and Crafting.difficulty(Stock.MEDKIT) == "mittel" and Crafting.difficulty(Crafting.ammo_key("raketen")) == "mittel", "Reparieren wie Bauen; Zerlegen, Medikit, Munition mittel")
 	check(Crafting.check_bonus(g, c, sg) == Rules.skill_total(c, &"hwWaffen") - 10 and Crafting.check_bonus(g, c, sg, "take") == Rules.skill_total(c, &"hwWaffen"), "Probenwert mit Schwierigkeit")
-	check(not Equipment.SHIELD in Crafting.buildable() and sg in Crafting.buildable() and Crafting.ammo_key("raketen") in Crafting.buildable(), "baubar: ohne Schild, mit Munition")
+	check(Equipment.SHIELD in Crafting.buildable() and sg in Crafting.buildable() and Crafting.ammo_key("raketen") in Crafting.buildable(), "baubar: mit Schild (Auftrag 11) und Munition")
 	# Freischalten und Werkstatt-Stufen
 	check(Crafting.unlocked(g, lp) and not Crafting.unlocked(g, sg) and Crafting.unlock_level(sg) == 1 and Crafting.unlock_level(mg) == 2, "Stufe 0: bis 200 Cr")
 	g.upgrades["workshop"] = 1

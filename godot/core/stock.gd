@@ -17,9 +17,13 @@ const SHIELD_NAME := "Schild"
 ## Kaufpreise der mitgelieferten Gegenstände (Dateiname ohne Endung); Verkauf SELL_FACTOR davon
 const PRICES := {
 	"vibroklinge": 120, "energiehammer": 250, "laserpistole": 150, "laserkarabiner": 300, "sturmgewehr": 280, "mg": 500,
-	"raketenwerfer": 600, "leicht": 150, "mittel": 350, "schwer": 700, MEDKIT: 30, Equipment.SHIELD: 150,
+	"raketenwerfer": 600, "scharfschuetzengewehr": 450, "leicht": 150, "mittel": 350, "schwer": 700, MEDKIT: 30, Equipment.SHIELD: 150,
 }
 const DEFAULT_PRICE := 100
+## Elite-Ausrüstung (data/weapons/elite, data/armor/elite; Hub Auftrag 11, Entscheidung des Nutzers 24.10.2026):
+## Preis der Vorlage, je +5 Bonus über der Vorlage +15 %; „Schutzfeld“ (Elite ohne Rüstung) wie Flexanzug 150 Cr
+const ELITE_STEP := 0.15
+const SCHUTZFELD_PRICE := 150
 const SELL_FACTOR := 0.5
 ## Kein Handelsgut
 const EXCLUDE := ["res://data/weapons/faeuste.tres", "res://data/armor/keine.tres"]
@@ -102,6 +106,8 @@ static func price(key: String) -> int:
 	if key == MEDKIT or key == Equipment.SHIELD:
 		return PRICES[key]
 	var r: Resource = load(key) if ResourceLoader.exists(key) else null
+	if r and is_elite(r):
+		return elite_price(r)
 	if r and Gear.is_custom(r):
 		var t := Gear.template_of(r)
 		var p := price(t.resource_path) if t else DEFAULT_PRICE
@@ -142,6 +148,25 @@ static func goods() -> Array[String]:
 		if not a.resource_path in EXCLUDE and not is_elite(a):
 			out.append(a.resource_path)
 	return out
+
+
+## Preis eines Elite-Stücks: Vorlage (Dateiname ohne „_elite“/„_boss“ bzw. „_vwN“) × (1 + ELITE_STEP je +5 Bonus über der Vorlage)
+static func elite_price(r: Resource) -> int:
+	var file := r.resource_path.get_file().get_basename()
+	var bonus := 0
+	var base := DEFAULT_PRICE
+	if r is ArmorData:
+		var cls := file.get_slice("_vw", 0)
+		bonus = int(file.get_slice("_vw", 1))
+		base = SCHUTZFELD_PRICE if cls == "keine" else int(PRICES.get(cls, DEFAULT_PRICE))
+	elif r is WeaponData:
+		var tpl_name := file.substr(0, file.rfind("_"))
+		var tpl_path := "res://data/weapons/%s.tres" % tpl_name
+		var tpl: WeaponData = load(tpl_path) if ResourceLoader.exists(tpl_path) else null
+		bonus = (r as WeaponData).ob_bonus - (tpl.ob_bonus if tpl else 0)
+		base = int(PRICES.get(tpl_name, DEFAULT_PRICE))
+	# in ganzen Prozent rechnen (350 × 1,15 = 402,5 → 403, ohne Rundungsfehler der Gleitkommazahl)
+	return roundi(base * (100 + roundi(ELITE_STEP * 100) * bonus / 5) / 100.0)
 
 
 ## Elite-Ausrüstung (Bodenkampf: eigene Einträge, Feld elite oder Ordner „elite“): verkaufbar, nie im Sortiment (Hub Auftrag 10)
@@ -203,10 +228,11 @@ static func shop(g: HubState, system: int) -> Array[String]:
 			all[i] = all[j]
 			all[j] = t
 		g.shop[k] = all
-	# gemischte Liste; davon der Anteil nach Gassenwissen (TradeSkills), mehr ergänzt nur
-	var list: Array = g.shop[k].filter(func(s: String) -> bool: return s == Equipment.SHIELD or ResourceLoader.exists(s))
-	var n := maxi(1, ceili(goods().size() * TradeSkills.shop_share(g)))
-	var out: Array[String] = [MEDKIT]
+	# gemischte Liste; davon der Anteil nach Gassenwissen (TradeSkills), mehr ergänzt nur.
+	# Medikit und Schild immer (Schild: Hub Auftrag 11, Nutzer 24.10.2026 – sonst kaum nachträglich zu bekommen)
+	var list: Array = g.shop[k].filter(func(s: String) -> bool: return s != Equipment.SHIELD and ResourceLoader.exists(s))
+	var n := maxi(1, ceili((goods().size() - 1) * TradeSkills.shop_share(g)))
+	var out: Array[String] = [MEDKIT, Equipment.SHIELD]
 	for s in list.slice(0, n):
 		out.append(s)
 	return out
