@@ -97,6 +97,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 ## Stand
 
 - Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/raumkampf_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- (23.10.2026) Wunsch des Nutzers direkt im Raumkampf-Chat: Gegner-Info und Scan (`docs/Raumkampf.md` 4d, `docs/Planung_Raumkampf.md` 1g). Ohne Scan nur grobe Hülle, Schilde an/aus und Schäden aus eigenen Treffern; Computer-Wahl „Scannen“ zeigt 3 Runden alles; Tooltip mit der Maus über dem Gegner. Schnittstelle unverändert.
 
 ## Aufträge vom Koordinator
 

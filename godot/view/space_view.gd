@@ -210,6 +210,18 @@ func clicked_cell(cell: Vector2i) -> void:
 		ui.ship_clicked(s)
 
 
+## Maus über der Karte: Tooltip für Gegnerschiffe (über Bedienelementen nicht)
+func _input(e: InputEvent) -> void:
+	if not (e is InputEventMouseMotion) or e.button_mask != 0:
+		return
+	var s: SpaceShip = null
+	if get_viewport().gui_get_hovered_control() == null:
+		var p: Variant = rig.ray_plane(e.position, 0.6)
+		if p != null:
+			s = combat.ship_at(SpaceMapView.cell_at(p))
+	ui.hover_ship(s, e.position)
+
+
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.pressed:
 		match e.button_index:
@@ -223,6 +235,7 @@ func _unhandled_input(e: InputEvent) -> void:
 					clicked_cell(SpaceMapView.cell_at(p))
 	elif e is InputEventMouseMotion and (e.button_mask & (MOUSE_BUTTON_MASK_RIGHT | MOUSE_BUTTON_MASK_MIDDLE)):
 		rig.pan(e.relative)
+		ui.hover_ship(null, e.position)
 	elif e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
 			KEY_Q:
@@ -265,7 +278,26 @@ func _run_autotest() -> void:
 		if guard == 9:
 			ui.ship_box.toggle()
 			await _shot("6_zahlen")
+			await _autotest_tip()
 	await get_tree().create_timer(0.3).timeout
 	await _shot("7_ergebnis")
 	print("Raumkampf-Selbsttest: %s nach %d Runden" % [combat.result, combat.round_no])
 	get_tree().quit()
+
+
+## Tooltip über einem Gegner: erst ohne Scan, dann gescannt (Scan für den Screenshot direkt gesetzt)
+func _autotest_tip() -> void:
+	var foes := combat.active_enemies()
+	if foes.is_empty():
+		return
+	var e: SpaceShip = foes[0]
+	var at := get_viewport().get_camera_3d().unproject_position(ship_views[e.id].global_position)
+	ui.hover_ship(e, at)
+	await _shot("8_gegner_grob")
+	e.scan_until = combat.round_no + SpaceCombat.SCAN_ROUNDS
+	e.scan_live = true
+	ship_views[e.id].refresh()
+	ui.hover_ship(null, at)
+	ui.hover_ship(e, at)
+	await _shot("9_gegner_scan")
+	ui.hover_ship(null, at)

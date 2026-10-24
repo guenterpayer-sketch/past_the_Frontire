@@ -9,7 +9,7 @@ extends RefCounted
 ##  SHIELDS: {"energy": {"shields", "weapons", "engine", "jump"}, "alloc": [6 Schildwerte]}
 ##  MOVE:    {"speed": int, "steps": ["L"/"R"/"F", …]}  (F = ein Feld vor; genau `speed` Mal F, L/R = 60° drehen)
 ##  FIRE:    {"targets": {Geschützstation: Schiffs-ID}}
-##  TECH:    {"technik": {"repair": System-ID} oder {"patch": true}, "computer": {"mode": "lock"/"jam", "target": ID},
+##  TECH:    {"technik": {"repair": System-ID} oder {"patch": true}, "computer": {"mode": "lock"/"jam"/"scan", "target": ID},
 ##            "jump": true}
 
 signal logged(text: String, kind: StringName)
@@ -79,6 +79,8 @@ const NAV_INIT := {&"erfolg": 2, &"herausragend": 4}
 const SWITCH_MALUS := -10
 const LOCK_BONUS := 15
 const JAM_MALUS := -15
+## Scan der Computer-Station: so viele folgende Runden sieht die Crew den vollen Zustand des Ziels
+const SCAN_ROUNDS := 3
 ## Pilotenprobe → zusätzliche Drehungen und erlaubte Tempoänderung
 const PILOT := {&"herausragend": [2, 2], &"erfolg": [1, 1], &"teilerfolg": [0, 1], &"fehlschlag": [0, 0],
 	&"patzer": [-99, 0]}
@@ -436,6 +438,10 @@ func _start_round() -> void:
 		retreated = true
 		_finish(&"niederlage")
 		return
+	for e in enemies():
+		if e.scan_live != (e.scan_until >= round_no):
+			e.scan_live = not e.scan_live
+			ship_changed.emit(e)
 	energy_total = reactor_energy()
 	energy = {"shields": 0, "weapons": 0, "engine": 0, "jump": 0}
 	intercepts = {}
@@ -984,7 +990,7 @@ func _apply_hit(s: SpaceShip, t: SpaceShip, res: Dictionary) -> void:
 	txt += ", Hülle %d" % hull_dmg
 	log_text(txt + ".", &"hit")
 	if res.severity != "" and rest > 0:
-		_system_hit(t, String(res.severity))
+		_system_hit(t, String(res.severity), s == own)
 	if t.hull <= 0 and t != own:
 		t.hull = 0
 		if t.is_fighter():
@@ -998,7 +1004,7 @@ func _apply_hit(s: SpaceShip, t: SpaceShip, res: Dictionary) -> void:
 
 
 ## Kritischer Systemtreffer der Stufe sev
-func _system_hit(t: SpaceShip, sev: String) -> void:
+func _system_hit(t: SpaceShip, sev: String, seen := false) -> void:
 	t.hull -= int(CRIT_HULL[sev])
 	if t.is_fighter():
 		t.hull -= int(CRIT_HULL[sev])
@@ -1019,7 +1025,7 @@ func _system_hit(t: SpaceShip, sev: String) -> void:
 		else:
 			var sts := stations()
 			sys = "station_" + sts[rng.randi_range(0, sts.size() - 1)]
-	_damage_system(t, sys, sev)
+	_damage_system(t, sys, sev, seen)
 	if sys.begins_with("station_") and t == own:
 		var st := sys.trim_prefix("station_")
 		var ch := station_who(st)
@@ -1028,7 +1034,8 @@ func _system_hit(t: SpaceShip, sev: String) -> void:
 
 
 ## Systemschaden setzen: die schwerere Stufe; dieselbe Stufe noch einmal = eine Stufe schlimmer
-func _damage_system(t: SpaceShip, sys: String, sev: String) -> void:
+## seen: Treffer der Crew – beim Gegner wird der Schaden bekannt (sonst steht er nicht im Log)
+func _damage_system(t: SpaceShip, sys: String, sev: String, seen := false) -> void:
 	var old := t.dmg_level(sys)
 	var lv := Tables.SEVERITIES.find(sev) + 1
 	var new_lv := mini(5, old + 1) if lv == old else maxi(old, lv)
@@ -1040,7 +1047,10 @@ func _damage_system(t: SpaceShip, sys: String, sev: String) -> void:
 	if sys == "schilde" and new_lv == 5:
 		for i in 6:
 			t.shields[i] = 0
-	log_text("Systemtreffer %s bei %s: %s." % [t.damage[sys], t.name, system_name(sys)], &"crit")
+	if seen and t != own:
+		t.known[sys] = {"lv": t.damage[sys], "round": round_no}
+	if t == own or seen or t.scan_live:
+		log_text("Systemtreffer %s bei %s: %s." % [t.damage[sys], t.name, system_name(sys)], &"crit")
 	ship_changed.emit(t)
 
 
@@ -1093,9 +1103,15 @@ func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 		var sens := own.dmg_level("sensoren")
 		var r := check("computer", &"computer", DIFF, [{"label": "Sensoren", "val": SYS_MALUS[sens]}] if sens > 0 else [])
 		if Rules.is_success(r.result):
-			if String(comp.get("mode", "lock")) == "jam":
+			var mode := String(comp.get("mode", "lock"))
+			if mode == "jam":
 				target.jammed = JAM_MALUS
 				log_text("%s stört %s." % [who_name("computer"), target.name])
+			elif mode == "scan":
+				target.scan_until = round_no + SCAN_ROUNDS
+				target.scan_live = true
+				log_text("%s scannt %s (gilt bis Runde %d)." % [who_name("computer"), target.name, target.scan_until])
+				ship_changed.emit(target)
 			else:
 				own.lock[target.id] = LOCK_BONUS
 				log_text("%s erfasst %s." % [who_name("computer"), target.name])
@@ -1103,6 +1119,10 @@ func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 			log_text("%s: Computer ohne Erfolg (%s)." % [who_name("computer"), r.result.name])
 	if o.get("jump", false):
 		_prepare_jump()
+	for e in enemies():
+		if e.scan_live:
+			e.scan_seen = {"round": round_no, "hull": e.hull, "shields": e.shields.duplicate(),
+				"damage": e.damage.duplicate()}
 	ship_changed.emit(own)
 
 

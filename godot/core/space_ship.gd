@@ -40,6 +40,15 @@ var wreck := false
 ## nur für diese Runde: Zielerfassung (+) bzw. Störung (−) durch den Computer {Ziel-ID: Wert}
 var lock := {}
 var jammed := 0
+## Gegner-Info (Entscheidung des Nutzers 23.10.2026): ohne Scan nur grobe Hülle, Schilde an/aus und Schäden aus
+## eigenen Treffern; ein Scan zeigt für einige Runden alles, danach bleibt der letzte Stand als „veraltet“.
+## Durch eigene Treffer bekannte Systemschäden {System-ID: {"lv": "A"–"E", "round": Runde}}
+var known := {}
+## gescannt bis einschließlich dieser Runde (0 = nie) und ob der Scan gerade gilt (setzt SpaceCombat)
+var scan_until := 0
+var scan_live := false
+## letzter gescannter Stand {"round", "hull", "shields", "damage"} (leer = nie gescannt)
+var scan_seen := {}
 
 
 func is_active() -> bool:
@@ -95,3 +104,22 @@ func shield_total() -> int:
 	for v in shields:
 		t += v
 	return t
+
+
+## Systemschäden, die die Crew kennt: eigenes Schiff und gültiger Scan alles, sonst eigene Treffer
+## (dazu der letzte Scan-Stand, jeweils die schwerere Stufe)
+func seen_damage() -> Dictionary:
+	if side == &"crew" or scan_live:
+		return damage
+	var out: Dictionary = scan_seen.get("damage", {}).duplicate()
+	for sys in known:
+		var lv := String(known[sys].lv)
+		if Tables.SEVERITIES.find(lv) > Tables.SEVERITIES.find(String(out.get(sys, ""))):
+			out[sys] = lv
+	return out
+
+
+## Hülle grob in 3 Stufen: 2 intakt (über 50 %), 1 beschädigt (25–50 %), 0 schwer beschädigt (unter 25 %)
+func hull_stage() -> int:
+	var pct := float(hull) / maxf(1.0, hull_max)
+	return 2 if pct > 0.5 else (1 if pct >= 0.25 else 0)

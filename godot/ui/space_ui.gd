@@ -36,6 +36,9 @@ var _w := {}                      # Bedienelemente der laufenden Phase
 var _targets := {}                # Geschützstation → Schiffs-ID
 var _selected_gun := ""
 var _confirm_surrender := false
+var _tip: PanelContainer           # Tooltip über Gegnerschiffen (Maus über dem Schiff)
+var _tip_text: RichTextLabel
+var _tip_ship: SpaceShip
 
 
 func setup(v: SpaceView) -> void:
@@ -50,6 +53,17 @@ func setup(v: SpaceView) -> void:
 	ship_box.position = Vector2(12, 52)
 	add_child(ship_box)
 	_build_side()
+	_tip = PanelContainer.new()
+	_tip.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL, UiTheme.LINE, 8, 12))
+	_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tip.visible = false
+	_tip_text = Modal.rich("")
+	_tip_text.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_tip_text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tip_text.add_theme_font_size_override("normal_font_size", 14)
+	_tip_text.add_theme_font_size_override("bold_font_size", 16)
+	_tip.add_child(_tip_text)
+	add_child.call_deferred(_tip)
 	var bottom := VBoxContainer.new()
 	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	bottom.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -177,6 +191,7 @@ func set_busy(b: bool) -> void:
 
 func refresh_ships() -> void:
 	ship_box.refresh()
+	refresh_tip()
 	UiTheme.clear(_init_bar)
 	for s in combat.order:
 		if not s.is_active():
@@ -583,6 +598,8 @@ func _tech_controls(st: String, v: VBoxContainer) -> void:
 			mode.focus_mode = Control.FOCUS_NONE
 			mode.add_item("Zielerfassung (+%d)" % SpaceCombat.LOCK_BONUS)
 			mode.add_item("Störsender (%d)" % SpaceCombat.JAM_MALUS)
+			mode.add_item("Scannen (%d Runden)" % SpaceCombat.SCAN_ROUNDS)
+			mode.tooltip_text = "Scannen: Probe wie Zielerfassung. Bei Erfolg zeigt das Ziel %d Runden lang Hülle, Schilde und alle Schäden; danach bleibt der Stand als „veraltet“." % SpaceCombat.SCAN_ROUNDS
 			v.add_child(mode)
 			var tgt := OptionButton.new()
 			tgt.focus_mode = Control.FOCUS_NONE
@@ -641,7 +658,7 @@ func collect_orders() -> Dictionary:
 					tech[st] = tasks
 			o["technik"] = tech
 			if _w.has("comp_target"):
-				o["computer"] = {"mode": "lock" if _w.comp_mode.selected == 0 else "jam",
+				o["computer"] = {"mode": ["lock", "jam", "scan"][_w.comp_mode.selected],
 					"target": _w.comp_target.get_item_metadata(_w.comp_target.selected)}
 			if _w.has("jump"):
 				o["jump"] = _w.jump.button_pressed
@@ -663,11 +680,86 @@ func ship_clicked(s: SpaceShip) -> void:
 			Sfx.play(&"klick")
 			_build_cards()
 			return
+	if s.side == &"enemy" and not s.scan_live:
+		log_line("%s (%s): %s" % [s.name, SpaceShip.CLASSES[s.cls], _rough_text(s)], &"")
+		return
 	var dmg := PackedStringArray()
 	for sys in s.damage:
 		dmg.append("%s %s" % [combat.system_name(String(sys)), s.damage[sys]])
 	log_line("%s (%s): Hülle %d/%d, Schilde %s, Tempo %d%s" % [s.name, SpaceShip.CLASSES[s.cls], s.hull, s.hull_max,
 		combat._shield_text(s), s.speed, "" if dmg.is_empty() else ", Schäden: " + ", ".join(dmg)], &"")
+
+
+const HULL_STAGES := ["schwer beschädigt (unter 25 %)", "beschädigt (25–50 %)", "intakt (über 50 %)"]
+
+
+func _shields_on(s: SpaceShip) -> int:
+	return s.shields.filter(func(v: int) -> bool: return v > 0).size()
+
+
+## Gegner ohne gültigen Scan als eine Zeile fürs Log
+func _rough_text(s: SpaceShip) -> String:
+	var t := "Hülle %s, Schilde an %d von 6 Seiten" % [HULL_STAGES[s.hull_stage()], _shields_on(s)]
+	var seen := s.seen_damage()
+	if not seen.is_empty():
+		var dmg := PackedStringArray()
+		for sys in seen:
+			dmg.append("%s %s" % [combat.system_name(String(sys)), seen[sys]])
+		t += ", bekannte Schäden: " + ", ".join(dmg)
+	return t + (" (Scan veraltet, Stand Runde %d)" % int(s.scan_seen.round) if not s.scan_seen.is_empty() else "")
+
+
+## Tooltip-Inhalt für ein Gegnerschiff (BBCode): gültiger Scan = alles, sonst grob und bekannte Schäden
+func enemy_info(s: SpaceShip) -> String:
+	var mut := UiTheme.MUTED.to_html(false)
+	var t := "[b]%s · %s[/b]\n" % [s.name, SpaceShip.CLASSES[s.cls]]
+	var old := not s.scan_live and not s.scan_seen.is_empty()
+	if s.scan_live:
+		t += "[font_size=13][color=%s]Gescannt · gilt bis Runde %d[/color][/font_size]\n" % [UiTheme.GOOD.to_html(false), s.scan_until]
+		t += "[color=%s]Hülle %d / %d[/color]\n" % [UiTheme.ACCENT.to_html(false), s.hull, s.hull_max]
+		t += "Schilde je Seite: %s\n" % " / ".join(s.shields.map(func(v: int) -> String: return str(v)))
+	elif old:
+		t += "[font_size=13][color=%s]Scan veraltet (Stand Runde %d)[/color][/font_size]\n" % [mut, int(s.scan_seen.round)]
+		t += "[color=%s]Hülle %d / %d (Stand Runde %d), jetzt %s[/color]\n" % [UiTheme.ACCENT.to_html(false),
+			int(s.scan_seen.hull), s.hull_max, int(s.scan_seen.round), HULL_STAGES[s.hull_stage()].get_slice(" (", 0)]
+		t += "Schilde: an %d von 6 Seiten\n" % _shields_on(s)
+	else:
+		t += "[font_size=13][color=%s]Nicht gescannt[/color][/font_size]\n" % mut
+		t += "[color=%s]Hülle: %s[/color]\n" % [UiTheme.ACCENT.to_html(false), HULL_STAGES[s.hull_stage()]]
+		t += "Schilde: an %d von 6 Seiten\n" % _shields_on(s)
+	var seen := s.seen_damage()
+	t += "[font_size=12][color=%s]%s[/color][/font_size]\n" % [mut, "SCHÄDEN" if s.scan_live else "BEKANNTE SCHÄDEN (EIGENE TREFFER, SCAN)" if old else "BEKANNTE SCHÄDEN (EIGENE TREFFER)"]
+	if seen.is_empty():
+		t += "[color=%s]keine bekannt[/color]\n" % mut
+	for sys in seen:
+		var when := " · Runde %d" % int(s.known[sys].round) if not s.scan_live and s.known.has(sys) else ""
+		t += "[color=%s]%s %s%s[/color]\n" % [UiTheme.BAD.to_html(false), combat.system_name(String(sys)), seen[sys], when]
+	if not s.scan_live:
+		t += "[font_size=12][color=%s]Scannen (Computer) zeigt alles.[/color][/font_size]" % mut
+	return t.strip_edges()
+
+
+## Maus über einem Schiff (screen_pos) oder null: Tooltip für Gegner zeigen bzw. verbergen
+func hover_ship(s: SpaceShip, screen_pos: Vector2) -> void:
+	if s == null or s.side != &"enemy" or not s.is_present():
+		_tip.visible = false
+		_tip_ship = null
+		return
+	if s != _tip_ship or not _tip.visible:
+		_tip_ship = s
+		_tip_text.text = enemy_info(s)
+		_tip.reset_size()
+	_tip.visible = true
+	var at := screen_pos + Vector2(24, 12)
+	var room := get_viewport_rect().size - _tip.size - Vector2(8, 8)
+	_tip.position = Vector2(clampf(at.x, 8, room.x), clampf(at.y, 8, room.y))
+
+
+## Tooltip nach Änderungen am Schiff neu füllen
+func refresh_tip() -> void:
+	if _tip and _tip.visible and _tip_ship:
+		_tip_text.text = enemy_info(_tip_ship)
+		_tip.reset_size()
 
 
 func _on_surrender() -> void:

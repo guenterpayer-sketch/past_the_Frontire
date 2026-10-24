@@ -26,7 +26,7 @@ Jede besetzte Station handelt einmal pro Runde mit der passenden Fertigkeit.
 | Punktverteidigung | Ballistische Geschütze (Vorschlag) | Abwehr gegen Jäger und Raketen; Hauptgeschütze können Jäger ebenfalls treffen |
 | Schilde | Schutzschild | Schildpunkte zwischen Bug/Heck/Seiten verschieben, regenerieren |
 | Technik | Panzerung / Not-Reparatur / Reparatur | Systemschaden beheben, Hüllentreffer umleiten |
-| Computer | Computer | Zielerfassung (+AW für eine Station), Störsender (−AW für Gegner) |
+| Computer | Computer | Zielerfassung (+AW für eine Station), Störsender (−AW für Gegner), Scannen (voller Zustand eines Gegners, 4d) |
 
 - Freie Stationen: je Station wählbar (Entscheidung des Nutzers) – **Doppelbesetzung** durch eine Person (beide Würfe −30) oder **Bord-KI** mit festem Bonus +0 (Entscheidungen des Nutzers).
 
@@ -65,6 +65,13 @@ Grundidee: Schiffe sind kostbar und werden nicht bis zum Letzten zerstört; eine
 - Kämpft kein Gegner mehr und nur Wracks/angeschlagene Schiffe sind übrig, wartet der Kampf auf die Entscheidung: „Nein“ = Sieg ohne Entern; nach 3 Fehlversuchen endet er als Sieg.
 - **Gegner entern früher:** Seiten mit `on_win = "entern"` versuchen anzulegen, sobald die Frontire **Hülle unter 25 %** oder **Antrieb E** hat: das Schiff fliegt heran und würfelt dieselbe Probe mit dem Bonus seiner Besatzung (statt seiner Bewegung, ein Versuch je Runde). Gelingt sie, folgt der Bodenkampf an Bord der Frontire. Bei Hülle 0 entern sie wie bisher.
 - **Blatt wenden:** Gewinnt die Crew den Bodenkampf, gilt der Raumkampf als gewonnen – beim eigenen Entern mit der Beute an Bord, beim abgewehrten Entern mit der Beute des Enterschiffs (`board_loot`, bucht der Hub).
+
+## 4d. Gegner-Info und Scan (Entscheidungen des Nutzers 23.10.2026)
+
+- **Ohne Scan** sieht die Crew vom Gegner: Hülle grob in 3 Stufen (intakt über 50 %, beschädigt 25–50 %, schwer beschädigt unter 25 %), Schilde nur an/aus je Seite, Systemschäden nur aus **eigenen Treffern** (mit Runde). Systemtreffer anderer Herkunft (z. B. Patzer des Gegners) stehen nicht im Log.
+- **Scannen** (Computer-Station, statt Zielerfassung oder Störsender, Probe wie Zielerfassung): bei Erfolg zeigt das Ziel **3 folgende Runden** lang alles (Hülle, Schild je Seite, alle Schäden). Danach bleibt der letzte Stand als „veraltet (Stand Runde X)“, dazu weiter die eigenen Treffer.
+- Anzeige: Warnzeichen ⚠ am Namen nur bei bekannten Schäden ab C, Tooltip mit der Maus über dem Schiff, Klick schreibt den bekannten Stand ins Log.
+- Die Gegner-KI kennt weiter alles; die Bord-KI scannt nicht von selbst (der Vorschlag bleibt Zielerfassung), Scannen ist eine Abwägung des Spielers.
 
 ## 5. Erfahrung
 

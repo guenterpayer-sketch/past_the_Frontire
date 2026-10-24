@@ -25,6 +25,7 @@ func _init() -> void:
 	_test_end_states()
 	_test_result()
 	_test_tech()
+	_test_scan()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -282,6 +283,38 @@ func _test_tech() -> void:
 	c._do_tech(c.own, {"technik": {"technik": [{"repair": "sensoren"}, {"repair": "reaktor"}],
 		"technik_2": [{"repair": "antrieb"}]}})
 	check(rolls.filter(func(l: String) -> bool: return l.contains("Technik")).size() == 3, "drei Reparaturproben")
+
+
+## Gegner-Info (23.10.2026): nur eigene Treffer bekannt, Scan zeigt alles für SCAN_ROUNDS Runden, danach veraltet
+func _test_scan() -> void:
+	var c := _combat(13)
+	var e: SpaceShip = c.active_enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())[0]
+	check(not e.scan_live and e.seen_damage().is_empty(), "Gegner anfangs ohne Scan und ohne bekannte Schäden")
+	c._damage_system(e, "antrieb", "C")
+	check(e.seen_damage().is_empty(), "fremder Schaden bleibt unbekannt")
+	c._damage_system(e, "sensoren", "B", true)
+	check(e.seen_damage() == {"sensoren": "B"} and e.known.sensoren.round == c.round_no, "eigener Treffer bekannt")
+	check(c.own.seen_damage() == c.own.damage, "eigenes Schiff sieht alles")
+	e.hull = e.hull_max
+	var st := [e.hull_stage()]
+	e.hull = e.hull_max * 3 / 10
+	st.append(e.hull_stage())
+	e.hull = e.hull_max / 10
+	st.append(e.hull_stage())
+	check(st == [2, 1, 0], "Hülle in 3 Stufen")
+	c.posts["computer"] = String(c.crew[0].id)
+	c.phase = SpaceCombat.Phase.TECH
+	for i in 40:
+		if e.scan_live:
+			break
+		c._do_tech(c.own, {"computer": {"mode": "scan", "target": e.id}})
+	check(e.scan_live and e.scan_until == c.round_no + SpaceCombat.SCAN_ROUNDS, "Scan gilt %d Runden" % SpaceCombat.SCAN_ROUNDS)
+	check(e.seen_damage().has("antrieb") and int(e.scan_seen.round) == c.round_no, "Scan zeigt alles und merkt den Stand")
+	check(not c.own.lock.has(e.id), "Scan ersetzt die Zielerfassung")
+	c.round_no = e.scan_until
+	c._start_round()
+	check(not e.scan_live and e.seen_damage().antrieb == "C" and e.seen_damage().sensoren == "B",
+		"nach Ablauf bleibt der gescannte Stand (veraltet) plus eigene Treffer")
 
 
 func _test_board() -> void:
