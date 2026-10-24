@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 24.10.2026 | (diese Merges) | Raumkampf (`cbc3faa`), Hub (`44c0514`) | Raum: Schwierigkeitsgrad (beides halb). Hub Auftrag 10: Elite/Boss-Wurf, Kopfgeld-Aufträge, Schwierigkeitsgrad beim neuen Spiel und in den Einstellungen, Elite-Beute verkaufbar. Konflikt nur in `godot/README.md` (Doku, beide Stände übernommen). Tests rules/hub/story/space/sim OK (Koordinator). Version 0.12. Offen: Bodenkampf baut `Mission.elite`, Faktor, Elite-Ausrüstung. |
 | 24.10.2026 | (dieser Merge) | Story `claude/zen-sagan-9yn0le` (`c5863dd`) | Boss am Ende der Ketten (Finale/Hinterhalt immer, Schritte/Ereignisse 30 %, Zoll nie); `Story.pending_mission()` liefert `elite`/`boss_name`. Version 0.11. |
 | 24.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`98c1769`) | Elite-/Boss-Beute (20 %/30 % beim Entern), normales Entern höchstens 1 Waffe; Boss-Kreuzer + 2 Jäger (`setup.enemy.boss`, `boss_name`). Version 0.10. |
 | 24.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`9494c15`) | Elite-Gegner (★, Schnittstelle `setup.enemy.elite`), moderate Anpassung an die Crew, Stationstreffer 25 %. Version 0.9. Offen: Hub würfelt Elite und zeigt sie im Angebot/Kontakt. |

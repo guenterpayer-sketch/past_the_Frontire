@@ -29,3 +29,14 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 
 1. Beute nach Elite-Raumkampf: selten eine beschädigte Schiffswaffe (über das bestehende Beute-Ergebnis an den Hub).
 2. Boss-Schiff für Story-Ketten, die im Raum enden: Vorschlag (Schnittstelle z. B. `setup.enemy.boss: bool`), Siegquote wie Elite. Erst Vorschlag mit Simulation, dann bauen.
+
+
+### Auftrag (24.10.2026): Schwierigkeitsgrad (erledigt, `cbc3faa`)
+
+**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
+- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
+- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
+- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
+- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
+
+1. `setup.difficulty_factor` (0,8 / 1,0 / 1,25) im Raumkampf berücksichtigen, sinngemäß wie das Budget am Boden (z. B. Besatzung/Gegneranzahl). Simulation je Stufe melden.

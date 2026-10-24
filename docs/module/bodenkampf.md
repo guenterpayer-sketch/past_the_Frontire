@@ -136,3 +136,8 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 - Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
 
 Bodenkampf-Teil in Schritten bauen (Nutzer hat das Paket mit dir abgestimmt). Jeden Schritt mit Tests melden.
+
+### Hub-Seite fertig (24.10.2026, `44c0514`)
+
+Der Hub ruft `Mission.generate` mit dem Schwierigkeitsfaktor als 4. Parameter (sonst Feld `difficulty_factor`) und setzt `Mission.elite`, sobald es das Feld gibt. Neue Klasse `Elite` (`core/elite.gd`: `roll`, `label`, `boss_name`, `LEVELS`, `generate`, `apply`). Kopfgeld-Aufträge (10 % der Bodenaufträge) haben Stufe `boss`. Elite-Ausrüstung bitte als eigene Einträge liefern (`/elite/` im Pfad oder Feld `elite`), Hub erkennt sie über `Stock.is_elite`.
+
