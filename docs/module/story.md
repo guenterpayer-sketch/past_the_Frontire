@@ -26,23 +26,3 @@
 ## Aufträge vom Koordinator
 
 - Offen beim Nutzer: Bilder malen (`docs/Story_Bilder.md`, Abschnitt „Ergänzt am 21.10.2026“, 41 Motive).
-
-### Auftrag (24.10.2026): Boss am Ende jeder Kette
-
-Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/raumkampf.md` (Abschnitt „Elite-Gegner“). Ergänzt vom Nutzer am 24.10.2026:
-- **Boss-Kampf:** Boss + 2 Leibwächter + Fußvolk (Form „Anführer“ aus dem Bodenkampf-Vorschlag), Siegquote wie Elite (70–75 %). Kommt vor (a) am Ende jeder Story-Kette (je nach Kette am Boden **oder** im Raum mit Boss-Schiff) und (b) bei Hub-Aufträgen, deren Ziel eine Person ist (z. B. „Beseitigt den Gangsterboss“).
-- **Beute bei Elite und Boss:** selten (nicht bei jedem Kampf), dann höchstens 2–3 Stück der besseren Ausrüstung, gern stark beschädigt. Boden: Waffen/Rüstungen. Raum: ab und zu eine beschädigte Schiffswaffe.
-- **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
-
-1. Jede Kette (Kapitel 1 und Vorlagen) bekommt am Ende einen Boss-Kampf, je Kette am Boden oder im Raum. Vorschlag mit dem Nutzer abstimmen (welche Kette wo, Text, Bild-ID).
-2. Raum ist fertig: Ketten, die im Raum enden, setzen `setup.enemy.boss` (und `boss_name`). Bauen erst, wenn Bodenkampf und Raumkampf ihre Schnittstelle (`elite`/`form` bzw. `boss`) festgelegt haben; der Koordinator meldet das.
-
-### Ergänzung (24.10.2026): Schnittstellen stehen
-
-**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
-- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
-- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
-- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
-- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
-
-Boss am Boden: Mission mit `elite = &"boss"` (Bodenkampf: 1 Boss, 2 Hauptleute, Rest normal). Boss im Raum: `setup.enemy.boss` (+ `boss_name`). Vorschlag mit dem Nutzer abstimmen, dann bauen.
