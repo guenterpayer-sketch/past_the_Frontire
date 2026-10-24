@@ -47,6 +47,11 @@
   - Boss-Kampf = Form „Anführer“ (Boss + 2 Leibwächter + Fußvolk), Werte wie Anführer.
   - Schnittstelle (Vorschlag): `Mission.elite: StringName` (`""`, `&"trupp"`, `&"kern"`, `&"boss"`); der Hub setzt nur `elite = &"elite"`-Wunsch (ja/nein), der Bodenkampf würfelt trupp/kern aus dem Auftrags-Seed; Story und Hub-Personenziele setzen `&"boss"` fest. Beute: bei Elite/Boss mit 25 % 2–3 Elite-Stücke (aus den Waffen/Rüstungen der Elite-Gegner), stark beschädigt (−20/−30), als normale Einträge in `MissionResult.loot` mit Kennzeichen `elite: true`.
 
+- **Elite-Stufen des Nutzers simuliert (24.10.2026, noch nicht gebaut):** Werte je Gegner [Rüstungsbonus VW, Körper-Ränge, Waffenbonus]: Elite Basis [+5, +2, +10], Leutnant [+5, +4, +10], Hauptmann (Leibwächter) [+10, +5, +10], Boss [+15, +7…8, +20]; Rüstungsklasse bleibt, Bonus über eigene Elite-Ausrüstung. Mitwachsen „zwischen A und B“, Squad des Nutzers, 30 Kämpfe. Siege (Ziel 70–75 %), Ø TP-Verlust:
+  - „mittel“: Elite-Trupp (alle Basis) 73 %, 70 %; Kern mit Rest normal 90 %, 54 %; Kern mit Rest Basis 73 %, 71 %; Boss (Körper +7) + 2 Hauptleute 80 %, 64 %; Boss (Körper +8) 77 %, 64 %. Zum Vergleich ohne Elite: 97 %, 49 %.
+  - „schwer“: Elite-Trupp 57 %, Kern mit Rest Basis 60 %, Boss (+8) 63 % (ohne Elite 90 %).
+  - Kämpfe 21–23 Runden. Beute: eigene Elite-Einträge, 10–15 % der Elite-/Boss-Kämpfe (Nutzer).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
