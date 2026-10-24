@@ -41,6 +41,12 @@
   - Elite auf „mittel“ (Ziel 70–75 % Siege, Squad): ganzer Trupp Waffen +12, Körper +2 → 73 %; Elite-Kern (jeder 3. Gegner) Waffen +30, Körper +5 → 70 %; Anführer Waffe +40, Körper +10 mit 2 Begleitern Waffen +20, Körper +3 → 73 %. Bessere Rüstung (Klasse +1) zu stark. Gegen die Startcrew (ganzer Trupp +10/+2): leicht 90 %, mittel 60 %.
   - Offen beim Nutzer/Koordinator: Elite in allen drei Formen, im Auftrag markiert, auch in Story-Missionen; Kennzeichnung im Angebot (Hub) und im Kampf. Vorschlag Schnittstelle: Elite aus dem Auftrags-Seed (ca. 13 %, gemeinsame Funktion für Boden und Raum), Mitwachsen erst im Briefing nach Truppwahl (keine Hub-Schnittstelle nötig). Neuling/Veteran bleiben wie sie sind (Nutzer).
 
+- **Vorschlag Elite/Boss fertig abgestimmt (24.10.2026, noch nicht gebaut):** Simulation wie oben (Mitwachsen „zwischen A und B“, „mittel“, 30 Kämpfe, Squad des Nutzers, Ziel 70–75 % Siege). Rüstung bleibt in ihrer Klasse und bekommt nur einen Verteidigungsbonus (Nutzer 24.10.2026).
+  - Ohne Rüstungsbonus: Trupp Waffen +12/Körper +2 → 73 %; Kern (jeder 3.) +30/Körper +5 → 70 %; Anführer +40/Körper +10, 2 Begleiter +20/Körper +3 → 73 %.
+  - Mit Rüstungsbonus: Trupp VW +10/Körper +2 ohne Waffenbonus → 90 %, mit Waffen +6 → 83 %; Kern VW +15/Waffen +20/Körper +4 → 80 %; **Anführer VW +15/Waffe +25/Körper +8, Begleiter VW +10/Waffen +10/Körper +3 → 73 %**. Rüstungsbonus wirkt schwächer als Waffenbonus und verlängert die Kämpfe (20–27 Runden). Für Trupp und Kern mit Rüstungsbonus ist der Waffenbonus noch nachzusimulieren (Schätzung: Trupp VW +10 mit Waffen +10…12, Kern VW +10 mit Waffen +28…30).
+  - Boss-Kampf = Form „Anführer“ (Boss + 2 Leibwächter + Fußvolk), Werte wie Anführer.
+  - Schnittstelle (Vorschlag): `Mission.elite: StringName` (`""`, `&"trupp"`, `&"kern"`, `&"boss"`); der Hub setzt nur `elite = &"elite"`-Wunsch (ja/nein), der Bodenkampf würfelt trupp/kern aus dem Auftrags-Seed; Story und Hub-Personenziele setzen `&"boss"` fest. Beute: bei Elite/Boss mit 25 % 2–3 Elite-Stücke (aus den Waffen/Rüstungen der Elite-Gegner), stark beschädigt (−20/−30), als normale Einträge in `MissionResult.loot` mit Kennzeichen `elite: true`.
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
