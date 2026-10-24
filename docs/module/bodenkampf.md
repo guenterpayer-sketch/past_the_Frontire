@@ -126,3 +126,13 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 1. **Bessere Rüstung für Elite mit dem Nutzer klären** (seine Bitte): Sie war gewünscht, ist im Vorschlag weggefallen, weil sie den Kampf stark verschoben hat. Zahlen zeigen, Nutzer entscheidet.
 2. Form „Anführer“ als Boss-Kampf festlegen, die Story und der Hub können sie anfordern.
 3. **Schnittstelle vorschlagen** (Hub → Mission): z. B. `elite: bool` und `form: StringName` (`""`, `&"trupp"`, `&"kern"`, `&"boss"`), dazu Beute im `MissionResult`. Dem Koordinator melden; erst nach Freigabe des Nutzers bauen.
+
+### Freigabe Balancing-Paket (24.10.2026)
+
+**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
+- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
+- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
+- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
+- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
+
+Bodenkampf-Teil in Schritten bauen (Nutzer hat das Paket mit dir abgestimmt). Jeden Schritt mit Tests melden.

@@ -128,3 +128,13 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 - Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
 - **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
 - **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
+
+### Auftrag (24.10.2026): Schwierigkeitsgrad
+
+**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
+- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
+- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
+- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
+- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
+
+1. `setup.difficulty_factor` (0,8 / 1,0 / 1,25) im Raumkampf berücksichtigen, sinngemäß wie das Budget am Boden (z. B. Besatzung/Gegneranzahl). Simulation je Stufe melden.

@@ -35,3 +35,13 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 
 1. Jede Kette (Kapitel 1 und Vorlagen) bekommt am Ende einen Boss-Kampf, je Kette am Boden oder im Raum. Vorschlag mit dem Nutzer abstimmen (welche Kette wo, Text, Bild-ID).
 2. Raum ist fertig: Ketten, die im Raum enden, setzen `setup.enemy.boss` (und `boss_name`). Bauen erst, wenn Bodenkampf und Raumkampf ihre Schnittstelle (`elite`/`form` bzw. `boss`) festgelegt haben; der Koordinator meldet das.
+
+### Ergänzung (24.10.2026): Schnittstellen stehen
+
+**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
+- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
+- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
+- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
+- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
+
+Boss am Boden: Mission mit `elite = &"boss"` (Bodenkampf: 1 Boss, 2 Hauptleute, Rest normal). Boss im Raum: `setup.enemy.boss` (+ `boss_name`). Vorschlag mit dem Nutzer abstimmen, dann bauen.

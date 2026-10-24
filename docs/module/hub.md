@@ -51,3 +51,13 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 3. Aufträge mit einer Person als Ziel („Gangsterboss beseitigen“ u. ä.) erzeugen einen Boss-Kampf (Boss + 2 Leibwächter + Fußvolk) und zeigen „Boss“.
 4. Elite-/Boss-Beute aus dem Ergebnis ins Lager übernehmen (wie bisher Beute).
 5. **Erst anfangen, wenn der Koordinator die Boden-Schnittstelle einträgt.**
+
+### Auftrag 10 – Ergänzung (24.10.2026): Schnittstelle Boden steht, jetzt bauen
+
+**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
+- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
+- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
+- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
+- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
+
+Zusätzlich zu den Punkten oben: Einstellung „Schwierigkeitsgrad“ im Menü (Einstellungen) und im Spielstand, Weitergabe an Boden und Raum; Elite-Beute im Lager (`elite: true`), verkaufbar, nicht im Sortiment. Punkt 5 (warten) entfällt.
