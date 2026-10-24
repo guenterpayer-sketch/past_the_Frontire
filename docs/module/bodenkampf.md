@@ -70,3 +70,14 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 5. **Ablauf:** erst Vorschlag mit Simulation (Siegquoten und TP-Verlust mit der Crew aus `spielstaende/24-10-2026/` und mit der Startcrew), an den Nutzer melden, erst nach Zustimmung bauen.
 
 - **Freigabe (24.10.2026):** Vorschlag noch **nicht** freigegeben. Der Nutzer hat weitere Gedanken zum Elite-Status (nur Bodenkampf); erst danach bauen.
+
+### Auftrag (24.10.2026): Elite und Boss fertig abstimmen
+
+Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/raumkampf.md` (Abschnitt „Elite-Gegner“). Ergänzt vom Nutzer am 24.10.2026:
+- **Boss-Kampf:** Boss + 2 Leibwächter + Fußvolk (Form „Anführer“ aus dem Bodenkampf-Vorschlag), Siegquote wie Elite (70–75 %). Kommt vor (a) am Ende jeder Story-Kette (je nach Kette am Boden **oder** im Raum mit Boss-Schiff) und (b) bei Hub-Aufträgen, deren Ziel eine Person ist (z. B. „Beseitigt den Gangsterboss“).
+- **Beute bei Elite und Boss:** selten (nicht bei jedem Kampf), dann höchstens 2–3 Stück der besseren Ausrüstung, gern stark beschädigt. Boden: Waffen/Rüstungen. Raum: ab und zu eine beschädigte Schiffswaffe.
+- **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
+
+1. **Bessere Rüstung für Elite mit dem Nutzer klären** (seine Bitte): Sie war gewünscht, ist im Vorschlag weggefallen, weil sie den Kampf stark verschoben hat. Zahlen zeigen, Nutzer entscheidet.
+2. Form „Anführer“ als Boss-Kampf festlegen, die Story und der Hub können sie anfordern.
+3. **Schnittstelle vorschlagen** (Hub → Mission): z. B. `elite: bool` und `form: StringName` (`""`, `&"trupp"`, `&"kern"`, `&"boss"`), dazu Beute im `MissionResult`. Dem Koordinator melden; erst nach Freigabe des Nutzers bauen.
