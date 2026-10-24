@@ -61,3 +61,7 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 - Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
 
 Zusätzlich zu den Punkten oben: Einstellung „Schwierigkeitsgrad“ im Menü (Einstellungen) und im Spielstand, Weitergabe an Boden und Raum; Elite-Beute im Lager (`elite: true`), verkaufbar, nicht im Sortiment. Punkt 5 (warten) entfällt.
+
+### Auftrag 10 – Ergänzung Story (24.10.2026)
+
+Story ist in `main` (`c5863dd`): `Story.pending_mission()` liefert `elite: "boss"` und `boss_name`. Weitergeben: Boden `Mission.elite = &"boss"` in `_story_ground`, Raum `setup.enemy.boss`/`boss_name` über `space_ctx`; „Boss“ in der Story-Karte zeigen. Details: `docs/Planung_Story.md`, „Boss am Ende einer Kette“.
