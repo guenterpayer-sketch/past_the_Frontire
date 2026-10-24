@@ -315,16 +315,16 @@ func _finish(cols: int, rows: int) -> BattleMap:
 	var mid_col := (cols - 1) / 2.0
 	var center := Hex.from_offset(cols / 2, rows / 2)
 	var to_center := func(t: T) -> int: return Hex.distance(t.pos, center)
-	var ring := 0   # Überfall: Abstand des äußersten der Mission.MAX_ENEMIES Gegnerfelder zur Mitte
+	var ring := 0   # Überfall: Abstand des äußersten der Mission.MIN_START_FIELDS Gegnerfelder zur Mitte
 	if lage == &"ueberfall":
 		var near: Array[T] = []
 		for t in m.list:
 			if m.walkable(t):
 				near.append(t)
-		if near.size() < Mission.MAX_ENEMIES:
+		if near.size() < Mission.MIN_START_FIELDS:
 			return null
 		near.sort_custom(func(a: T, b: T) -> bool: return to_center.call(a) < to_center.call(b))
-		ring = to_center.call(near[Mission.MAX_ENEMIES - 1])
+		ring = to_center.call(near[Mission.MIN_START_FIELDS - 1])
 	var by_row := func(a: T, b: T) -> bool:
 		var da := absf(a.row - mid_row)
 		var db := absf(b.row - mid_row)
@@ -406,7 +406,7 @@ func _finish(cols: int, rows: int) -> BattleMap:
 					enemy.append(t)
 		_:
 			enemy = _side(func(t: T) -> bool: return in_cols.call(t, cols - 6, cols - 2) and ok.call(t))
-	if crew.size() < Campaign.HARD_SQUAD or enemy.size() < Mission.MAX_ENEMIES:
+	if crew.size() < Campaign.HARD_SQUAD or enemy.size() < Mission.MIN_START_FIELDS:
 		return null
 	m.crew_start = crew
 	m.enemy_start = enemy

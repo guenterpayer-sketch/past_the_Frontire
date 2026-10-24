@@ -8,6 +8,8 @@ signal loaded(slot: int)
 signal new_game(slot: int, name: String)
 
 var mode := &"load"
+## Neues Spiel: gewählter Schwierigkeitsgrad (Elite.LEVELS; Hub Auftrag 10), im Startmenü abgefragt
+var difficulty := "normal"
 ## im Schiff zwischen Speichern und Laden umschalten
 var can_switch := false
 
@@ -30,6 +32,8 @@ func show_slots(m: StringName, switchable := false) -> void:
 			b.pressed.connect(show_slots.bind(t[0], true))
 			tabs.add_child(b)
 		content.add_child(tabs)
+	if mode == &"new":
+		content.add_child(difficulty_row(difficulty, func(lv: String) -> void: difficulty = lv))
 	if mode == &"load":
 		content.add_child(_slot_row(SaveSlots.AUTO))
 	for s in range(1, SaveSlots.COUNT + 1):
@@ -141,3 +145,26 @@ func _confirm(text: String, then: Callable) -> void:
 	add_child(d)
 	d.confirmed.connect(then)
 	d.popup_centered()
+
+
+## Auswahl „Schwierigkeitsgrad“ (leicht ×0,8 / normal / schwer ×1,25 auf Gegnerstärke am Boden und im Raum);
+## auch in den Einstellungen im Schiff (HubUI.show_ui_scale)
+static func difficulty_row(current: String, on_change: Callable) -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.add_child(UiTheme.label("Schwierigkeitsgrad", 15))
+	var group := ButtonGroup.new()
+	for lv in Elite.LEVELS:
+		var b := UiTheme.button("%s (×%s)" % [Elite.LEVEL_NAMES[lv], str(Elite.LEVELS[lv]).replace(".", ",")], "", true)
+		b.button_group = group
+		b.button_pressed = lv == current
+		var id: String = lv
+		b.pressed.connect(func() -> void: on_change.call(id))
+		row.add_child(b)
+	v.add_child(row)
+	var l := UiTheme.label("Wirkt auf die Stärke der Gegner am Boden und im Raum; jederzeit im Schiff unter Einstellungen änderbar.", 13, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(l)
+	return v

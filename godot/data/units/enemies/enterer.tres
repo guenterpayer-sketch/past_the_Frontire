@@ -26,6 +26,7 @@ attrs = {
 skills = {
 "ausweichen": 3,
 "kampfsinn": 3,
+"koerper": 1,
 "pistolen": 4,
 "zweihand": 8
 }

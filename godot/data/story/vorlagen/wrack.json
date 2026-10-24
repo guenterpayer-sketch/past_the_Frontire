@@ -44,6 +44,9 @@
 			}
 		]
 	},
+	"boss": {
+		"chance": 0.3
+	},
 	"start": "start",
 	"scenes": {
 		"start": {

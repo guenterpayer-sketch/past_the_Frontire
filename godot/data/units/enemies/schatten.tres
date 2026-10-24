@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
 [ext_resource type="Resource" path="res://data/visuals/characters/women_punk.tres" id="4_vi"]
-[ext_resource type="Resource" path="res://data/weapons/laserpistole.tres" id="5_w0"]
+[ext_resource type="Resource" path="res://data/weapons/scharfschuetzengewehr.tres" id="5_w0"]
 [ext_resource type="Resource" path="res://data/weapons/vibroklinge.tres" id="6_w1"]
 
 [resource]
@@ -26,10 +26,12 @@ attrs = {
 skills = {
 "ausweichen": 9,
 "einhand": 7,
+"gewehre": 7,
 "kampfsinn": 5,
+"koerper": 1,
 "pistolen": 7
 }
 weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0"), ExtResource("6_w1")])
 armor = ExtResource("1_ar")
-threat = 11
+threat = 12
 visual = ExtResource("4_vi")

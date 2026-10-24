@@ -19,6 +19,20 @@ const HIRTEN_FLAG := "hirten_feind"
 ## Leute des Gläubigers je Baustein „glaeubiger“
 const GLAEUBIGER_GEGNER := {"syndikat": "schmuggler", "bank": "konzern", "person": "rote_sonne"}
 const DIFFS := ["leicht", "mittel", "schwer"]
+## Bosse (Auftrag 24.10.2026, Nutzer: „Name mit Titel“, Frauen und Männer gemischt): je Gegnergruppe Namen mit Titel für den
+## Bodenkampf; im Raum ist boss_name der Name des Boss-Schiffs (Raumkampf: setup.enemy.boss_name)
+const BOSSE := {
+	"abteilung9": ["Kommandantin Iris Vehl, Sicherheitschefin von Abteilung 9", "Major Daan Kroll, Abteilung 9"],
+	"klingen": ["Schwertmeisterin Aveline, Klinge der Wacht", "Ordensritter Corvin, Klinge der Wacht"],
+	"hirten": ["Hirtin Maren, Älteste der Wacht", "Hirte Tobias Ren, Wächter der Wacht"],
+	"hand": ["Selma Krait, Agentin der Stillen Hand", "Victor Hale, Mittelsmann der Stillen Hand"],
+	"pluenderer": ["Narben-Jo, Anführerin der Plünderer", "Grell, Anführer der Plünderer"],
+	"glaeubiger": ["Mara Ostwald, Eintreiberin des Gläubigers", "Bruno Fass, Schläger des Gläubigers"],
+	"kopfgeld": ["Yeva Thorn, Anführerin der Kopfgeldjäger", "Rask, Anführer der Kopfgeldjäger"],
+	"lokal": ["Kommandantin Kara Voss", "Kommandant Hektor Brann", "Hauptfrau Lena Sturm", "Hauptmann Ivo Marek"],
+}
+const BOSS_SCHIFFE := ["„Nachtfalter“", "„Eisenkrähe“", "„Schwarzer Reiher“", "„Morgenrot“", "„Sturmvogel“", "„Kaltes Licht“"]
+const SPACE_KINDS := ["abfangen", "blockade", "eskorte"]
 const KONTAKTE := ["Ines Varga, Frachtmaklerin", "der alte Oskar am Tresen", "Mira Sol, Dockarbeiterin", "Tavi, ein Informant mit Schulden",
 	"Bruder Elias, ein Wanderprediger", "Kael Dorn, Ex-Söldner", "Juna, Funkerin der Hafenwache", "ein Mann ohne Namen im grauen Mantel"]
 const EINSTIEG := {
@@ -65,6 +79,10 @@ static func make(story: Story, template_id: String, extra := {}) -> String:
 		if extra.has(k):
 			c[k] = extra[k]
 	c = _fill(c, vals)
+	var bc: Dictionary = t.get("boss", {})
+	if not bc.is_empty() and story.rng.randf() < float(bc.get("chance", 1.0)):
+		_make_boss(story, c, String(bc.get("gruppe", "")), String(vals.gegner_gruppe))
+	_strip_boss(c)
 	st.generated[id] = c
 	st.chains[id] = {"status": "" if extra.get("start", false) else "bekannt", "scene": "", "place": vals.place}
 	return id
@@ -108,6 +126,7 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	v.einstieg = String(EINSTIEG.get(entry, "")).replace("{system}", sys_name).replace("{ort}", String(v.ort)).replace("{kontakt}", String(v.kontakt))
 	# Gegner
 	var g := String(v.get("gegner", "lokal"))
+	v.gegner_gruppe = g
 	var gi := _gegner(story, g, sys)
 	v.gegner = gi.name
 	v.gegner_id = gi.id
@@ -118,6 +137,60 @@ static func _values(story: Story, t: Dictionary, extra: Dictionary) -> Dictionar
 	v.diff_leichter = DIFFS[maxi(0, di - 1)]
 	v.diff_schwerer = DIFFS[mini(DIFFS.size() - 1, di + 1)]
 	return v
+
+
+## Boss-Kampf: jeder Einsatz der Kette (außer „boss“: false) bekommt elite = "boss" und boss_name; die Szene davor nennt den Boss.
+## Gruppe: Vorgabe der Vorlage, sonst nach Fraktion des Einsatzes, sonst die Gegnergruppe der Kette.
+static func _make_boss(story: Story, c: Dictionary, gruppe: String, g: String) -> void:
+	var names := {}
+	for sid in c.scenes:
+		var sc: Dictionary = c.scenes[sid]
+		var ms: Array = []
+		_missions(sc.get("choices", []), ms)
+		var line := ""
+		for m in ms:
+			if m.get("boss", true) == false:
+				continue
+			var space := String(m.get("kind", "boden")) in SPACE_KINDS
+			var grp := gruppe
+			if grp == "":
+				for k in GEGNER:
+					if String(GEGNER[k].id) == String(m.get("faction", "")):
+						grp = k
+			if grp == "":
+				grp = g if BOSSE.has(g) else "lokal"
+			var key := "raum" if space else grp
+			if not names.has(key):
+				var list: Array = BOSS_SCHIFFE if space else BOSSE.get(grp, BOSSE.lokal)
+				names[key] = String(list[story.rng.randi_range(0, list.size() - 1)])
+			m.elite = "boss"
+			m.boss_name = names[key]
+			line = ("Als Begleitschutz fliegt die %s mit, ein schwer bewaffnetes Flaggschiff." if space else "Angeführt werden sie von %s.") % names[key]
+		if line != "":
+			if sc.get("text", "") is String:
+				sc.text = String(sc.text) + " " + line
+			elif sc.text is Array:
+				sc.text.append(" " + line)
+
+
+## alle Einsätze in Wahlen und Ergebnissen (rekursiv)
+static func _missions(x: Variant, out: Array) -> void:
+	if x is Dictionary:
+		if x.has("mission") and x.mission is Dictionary:
+			out.append(x.mission)
+		for k in x:
+			_missions(x[k], out)
+	elif x is Array:
+		for e in x:
+			_missions(e, out)
+
+
+## Markierung „boss“: false (Einsatz nie als Boss) nach dem Wurf entfernen
+static func _strip_boss(c: Dictionary) -> void:
+	var ms: Array = []
+	_missions(c.scenes, ms)
+	for m in ms:
+		m.erase("boss")
 
 
 ## Gegnergruppe → {name, id}; „lokal“ = Fraktion des Systems, „glaeubiger“ = Leute des Gläubigers

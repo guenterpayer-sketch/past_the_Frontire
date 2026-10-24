@@ -36,7 +36,10 @@ Verbindlich für Hub und Raumkampf. Änderungen nur nach Absprache über den Koo
  "ship_ammo": {"schiffsraketen": int, "geschosse": int},
  "fuel": int,                            # für die Flucht per Sprung
  "credits": int,                         # Lösegeld wird nur angeboten, wenn bezahlbar
- "enemy": {"faction": Fraktions-ID oder Raumgegner-ID, "difficulty": "leicht"/"mittel"/"schwer"},
+ "enemy": {"faction": Fraktions-ID oder Raumgegner-ID, "difficulty": "leicht"/"mittel"/"schwer",
+           "elite": bool,                  # neu 24.10.2026, fehlend = false (docs/Raumkampf.md 4e)
+           "boss": bool, "boss_name": String},   # neu 24.10.2026, optional; Boss-Kampf (feste Gruppe, gilt auch als Elite)
+ "difficulty_factor": float,             # neu 24.10.2026, Spieleinstellung 0.8 / 1.0 / 1.25, fehlend = 1.0
  "source": "reise"/"auftrag"/"vor_einsatz"/"schnell",
  "mission": Titel oder "",
  "return_scene": Szenenpfad}
@@ -97,8 +100,33 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 ## Stand
 
 - Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/raumkampf_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- (23.10.2026) Wunsch des Nutzers direkt im Raumkampf-Chat: Gegner-Info und Scan (`docs/Raumkampf.md` 4d, `docs/Planung_Raumkampf.md` 1g). Ohne Scan nur grobe Hülle, Schilde an/aus und Schäden aus eigenen Treffern; Computer-Wahl „Scannen“ zeigt 3 Runden alles; Tooltip mit der Maus über dem Gegner. Schnittstelle unverändert.
+
+- (24.10.2026) Auftrag „Balancing – Ursache finden“ (Analyse, nichts gebaut). Simulation mit dem Spielstand `spielstaende/24-10-2026/slot_1.json` (60 Kämpfe je Stufe, alle Seiten; Skript nur im Chat, nicht im Repo): Siege leicht/mittel/schwer **98/96/90 %** in 4–5 Runden, Hüllenverlust Ø 4/13/23 (Schnellkampf-Testcrew 93/68/51 %, 7–11 Runden, 17/55/68). Schiff kaum ausgebaut (Schilde/Panzerung/Reaktor 0, 5. Slot Heck-Laserbank) – **Ursache ist die Crew**: Schützen +75/+65 statt KI +0/+25 (Treffer 56 statt 37 %, davon kritisch 51 statt 22 %), Pilot +86 (Gegner treffen 38 statt 85 % ohne Pilot). Probe: nur Schützen auf KI → 88/70/53 %, nur Steuer auf KI → 81/60/41 %, beide → 63/18/6 %; Navigation, Computer, Heck-Slot je nur wenige Punkte. Ränge seit Roster-Start: Pilot 8→13, Navigation 5→11, Computer 0→7, Strahl-Geschütze 1→6, Ballistik 5→8; die Eigenschaftsboni (KOO 99–100, INT 91) geben schon bei Rang 1 etwa +45. Gegner wachsen nicht mit (Besatzung 20–30, Aufstellungen fest, Schwierigkeit zufällig 1:3:1). Verletzungen im Raum: Ø 0,02 je Kampf (auch Testcrew nur 0,03–0,08) – Stationstreffer sind selten (15 % der Systemtreffer). Wege (Entscheidung offen): Gegner skalieren, Steigerung dämpfen, stärkere Gegner über Sektoren/Stufen.
+  - **Entscheidungen des Nutzers (24.10.2026):** Gegner nur **moderat** anpassen (das Besserwerden der Crew soll sich richtig anfühlen); dazu ab und zu **Elite-Gegner**, die sich an die Crew anpassen – **mit dem Bodenkampf abstimmen** (über den Koordinator). Stationstreffer im Raum **etwas häufiger**, damit Verletzte möglich werden. Noch nichts gebaut; Vorschlag mit Zahlen folgt nach der Abstimmung.
+- (24.10.2026) **Elite-Gegner, moderate Anpassung, Stationstreffer 25 % gebaut** (`docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1h): Elite-Siege 67–79 % je nach Crew (Spielstand 73 %), normale Kämpfe nur für starke Crews etwas härter. **Schnittstelle ergänzt:** `setup.enemy.elite: bool` (fehlend = false). **Für den Hub:** bei Aufträgen und Feindkontakt etwa 13 % Elite würfeln (gleiche Regel wie Boden), im Angebot/Kontakt „Elite“ zeigen (ausweichen möglich) und `elite` in `enemy` mitgeben.
+- (24.10.2026) **Auftrag Elite-Beute und Boss-Schiff gebaut** (`docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1i): Elite/Boss-Beute selten (20 % nach Sieg, 30 % beim Entern, je eine Waffe −20/−30), normales Entern höchstens eine Waffe (50 %, −10…−30). Boss: Kreuzer (Elite, Hülle ×1,3, Name) + 2 Jäger, Siege 66–89 % je nach Crew. **Schnittstelle ergänzt:** `setup.enemy.boss: bool`, `setup.enemy.boss_name: String` (beide optional; Boss gilt auch als Elite). **Für Story/Hub:** Story-Ketten, die im Raum enden, und Aufträge gegen eine Person setzen `boss` (und den Namen); Anzeige „Boss“ im Angebot. **Für den Hub:** `board_loot` hat jetzt höchstens eine Waffe.
+- (24.10.2026) **Auftrag Schwierigkeitsgrad gebaut:** `setup.difficulty_factor` (0,8 / 1,0 / 1,25, fehlend = 1,0) wirkt auf Gegner-Hülle (halb) und Besatzung (+(f − 1) × 25), auch bei Elite und Boss (Entscheidungen des Nutzers; `docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1j). Siege Spielstand normal 97 / 94 / 76–90 %, Testcrew 80 / 66 / 56 %. Schnittstelle wie vom Koordinator bestätigt, keine weitere Änderung.
 
 ## Aufträge vom Koordinator
 
 - Schnittstellen nur ergänzen und dem Hub über den Nutzer melden.
-- Keine offenen Aufträge. Story-Fraktionen im Raum erst, wenn Kapitel 1 sie braucht.
+- Story-Fraktionen im Raum erst, wenn Kapitel 1 sie braucht.
+
+### Auftrag (24.10.2026): Balancing – Ursache finden
+
+Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen so stark, dass Kämpfe keine Herausforderung mehr sind. Betrifft Boden- **und** Raumkampf. Anzeichen laut Nutzer: Gegner fallen zu schnell, keine Verletzungen oder Verluste, zu wenige Gegner. Entscheidung des Nutzers: erst die Ursache finden, dann Wege vorschlagen.
+
+1. Spielstand des Nutzers lesen: `spielstaende/24-10-2026/` (`slot_1.json`, `auto.json`, `crew.json`, `roster.json`; Tag 60, 6 Einsätze, 10 Figuren). Eigene Ausrüstung: `spielstaende/24-10-2026/gear/` (7 Waffen, 2 Rüstungen).
+2. Raumkampf prüfen: Gegnerschiffe, Anzahl und Stärke gegen das Schiff und die Crew des Nutzers (Stationen, Fertigkeiten, Schiffswaffen, Ausbauten im Spielstand). Woran liegt es, dass Gegner schnell fallen und es kaum Schaden gibt?
+3. Ergebnis als Bericht an den Nutzer: Ursachen mit Zahlen (was ist Wissen, was Annahme), dazu 2–3 Wege zum Ausgleich mit Vor- und Nachteilen. Bericht kurz in die Moduldatei unter „Stand“ eintragen. Kein Code ändern, bis der Nutzer entschieden hat.
+
+### Elite-Gegner – gemeinsame Regeln Boden und Raum (Nutzer 24.10.2026)
+
+- **Häufigkeit:** etwa jeder 7.–8. Kampf (Zufall, ca. 13 %), gleich für Boden und Raum.
+- **Stärke:** nach **Ziel-Siegquote**: per Simulation mit der Crew so einstellen, dass der Nutzer etwa 70–75 % der Elite-Kämpfe gewinnt. Nicht an den Durchschnitt der Crew angleichen (Sorge des Nutzers: zu schwer).
+- **Woher die Stärke kommt:** bessere Ausrüstung mit höheren Boni (Boden: Waffen/Rüstung; Raum: stärkere Schiffswaffen/Schilde), dazu Werte nach Bedarf.
+- **Erkennbar:** schon vorher im Auftrag/Feindkontakt („Elite“, ausweichen möglich) und im Kampf markiert (Zeichen/Farbe am Gegner bzw. Schiff).
+- Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
+- **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
+- **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.

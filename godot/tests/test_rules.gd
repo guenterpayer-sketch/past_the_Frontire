@@ -50,6 +50,11 @@ func _init() -> void:
 	_test_start_facing()
 	_test_factions()
 	_test_story_factions()
+	_test_enemy_types()
+	_test_enemy_count()
+	_test_enemy_growth()
+	_test_elite()
+	_test_shield_loot()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -236,7 +241,7 @@ func _test_pass_through_ally() -> void:
 
 func _test_data() -> void:
 	check(GameData.crew().units.size() == 6 and GameData.enemies().units.size() == 6, "6 gegen 6")
-	check(GameData.weapons().size() == 9, "9 Waffen (%d)" % GameData.weapons().size())
+	check(GameData.weapons().size() == 10, "10 Waffen (%d)" % GameData.weapons().size())
 	for t in GameData.crit_tables():
 		check(t.rows.size() == 7, "Kritische Tabelle %s mit 7 Zeilen" % t.name)
 
@@ -253,10 +258,12 @@ func _test_missions() -> void:
 		var budget := 0
 		for d in m.enemies:
 			ids[d.id] = true
-			budget += d.threat
+			budget += d.threat + (Mission.TIER_COST[1] if d.role.ends_with("Veteran") else (Mission.TIER_COST[-1] if d.role.ends_with("Neuling") else 0))
 		check(ids.size() == n, "eindeutige Kennungen")
+		var dd: Dictionary = Mission.DIFFICULTIES[m.difficulty]
+		check(n >= dd.min and n <= dd.max, "Gegneranzahl %s %d (%d–%d)" % [m.difficulty, n, dd.min, dd.max])
 		var limit := roundi(Mission.DIFFICULTIES[m.difficulty].budget * (1.0 + float(m.faction.trait_mods.get("budget_pct", 0)) / 100.0))
-		check(budget <= limit, "Budget eingehalten (%d von %d)" % [budget, limit])
+		check(budget <= limit or n <= dd.min, "Budget eingehalten (%d von %d)" % [budget, limit])
 		kinds[m.enemy_summary()] = true
 		counts[n] = true
 		var map := MapGenerator.generate(m.map_seed, m.size_id)
@@ -1554,6 +1561,142 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Schild als Beute (Auftrag 24.10.2026): nur Träger einhändiger Waffen, 30 % je besiegtem Schildträger, ohne Schaden
+func _test_shield_loot() -> void:
+	var kt: UnitData = load("res://data/units/enemies/klingentaenzer.tres")
+	check(kt.shield and not (load("res://data/units/enemies/sicherheitsagent.tres") as UnitData).shield, "Klingentänzer mit Schild, Sicherheitsagent ohne")
+	var glut := Mission.generate(1, "mittel", "res://data/missions/kinder_der_glut.tres")
+	check(glut.enemies.all(func(d: UnitData) -> bool: return not (d.shield and d.weapons.any(func(w: WeaponData) -> bool: return w.two_handed))),
+		"kein Schild zusammen mit zweihändiger Waffe (Waffentausch)")
+	var units: Array[UnitData] = []
+	for i in 10:
+		units.append(kt)
+	var drops := 0
+	for i in 20:
+		Dice.set_seed(4000 + i)
+		var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(units, &"enemy"))
+		for e in c.enemies():
+			e.state = Combatant.State.DEAD
+			e.hp = -50
+		c.check_end()
+		for l in c.loot:
+			if l.key == Equipment.SHIELD:
+				drops += int(l.count)
+				check(not l.has("damage"), "Schild ohne Schaden")
+	check(drops > 20 and drops < 100, "Schild in etwa 30 %% der Fälle (%d von 200)" % drops)
+
+
+## Balancing 24.10.2026, Schritt 4: Elite-Stufen, Elite-/Boss-Begegnungen, Beimischung, Beute
+func _test_elite() -> void:
+	var tr := Mission.generate(91, "mittel", "", 1.0, &"elite")
+	check(tr.enemies.size() == Mission.ELITE_COUNT["mittel"] and tr.enemies.all(func(d: UnitData) -> bool: return d.elite in [&"basis", &"leutnant"]),
+		"Elite-Auftrag: %d Gegner, alle Elite (%s)" % [tr.enemies.size(), tr.elite_form])
+	var bo := Mission.generate(92, "schwer", "", 1.0, &"boss")
+	check(bo.enemies.size() == 8 and bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"boss").size() == 1
+		and bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"hauptmann").size() == 2, "Boss-Auftrag: 1 Boss, 2 Hauptleute, 8 Gegner")
+	var boss: UnitData = bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"boss")[0]
+	check(boss.weapons.all(func(w: WeaponData) -> bool: return w.resource_path.contains("/elite/") and w.resource_path.ends_with("_boss.tres"))
+		and boss.armor.resource_path.ends_with("_vw15.tres"), "Boss trägt Boss-Ausrüstung (Waffe +20, Rüstung VW +15)")
+	# nachträglich gesetzt wie Elite.apply des Hubs: Gegner neu, fest aus dem Seed; "" stellt die normale Gruppe wieder her
+	var la := Mission.generate(93, "mittel")
+	var normal := la.enemy_summary()
+	la.elite = &"boss"
+	var la2 := Mission.generate(93, "mittel")
+	Elite.apply(la2, "boss")
+	check(la.enemies.size() == 7 and la.enemies.any(func(d: UnitData) -> bool: return d.elite == &"boss") and la.enemy_summary() == la2.enemy_summary(),
+		"Elite nachträglich gesetzt: Boss-Begegnung, gleicher Seed = gleiche Gegner")
+	la.elite = &""
+	check(la.enemy_summary() == normal, "Elite zurückgesetzt: normale Gegner")
+	var sg: WeaponData = load("res://data/weapons/elite/sturmgewehr_elite.tres")
+	check(sg.ob_bonus == 10 and sg.get_meta("elite", false), "Elite-Sturmgewehr +10")
+	var ba := Roster.build_units(bo.enemies, &"enemy")
+	var hp_b := ba[0].max_hp
+	Mission.grow(ba, Roster.build_team(GameData.crew(), &"crew"))
+	check(ba[0].elite == &"boss" and ba[0].max_hp == hp_b + 4 * Rules.HP_PER_RANK, "Boss bei der Startcrew: Körper +4")
+	var mixed := 0
+	for i in 40:
+		var mm := Mission.generate(600 + i, "schwer")
+		mixed += mm.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"basis").size()
+	var easy := 0
+	for i in 40:
+		easy += Mission.generate(700 + i, "leicht").enemies.filter(func(d: UnitData) -> bool: return d.elite != &"").size()
+	check(mixed > 0 and easy == 0, "Beimischung: schwer %d Elite in 40 Aufträgen, leicht keine" % mixed)
+	# Elite-Beute: nur selten, dann gekennzeichnet und stark beschädigt
+	var found := false
+	for i in 200:
+		Dice.set_seed(9000 + i)
+		var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(tr.enemies, &"enemy"))
+		for e in c.enemies():
+			e.state = Combatant.State.DEAD
+			e.hp = -50
+		c.check_end()
+		var el := c.loot.filter(func(l: Dictionary) -> bool: return l.get("elite", false))
+		if not el.is_empty():
+			found = el.size() >= 2 and el.size() <= 3 and el.all(func(l: Dictionary) -> bool: return l.damage <= -20)
+			break
+	check(found, "Elite-Beute: 2–3 Stücke, beschädigt (−20/−30)")
+
+
+## Balancing 24.10.2026, Schritt 3: Mitwachsen mit dem eingesetzten Trupp
+func _test_enemy_growth() -> void:
+	var m := Mission.generate(77, "mittel")
+	var start := Roster.build_team(GameData.crew(), &"crew")
+	var ens := Roster.build_units(m.enemies, &"enemy")
+	check(Mission.grow(ens, start) == [0, 0], "Startcrew: Gegner unverändert")
+	var strong := Roster.build_team(GameData.crew(), &"crew")
+	for u in strong:
+		u.max_hp += 22   # etwa Ø 60 TP wie die Crew des Nutzers
+	var ens2 := Roster.build_units(m.enemies, &"enemy")
+	var hp0 := ens2[0].max_hp
+	var g := Mission.grow(ens2, strong)
+	check(g[0] > 0 and ens2[0].max_hp == hp0 + g[0] * Rules.HP_PER_RANK, "starker Trupp: Gegner mit Körper +%d" % g[0])
+	check(g[0] <= Mission.GROW_KOERPER and g[1] <= Mission.GROW_RANKS, "Mitwachsen begrenzt")
+
+
+## Balancing 24.10.2026, Schritt 2: Anzahl je Stufe, Ersatzaufstellung bei zu wenigen Startfeldern, Schwierigkeitsgrad
+func _test_enemy_count() -> void:
+	var m := Mission.generate(4242, "schwer")
+	var map := MapGenerator.generate(m.map_seed, "klein")
+	map.enemy_start = map.enemy_start.slice(0, Mission.MIN_START_FIELDS)
+	var units: Array[UnitData] = []
+	for i in Mission.MAX_ENEMIES:
+		units.append(m.enemies[i % m.enemies.size()])
+	var c := Combat.new(map, Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(units, &"enemy"))
+	var pos := {}
+	for u in c.units:
+		pos[u.pos] = true
+	check(pos.size() == c.units.size() and c.enemies().all(func(u: Combatant) -> bool: return map.walkable(map.tile(u.pos))),
+		"12 Gegner bei 9 Startfeldern: alle auf eigenen begehbaren Feldern")
+	var sum := func(f: float) -> int:
+		var n := 0
+		for i in 20:
+			n += Mission.generate(300 + i, "mittel", "", f).enemies.size()
+		return n
+	check(sum.call(0.8) < sum.call(1.25), "Schwierigkeitsgrad: weniger Gegner bei 0,8 als bei 1,25")
+
+
+## Balancing 24.10.2026, Schritt 1: Gegnertypen, Preise, neue Typen und Scharfschützengewehr
+func _test_enemy_types() -> void:
+	var t := func(id: String) -> UnitData: return load("res://data/units/enemies/%s.tres" % id)
+	var all := DirAccess.get_files_at("res://data/units/enemies")
+	check(Array(all).filter(func(f: String) -> bool: return f.ends_with(".tres")).all(func(f: String) -> bool:
+		return int(load("res://data/units/enemies/" + f).skills.get("koerper", 0)) >= 1), "alle Gegner Körper ≥ 1")
+	var sniper: WeaponData = load("res://data/weapons/scharfschuetzengewehr.tres")
+	check(sniper.inc_m == 50 and sniper.stages == 3 and sniper.min_range_m == 5 and is_equal_approx(sniper.damage, 1.3) and sniper.ob_bonus == 10 and sniper.magazine == 5,
+		"Scharfschützengewehr mit den Werten des Nutzers")
+	check(t.call("schatten").weapons[0] == sniper and t.call("schatten").threat == 12, "Schatten = Scharfschütze-Meuchler, 12 Punkte")
+	check(t.call("pluenderer_1").armor.cls == 2 and t.call("pluenderer_1").threat == 8 and t.call("sturmlaeufer").armor.cls == 2 and t.call("hexer").armor.cls == 1,
+		"Rüstungen Plünderer/Sturmläufer mittel, Hexer leicht")
+	check(t.call("klingentaenzer").threat == 15 and t.call("psi_soldat").threat == 14 and t.call("sicherheitsagent").threat == 8 and t.call("handagent").threat == 8,
+		"neue Punktpreise")
+	var has := func(fac: String, id: String) -> bool:
+		return (load("res://data/missions/%s.tres" % fac) as FactionData).units.any(func(u: UnitData) -> bool: return u.id == StringName(id))
+	check(has.call("neuntes_haus", "psi_meuchler") and has.call("aasgeier", "entermeister") and has.call("schwarze_flagge", "entermeister") and has.call("schmuggler", "kopfgeldjaeger"),
+		"neue Typen bei ihren Fraktionen")
+	var pm := Combatant.create(t.call("psi_meuchler"), &"enemy")
+	check(pm.weapons.any(func(w: WeaponData) -> bool: return w.power != ""), "Psi-Meuchler hat Psi-Angriffe")
+
+
 func _test_story_factions() -> void:
 	var ids := ["stille_hand", "wacht_klingen", "wacht_hirten", "abteilung_9"]
 	for id in ids:

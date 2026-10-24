@@ -27,6 +27,7 @@ func _init() -> void:
 	_test_events_and_harbor()
 	_test_faction_ids()
 	_test_images()
+	_test_boss()
 
 
 ## Oberflächen-Tests erst, wenn der Baum steht (_ready der Fenster)
@@ -580,3 +581,37 @@ func _test_images() -> void:
 	s.start(id)
 	s.state.chains[id].scene = sid
 	check(s.view(id).image == want, "alter Spielstand: Bild aus der Vorlage (%s)" % want)
+
+
+## Boss am Ende einer Kette (Nutzer 24.10.2026): Finale und Hinterhalt immer, Schritte und Ereignisketten mit 30 %,
+## Zoll im Schmuggel nie; Raum: boss_name = Schiff, Boden: Name mit Titel; die Szene nennt den Boss
+func _test_boss() -> void:
+	var fin: Array = []
+	StoryGen._missions(StoryData.chains().kapitel1_finale.scenes, fin)
+	check(fin.size() == 3 and fin.all(func(m: Dictionary) -> bool: return m.elite == "boss" and m.boss_name != ""), "Finale: immer Boss")
+	var g := HubState.new_game(77, "Test", 0)
+	var s := Story.create(null, g)
+	var count := {}
+	var ok := true
+	for tid in ["hinterhalt", "befreien", "abfangen", "schmuggel"]:
+		count[tid] = 0
+		for i in 200:
+			var c: Dictionary = s.chain_of(StoryGen.make(s, tid))
+			var ms: Array = []
+			StoryGen._missions(c.scenes, ms)
+			var bosses := ms.filter(func(m: Dictionary) -> bool: return m.get("elite", "") == "boss")
+			if not bosses.is_empty():
+				count[tid] += 1
+			for m in ms:
+				if m.has("boss") or (m.title == "Zollstreife" and m.has("elite")):
+					ok = false
+				if m.get("elite", "") == "boss":
+					var space := String(m.kind) in StoryGen.SPACE_KINDS
+					if String(m.boss_name) == "" or space != (String(m.boss_name) in StoryGen.BOSS_SCHIFFE):
+						ok = false
+			if not bosses.is_empty() and not JSON.stringify(c.scenes).contains(String(bosses[0].boss_name)):
+				ok = false
+	check(count.hinterhalt == 200, "Hinterhalt: immer Boss")
+	check(count.befreien > 30 and count.befreien < 90 and count.abfangen > 30 and count.abfangen < 90, "Schritte: etwa 30 %% Boss (%d, %d von 200)" % [count.befreien, count.abfangen])
+	check(count.schmuggel > 0 and count.schmuggel < 90, "Schmuggel: manchmal Boss (%d von 200)" % count.schmuggel)
+	check(ok, "Boss-Felder richtig: Raum = Schiff, Boden = Name, Zoll nie, Szene nennt den Boss, keine Markierung „boss“ übrig")

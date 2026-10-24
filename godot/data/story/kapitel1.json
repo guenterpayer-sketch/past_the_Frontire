@@ -343,7 +343,7 @@
 				"plan": {
 					"title": "Die Station",
 					"image": "k1_station",
-					"text": "Die Spuren laufen zusammen. Abteilung 9, das Psi-Waffenprogramm von {konzern}, hält in einer Forschungsstation eine junge Psi-Begabte fest. Ihr Name ist Lio. Sie ist der Grund, warum sich so viele für euch interessieren.",
+					"text": "Die Spuren laufen zusammen. Abteilung 9, das Psi-Waffenprogramm von {konzern}, hält in einer Forschungsstation eine junge Psi-Begabte fest. Ihr Name ist Lio. Sie ist der Grund, warum sich so viele für euch interessieren. Geleitet wird die Station von Direktorin Kessa Vohl.",
 					"choices": [
 						{
 							"text": "Frontal angreifen",
@@ -356,7 +356,9 @@
 										"faction": "abteilung_9",
 										"sieg": "befreit",
 										"niederlage": "zurueck",
-										"rueckzug": "plan"
+										"rueckzug": "plan",
+										"elite": "boss",
+										"boss_name": "Direktorin Kessa Vohl, Leiterin der Station"
 									}
 								}
 							]
@@ -395,7 +397,9 @@
 										"faction": "abteilung_9",
 										"sieg": "befreit",
 										"niederlage": "zurueck",
-										"rueckzug": "plan"
+										"rueckzug": "plan",
+										"elite": "boss",
+										"boss_name": "Direktorin Kessa Vohl, Leiterin der Station"
 									}
 								}
 							]
@@ -418,7 +422,9 @@
 										"faction": "abteilung_9",
 										"sieg": "befreit",
 										"niederlage": "zurueck",
-										"rueckzug": "plan"
+										"rueckzug": "plan",
+										"elite": "boss",
+										"boss_name": "Direktorin Kessa Vohl, Leiterin der Station"
 									}
 								}
 							]

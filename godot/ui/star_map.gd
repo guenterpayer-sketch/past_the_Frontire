@@ -724,8 +724,12 @@ func _offer_card(o: Dictionary) -> Control:
 	var head := HBoxContainer.new()
 	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tag := _kind_tag(o)
-	var tl := UiTheme.label(tag[0], 14, tag[1])
+	var lv := String(o.get("elite", ""))
+	var tl := UiTheme.label(tag[0] + (("  ·  " + Elite.label(lv).to_upper()) if lv != "" else ""), 14, tag[1])
 	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if lv != "":
+		tl.tooltip_text = "Stärkere Gegner mit besserer Ausrüstung (Ziel etwa 70–75 % Siege); selten Elite-Beute." if lv == Elite.ELITE \
+			else "Boss-Kampf: Zielperson mit zwei Leibwächtern und Fußvolk; selten Elite-Beute."
 	v.add_child(tl)
 	var t := UiTheme.label(game.offer_title(o) + ("  · erneuter Versuch" if o.get("retry", false) else ""), 16)
 	if o.get("retry", false):

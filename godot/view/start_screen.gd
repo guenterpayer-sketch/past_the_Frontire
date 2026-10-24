@@ -208,6 +208,7 @@ func _crew_picked(chars: Array[Character]) -> void:
 func start_new_game(slot: int, name: String, chars: Array[Character]) -> void:
 	Campaign.new_game(chars)
 	var g := HubState.new_game(randi() % 1000000, name, slot)
+	g.difficulty_level = slots.difficulty
 	SaveSlots.save(slot, name, g)
 	get_tree().change_scene_to_file(HubState.HUB_SCENE)
 

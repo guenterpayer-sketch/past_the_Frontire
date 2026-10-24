@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="UnitData" format=3]
 
-[ext_resource type="Resource" path="res://data/armor/leicht.tres" id="1_ar"]
+[ext_resource type="Resource" path="res://data/armor/mittel.tres" id="1_ar"]
 [ext_resource type="Script" path="res://data/types/unit_data.gd" id="2_ud"]
 [ext_resource type="Script" path="res://data/types/weapon_data.gd" id="3_wd"]
 [ext_resource type="Resource" path="res://data/visuals/characters/women_soldier.tres" id="4_vi"]
@@ -25,9 +25,10 @@ attrs = {
 }
 skills = {
 "ausweichen": 5,
-"einhand": 6,
-"gewehre": 6,
-"kampfsinn": 4
+"einhand": 7,
+"gewehre": 8,
+"kampfsinn": 4,
+"koerper": 1
 }
 weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0"), ExtResource("6_w1")])
 armor = ExtResource("1_ar")

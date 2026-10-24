@@ -51,7 +51,7 @@ func setup(s: SpaceShip) -> void:
 	_name.outline_size = 8
 	_name.position = Vector3(0, 1.8, 0)
 	_name.no_depth_test = true
-	_name.modulate = UiTheme.CREW if s.side == &"crew" else UiTheme.ENEMY
+	_name.modulate = UiTheme.CREW if s.side == &"crew" else (UiTheme.ACCENT if s.elite else UiTheme.ENEMY)
 	_name.text = s.name
 	add_child(_name)
 	_sel = MeshInstance3D.new()
@@ -128,7 +128,12 @@ func select(on: bool) -> void:
 	_sel.visible = on
 
 
-## Schildring und Hüllenbalken neu zeichnen
+## Voller Zustand sichtbar: eigenes Schiff oder Gegner mit gültigem Scan
+func _clear() -> bool:
+	return ship.side == &"crew" or ship.scan_live
+
+
+## Schildring und Hüllenbalken neu zeichnen (Gegner ohne Scan nur grob)
 func refresh() -> void:
 	visible = ship.is_present()
 	_set_wreck(ship.wreck)
@@ -139,6 +144,8 @@ func refresh() -> void:
 			var v := float(ship.shields[i]) / ship.shield_max
 			if v <= 0.0:
 				continue
+			if not _clear():
+				v = 0.7  # Gegner ohne Scan: nur Schild da / nicht da
 			var col := UiTheme.CREW if v > 0.6 else (UiTheme.ACCENT if v > 0.3 else UiTheme.BAD)
 			col.a = 0.35 + 0.6 * v
 			var m := StandardMaterial3D.new()
@@ -156,15 +163,24 @@ func refresh() -> void:
 			im.surface_end()
 	_ring.mesh = im if im.get_surface_count() > 0 else null
 	var pct := float(ship.hull) / maxf(1.0, ship.hull_max)
-	var n := 10
-	var full := roundi(pct * n)
-	_bar.text = "█".repeat(full) + "░".repeat(n - full)
-	_bar.modulate = UiTheme.GOOD if pct > 0.5 else (UiTheme.ACCENT if pct > 0.25 else UiTheme.BAD)
+	if _clear():
+		var n := 10
+		var full := roundi(pct * n)
+		_bar.text = "█".repeat(full) + "░".repeat(n - full)
+		_bar.modulate = UiTheme.GOOD if pct > 0.5 else (UiTheme.ACCENT if pct > 0.25 else UiTheme.BAD)
+	else:
+		var stage := ship.hull_stage()
+		var parts := PackedStringArray()
+		for i in 3:
+			parts.append("███" if i <= stage else "░░░")
+		_bar.text = " ".join(parts)
+		_bar.modulate = [UiTheme.BAD, UiTheme.ACCENT, UiTheme.GOOD][stage]
 	var warn := ""
-	for sys in ship.damage:
-		if Tables.SEVERITIES.find(String(ship.damage[sys])) >= 2:
+	var seen := ship.seen_damage()
+	for sys in seen:
+		if Tables.SEVERITIES.find(String(seen[sys])) >= 2:
 			warn = " ⚠"
-	_name.text = ship.name + (" (Wrack)" if ship.wreck else warn)
+	_name.text = ("★★ Boss: " if ship.boss else ("★ " if ship.elite else "")) + ship.name + (" (Wrack)" if ship.wreck else warn)
 
 
 var _wreck_shown := false

@@ -31,3 +31,74 @@
 - Alle Aufträge bis 18.10.2026 erledigt und in `main`, zuletzt `bb89c03`: Kartentypen Bar, Straße, Tempel, Büro, Raumschiff-Inneres (`core/map_types.gd`, `core/maps/`, Entern/Abwehr im Raumschiff über `HubState.mission_of()`), Startlagen je Auftrag (Standard, Hinterhalt, Zange, Verteilte Gegner, Verteidigung), Steuerung Tab/F/Leertaste. Danach (`e931e13`): Truppgröße nach Schwierigkeit (schwer bis 8, `Campaign.max_squad`, Budget schwer 88). Danach (`16ac931`): Wände sperren Sicht und Druckwelle immer. Danach (`7f95a11`): **Karteneditor** (`map_editor.tscn`, `view/map_editor.gd`, `core/custom_maps.gd`, Startmenü „Karteneditor“, Draufsicht/3D, eigene Karten in `user://maps/`, je Karte an/aus, Pool-Chance 30 %; Schnittstellen `Mission.custom_map`, `CustomMaps.for_mission`). Danach (`514a72b`): Startausrichtung zum Gegner in allen Lagen, neue Lage „Überfall“ (Gegner in der Mitte, schauen weg, handeln in Runde 1 nicht). Details im Archiv. Verlauf im Archiv (siehe oben), Zusammenführungen in `docs/Zusammenfuehrung.md`.
 - Neue Fertigmeldungen hier kurz eintragen (Commit, was neu, Schnittstellenänderungen). Erledigtes verschiebt der Koordinator nach jeder Zusammenführung ins Archiv.
 
+
+
+## Balancing, Elite, Boss (24.10.2026, erledigt mit `86cf0e8`)
+
+### Auftrag (24.10.2026): Balancing – Ursache finden
+
+Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen so stark, dass Kämpfe keine Herausforderung mehr sind. Betrifft Boden- **und** Raumkampf. Anzeichen laut Nutzer: Gegner fallen zu schnell, keine Verletzungen oder Verluste, zu wenige Gegner. Entscheidung des Nutzers: erst die Ursache finden, dann Wege vorschlagen.
+
+1. Spielstand des Nutzers lesen: `spielstaende/24-10-2026/` (`slot_1.json`, `auto.json`, `crew.json`, `roster.json`; Tag 60, 6 Einsätze, 10 Figuren). Eigene Ausrüstung: `spielstaende/24-10-2026/gear/` (7 Waffen, 2 Rüstungen).
+2. Bodenkampf prüfen: Gegnerwerte, Anzahl und Zusammensetzung je Schwierigkeit/Ort gegen die Werte der Crew (Fertigkeiten, Rüstung, Waffen). Die eigene Ausrüstung des Nutzers mit den Standardwaffen und -rüstungen vergleichen und melden, ob sie außerhalb der Regeln liegt (`docs/Skillsystem.md`). Simulation mit der Crew des Nutzers, wenn machbar (`test_sim.gd`).
+3. Ergebnis als Bericht an den Nutzer: Ursachen mit Zahlen (was ist Wissen, was Annahme), dazu 2–3 Wege zum Ausgleich mit Vor- und Nachteilen. Bericht kurz in die Moduldatei unter „Stand“ eintragen. Kein Code ändern, bis der Nutzer entschieden hat.
+
+### Elite-Gegner – gemeinsame Regeln Boden und Raum (Nutzer 24.10.2026)
+
+- **Häufigkeit:** etwa jeder 7.–8. Kampf (Zufall, ca. 13 %), gleich für Boden und Raum.
+- **Stärke:** nach **Ziel-Siegquote**: per Simulation mit der Crew so einstellen, dass der Nutzer etwa 70–75 % der Elite-Kämpfe gewinnt. Nicht an den Durchschnitt der Crew angleichen (Sorge des Nutzers: zu schwer).
+- **Woher die Stärke kommt:** bessere Ausrüstung mit höheren Boni (Boden: Waffen/Rüstung; Raum: stärkere Schiffswaffen/Schilde), dazu Werte nach Bedarf.
+- **Erkennbar:** schon vorher im Auftrag/Feindkontakt („Elite“, ausweichen möglich) und im Kampf markiert (Zeichen/Farbe am Gegner bzw. Schiff).
+- Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
+- **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
+- **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
+
+### Entscheidungen des Nutzers zum Balancing (24.10.2026)
+
+1. **Gegner bekommen Ränge in Körper** (mehr TP), damit der TP-Abstand zur Crew kleiner wird.
+2. **(a) Gegner wachsen moderat mit:** Die Mission kennt die Stärke der eingesetzten Crew (mehr/stärkere Gegner), aber nur so weit, dass Fortschritt spürbar bleibt. Schnittstelle Hub → `Mission.generate` vorschlagen; den Hub-Teil gibt der Koordinator weiter.
+3. **Elite-Gegner** nach den gemeinsamen Regeln oben.
+4. Nicht gewählt: Erschaffung/Körper der Crew ändern, Stufe „sehr schwer“. Steigerung bleibt wie sie ist.
+5. **Ablauf:** erst Vorschlag mit Simulation (Siegquoten und TP-Verlust mit der Crew aus `spielstaende/24-10-2026/` und mit der Startcrew), an den Nutzer melden, erst nach Zustimmung bauen.
+
+- **Freigabe (24.10.2026):** Vorschlag noch **nicht** freigegeben. Der Nutzer hat weitere Gedanken zum Elite-Status (nur Bodenkampf); erst danach bauen.
+
+### Auftrag (24.10.2026): Elite und Boss fertig abstimmen
+
+Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/raumkampf.md` (Abschnitt „Elite-Gegner“). Ergänzt vom Nutzer am 24.10.2026:
+- **Boss-Kampf:** Boss + 2 Leibwächter + Fußvolk (Form „Anführer“ aus dem Bodenkampf-Vorschlag), Siegquote wie Elite (70–75 %). Kommt vor (a) am Ende jeder Story-Kette (je nach Kette am Boden **oder** im Raum mit Boss-Schiff) und (b) bei Hub-Aufträgen, deren Ziel eine Person ist (z. B. „Beseitigt den Gangsterboss“).
+- **Beute bei Elite und Boss:** selten (nicht bei jedem Kampf), dann höchstens 2–3 Stück der besseren Ausrüstung, gern stark beschädigt. Boden: Waffen/Rüstungen. Raum: ab und zu eine beschädigte Schiffswaffe.
+- **Elite-Wurf** beim Hub (beim Erstellen von Auftrag/Feindkontakt, ca. 13 %), Anzeige „Elite“ bzw. „Boss“ im Angebot.
+
+1. **Bessere Rüstung für Elite mit dem Nutzer klären** (seine Bitte): Sie war gewünscht, ist im Vorschlag weggefallen, weil sie den Kampf stark verschoben hat. Zahlen zeigen, Nutzer entscheidet.
+2. Form „Anführer“ als Boss-Kampf festlegen, die Story und der Hub können sie anfordern.
+3. **Schnittstelle vorschlagen** (Hub → Mission): z. B. `elite: bool` und `form: StringName` (`""`, `&"trupp"`, `&"kern"`, `&"boss"`), dazu Beute im `MissionResult`. Dem Koordinator melden; erst nach Freigabe des Nutzers bauen.
+
+### Freigabe Balancing-Paket (24.10.2026)
+
+**Schnittstellen bestätigt (Koordinator mit Nutzer, 24.10.2026):**
+- Mission-Feld `elite: StringName` = `""` | `&"elite"` | `&"boss"` (Form Trupp/Kern/Boss wählt der Bodenkampf). Raum: `setup.enemy.elite`/`boss`/`boss_name` (schon in `main`).
+- Spieleinstellung **„Schwierigkeitsgrad“** leicht ×0,8 / normal ×1,0 / schwer ×1,25, gilt für **Boden und Raum** (Nutzer). Hub speichert sie und gibt sie an `Mission.generate` und an den Raumkampf (`setup.difficulty_factor: float`, fehlend = 1.0) weiter.
+- Elite-Beute: `MissionResult.loot`-Einträge mit `elite: true`. Im Handel **verkaufen ja, kaufen nein** (Nutzer).
+- Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
+
+Bodenkampf-Teil in Schritten bauen (Nutzer hat das Paket mit dir abgestimmt). Jeden Schritt mit Tests melden.
+  - **Schritt 1 gebaut (`68a7e6a`):** Gegnertypen, neue Typen, Scharfschützengewehr, Preise, Körper 1.
+  - **Schritt 2 gebaut:** Budget 55/75/100, Anzahl 5–7/6–9/8–12, Neuling/Veteran mit Preis, `Mission.MAX_ENEMIES` 12, `MIN_START_FIELDS` 9 (Karten, eigene Karten, Editor), Ersatzaufstellung `Combat._place_enemies`, Schwierigkeitsfaktor als 4. Parameter von `Mission.generate` (wie vom Hub erwartet).
+  - **Schritt 3 gebaut:** Mitwachsen `Mission.grow(enemies, crew)` / `Mission.extra_strength(crew)` in `Battle.new_battle` (Körper +round(7·m), Waffenfertigkeiten +round(2·m)), Hinweis im Kampflog.
+  - **Schritt 4 gebaut:** Elite/Boss wie in der README (Elite-Ausrüstung `data/weapons/elite`, `data/armor/elite`; `Mission.generate(…, elite)`, `Mission.elite`/`elite_form`; Beimischung `ELITE_MIX`; Elite-Beute 12 %, `loot[].elite`; Kennzeichnung Briefing und Namensschild). Schnittstellen für den Hub: `Mission.generate(seed, diff, faction_path, diff_factor, elite)`; das Feld `Mission.elite` ist ein Setter (auch nachträglich über `Elite.apply`, Gegner fest aus dem Seed neu); Elite-Stücke im Lager über Metadaten `elite` (verkaufen ja, kaufen nein – Hub); Preis der neuen Waffe/Elite-Stücke fehlt in `Stock.PRICES` (Hub/Charakter).
+
+### Hub-Seite fertig (24.10.2026, `44c0514`)
+
+Der Hub ruft `Mission.generate` mit dem Schwierigkeitsfaktor als 4. Parameter (sonst Feld `difficulty_factor`) und setzt `Mission.elite`, sobald es das Feld gibt. Neue Klasse `Elite` (`core/elite.gd`: `roll`, `label`, `boss_name`, `LEVELS`, `generate`, `apply`). Kopfgeld-Aufträge (10 % der Bodenaufträge) haben Stufe `boss`. Elite-Ausrüstung bitte als eigene Einträge liefern (`/elite/` im Pfad oder Feld `elite`), Hub erkennt sie über `Stock.is_elite`.
+
+- **Fertig (24.10.2026, Balancing-Paket Boden):** Schritte 1–4 gebaut, main eingemischt, an die Hub-Schnittstelle angepasst (`Mission.generate(…, diff_factor, elite)`, Setter `Mission.elite`). Prüfung mit dem echten Code, Squad des Nutzers, 30 Kämpfe: normal leicht 30/30 (25 % TP-Verlust), mittel 30/30 (42 %), schwer 19/30 (75 %); Elite leicht 27/30 (49 %), mittel 23/30 (67 %), schwer 15/30 (80 %); Boss leicht 30/30 (41 %), mittel 27/30 (56 %), schwer 20/30 (67 %). Offen für andere Module: Preise für Scharfschützengewehr und Elite-Stücke in `Stock.PRICES` (Hub/Charakter).
+
+
+
+### Auftrag (24.10.2026): Schild als Beute (erledigt, `7462c15`)
+
+Wunsch des Nutzers: Gegner mit Schild können ihn nach dem Kampf fallen lassen (wie andere Beute, Häufigkeit sinnvoll wählen). Im `MissionResult.loot` mit dem Schlüssel `Equipment.SHIELD` liefern; der Hub nimmt ihn ins Lager (Hub Auftrag 11). Tests nach CLAUDE.md, Fertigmeldung.
+
+- **Fertig (24.10.2026):** Schildträger = Gegner nur mit einhändigen Waffen (Nutzer): Klingentänzer, Handagent, Hexer, Seherin, Psi-Meuchler (`shield = true`; bei Waffentausch auf zweihändig entfällt er, `Mission._individualize`). Beute: 30 % je besiegtem Schildträger (`Combat.SHIELD_LOOT_CHANCE`), `loot`-Eintrag `{key: Equipment.SHIELD, name: "Schild", count: 1}` ohne `damage`. Test `_test_shield_loot`.
+

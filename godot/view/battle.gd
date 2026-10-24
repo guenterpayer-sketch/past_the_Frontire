@@ -128,7 +128,10 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 	Music.play(Music.BRIEFING)   # Briefing und Runde 0 (Musikspieler des Hubs)
 	var map := MapGenerator.for_mission(seed_value, mission)
 	_apply_light(map.map_type)
-	combat = Combat.new(map, Roster.build_crew(squad), Roster.build_units(mission.enemies, &"enemy"))
+	var crew_units := Roster.build_crew(squad)
+	var enemy_units := Roster.build_units(mission.enemies, &"enemy")
+	var grown := Mission.grow(enemy_units, crew_units)   # Mitwachsen mit dem eingesetzten Trupp (Balancing 24.10.2026)
+	combat = Combat.new(map, crew_units, enemy_units)
 	Ammo.apply(combat.crew(), ammo_stock())   # Munition aus dem Schiffsvorrat (Gegner: voll)
 	ai = CombatAI.new()
 	player = PlayerController.new(combat)
@@ -160,6 +163,8 @@ func new_battle(seed_value: int, size_id := "", difficulty := "", briefing := tr
 		mission.title, mission.difficulty_name(), combat.crew().size(), mission.faction.name, mission.enemy_summary(), place_name, sz.name, form], &"round")
 	var zone: String = {&"verteidigung": "rechten Bereich", &"hinterhalt": "mittleren Bereich", &"ueberfall": "freien Bereich rund um die Gegner"}.get(mission.lage, "Eingangsbereich")
 	ui.combat_log.add("Lage: %s." % mission.lage_text(), &"round")
+	if grown[0] > 0 or grown[1] > 0:
+		ui.combat_log.add("Gegner wachsen mit eurem Trupp: Körper +%d (+%d TP), Waffenfertigkeit +%d Rang." % [grown[0], grown[0] * Rules.HP_PER_RANK, grown[1]], &"")
 	ui.combat_log.add("Runde 0: Crew im %s aufstellen (blaue Felder), dann „Kampf beginnen“." % zone, &"")
 	deploy_sel = combat.crew()[0] if not combat.crew().is_empty() else null
 	_mark_current(deploy_sel)

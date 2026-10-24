@@ -27,9 +27,11 @@ skills = {
 "ausweichen": 10,
 "einhand": 7,
 "kampfsinn": 6,
+"koerper": 1,
 "pistolen": 8
 }
 weapons = Array[ExtResource("3_wd")]([ExtResource("5_w0"), ExtResource("6_w1")])
 armor = ExtResource("1_ar")
-threat = 12
+shield = true
+threat = 8
 visual = ExtResource("4_vi")

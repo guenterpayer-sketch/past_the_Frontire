@@ -246,7 +246,7 @@ static func _painted(m: BattleMap, d: Dictionary) -> bool:
 	var crew := _starts(m, d.get("crew", []))
 	var enemy := _starts(m, d.get("enemy", []))
 	enemy = enemy.filter(func(t: BattleMap.Tile) -> bool: return not crew.has(t))
-	if crew.size() < Campaign.HARD_SQUAD or enemy.size() < Mission.MAX_ENEMIES:
+	if crew.size() < Campaign.HARD_SQUAD or enemy.size() < Mission.MIN_START_FIELDS:
 		return false
 	if not unreachable(m, crew[0]).is_empty():
 		return false
@@ -303,7 +303,7 @@ static func check(d: Dictionary) -> Dictionary:
 		res.errors.append("%d begehbare Felder nicht erreichbar (rot umrandet)" % res.unreachable.size())
 	if not res.ok:
 		res.errors.append("keine Startfelder für „Standard“: links (Spalten 1–%d) zu wenig freier Boden oder nicht alles erreichbar; Startfelder von Hand zeichnen (mind. %d Crew, %d Gegner)" % [
-			BattleMap.DEPLOY_COLS, Campaign.HARD_SQUAD, Mission.MAX_ENEMIES])
+			BattleMap.DEPLOY_COLS, Campaign.HARD_SQUAD, Mission.MIN_START_FIELDS])
 	return res
 
 

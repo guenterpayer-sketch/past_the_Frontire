@@ -3,16 +3,27 @@ extends SceneTree
 ##   godot --headless --path godot --script res://tests/sim_space.gd -- 60          Kämpfe je Schwierigkeit
 ##   godot --headless --path godot --script res://tests/sim_space.gd -- 40 waffen   Wirkung je Schiffswaffe
 ##   godot --headless --path godot --script res://tests/sim_space.gd -- 60 fraktionen   Siege je Gegnerseite und Schwierigkeit
+##   … -- 60 faktor=1.25   mit Schwierigkeitsgrad (Spieleinstellung, 0.8 / 1.0 / 1.25; kombinierbar mit elite/boss)
+##   … -- 60 boss    Boss-Kämpfe (Gruppe fest, Schwierigkeit egal; Ziel etwa 70–75 %)
+##   … -- 60 elite   wie oben, aber Elite-Kämpfe (docs/Raumkampf.md 4e; Ziel etwa 70–75 % Siege über alle Stufen)
 ## Ziele des Nutzers (17.10.2026, docs/Planung_Raumkampf.md 1c): Sieg 90/70/45 %, 8–12 Runden, Flucht < 10 %.
 
 const DIFFS := ["leicht", "mittel", "schwer"]
 const GOAL := {"leicht": 90, "mittel": 70, "schwer": 45}
+var _elite := false
+var _boss := false
+var _factor := 1.0
 
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var n := int(args[0]) if args.size() > 0 and args[0].is_valid_int() else 60
 	Dice.set_seed(20261017)
+	_elite = "elite" in args
+	_boss = "boss" in args
+	for a in args:
+		if a.begins_with("faktor="):
+			_factor = float(a.trim_prefix("faktor="))
 	if "waffen" in args:
 		_weapons(n)
 	elif "ep" in args:
@@ -29,7 +40,7 @@ func _factions() -> Array:
 
 
 func _setup(diff: String, faction: String) -> Dictionary:
-	return SpaceBattle.prepare(SpaceSetup.quick(diff, faction))
+	return SpaceBattle.prepare(SpaceSetup.quick(diff, faction, _elite, _boss, _factor))
 
 
 func _battles(n: int) -> void:

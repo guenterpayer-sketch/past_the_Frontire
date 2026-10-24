@@ -132,6 +132,47 @@ Entscheidungen des Nutzers: eigene Seiten in `data/ships/seiten/` für `semidrug
 
 Messung (`tests/sim_space.gd -- 100 fraktionen`, neu: Siege je Seite) nach der Abstimmung, Sieg leicht/mittel/schwer: Semidrug 79/69/45, Eisenwölfe 88/56/35, Schwarze Flagge 88/65/42, Aasgeier 85/73/40, Neuntes Haus 88/66/50, Kinder der Glut 90/66/40; zum Vergleich die alten Seiten 87–93 / 58–72 / 39–48 (Drohnen 100/97/59). Die Werte schwanken zwischen Läufen um etwa ±7 Punkte (Würfelfolge hängt von der Reihenfolge der Kämpfe ab; Eisenwölfe mittel z. B. 56–67 % bei gleichen Werten). Die neuen Seiten liegen damit in der Streuung der alten.
 
+## 1g. Gegner-Info und Scan (23.10.2026, Wunsch des Nutzers)
+
+Frage des Nutzers: Infos vom Gegnerschiff (Antrieb beschädigt, Waffen beschädigt usw.). Vorher lag alles im Spielzustand, sichtbar über Klick-Log, Hüllenbalken, Schildring und ein allgemeines ⚠. Entscheidungen: Mouseover über dem Schiff; Umfang „eigene Treffer + Scan“; ohne Scan Hülle und Schilde nur grob; Scan gilt einige Runden (Vorschlag 3 bestätigt), Hülle in 3 Stufen; Mockups bestätigt. Regel in `docs/Raumkampf.md` 4d.
+
+Umsetzung: `SpaceShip.known`/`scan_until`/`scan_live`/`scan_seen`, `seen_damage()`, `hull_stage()`; `SpaceCombat.SCAN_ROUNDS`, Computer-Modus `"scan"`; Tooltip `SpaceUI.hover_ship()`/`enemy_info()`, Hover in `SpaceView._input`; Karte in `SpaceShipView` (Balken 3 Stufen, Schildring an/aus). Test `test_space.gd` `_test_scan`, Screenshots `-- --autotest-space` (8_gegner_grob, 9_gegner_scan). Kein Balancing nötig: Gegner-KI und Bord-KI handeln wie vorher (`test_sim -- 10` OK). Auf Touch-Geräten gibt es keinen Mouseover; dort bleibt der Klick (Log).
+
+## 1h. Elite-Gegner, moderate Anpassung, Stationstreffer (24.10.2026, gebaut)
+
+Grundlage: gemeinsame Elite-Regeln in `docs/module/raumkampf.md` (13 % der Kämpfe, Ziel 70–75 % Siege, Stärke aus Ausrüstung, vorher erkennbar). Gemessen mit Prototyp-Skript (nur im Chat), Schwierigkeit wie im Spiel 1:3:1, alle Seiten, 150–200 Kämpfe je Zeile.
+
+- **Crew-Stärke P** = Mittel aus Pilot und den zwei besten Geschützstationen (Turm ausgenommen). Spielstand 24.10.: P 75; derselbe mit KI-Schützen: P 28; Schnellkampf-Testcrew: P 33.
+- **Elite:** Waffen eine Stufe besser (Laserbank → Partikelkanone, Massebeschleuniger → Schnellfeuerkanone, Raketenwerfer → Raketenbatterie, Abwehrgeschütz → Abwehrlaser), Schilde +4 je Seite und +1 Aufladung (nicht bei Jägern), Besatzung **E = (P − 52) × 0,45** (gerundet, −15 bis +30).
+  - Nur Ausrüstung (E 0): Siege 89 / 60 / 53 % (P 75 / 28 / 33) – für schwache Crews schon zu hart, daher E auch negativ.
+  - Mit Formel: **74 / 79 / 70 %** Siege, Runden 5,5 / 9,0 / 10,4, Hüllenverlust Ø 39 / 32 / 46.
+- **Normale Kämpfe moderat:** Besatzung + (P − 52) × 0,2 (0 bis +10), keine Ausrüstung: Spielstand 95 → **92 %**, Hüllenverlust Ø 13 → 20; schwache Crews unverändert (72–73 %).
+- **Stationstreffer** (Anteil der Systemtreffer, heute 15 %): 25 % → Verletzte etwa +30–80 %, 35 % → etwa doppelt so viele; Siegquoten messbar unverändert (Spielstand Ø 0,06 → 0,08 → 0,10 je Kampf, Testcrew 0,10 → 0,15 → 0,24).
+- Schnittstelle: Ergänzung `setup.enemy.elite: bool` (setzt, wer Auftrag/Kontakt erzeugt).
+- **Entscheidungen des Nutzers:** Elite so bauen, normale Kämpfe moderat, Stationstreffer 25 %.
+- **Beim Bauen nachgestimmt** (mit dem eingebauten Code, 200 Kämpfe je Zeile): mit 52 / 0,45 kam die Testcrew nur auf 63 % Elite-Siege, daher **Basis 56, Faktor 0,5, Untergrenze −20**. Ergebnis Elite: Spielstand **73 %** (Bonus +10), mit KI-Schützen 79 % (−14), Testcrew 67 % (−12); normal: Spielstand 92 % (+4), die anderen unverändert (0). `tests/sim_space.gd -- 100` normal 93/72/45 % wie vorher, `-- 100 elite` 95/70/55 % (gemischt 1:3:1 etwa 72 %), Abbruch nach 40 Runden 1–3 %.
+- Kennzeichen: „★ Elite-…“ in Gold am Namen (statt goldenem Ring, der Auswahlring ist schon gold). Selbsttest `-- --autotest-space --elite`.
+
+## 1i. Elite-Beute und Boss-Schiff (Auftrag 24.10.2026, gebaut)
+
+- **Befund vorher** (200 Kämpfe je Zeile): Waffen aus Wracks nur bei 1–2 % der Siege; Entern (in der Simulation nach etwa 55 % der Siege) brachte Ø 2,2 Waffen, fast alle unbeschädigt – bei Elite also die besseren Waffen.
+- **Entscheidungen des Nutzers:** Elite/Boss nach dem Sieg 20 % eine Waffe, Entern 30 % eine (je −20/−30); normales Entern auch begrenzen (Zahlen von Claude: 50 % eine Waffe, −10…−30).
+- **Boss-Varianten gemessen** (150 Kämpfe, Spielstand / mit KI-Schützen / Testcrew): 5 Elite-Schiffe (Kreuzer, 2 Korvetten, 2 Jäger) selbst mit −20 nur 18 / 30 / 6 %; Fregatte + Korvette + 2 Jäger mit −10: 45 / 69 / 40 %; Fregatte + 2 Jäger mit −10: 80 / 95 / 74 %; **Kreuzer + 2 Jäger mit −10: 76 / 85 / 70 %** (gewählt). Nutzer: Boss dreht nach 40 Runden ab wie sonst.
+- **Nachmessung mit dem eingebauten Code** (200 Kämpfe): Boss-Siege 80 / 89 / 66 %, Abbruch nach 40 Runden 0 / 3 / 9 %; Waffen je Elite-/Boss-Sieg 0,15–0,23, je Entern 0,21–0,34 (Elite/Boss) bzw. 0,47–0,57 (normal). Elite-Siegquoten unverändert (73 / 79 / 67 %).
+
+## 1j. Schwierigkeitsgrad (Auftrag 24.10.2026, gebaut)
+
+- Varianten gemessen (Prototyp, 200 normale Kämpfe, gemischt 1:3:1; Spielstand / Testcrew, Faktor 0,8 / 1,25): **O1 Hülle × f**: 95 / 94 % und 78 / 64 %; **O2 Besatzung + (f − 1) × 50**: 94 / 73 % und 85 / 41 %; **O3 beides halb**: 96 / 90 % und 77 / 51 % (normal: 94 % und 73 %). Nutzer: **O3**, gilt auch für Elite und Boss.
+- **Nachmessung mit dem eingebauten Code** (150 Kämpfe je Zeile; Spielstand / Testcrew):
+
+| Faktor | normal | Elite | Boss |
+|---|---|---|---|
+| 0,8 | 97 / 80 % | 84 / 89 % | 87 / 79 % |
+| 1,0 | 94 / 66 % | 76 / 65 % | 77 / 64 % |
+| 1,25 | 76 / 56 % | 58 / 53 % | 57 / 39 % |
+
+- **Streuung:** Prototyp und eingebauter Code geben mit denselben Zufallszahlen genau dasselbe; andere Kampfserien weichen aber bis 14 Punkte ab (Spielstand normal ×1,25: 90 % bzw. 76 %, mit 400 Kämpfen 82 %). Einzelne Zellen der Tabelle daher etwa ±7 Punkte.
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).

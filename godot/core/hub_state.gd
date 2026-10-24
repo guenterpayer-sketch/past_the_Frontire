@@ -114,6 +114,8 @@ var _story: Story
 ## Spielstand-Slot (1 … SaveSlots.COUNT) und Name
 var slot := 0
 var slot_name := ""
+## Schwierigkeitsgrad (Elite.LEVELS: leicht/normal/schwer), im Spielstand; wirkt auf Boden und Raum (Hub Auftrag 10)
+var difficulty_level := "normal"
 
 
 ## Neues Spiel: frischer Sektor, Start im Heimathafen, Crew auf Anfang
@@ -140,24 +142,29 @@ static func active_mission() -> Mission:
 	return game.mission_of(game.active) if in_mission() else null
 
 
+## Elite-Stufe ("" | "elite" | "boss") und Schwierigkeitsgrad gehen an den Bodenkampf (Elite.apply/generate, Hub Auftrag 10)
 func mission_of(offer: Dictionary) -> Mission:
+	var f := difficulty_factor()
+	var m: Mission
 	if offer.get("story", false):
-		var sm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))) if String(offer.get("faction", "")) != ""
-			else sector.systems[offer.system].faction)
-		sm.title = String(offer.get("title", sm.title))
+		m = Elite.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))) if String(offer.get("faction", "")) != ""
+			else sector.systems[offer.system].faction, f)
+		m.title = String(offer.get("title", m.title))
 		if String(offer.get("map", "")) != "":
-			sm.set_map_type(StringName(offer.map))
-		return sm
-	if offer.get("board", false) or offer.get("defend", false):
-		var bm := Mission.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))))
+			m.set_map_type(StringName(offer.map))
+	elif offer.get("board", false) or offer.get("defend", false):
+		m = Elite.generate(offer.seed, offer.difficulty, board_faction_path(String(offer.get("faction", ""))), f)
 		# Entern: Raumschiff-Inneres (Bodenkampf, 18.10.2026); Abwehr = Gegner kommen durch die Luftschleuse
-		bm.set_map_type(MapTypes.SHIP, "defend" if offer.get("defend", false) else "board")
-		return bm
-	var m := Mission.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction)
-	var pl: Array = sector.systems[int(offer.system)].get("places", [])
-	var pi := int(offer.get("place", -1))
-	if pi >= 0 and pi < pl.size() and Places.has_ground(String(pl[pi].kind)):
-		m.set_map_type(Places.map_for(String(pl[pi].kind), int(offer.seed)))
+		m.set_map_type(MapTypes.SHIP, "defend" if offer.get("defend", false) else "board")
+	else:
+		m = Elite.generate(offer.seed, offer.difficulty, sector.systems[offer.system].faction, f)
+		var pl: Array = sector.systems[int(offer.system)].get("places", [])
+		var pi := int(offer.get("place", -1))
+		if pi >= 0 and pi < pl.size() and Places.has_ground(String(pl[pi].kind)):
+			m.set_map_type(Places.map_for(String(pl[pi].kind), int(offer.seed)))
+		if offer.has("bounty"):
+			m.title = "Kopfgeld: %s beseitigen" % String(offer.bounty)
+	Elite.apply(m, String(offer.get("elite", "")))
 	return m
 
 
@@ -178,12 +185,19 @@ func book_board(result: Dictionary, difficulty: String) -> bool:
 	return true
 
 
+## Elite-Stufe des laufenden Raumkampfs an das Entern weitergeben (Besatzung eines Elite-Schiffs ist Elite)
+func _board_elite(level: String) -> void:
+	if not board_pending.is_empty():
+		board_pending.elite = level
+
+
 ## Bodenkampf gegen die Besatzung des geenterten Schiffs vorbereiten (Lagerhalle); danach in den Bodenkampf wechseln
 func start_boarding() -> bool:
 	if board_pending.is_empty():
 		return false
 	active = {"id": -1, "system": position, "seed": randi() % 1000000, "difficulty": String(board_pending.difficulty),
-		"expires": day, "retry": false, "board": true, "faction": String(board_pending.faction)}
+		"expires": day, "retry": false, "board": true, "faction": String(board_pending.faction),
+		"elite": String(board_pending.get("elite", ""))}
 	return true
 
 
@@ -387,7 +401,8 @@ func _travel(target: int, days: int, path: Array, escort: int, events: bool) -> 
 			stop = sys
 			var o := offer_by_id(escort)
 			contact = {"faction": SpaceEvents.faction_id(self, sys), "system": sys, "forced": escort >= 0, "escort": escort,
-				"difficulty": String(o.difficulty) if not o.is_empty() else SpaceEvents.roll_difficulty()}
+				"difficulty": String(o.difficulty) if not o.is_empty() else SpaceEvents.roll_difficulty(),
+				"elite": String(o.get("elite", "")) if not o.is_empty() else (Elite.ELITE if Elite.roll(randi()) else "")}
 			travel_rest = {"target": target, "days": days - done, "escort": escort, "won": false}
 			break
 		# Story: höchstens ein Reise-Ereignis je Reise (neben dem Feindkontakt); das Szenenfenster folgt nach der Reise
@@ -469,14 +484,14 @@ func begin_offer() -> String:
 	match offer_kind(o):
 		"abfangen":
 			space_ctx = {"kind": "auftrag", "offer_id": o.id, "faction": SpaceEvents.faction_id(self, o.system),
-				"difficulty": String(o.difficulty), "mission": offer_title(o)}
+				"difficulty": String(o.difficulty), "mission": offer_title(o), "elite": String(o.get("elite", ""))}
 			return "space"
 		"eskorte":
 			travel_to(int(o.target), int(o.id))
 			return "escort"
 	if o.get("blockade", false) and not o.get("blockade_done", false):
 		space_ctx = {"kind": "vor_einsatz", "offer_id": o.id, "faction": SpaceEvents.faction_id(self, o.system),
-			"difficulty": String(o.difficulty), "mission": "Blockade: " + offer_title(o)}
+			"difficulty": String(o.difficulty), "mission": "Blockade: " + offer_title(o), "elite": String(o.get("elite", ""))}
 		return "space"
 	active = o
 	return "ground"
@@ -512,7 +527,7 @@ func fight_contact() -> void:
 	var esc := int(contact.get("escort", -1))
 	space_ctx = {"kind": "eskorte" if esc >= 0 else "reise", "offer_id": esc, "faction": String(contact.faction),
 		"difficulty": String(contact.difficulty), "mission": offer_title(offer_by_id(esc)) if esc >= 0 else
-		"Feindkontakt: %s" % SpaceTemplates.faction_name(String(contact.faction))}
+		"Feindkontakt: %s" % SpaceTemplates.faction_name(String(contact.faction)), "elite": String(contact.get("elite", ""))}
 	contact = {}
 
 
@@ -531,8 +546,17 @@ func dodge_contact() -> Dictionary:
 ## Eingang für SpaceBattle.start() aus space_ctx
 func space_setup(return_scene := HUB_SCENE) -> Dictionary:
 	var src := {"reise": "reise", "eskorte": "auftrag", "auftrag": "auftrag", "vor_einsatz": "vor_einsatz"}
-	return ShipArms.setup(self, {"faction": String(space_ctx.faction), "difficulty": String(space_ctx.difficulty)},
+	var lv := String(space_ctx.get("elite", ""))
+	var s := ShipArms.setup(self, {"faction": String(space_ctx.faction), "difficulty": String(space_ctx.difficulty),
+		"elite": lv != "", "boss": lv == Elite.BOSS, "boss_name": String(space_ctx.get("boss_name", ""))},
 		String(src.get(String(space_ctx.kind), "reise")), String(space_ctx.get("mission", "")), return_scene)
+	s.difficulty_factor = difficulty_factor()
+	return s
+
+
+## Faktor des Schwierigkeitsgrads (leicht 0,8 / normal 1,0 / schwer 1,25)
+func difficulty_factor() -> float:
+	return Elite.factor(difficulty_level)
 
 
 ## Ergebnis des Raumkampfs auswerten (SpaceBattle.take_result; EP und Verwundung hat der Raumkampf schon gebucht).
@@ -570,6 +594,7 @@ func finish_space(result: Dictionary) -> String:
 				else:
 					_story_done("sieg")
 		if next == "" and book_board(result, String(ctx.get("difficulty", "mittel"))):
+			_board_elite(String(ctx.get("elite", "")))
 			next = "board"
 	elif rep.retreated:
 		if not o.is_empty():
@@ -586,7 +611,7 @@ func finish_space(result: Dictionary) -> String:
 		active = {"id": -2, "system": position, "seed": randi() % 1000000, "difficulty": String(ctx.get("difficulty", "mittel")),
 			"expires": day, "retry": false, "defend": true, "faction": String(result.get("boarding_faction", ctx.get("faction", ""))),
 			"space_kind": kind, "offer_id": int(ctx.get("offer_id", -1)), "ship": String(result.get("board_ship", "")),
-			"loot": result.get("board_loot", {}).duplicate(true)}
+			"loot": result.get("board_loot", {}).duplicate(true), "elite": String(ctx.get("elite", ""))}
 		next = "defend"
 	else:
 		_drop_offer(o, false)
@@ -750,15 +775,25 @@ func set_loot(result: Dictionary) -> int:
 	if not loot_pending.is_empty():
 		take_loot(loot_default())
 	var items: Array = []
+	var elite: Array = []
 	var medkits := 0
 	for l in result.get("loot", []):
 		if String(l.key) == Stock.MEDKIT:
 			medkits += int(l.get("count", 1))
-		elif String(l.key) != "" and String(l.key) != Equipment.SHIELD:
+		elif String(l.key) == Equipment.SHIELD:
+			# Schild als Beute (Hub Auftrag 11): direkt ins Lager wie Medikits, nie beschädigt
+			Stock.add(self, Equipment.SHIELD, int(l.get("count", 1)))
+		elif String(l.key) != "":
+			# Elite-Beute (MissionResult.loot mit elite: true, Hub Auftrag 10): wie andere Beute, im Lager verkaufbar,
+			# nie im Sortiment (Stock.goods); hier nur für die Anzeige „★“ vermerkt
+			if bool(l.get("elite", false)):
+				elite.append(items.size())
 			items.append(Stock.damaged_key(String(l.key), int(l.get("damage", 0))))
 	Stock.add(self, Stock.MEDKIT, medkits)
 	# Beuteplätze = Figuren + Eigenheit der Fraktion (MissionResult.loot_extra, z. B. Aasgeier +1)
 	loot_pending = {} if items.is_empty() else {"items": items, "slots": result.get("units", {}).size() + int(result.get("loot_extra", 0))}
+	if not elite.is_empty() and not loot_pending.is_empty():
+		loot_pending.elite = elite
 	return medkits
 
 
@@ -814,6 +849,11 @@ func refill_offers() -> void:
 		var o := {"id": next_id, "system": sys, "seed": randi() % 1000000,
 			"difficulty": DIFFICULTY_ROLL[randi() % DIFFICULTY_ROLL.size()],
 			"expires": day + randi_range(OFFER_DAYS[0], OFFER_DAYS[1]), "retry": false, "kind": k.kind, "blockade": k.blockade}
+		# Elite-Wurf (≈ 13 %); Bodenaufträge ohne Blockade selten mit Person als Ziel = Boss-Kampf („Kopfgeld“)
+		o.elite = Elite.ELITE if Elite.roll(int(o.seed)) else ""
+		if k.kind == "boden" and not k.blockade and randf() < Elite.BOUNTY_CHANCE:
+			o.elite = Elite.BOSS
+			o.bounty = Elite.boss_name(int(o.seed))
 		var grounds := []
 		var pl: Array = sector.systems[sys].get("places", [])
 		for pi in pl.size():
@@ -840,7 +880,7 @@ func offers_at(system: int) -> Array[Dictionary]:
 func to_dict() -> Dictionary:
 	return {"day": day, "sectors": sectors.map(func(x: Sector) -> Dictionary: return x.to_dict()), "cur_sector": cur_sector,
 		"known_sectors": known_sectors.duplicate(), "papers": papers.duplicate(), "position": position, "offers": offers.duplicate(true),
-		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "berths": berths,
+		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "difficulty_level": difficulty_level, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
 		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
@@ -878,6 +918,9 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 			no.place = int(o.place)
 		if o.has("target"):
 			no.target = int(o.target)
+		no.elite = String(o.get("elite", ""))
+		if o.has("bounty"):
+			no.bounty = String(o.bounty)
 		g.offers.append(no)
 	g.next_id = int(d.get("next_id", 1))
 	g.missions_done = int(d.get("missions_done", 0))
@@ -903,6 +946,8 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	var lp: Dictionary = d.get("loot_pending", {})
 	if not lp.is_empty():
 		g.loot_pending = {"items": lp.get("items", []).map(func(x) -> String: return String(x)), "slots": int(lp.get("slots", 0))}
+		if lp.has("elite"):
+			g.loot_pending.elite = lp.elite.map(func(x) -> int: return int(x))
 	g.trade_rolls = d.get("trade_rolls", {}).duplicate(true)
 	var pr: Dictionary = d.get("project", {})
 	if not pr.is_empty():
@@ -937,12 +982,13 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 	var ct: Dictionary = d.get("contact", {})
 	if not ct.is_empty():
 		g.contact = {"faction": String(ct.faction), "difficulty": String(ct.difficulty), "system": int(ct.system),
-			"forced": bool(ct.get("forced", false)), "escort": int(ct.get("escort", -1))}
+			"forced": bool(ct.get("forced", false)), "escort": int(ct.get("escort", -1)), "elite": String(ct.get("elite", ""))}
 	var tr: Dictionary = d.get("travel_rest", {})
 	if not tr.is_empty():
 		g.travel_rest = {"target": int(tr.target), "days": int(tr.days), "escort": int(tr.get("escort", -1)), "won": bool(tr.get("won", false))}
 	g.pending_offer = int(d.get("pending_offer", -1))
 	g.slot_name = d.get("slot_name", "")
+	g.difficulty_level = String(d.get("difficulty_level", "normal")) if Elite.LEVELS.has(String(d.get("difficulty_level", ""))) else "normal"
 	g.slot = slot_no
 	return g
 
@@ -1000,13 +1046,15 @@ func start_story_mission() -> String:
 		active = _story_ground(m)
 		return "ground"
 	space_ctx = {"kind": "story", "offer_id": -1, "faction": String(m.get("faction", SpaceEvents.faction_id(self, position))),
-		"difficulty": String(m.get("difficulty", "mittel")), "mission": String(m.get("title", "Story")), "then_ground": kind == "blockade"}
+		"difficulty": String(m.get("difficulty", "mittel")), "mission": String(m.get("title", "Story")), "then_ground": kind == "blockade",
+		"elite": String(m.get("elite", "")), "boss_name": String(m.get("boss_name", ""))}
 	return "space"
 
 
 func _story_ground(m: Dictionary) -> Dictionary:
 	return {"id": -3, "system": position, "seed": randi() % 1000000, "difficulty": String(m.get("difficulty", "mittel")),
 		"expires": day, "retry": false, "story": true, "title": String(m.get("title", "")), "faction": String(m.get("faction", "")),
+		"elite": String(m.get("elite", "")),
 		"map": story_map(m)}
 
 

@@ -25,6 +25,10 @@ func _init() -> void:
 	_test_end_states()
 	_test_result()
 	_test_tech()
+	_test_scan()
+	_test_elite()
+	_test_boss_loot()
+	_test_factor()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -282,6 +286,104 @@ func _test_tech() -> void:
 	c._do_tech(c.own, {"technik": {"technik": [{"repair": "sensoren"}, {"repair": "reaktor"}],
 		"technik_2": [{"repair": "antrieb"}]}})
 	check(rolls.filter(func(l: String) -> bool: return l.contains("Technik")).size() == 3, "drei Reparaturproben")
+
+
+## Gegner-Info (23.10.2026): nur eigene Treffer bekannt, Scan zeigt alles für SCAN_ROUNDS Runden, danach veraltet
+func _test_scan() -> void:
+	var c := _combat(13)
+	var e: SpaceShip = c.active_enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())[0]
+	check(not e.scan_live and e.seen_damage().is_empty(), "Gegner anfangs ohne Scan und ohne bekannte Schäden")
+	c._damage_system(e, "antrieb", "C")
+	check(e.seen_damage().is_empty(), "fremder Schaden bleibt unbekannt")
+	c._damage_system(e, "sensoren", "B", true)
+	check(e.seen_damage() == {"sensoren": "B"} and e.known.sensoren.round == c.round_no, "eigener Treffer bekannt")
+	check(c.own.seen_damage() == c.own.damage, "eigenes Schiff sieht alles")
+	e.hull = e.hull_max
+	var st := [e.hull_stage()]
+	e.hull = e.hull_max * 3 / 10
+	st.append(e.hull_stage())
+	e.hull = e.hull_max / 10
+	st.append(e.hull_stage())
+	check(st == [2, 1, 0], "Hülle in 3 Stufen")
+	c.posts["computer"] = String(c.crew[0].id)
+	c.phase = SpaceCombat.Phase.TECH
+	for i in 40:
+		if e.scan_live:
+			break
+		c._do_tech(c.own, {"computer": {"mode": "scan", "target": e.id}})
+	check(e.scan_live and e.scan_until == c.round_no + SpaceCombat.SCAN_ROUNDS, "Scan gilt %d Runden" % SpaceCombat.SCAN_ROUNDS)
+	check(e.seen_damage().has("antrieb") and int(e.scan_seen.round) == c.round_no, "Scan zeigt alles und merkt den Stand")
+	check(not c.own.lock.has(e.id), "Scan ersetzt die Zielerfassung")
+	c.round_no = e.scan_until
+	c._start_round()
+	check(not e.scan_live and e.seen_damage().antrieb == "C" and e.seen_damage().sensoren == "B",
+		"nach Ablauf bleibt der gescannte Stand (veraltet) plus eigene Treffer")
+
+
+## Elite und Gegner nach Crew-Stärke (24.10.2026)
+func _test_elite() -> void:
+	var c := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", true)), 21)
+	var big: Array = c.enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())
+	check(c.elite and c.enemies().all(func(x: SpaceShip) -> bool: return x.elite and x.name.begins_with("Elite-")),
+		"Elite-Kampf: alle Gegner Elite")
+	var keys := []
+	for x in c.enemies():
+		for sl in x.slots:
+			keys.append(String(x.slots[sl].key))
+	check(not keys.has("laserbank") and not keys.has("raketenwerfer"), "Elite-Waffen eine Stufe besser")
+	check(big.is_empty() or big.all(func(x: SpaceShip) -> bool:
+		return x.shield_max == int(SpaceTemplates.ship(x.template).shield) + SpaceCombat.ELITE_SHIELD), "Elite-Schilde")
+	var skill0: int = c.enemies()[0].crew_skill
+	c.start()
+	check(c.enemies()[0].crew_skill == skill0 + c.power_bonus and c.power_bonus == c.power_bonus_for(c.crew_power()),
+		"Elite-Besatzung nach Crew-Stärke")
+	check(c.power_bonus_for(56) == 0 and c.power_bonus_for(76) == 10 and c.power_bonus_for(0) == -20
+		and c.power_bonus_for(200) == 30, "Elite-Formel mit Grenzen")
+	var n := _combat(22)
+	check(not n.elite and n.power_bonus_for(30) == 0 and n.power_bonus_for(76) == 4 and n.power_bonus_for(200) == 10,
+		"normale Kämpfe moderat (0 bis +10)")
+
+
+## Boss-Kampf und Waffen-Beute (24.10.2026)
+func _test_boss_loot() -> void:
+	var su := SpaceSetup.quick("leicht", "piraten", false, true)
+	su.enemy["boss_name"] = "Kesslers Flaggschiff"
+	var c := SpaceCombat.new(SpaceBattle.prepare(su), 31)
+	var b: SpaceShip = c.enemies()[0]
+	check(c.boss and c.elite and c.enemies().size() == SpaceCombat.BOSS_GROUP.size(), "Boss-Gruppe fest")
+	check(b.boss and b.elite and b.name == "Kesslers Flaggschiff"
+		and b.hull_max == roundi(int(SpaceTemplates.ship("kreuzer").hull) * SpaceCombat.BOSS_HULL), "Boss-Schiff")
+	check(c.enemies().slice(1).all(func(x: SpaceShip) -> bool: return x.is_fighter() and not x.elite), "Leibwache: Jäger")
+	check(c.power_bonus_for(56) == SpaceCombat.BOSS_EXTRA, "Boss-Besatzung wie Elite plus Zusatz")
+	# Beute beim Entern: höchstens eine Waffe, beschädigt
+	var n := _combat(32)
+	var e: SpaceShip = n.enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())[0]
+	var got := 0
+	for i in 200:
+		var bw: Array = n.ship_loot(e).weapons
+		check(bw.size() <= 1 and (bw.is_empty() or int(bw[0].damage) <= -10), "Entern: höchstens eine beschädigte Waffe")
+		got += bw.size()
+	check(got > 70 and got < 130, "Entern: etwa jede zweite Mal eine Waffe (%d/200)" % got)
+	e.elite = true
+	got = 0
+	for i in 200:
+		var bw: Array = n.ship_loot(e).weapons
+		check(bw.is_empty() or int(bw[0].damage) <= -20, "Elite-Entern: −20/−30")
+		got += bw.size()
+	check(got > 35 and got < 90, "Elite-Entern: etwa 30 % (%d/200)" % got)
+
+
+## Schwierigkeitsgrad (Spieleinstellung): Hülle und Besatzung der Gegner
+func _test_factor() -> void:
+	var a := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten")), 41)
+	var b := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", false, false, 1.25)), 41)
+	var c := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", false, false, 0.8)), 41)
+	var ea: SpaceShip = a.enemies()[0]
+	var eb: SpaceShip = b.enemies()[0]
+	var ec: SpaceShip = c.enemies()[0]
+	check(a.difficulty_factor == 1.0 and b.difficulty_factor == 1.25, "Faktor aus setup (fehlend = 1,0)")
+	check(eb.hull_max == roundi(ea.hull_max * 1.125) and ec.hull_max == roundi(ea.hull_max * 0.9), "Hülle halb so stark wie der Faktor")
+	check(eb.crew_skill == ea.crew_skill + 6 and ec.crew_skill == ea.crew_skill - 5, "Besatzung +6 / −5")
 
 
 func _test_board() -> void:

@@ -3,7 +3,7 @@ extends Node3D
 ## Hauptszene des Raumkampfs (space.tscn): baut Karte und Schiffe, spielt die Ereignisse des Regelkerns ab
 ## (SpaceCombat meldet über Signale, hier nacheinander mit kurzen Animationen) und verbindet die Oberfläche.
 ## Ohne SpaceBattle.setup (z. B. Szene direkt im Editor mit F6 gestartet) läuft ein Schnellkampf.
-## Selbsttest mit Screenshots: godot --path godot res://space.tscn -- --autotest-space (Ordner in PTF_OUT)
+## Selbsttest mit Screenshots: godot --path godot res://space.tscn -- --autotest-space [--elite] [--boss] (Ordner in PTF_OUT)
 
 const LOG_KIND := {&"bad": &"fumble", &"kill": &"death"}
 
@@ -26,7 +26,8 @@ var autotest := false
 func _ready() -> void:
 	autotest = "--autotest-space" in OS.get_cmdline_user_args()
 	if SpaceBattle.setup.is_empty():
-		SpaceBattle.setup = SpaceBattle.prepare(SpaceSetup.quick())
+		SpaceBattle.setup = SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", "--elite" in OS.get_cmdline_user_args(),
+			"--boss" in OS.get_cmdline_user_args()))
 	combat = SpaceCombat.new(SpaceBattle.setup)
 	combat.logged.connect(func(t: String, k: StringName) -> void: _events.append([&"log", t, k]))
 	combat.ship_moved.connect(func(s: SpaceShip, p: Array[Vector2i]) -> void: _events.append([&"move", s, p]))
@@ -210,6 +211,18 @@ func clicked_cell(cell: Vector2i) -> void:
 		ui.ship_clicked(s)
 
 
+## Maus über der Karte: Tooltip für Gegnerschiffe (über Bedienelementen nicht)
+func _input(e: InputEvent) -> void:
+	if not (e is InputEventMouseMotion) or e.button_mask != 0:
+		return
+	var s: SpaceShip = null
+	if get_viewport().gui_get_hovered_control() == null:
+		var p: Variant = rig.ray_plane(e.position, 0.6)
+		if p != null:
+			s = combat.ship_at(SpaceMapView.cell_at(p))
+	ui.hover_ship(s, e.position)
+
+
 func _unhandled_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.pressed:
 		match e.button_index:
@@ -223,6 +236,7 @@ func _unhandled_input(e: InputEvent) -> void:
 					clicked_cell(SpaceMapView.cell_at(p))
 	elif e is InputEventMouseMotion and (e.button_mask & (MOUSE_BUTTON_MASK_RIGHT | MOUSE_BUTTON_MASK_MIDDLE)):
 		rig.pan(e.relative)
+		ui.hover_ship(null, e.position)
 	elif e is InputEventKey and e.pressed and not e.echo:
 		match e.keycode:
 			KEY_Q:
@@ -265,7 +279,26 @@ func _run_autotest() -> void:
 		if guard == 9:
 			ui.ship_box.toggle()
 			await _shot("6_zahlen")
+			await _autotest_tip()
 	await get_tree().create_timer(0.3).timeout
 	await _shot("7_ergebnis")
 	print("Raumkampf-Selbsttest: %s nach %d Runden" % [combat.result, combat.round_no])
 	get_tree().quit()
+
+
+## Tooltip über einem Gegner: erst ohne Scan, dann gescannt (Scan für den Screenshot direkt gesetzt)
+func _autotest_tip() -> void:
+	var foes := combat.active_enemies()
+	if foes.is_empty():
+		return
+	var e: SpaceShip = foes[0]
+	var at := get_viewport().get_camera_3d().unproject_position(ship_views[e.id].global_position)
+	ui.hover_ship(e, at)
+	await _shot("8_gegner_grob")
+	e.scan_until = combat.round_no + SpaceCombat.SCAN_ROUNDS
+	e.scan_live = true
+	ship_views[e.id].refresh()
+	ui.hover_ship(null, at)
+	ui.hover_ship(e, at)
+	await _shot("9_gegner_scan")
+	ui.hover_ship(null, at)
