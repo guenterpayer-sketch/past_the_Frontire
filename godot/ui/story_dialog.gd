@@ -284,7 +284,8 @@ func _show_result(r: Dictionary) -> void:
 	if not r.effects.is_empty():
 		box.add_child(UiTheme.label(" · ".join(PackedStringArray(r.effects)), 13, UiTheme.MUTED))
 	if not r.mission.is_empty():
-		box.add_child(UiTheme.label("Einsatz: %s" % r.mission.get("title", ""), 15, UiTheme.ACCENT))
+		var boss := String(r.mission.get("boss_name", "")) if String(r.mission.get("elite", "")) == "boss" else ""
+		box.add_child(UiTheme.label("Einsatz: %s" % r.mission.get("title", "") + (" · Boss: " + boss if boss != "" else ""), 15, UiTheme.ACCENT))
 	if box.get_child_count() > 0:
 		content.add_child(box.get_parent())
 	else:

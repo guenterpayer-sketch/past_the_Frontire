@@ -11,6 +11,10 @@
 			"mittel"
 		]
 	},
+	"boss": {
+		"chance": 1.0,
+		"gruppe": "kopfgeld"
+	},
 	"scenes": {
 		"start": {
 			"title": "Kopfgeldjäger",

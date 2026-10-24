@@ -17,6 +17,7 @@
 
 - Alles in `main` (21.10.2026, Version 0.6), keine offenen Aufträge. Verlauf: `docs/module/archiv/story_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
 - Bildfelder: jede Szene hat `image` (Name `<Kette oder Vorlage>_<Szene>`), Startszenen `{bild}`. Prompts: `docs/Story_Bilder.md`. Bilder nur als `.png` (`ui/story_dialog.gd`). Fehlt in einer erzeugten Kette aus einem alten Spielstand das Feld, nimmt `Story.view` das Bild der Vorlage; `test_story` prüft, dass jede Szene ein Bildfeld hat (23.10.2026).
+- (24.10.2026) Auftrag „Boss am Ende jeder Kette“ gebaut: Finale und Hinterhalt immer Boss, Schritte und Ereignisketten 30 % (Zoll nie), Boden/Raum wie bisher, Namen mit Titel (`StoryGen.BOSSE`, Raum: Schiffsname). Einsatz-Felder `elite: "boss"`, `boss_name`. Details: `docs/Planung_Story.md`, „Boss am Ende einer Kette“. **An den Hub:** `elite`/`boss_name` aus `Story.pending_mission()` an Boden (`Mission.elite`) und Raum (`setup.enemy.boss`/`boss_name`) weitergeben und „Boss“ in der Story-Karte zeigen.
 
 ## Gültige Absprachen
 
