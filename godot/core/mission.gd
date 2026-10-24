@@ -511,6 +511,8 @@ static func _individualize(rng: RandomNumberGenerator, picked: Array[UnitData], 
 				d.skills[s] = maxi(0, int(d.skills[s]) + shift)
 		if f:
 			_apply_faction(d, f)
+		if d.shield and d.weapons.any(func(w: WeaponData) -> bool: return w.two_handed):
+			d.shield = false   # Waffentausch auf eine zweihändige Waffe (z. B. Energiehammer): kein Schild
 		out.append(d)
 	return out
 
