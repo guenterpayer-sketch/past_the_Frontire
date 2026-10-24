@@ -228,10 +228,11 @@ static func shop(g: HubState, system: int) -> Array[String]:
 			all[i] = all[j]
 			all[j] = t
 		g.shop[k] = all
-	# gemischte Liste; davon der Anteil nach Gassenwissen (TradeSkills), mehr ergänzt nur
-	var list: Array = g.shop[k].filter(func(s: String) -> bool: return s == Equipment.SHIELD or ResourceLoader.exists(s))
-	var n := maxi(1, ceili(goods().size() * TradeSkills.shop_share(g)))
-	var out: Array[String] = [MEDKIT]
+	# gemischte Liste; davon der Anteil nach Gassenwissen (TradeSkills), mehr ergänzt nur.
+	# Medikit und Schild immer (Schild: Hub Auftrag 11, Nutzer 24.10.2026 – sonst kaum nachträglich zu bekommen)
+	var list: Array = g.shop[k].filter(func(s: String) -> bool: return s != Equipment.SHIELD and ResourceLoader.exists(s))
+	var n := maxi(1, ceili((goods().size() - 1) * TradeSkills.shop_share(g)))
+	var out: Array[String] = [MEDKIT, Equipment.SHIELD]
 	for s in list.slice(0, n):
 		out.append(s)
 	return out

@@ -780,7 +780,10 @@ func set_loot(result: Dictionary) -> int:
 	for l in result.get("loot", []):
 		if String(l.key) == Stock.MEDKIT:
 			medkits += int(l.get("count", 1))
-		elif String(l.key) != "" and String(l.key) != Equipment.SHIELD:
+		elif String(l.key) == Equipment.SHIELD:
+			# Schild als Beute (Hub Auftrag 11): direkt ins Lager wie Medikits, nie beschädigt
+			Stock.add(self, Equipment.SHIELD, int(l.get("count", 1)))
+		elif String(l.key) != "":
 			# Elite-Beute (MissionResult.loot mit elite: true, Hub Auftrag 10): wie andere Beute, im Lager verkaufbar,
 			# nie im Sortiment (Stock.goods); hier nur für die Anzeige „★“ vermerkt
 			if bool(l.get("elite", false)):

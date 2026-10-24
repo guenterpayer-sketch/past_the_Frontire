@@ -1025,6 +1025,14 @@ func _test_elite() -> void:
 	check(Stock.count(g, lk) == 1 and Stock.can_sell(g, lk) and Stock.sell(g, lk) and g.credits > cr and Stock.count(g, lk) == 0,
 		"Elite-Beute im Lager und verkaufbar")
 	check(not Stock.shop(g, g.position).has(ek), "Elite nicht im Sortiment des Hafens")
+	# Schild (Auftrag 11, Punkt 3): immer im Sortiment, in der Werkstatt baubar (heil), als Beute direkt ins Lager
+	check(Stock.shop(g, g.position).has(Equipment.SHIELD), "Schild immer im Sortiment")
+	check(Equipment.SHIELD in Crafting.buildable() and Crafting.skill_of(Equipment.SHIELD) == Crafting.SKILL_ARMOR
+		and Crafting.build_material(Equipment.SHIELD) == 8, "Schild in der Werkstatt baubar (8 Material, Rüstung herstellen)")
+	var sh0 := Stock.count(g, Equipment.SHIELD)
+	g.loot_pending = {}
+	g.set_loot({"units": {"a": {}}, "loot": [{"key": Equipment.SHIELD, "damage": 0}]})
+	check(Stock.count(g, Equipment.SHIELD) == sh0 + 1 and g.loot_pending.is_empty(), "Schild als Beute im Lager")
 	g.difficulty_level = "normal"
 
 
@@ -1073,8 +1081,8 @@ func _test_trade_skills() -> void:
 	var sg := "res://data/weapons/sturmgewehr.tres"
 	check(TradeSkills.result(g, &"handeln") == &"fehlschlag" and Stock.buy_price(g, sg) == 294 and Stock.sell_price(sg, g) == 126, "ohne Probe wie Fehlschlag: +5 %, Verkauf 45 %")
 	check(Voyage.fuel_price(g) == 5 and Voyage.material_price(g) == 63 and ShipUpgrades.yard_cost(g, &"tank") == 630, "Verhandeln ohne Probe: Schiffspreise +5 %")
-	var all := Stock.goods().size()
-	check(Stock.shop(g, g.position).size() - 1 == ceili(all * 0.5), "Gassenwissen ohne Probe: 50 %")
+	var all := Stock.goods().size() - 1   # ohne Schild (immer im Sortiment)
+	check(Stock.shop(g, g.position).size() - 2 == ceili(all * 0.5), "Gassenwissen ohne Probe: 50 % (dazu Medikit und Schild)")
 	var c: Character = Campaign.crew()[0]
 	var xp0: int = Rules.ensure_skill(c, &"handeln").xp
 	var r := TradeSkills.roll(g, &"handeln", c)
@@ -1088,7 +1096,7 @@ func _test_trade_skills() -> void:
 		TradeSkills.fixed = res
 		var share := ceili(all * TradeSkills.SHARE[res])
 		check(Stock.buy_price(g, sg) == ex[res][0] and Stock.sell_price(sg, g) == ex[res][1] and roundi(TradeSkills.shop_share(g) * 100) == ex[res][2]
-			and Stock.shop(g, g.position).size() - 1 == share, "Stufe %s: Kauf %d, Verkauf %d, Sortiment %d %%" % [res, ex[res][0], ex[res][1], ex[res][2]])
+			and Stock.shop(g, g.position).size() - 2 == share, "Stufe %s: Kauf %d, Verkauf %d, Sortiment %d %%" % [res, ex[res][0], ex[res][1], ex[res][2]])
 	TradeSkills.fixed = &"erfolg"
 	check(Voyage.fuel_price(g) == 5 and Voyage.material_price(g) == 54 and Voyage.yard_cost(g) == 36 and ShipUpgrades.yard_cost(g, &"tank") == 540, "Verhandeln Erfolg: −10 %")
 	TradeSkills.fixed = &"fehlschlag"
@@ -1220,7 +1228,7 @@ func _test_crafting() -> void:
 	check(Crafting.difficulty(lp) == "mittel" and Crafting.difficulty(sg) == "schwer" and Crafting.difficulty(mg) == "sehrSchwer" and Crafting.difficulty("res://data/armor/schwer.tres") == "extrem", "Schwierigkeit nach Kaufpreis 150/280/500/700")
 	check(Crafting.difficulty(Stock.damaged_key(sg, -20), "repair") == "schwer" and Crafting.difficulty(sg, "take") == "mittel" and Crafting.difficulty(Stock.MEDKIT) == "mittel" and Crafting.difficulty(Crafting.ammo_key("raketen")) == "mittel", "Reparieren wie Bauen; Zerlegen, Medikit, Munition mittel")
 	check(Crafting.check_bonus(g, c, sg) == Rules.skill_total(c, &"hwWaffen") - 10 and Crafting.check_bonus(g, c, sg, "take") == Rules.skill_total(c, &"hwWaffen"), "Probenwert mit Schwierigkeit")
-	check(not Equipment.SHIELD in Crafting.buildable() and sg in Crafting.buildable() and Crafting.ammo_key("raketen") in Crafting.buildable(), "baubar: ohne Schild, mit Munition")
+	check(Equipment.SHIELD in Crafting.buildable() and sg in Crafting.buildable() and Crafting.ammo_key("raketen") in Crafting.buildable(), "baubar: mit Schild (Auftrag 11) und Munition")
 	# Freischalten und Werkstatt-Stufen
 	check(Crafting.unlocked(g, lp) and not Crafting.unlocked(g, sg) and Crafting.unlock_level(sg) == 1 and Crafting.unlock_level(mg) == 2, "Stufe 0: bis 200 Cr")
 	g.upgrades["workshop"] = 1

@@ -65,16 +65,17 @@ static func skill_of(key: String) -> StringName:
 		return SKILL_MEDS
 	if is_ammo(key):
 		return SKILL_WEAPON
+	if key == Equipment.SHIELD:
+		return SKILL_ARMOR
 	var r: Resource = load(Stock.base_of(key)) if ResourceLoader.exists(Stock.base_of(key)) else null
 	return SKILL_ARMOR if r is ArmorData else SKILL_WEAPON
 
 
-## Baubare Stücke der Werkstatt: Waffen, Rüstungen (auch eigene), Munition; ohne Schild
+## Baubare Stücke der Werkstatt: Waffen, Rüstungen (auch eigene), Schild (Hub Auftrag 11), Munition
 static func buildable() -> Array[String]:
 	var out: Array[String] = []
 	for k in Stock.goods():
-		if k != Equipment.SHIELD:
-			out.append(k)
+		out.append(k)
 	for t in AMMO_BATCH:
 		out.append(ammo_key(t))
 	return out
@@ -285,7 +286,8 @@ static func _finish(g: HubState, c: Character, job: Dictionary) -> Dictionary:
 				g.ammo[t] = int(g.ammo.get(t, 0)) + int(AMMO_BATCH[t])
 				e.text = head + " → +%d Schuss" % AMMO_BATCH[t]
 				return e
-			var out_key := key if key == Stock.MEDKIT else Stock.damaged_key(key, int(BUILD_WEAR[res]))
+			# Medikit und Schild kommen immer heil heraus (Schilde haben keinen Schaden)
+			var out_key := key if key == Stock.MEDKIT or key == Equipment.SHIELD else Stock.damaged_key(key, int(BUILD_WEAR[res]))
 			Stock.add(g, out_key)
 			e.text = head + " → %s ins Lager" % Stock.name_of(out_key)
 			return e
