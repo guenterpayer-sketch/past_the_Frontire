@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ArmorData" format=3]
+
+[ext_resource type="Script" path="res://data/types/armor_data.gd" id="1_bi6uj"]
+
+[resource]
+script = ExtResource("1_bi6uj")
+id = &"keine_vw10"
+name = "Schutzfeld Elite+"
+db = 10
+metadata/elite = true
+metadata/base = "res://data/armor/keine.tres"

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/guns/assault_rifle_2.glb" id="1_606eg"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_arse7"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="2_606eg"]
+
+[resource]
+script = ExtResource("1_arse7")
+ammo_type = &"projektil"
+magazine = 30
+id = &"sturmgewehr_boss"
+name = "Sturmgewehr Boss"
+ob_bonus = 20
+skill = &"gewehre"
+table = ExtResource("2_606eg")
+inc_m = 25
+stages = 4
+fumble = 3
+splash = PackedInt32Array()
+model = ExtResource("1_606eg")
+length_m = 0.9
+grip_offset = Vector3(0, 0.162, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+two_handed = true
+sound_id = &"gewehr"
+metadata/elite = true
+metadata/base = "res://data/weapons/sturmgewehr.tres"

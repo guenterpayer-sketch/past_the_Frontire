@@ -17,5 +17,7 @@ extends Resource
 @export var threat := 10
 ## 3D-Modell mit Animationen (leer = Figur aus Grundkörpern)
 @export var visual: CharacterVisual
+## Elite-Stufe (Balancing 24.10.2026, von Mission gesetzt): "" | basis | leutnant | hauptmann | boss
+@export var elite: StringName = &""
 ## Eigenheit der Fraktion (FactionData.trait_mods, von Mission gesetzt; Combatant wertet sie aus)
 @export var faction_trait := {}

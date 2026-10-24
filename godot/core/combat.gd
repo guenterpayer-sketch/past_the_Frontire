@@ -56,6 +56,8 @@ var retreated := false         # Crew hat sich zurückgezogen (zählt als Nieder
 ## Beute bei Sieg (Ausrüstung der Besiegten): [{key (Stock.key_of), name, damage (0 / −10 … −30)}] bzw. Medikits
 ## [{key: Stock.MEDKIT, name, count}]. Entscheidungen des Nutzers 16.10.2026.
 var loot: Array[Dictionary] = []
+## Elite-Beute: Chance in % je Sieg mit Elite-Gegnern
+const ELITE_LOOT_CHANCE := 12
 const LOOT_DAMAGE := {"weapon": 30, "armor": 60}   # Chance in %, dass ein Beutestück beschädigt ist
 const END_WEAR_CHANCE := 25    # kampfunfähig am Kampfende: je Teil Chance auf einen Schaden
 const LOSS_CHANCE := 50        # Niederlage ohne Rückzug: je Teil Chance auf Verlust
@@ -429,6 +431,7 @@ func _end_gear() -> void:
 	loot.clear()
 	if result != &"sieg":
 		return
+	var elite_gear: Array = []   # [Resource] der Elite-Ausrüstung, nur selten als Beute (ELITE_LOOT_CHANCE)
 	for e in enemies():
 		var gear: Array = []
 		for w in e.weapons:
@@ -441,12 +444,20 @@ func _end_gear() -> void:
 			var key := Stock.key_of(r)
 			if key == "" or Stock.EXCLUDE.has(key):
 				continue
+			if r.get_meta("elite", false):
+				elite_gear.append(r)
+				continue
 			var dmg := mini(0, int(e.wear.get(g[1], 0))) if g[1] != "" else 0   # Beute ist nie +5
 			if Dice.d(100) <= LOOT_DAMAGE[g[2]]:
 				dmg += Combatant.WEAR_STEP * Dice.d(3)
 			loot.append({"key": key, "name": r.get("name"), "damage": maxi(dmg, Combatant.WEAR_BROKEN)})
 		if e.medkit > 0:
 			loot.append({"key": Stock.MEDKIT, "name": Stock.MEDKIT_NAME, "count": e.medkit})
+	# Elite-Beute (Nutzer 24.10.2026): selten, dann 2–3 Stück, stark beschädigt (−20/−30), Kennzeichen elite
+	if not elite_gear.is_empty() and Dice.d(100) <= ELITE_LOOT_CHANCE:
+		for i in mini(elite_gear.size(), 1 + Dice.d(2)):
+			var r: Resource = elite_gear.pop_at(Dice.d(elite_gear.size()) - 1)
+			loot.append({"key": Stock.key_of(r), "name": r.get("name"), "damage": Combatant.WEAR_STEP * (1 + Dice.d(2)), "elite": true})
 
 
 func check_end() -> bool:

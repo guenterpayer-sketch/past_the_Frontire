@@ -53,6 +53,7 @@ func _init() -> void:
 	_test_enemy_types()
 	_test_enemy_count()
 	_test_enemy_growth()
+	_test_elite()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -1559,6 +1560,47 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Balancing 24.10.2026, Schritt 4: Elite-Stufen, Elite-/Boss-Begegnungen, Beimischung, Beute
+func _test_elite() -> void:
+	var tr := Mission.generate(91, "mittel", "", &"elite")
+	check(tr.enemies.size() == Mission.ELITE_COUNT["mittel"] and tr.enemies.all(func(d: UnitData) -> bool: return d.elite in [&"basis", &"leutnant"]),
+		"Elite-Auftrag: %d Gegner, alle Elite (%s)" % [tr.enemies.size(), tr.elite_form])
+	var bo := Mission.generate(92, "schwer", "", &"boss")
+	check(bo.enemies.size() == 8 and bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"boss").size() == 1
+		and bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"hauptmann").size() == 2, "Boss-Auftrag: 1 Boss, 2 Hauptleute, 8 Gegner")
+	var boss: UnitData = bo.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"boss")[0]
+	check(boss.weapons.all(func(w: WeaponData) -> bool: return w.resource_path.contains("/elite/") and w.resource_path.ends_with("_boss.tres"))
+		and boss.armor.resource_path.ends_with("_vw15.tres"), "Boss trägt Boss-Ausrüstung (Waffe +20, Rüstung VW +15)")
+	var sg: WeaponData = load("res://data/weapons/elite/sturmgewehr_elite.tres")
+	check(sg.ob_bonus == 10 and sg.get_meta("elite", false), "Elite-Sturmgewehr +10")
+	var ba := Roster.build_units(bo.enemies, &"enemy")
+	var hp_b := ba[0].max_hp
+	Mission.grow(ba, Roster.build_team(GameData.crew(), &"crew"))
+	check(ba[0].elite == &"boss" and ba[0].max_hp == hp_b + 4 * Rules.HP_PER_RANK, "Boss bei der Startcrew: Körper +4")
+	var mixed := 0
+	for i in 40:
+		var mm := Mission.generate(600 + i, "schwer")
+		mixed += mm.enemies.filter(func(d: UnitData) -> bool: return d.elite == &"basis").size()
+	var easy := 0
+	for i in 40:
+		easy += Mission.generate(700 + i, "leicht").enemies.filter(func(d: UnitData) -> bool: return d.elite != &"").size()
+	check(mixed > 0 and easy == 0, "Beimischung: schwer %d Elite in 40 Aufträgen, leicht keine" % mixed)
+	# Elite-Beute: nur selten, dann gekennzeichnet und stark beschädigt
+	var found := false
+	for i in 200:
+		Dice.set_seed(9000 + i)
+		var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(tr.enemies, &"enemy"))
+		for e in c.enemies():
+			e.state = Combatant.State.DEAD
+			e.hp = -50
+		c.check_end()
+		var el := c.loot.filter(func(l: Dictionary) -> bool: return l.get("elite", false))
+		if not el.is_empty():
+			found = el.size() >= 2 and el.size() <= 3 and el.all(func(l: Dictionary) -> bool: return l.damage <= -20)
+			break
+	check(found, "Elite-Beute: 2–3 Stücke, beschädigt (−20/−30)")
+
+
 ## Balancing 24.10.2026, Schritt 3: Mitwachsen mit dem eingesetzten Trupp
 func _test_enemy_growth() -> void:
 	var m := Mission.generate(77, "mittel")
