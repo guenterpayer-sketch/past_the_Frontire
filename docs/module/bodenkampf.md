@@ -84,6 +84,8 @@
   - Reine Elite-Begegnungen, Mindestzahl 5/6/8: leicht 97–100 %, mittel 83–90 %, schwer 50–60 % Siege. Mit 7 Gegnern überall: leicht 63–77 % (Boss 77, Trupp 70, Kern 63), mittel 63–73 %, schwer 73–83 % → Vorschlag 7 Gegner auf allen Stufen.
   - Preisprüfung (nur ein Typ, 75 Punkte, 12 Kämpfe; TP-Verlust, fair ≈ 45 %): Handagent 10 %, Kopfgeldjäger 20 %, Sicherheitsagent 25 %, Brecher 39 %, Psi-Meuchler 39 %, Sturmläufer 42 %, Funke 44 %, Hexer 47 %, Seherin 48 %, Enterer 50 %, Entermeister 53 % (8/12 Siege), Plünderer 53 %, Schatten 56 % (9/12), Psi-Soldat 80 % (7/12), Klingentänzer 85 % (3/12). Nur Anhaltspunkt (12 Kämpfe, KI gegen KI).
 
+- **Stand 24.10.2026, Entscheidungen:** Typpreise übernommen (Klingentänzer 15, Psi-Soldat 14, Schatten 12, Entermeister 14, Sicherheitsagent 8, Kopfgeldjäger 9, Handagent 8; Plünderer bleibt 8). Elite-/Boss-Begegnungen: Anzahl je Stufe verschieden; gemessen leicht 6 → 87–93 % Siege, mittel 7 → 63–73 %, schwer 7 → 73–83 %, schwer 8 → 50–60 %; Vorschlag leicht 6, mittel 7, schwer 7 (Nutzer entscheidet). Vor dem Bauen Abstimmung mit dem Koordinator (Hub/Story-Teile).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
