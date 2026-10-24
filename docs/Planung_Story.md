@@ -126,6 +126,20 @@ Auftrag an den Bodenkampf (über den Koordinator): Fraktionsdaten für die drei 
   3. ~~Story-Schlüssel `sectors`~~: erledigt auf Story-Seite (Auftrag 5), `Story.sectors()` = Zahl von `HubState.known_sectors`.
   4. Story-Orte mit Sektor: Story-Seite gebaut (Auftrag 5, Abschnitt „Story-Orte mit Sektor und Ort“). Hub-Seite offen: `on_visit` in der Systemansicht aufrufen, Story-Orte dort zeigen, `on_arrive(sector, system)` mit Sektor aufrufen.
 
+### Boss am Ende einer Kette (gebaut, Auftrag 24.10.2026)
+
+Entscheidungen des Nutzers (24.10.2026):
+- **Welche Ketten:** Finale von Kapitel 1 und Hinterhalt (Kopfgeldjäger) **immer**. Story-Schritte (Befreien, Bergen, Abfangen) und Ereignisketten (Passagier, Schmuggel, Wrack) **zufällig mit 30 %**. Gespräch, Rate, Rückschläge und der Rahmen haben keinen Kampf und bleiben ohne Boss. Im Schmuggel ist die Zollstreife nie ein Boss-Kampf (dort hängt der Boss nur am Verrat; im Schnitt also seltener als 30 %).
+- **Form:** Der vorhandene entscheidende Kampf wird zum Boss-Kampf. Keine neuen Szenen, keine neuen Bilder.
+- **Boden oder Raum:** wie der Kampf heute. Abfangen im Raum mit Boss-Schiff, alles andere am Boden.
+- **Namen:** Name mit Titel, Frauen und Männer gemischt, je Gegnergruppe aus `StoryGen.BOSSE` (Abteilung 9, Klingen, Hirten, Stille Hand, Plünderer, Gläubiger, Kopfgeldjäger, sonst „lokal“). Finale: fest „Direktorin Kessa Vohl, Leiterin der Station“. Im Raum ist `boss_name` der Schiffsname aus `StoryGen.BOSS_SCHIFFE` (der Raumkampf benennt damit das Boss-Schiff; das ist meine Annahme zur Bedeutung des Felds, laut `core/space_combat.gd` heißt das Schiff so).
+
+Umsetzung:
+- Vorlagen haben das Feld `boss` = `{chance, gruppe}` (`gruppe` optional, z. B. `kopfgeld`). Der Wurf fällt einmal beim Erzeugen (`StoryGen.make`, Zufall `story.rng`) und gilt für alle Einsätze der Kette (Start, Vorteil, Entdeckt usw.). Ein Einsatz mit `"boss": false` wird nie Boss.
+- Einsatz-Felder für den Hub: `elite: "boss"` und `boss_name` in `Story.pending_mission()`. Die Szene mit dem Einsatz nennt den Boss im Text („Angeführt werden sie von …“ bzw. „Als Begleitschutz fliegt die … mit …“), das Ergebnis im Szenenfenster zeigt „Einsatz: … · Boss: …“.
+- **An den Hub:** `elite` und `boss_name` aus dem Story-Einsatz weitergeben: Boden `Mission.elite = &"boss"` (in `_story_ground`), Raum `setup.enemy.boss = true` und `setup.enemy.boss_name` (über `space_ctx`). Heute gibt der Hub beides noch nicht weiter. Anzeige „Boss“ in der Story-Karte der Sternenkarte.
+- Test: `test_story` (`_test_boss`).
+
 ### Story-Orte mit Sektor und Ort (gebaut, Auftrag 5)
 
 Entscheidungen des Nutzers (19.10.2026):

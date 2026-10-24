@@ -14,6 +14,9 @@
 			"schwer"
 		]
 	},
+	"boss": {
+		"chance": 0.3
+	},
 	"start": "start",
 	"scenes": {
 		"start": {
@@ -91,7 +94,8 @@
 									"faction": "konzern",
 									"sieg": "geliefert",
 									"niederlage": "erwischt",
-									"rueckzug": "erwischt"
+									"rueckzug": "erwischt",
+									"boss": false
 								}
 							}
 						]

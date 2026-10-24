@@ -46,6 +46,9 @@
 			"schritt_bergen"
 		]
 	},
+	"boss": {
+		"chance": 0.3
+	},
 	"scenes": {
 		"start": {
 			"title": "{ziel.titel}",
