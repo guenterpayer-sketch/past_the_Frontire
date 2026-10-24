@@ -70,6 +70,8 @@
 
 - **Gesamtpaket simuliert (24.10.2026, Prototyp, nicht gebaut):** Budget 60/80/105 mit Mindest-/Höchstzahl 5–7/6–9/8–12, Stufenpreise Neuling −2/Veteran +3, alle Gegner Körper +1, geänderte und neue Typen (Scharfschütze-Schatten, Psi-Meuchler, Entermeister, Kopfgeldjäger, Plünderer/Sturmläufer mittlere Rüstung …), Mitwachsen Körper +7·m, Ränge +2·m. 30 Kämpfe je Fall. Ø Gegner 5,6/7,4/9,8. Startcrew: leicht 24/30 Siege, 63 % TP-Verlust; mittel 6/30, 92 %; schwer 0/30, 100 %. Squad des Nutzers: leicht 30/30, 24 %; mittel 29/30, 44 %; schwer 19/30, 80 %. Befund: für die Startcrew viel zu schwer (Bezugsgröße des Mitwachsens ist die Startcrew); Karten hatten genug Startfelder (keine Kürzung).
 
+- **Budget 55/75/100 simuliert (24.10.2026, Nutzer: Grundwerte für eine neu erschaffene Crew, Startcrew „muss es langsam angehen“):** Ø Gegner 5,2/7,1/9,4. Squad: leicht 30/30 Siege, 20 % TP-Verlust; mittel 30/30, 41 %, 0,6 kampfunfähig; schwer 15/30, 80 %, 3,9 kampfunfähig. Startcrew: 26/30 (60 %), 16/30 (76 %), 2/30 (99 %).
+
 ## Aufträge vom Koordinator
 
 ### Auftrag (24.10.2026): Balancing – Ursache finden
