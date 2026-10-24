@@ -57,8 +57,9 @@ const ENGINE_LOSS := [0, 0, 0, 1, 2, 99]
 const CRIT_HULL := {"A": 0, "B": 2, "C": 4, "D": 6, "E": 10}
 const PERSON_DMG := {"A": 3, "B": 6, "C": 10, "D": 15, "E": 25}
 ## Systemtreffer: W100 + Grad-Modifikator → System
-const SYSTEM_TABLE := [[20, "antrieb"], [35, "sensoren"], [50, "slot"], [65, "schilde"], [75, "reaktor"],
-	[85, "lebenserhaltung"], [999, "station"]]
+## Systemtreffer: W100 + Schwere; Stationstreffer 25 % (Entscheidung des Nutzers 24.10.2026, vorher 15 %)
+const SYSTEM_TABLE := [[20, "antrieb"], [35, "sensoren"], [50, "slot"], [62, "schilde"], [70, "reaktor"],
+	[75, "lebenserhaltung"], [999, "station"]]
 const SYSTEM_NAMES := {"antrieb": "Antrieb", "sensoren": "Sensoren", "lebenserhaltung": "Lebenserhaltung",
 	"schilde": "Schildgeneratoren", "reaktor": "Reaktor"}
 ## Entern möglich unter diesem Hüllenanteil (oder Antrieb E, oder Wrack) – gilt für beide Seiten
@@ -81,6 +82,18 @@ const LOCK_BONUS := 15
 const JAM_MALUS := -15
 ## Scan der Computer-Station: so viele folgende Runden sieht die Crew den vollen Zustand des Ziels
 const SCAN_ROUNDS := 3
+## Gegner nach Crew-Stärke P (Mittel aus Pilot und den zwei besten Geschützstationen), Abstimmung per Simulation
+## 24.10.2026 (docs/Planung_Raumkampf.md 1h): normale Kämpfe moderat, Elite-Kämpfe auf etwa 70–75 % Siege
+const POWER_BASE := 56
+const NORMAL_SCALE := 0.2
+const NORMAL_MAX := 10
+const ELITE_SCALE := 0.5
+const ELITE_MIN := -20
+const ELITE_MAX := 30
+const ELITE_SHIELD := 4
+## Elite-Waffen: je eine Stufe besser
+const ELITE_WEAPONS := {"laserbank": "partikelkanone", "massebeschleuniger": "schnellfeuerkanone",
+	"raketenwerfer": "raketenbatterie", "abwehrgeschuetz": "abwehrlaser"}
 ## Pilotenprobe → zusätzliche Drehungen und erlaubte Tempoänderung
 const PILOT := {&"herausragend": [2, 2], &"erfolg": [1, 1], &"teilerfolg": [0, 1], &"fehlschlag": [0, 0],
 	&"patzer": [-99, 0]}
@@ -115,6 +128,8 @@ var ransom := {}
 var loot := {}
 var faction_id := ""
 var faction := {}
+var elite := false                 # Elite-Kampf (setup.enemy.elite)
+var power_bonus := 0               # Besatzungsbonus der Gegner nach Crew-Stärke (beim Start gesetzt)
 var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Grund + halber Pilot-Bonus)
 var intercepts := {}
 ## in dieser Runde umbesetzte Stationen (Malus SWITCH_MALUS bis Rundenende)
@@ -157,6 +172,7 @@ func _init(s: Dictionary, seed_value := -1) -> void:
 	for st in SpaceSetup.stations_for(own.slots):
 		if not posts.has(st) or (posts[st] != SpaceSetup.KI and not people.has(String(posts[st]))):
 			posts[st] = SpaceSetup.KI
+	elite = bool(s.get("enemy", {}).get("elite", false))
 	_build_enemies(String(s.get("enemy", {}).get("difficulty", "mittel")))
 
 
@@ -215,7 +231,42 @@ func _build_enemies(difficulty: String) -> void:
 		var row := MAP_H / 2 + (((i + 1) / 2) * (1 if i % 2 == 0 else -1)) * 2
 		s.pos = _free_cell(Hex.from_offset(MAP_W - 3 - (i % 2), clampi(row, 1, MAP_H - 2)))
 		s.facing = 3
+		if elite:
+			_make_elite(s)
 		ships.append(s)
+
+
+## Elite-Schiff: Waffen eine Stufe besser, Schilde stärker (Jäger nur Waffen); Besatzung folgt beim Start
+func _make_elite(s: SpaceShip) -> void:
+	s.elite = true
+	s.name = "Elite-" + s.name
+	for sl in s.slots:
+		s.slots[sl].key = ELITE_WEAPONS.get(String(s.slots[sl].key), s.slots[sl].key)
+	if not s.is_fighter():
+		s.shield_max += ELITE_SHIELD
+		s.shield_recharge += 1
+		for i in 6:
+			s.shields[i] = s.shield_max
+
+
+## Crew-Stärke P: Mittel aus Pilot und den zwei besten Geschützstationen (ohne Turm), nach den aktuellen Posten
+func crew_power() -> int:
+	var guns: Array = []
+	for st in stations():
+		if st.begins_with("geschuetz_") and not st.contains("turm"):
+			guns.append(station_bonus(st, ShipWeapons.skill(String(own.slots[st.trim_prefix("geschuetz_")].key))))
+	guns.sort()
+	guns.reverse()
+	while guns.size() < 2:
+		guns.append(0)
+	return (station_bonus("steuer", &"pilot") + int(guns[0]) + int(guns[1])) / 3
+
+
+## Besatzungsbonus der Gegner nach Crew-Stärke: normal moderat (0 bis +10), Elite (P − 52) × 0,45 (−15 bis +30)
+func power_bonus_for(p: int) -> int:
+	if elite:
+		return clampi(roundi((p - POWER_BASE) * ELITE_SCALE), ELITE_MIN, ELITE_MAX)
+	return clampi(roundi((p - POWER_BASE) * NORMAL_SCALE), 0, NORMAL_MAX)
 
 
 func _free_cell(want: Vector2i) -> Vector2i:
@@ -424,7 +475,10 @@ func can_jump() -> bool:
 # ---------------------------------------------------------------- Ablauf
 
 func start() -> void:
-	log_text("Kontakt: %s." % SpaceTemplates.faction_name(faction_id), &"round")
+	power_bonus = power_bonus_for(crew_power())
+	for e in enemies():
+		e.crew_skill += power_bonus
+	log_text("Kontakt: %s%s." % [SpaceTemplates.faction_name(faction_id), " (Elite)" if elite else ""], &"round")
 	_start_round()
 
 

@@ -26,6 +26,7 @@ func _init() -> void:
 	_test_result()
 	_test_tech()
 	_test_scan()
+	_test_elite()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -315,6 +316,30 @@ func _test_scan() -> void:
 	c._start_round()
 	check(not e.scan_live and e.seen_damage().antrieb == "C" and e.seen_damage().sensoren == "B",
 		"nach Ablauf bleibt der gescannte Stand (veraltet) plus eigene Treffer")
+
+
+## Elite und Gegner nach Crew-Stärke (24.10.2026)
+func _test_elite() -> void:
+	var c := SpaceCombat.new(SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", true)), 21)
+	var big: Array = c.enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())
+	check(c.elite and c.enemies().all(func(x: SpaceShip) -> bool: return x.elite and x.name.begins_with("Elite-")),
+		"Elite-Kampf: alle Gegner Elite")
+	var keys := []
+	for x in c.enemies():
+		for sl in x.slots:
+			keys.append(String(x.slots[sl].key))
+	check(not keys.has("laserbank") and not keys.has("raketenwerfer"), "Elite-Waffen eine Stufe besser")
+	check(big.is_empty() or big.all(func(x: SpaceShip) -> bool:
+		return x.shield_max == int(SpaceTemplates.ship(x.template).shield) + SpaceCombat.ELITE_SHIELD), "Elite-Schilde")
+	var skill0: int = c.enemies()[0].crew_skill
+	c.start()
+	check(c.enemies()[0].crew_skill == skill0 + c.power_bonus and c.power_bonus == c.power_bonus_for(c.crew_power()),
+		"Elite-Besatzung nach Crew-Stärke")
+	check(c.power_bonus_for(56) == 0 and c.power_bonus_for(76) == 10 and c.power_bonus_for(0) == -20
+		and c.power_bonus_for(200) == 30, "Elite-Formel mit Grenzen")
+	var n := _combat(22)
+	check(not n.elite and n.power_bonus_for(30) == 0 and n.power_bonus_for(76) == 4 and n.power_bonus_for(200) == 10,
+		"normale Kämpfe moderat (0 bis +10)")
 
 
 func _test_board() -> void:

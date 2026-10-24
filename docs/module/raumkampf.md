@@ -36,7 +36,8 @@ Verbindlich für Hub und Raumkampf. Änderungen nur nach Absprache über den Koo
  "ship_ammo": {"schiffsraketen": int, "geschosse": int},
  "fuel": int,                            # für die Flucht per Sprung
  "credits": int,                         # Lösegeld wird nur angeboten, wenn bezahlbar
- "enemy": {"faction": Fraktions-ID oder Raumgegner-ID, "difficulty": "leicht"/"mittel"/"schwer"},
+ "enemy": {"faction": Fraktions-ID oder Raumgegner-ID, "difficulty": "leicht"/"mittel"/"schwer",
+           "elite": bool},                 # neu 24.10.2026, fehlend = false (docs/Raumkampf.md 4e)
  "source": "reise"/"auftrag"/"vor_einsatz"/"schnell",
  "mission": Titel oder "",
  "return_scene": Szenenpfad}
@@ -101,7 +102,7 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 
 - (24.10.2026) Auftrag „Balancing – Ursache finden“ (Analyse, nichts gebaut). Simulation mit dem Spielstand `spielstaende/24-10-2026/slot_1.json` (60 Kämpfe je Stufe, alle Seiten; Skript nur im Chat, nicht im Repo): Siege leicht/mittel/schwer **98/96/90 %** in 4–5 Runden, Hüllenverlust Ø 4/13/23 (Schnellkampf-Testcrew 93/68/51 %, 7–11 Runden, 17/55/68). Schiff kaum ausgebaut (Schilde/Panzerung/Reaktor 0, 5. Slot Heck-Laserbank) – **Ursache ist die Crew**: Schützen +75/+65 statt KI +0/+25 (Treffer 56 statt 37 %, davon kritisch 51 statt 22 %), Pilot +86 (Gegner treffen 38 statt 85 % ohne Pilot). Probe: nur Schützen auf KI → 88/70/53 %, nur Steuer auf KI → 81/60/41 %, beide → 63/18/6 %; Navigation, Computer, Heck-Slot je nur wenige Punkte. Ränge seit Roster-Start: Pilot 8→13, Navigation 5→11, Computer 0→7, Strahl-Geschütze 1→6, Ballistik 5→8; die Eigenschaftsboni (KOO 99–100, INT 91) geben schon bei Rang 1 etwa +45. Gegner wachsen nicht mit (Besatzung 20–30, Aufstellungen fest, Schwierigkeit zufällig 1:3:1). Verletzungen im Raum: Ø 0,02 je Kampf (auch Testcrew nur 0,03–0,08) – Stationstreffer sind selten (15 % der Systemtreffer). Wege (Entscheidung offen): Gegner skalieren, Steigerung dämpfen, stärkere Gegner über Sektoren/Stufen.
   - **Entscheidungen des Nutzers (24.10.2026):** Gegner nur **moderat** anpassen (das Besserwerden der Crew soll sich richtig anfühlen); dazu ab und zu **Elite-Gegner**, die sich an die Crew anpassen – **mit dem Bodenkampf abstimmen** (über den Koordinator). Stationstreffer im Raum **etwas häufiger**, damit Verletzte möglich werden. Noch nichts gebaut; Vorschlag mit Zahlen folgt nach der Abstimmung.
-- (24.10.2026) Vorschlag Elite-Gegner mit Simulation: `docs/Planung_Raumkampf.md` 1h (Elite-Siege 70–79 % über drei Crew-Stärken; moderat für normale Kämpfe; Stationstreffer 25 oder 35 %). Wartet auf Entscheidung des Nutzers, nichts gebaut.
+- (24.10.2026) **Elite-Gegner, moderate Anpassung, Stationstreffer 25 % gebaut** (`docs/Raumkampf.md` 4e, Messung `docs/Planung_Raumkampf.md` 1h): Elite-Siege 67–79 % je nach Crew (Spielstand 73 %), normale Kämpfe nur für starke Crews etwas härter. **Schnittstelle ergänzt:** `setup.enemy.elite: bool` (fehlend = false). **Für den Hub:** bei Aufträgen und Feindkontakt etwa 13 % Elite würfeln (gleiche Regel wie Boden), im Angebot/Kontakt „Elite“ zeigen (ausweichen möglich) und `elite` in `enemy` mitgeben.
 
 ## Aufträge vom Koordinator
 

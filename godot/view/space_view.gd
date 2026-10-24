@@ -3,7 +3,7 @@ extends Node3D
 ## Hauptszene des Raumkampfs (space.tscn): baut Karte und Schiffe, spielt die Ereignisse des Regelkerns ab
 ## (SpaceCombat meldet über Signale, hier nacheinander mit kurzen Animationen) und verbindet die Oberfläche.
 ## Ohne SpaceBattle.setup (z. B. Szene direkt im Editor mit F6 gestartet) läuft ein Schnellkampf.
-## Selbsttest mit Screenshots: godot --path godot res://space.tscn -- --autotest-space (Ordner in PTF_OUT)
+## Selbsttest mit Screenshots: godot --path godot res://space.tscn -- --autotest-space [--elite] (Ordner in PTF_OUT)
 
 const LOG_KIND := {&"bad": &"fumble", &"kill": &"death"}
 
@@ -26,7 +26,7 @@ var autotest := false
 func _ready() -> void:
 	autotest = "--autotest-space" in OS.get_cmdline_user_args()
 	if SpaceBattle.setup.is_empty():
-		SpaceBattle.setup = SpaceBattle.prepare(SpaceSetup.quick())
+		SpaceBattle.setup = SpaceBattle.prepare(SpaceSetup.quick("mittel", "piraten", "--elite" in OS.get_cmdline_user_args()))
 	combat = SpaceCombat.new(SpaceBattle.setup)
 	combat.logged.connect(func(t: String, k: StringName) -> void: _events.append([&"log", t, k]))
 	combat.ship_moved.connect(func(s: SpaceShip, p: Array[Vector2i]) -> void: _events.append([&"move", s, p]))
