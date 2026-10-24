@@ -153,6 +153,13 @@ Grundlage: gemeinsame Elite-Regeln in `docs/module/raumkampf.md` (13 % der Kämp
 - **Beim Bauen nachgestimmt** (mit dem eingebauten Code, 200 Kämpfe je Zeile): mit 52 / 0,45 kam die Testcrew nur auf 63 % Elite-Siege, daher **Basis 56, Faktor 0,5, Untergrenze −20**. Ergebnis Elite: Spielstand **73 %** (Bonus +10), mit KI-Schützen 79 % (−14), Testcrew 67 % (−12); normal: Spielstand 92 % (+4), die anderen unverändert (0). `tests/sim_space.gd -- 100` normal 93/72/45 % wie vorher, `-- 100 elite` 95/70/55 % (gemischt 1:3:1 etwa 72 %), Abbruch nach 40 Runden 1–3 %.
 - Kennzeichen: „★ Elite-…“ in Gold am Namen (statt goldenem Ring, der Auswahlring ist schon gold). Selbsttest `-- --autotest-space --elite`.
 
+## 1i. Elite-Beute und Boss-Schiff (Auftrag 24.10.2026, gebaut)
+
+- **Befund vorher** (200 Kämpfe je Zeile): Waffen aus Wracks nur bei 1–2 % der Siege; Entern (in der Simulation nach etwa 55 % der Siege) brachte Ø 2,2 Waffen, fast alle unbeschädigt – bei Elite also die besseren Waffen.
+- **Entscheidungen des Nutzers:** Elite/Boss nach dem Sieg 20 % eine Waffe, Entern 30 % eine (je −20/−30); normales Entern auch begrenzen (Zahlen von Claude: 50 % eine Waffe, −10…−30).
+- **Boss-Varianten gemessen** (150 Kämpfe, Spielstand / mit KI-Schützen / Testcrew): 5 Elite-Schiffe (Kreuzer, 2 Korvetten, 2 Jäger) selbst mit −20 nur 18 / 30 / 6 %; Fregatte + Korvette + 2 Jäger mit −10: 45 / 69 / 40 %; Fregatte + 2 Jäger mit −10: 80 / 95 / 74 %; **Kreuzer + 2 Jäger mit −10: 76 / 85 / 70 %** (gewählt). Nutzer: Boss dreht nach 40 Runden ab wie sonst.
+- **Nachmessung mit dem eingebauten Code** (200 Kämpfe): Boss-Siege 80 / 89 / 66 %, Abbruch nach 40 Runden 0 / 3 / 9 %; Waffen je Elite-/Boss-Sieg 0,15–0,23, je Entern 0,21–0,34 (Elite/Boss) bzw. 0,47–0,57 (normal). Elite-Siegquoten unverändert (73 / 79 / 67 %).
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).

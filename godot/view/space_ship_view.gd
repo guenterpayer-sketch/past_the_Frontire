@@ -180,7 +180,7 @@ func refresh() -> void:
 	for sys in seen:
 		if Tables.SEVERITIES.find(String(seen[sys])) >= 2:
 			warn = " ⚠"
-	_name.text = ("★ " if ship.elite else "") + ship.name + (" (Wrack)" if ship.wreck else warn)
+	_name.text = ("★★ Boss: " if ship.boss else ("★ " if ship.elite else "")) + ship.name + (" (Wrack)" if ship.wreck else warn)
 
 
 var _wreck_shown := false
