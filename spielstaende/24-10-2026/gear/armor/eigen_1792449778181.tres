@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ArmorData" format=3]
+
+[ext_resource type="Script" path="res://data/types/armor_data.gd" id="1_70rpj"]
+
+[resource]
+script = ExtResource("1_70rpj")
+id = &"eigen_1792449778181"
+name = "Plast Stahl Panzerung"
+cls = 2
+move = 1
+metadata/template = "res://data/armor/mittel.tres"
+metadata/free = false
+metadata/enemy = true
+metadata/factions = ["res://data/missions/abteilung_9.tres", "res://data/missions/rote_sonne.tres", "res://data/missions/schmuggler.tres", "res://data/missions/semidrug.tres", "res://data/missions/konzern.tres"]

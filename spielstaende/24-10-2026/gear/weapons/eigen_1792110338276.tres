@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="1_3ld7p"]
+[ext_resource type="PackedScene" path="res://assets/weapons/melee/claymore.tscn" id="1_ooelq"]
+[ext_resource type="Resource" path="res://data/tables/attack_klinge.tres" id="2_ooelq"]
+
+[resource]
+script = ExtResource("1_3ld7p")
+id = &"eigen_1792110338276"
+name = "2 Hand Schwert"
+skill = &"zweihand"
+table = ExtResource("2_ooelq")
+melee = true
+fumble = 4
+damage = 1.4
+ob_bonus = 5
+splash = PackedInt32Array()
+model = ExtResource("1_ooelq")
+length_m = 1.4
+grip_offset = Vector3(0, 0.666, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+metadata/template = "res://data/weapons/energiehammer.tres"
+metadata/free = false
+metadata/enemy = false
+metadata/factions = ["res://data/missions/konzern.tres", "res://data/missions/leeres_licht.tres", "res://data/missions/rote_sonne.tres", "res://data/missions/schmuggler.tres"]

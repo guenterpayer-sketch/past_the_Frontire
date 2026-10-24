@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/ar_6.glb" id="1_lsnx6"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="2_g13o2"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="3_7yyg8"]
+
+[resource]
+script = ExtResource("2_g13o2")
+id = &"eigen_1792110419775"
+name = "Mini Gun"
+skill = &"schnellfeuer"
+table = ExtResource("3_7yyg8")
+inc_m = 25
+stages = 4
+fumble = 6
+damage = 1.2
+shots = 5
+ammo_type = &"projektil"
+magazine = 50
+splash = PackedInt32Array()
+model = ExtResource("1_lsnx6")
+length_m = 1.1
+grip_offset = Vector3(0, 0.198, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+metadata/template = "res://data/weapons/mg.tres"
+metadata/free = false
+metadata/enemy = false
+metadata/factions = ["res://data/missions/konzern.tres", "res://data/missions/leeres_licht.tres", "res://data/missions/rote_sonne.tres", "res://data/missions/schmuggler.tres"]

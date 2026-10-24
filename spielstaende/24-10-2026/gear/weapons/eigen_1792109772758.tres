@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/pistol_1.glb" id="1_0kwvj"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="2_0lvnn"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="3_wjpxg"]
+
+[resource]
+script = ExtResource("2_0lvnn")
+id = &"eigen_1792109772758"
+name = "Revolver"
+skill = &"pistolen"
+table = ExtResource("3_wjpxg")
+inc_m = 12
+stages = 4
+max_result = 140
+fumble = 4
+damage = 0.9
+ob_bonus = 5
+ammo_type = &"projektil"
+magazine = 10
+splash = PackedInt32Array()
+model = ExtResource("1_0kwvj")
+length_m = 0.35
+grip_offset = Vector3(0, 0.063, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+two_handed = false
+metadata/template = "res://data/weapons/laserpistole.tres"
+metadata/free = false
+metadata/enemy = true
+metadata/factions = ["res://data/missions/rote_sonne.tres", "res://data/missions/konzern.tres"]

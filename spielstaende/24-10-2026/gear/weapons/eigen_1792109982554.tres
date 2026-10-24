@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/guns/sniper_rifle.glb" id="1_daafp"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="2_eyvmi"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="3_55k1f"]
+
+[resource]
+script = ExtResource("2_eyvmi")
+id = &"eigen_1792109982554"
+name = "Scharfschützen Gewehr"
+skill = &"gewehre"
+table = ExtResource("3_55k1f")
+inc_m = 50
+stages = 3
+min_range_m = 5
+fumble = 4
+damage = 1.3
+ob_bonus = 10
+ammo_type = &"projektil"
+magazine = 5
+splash = PackedInt32Array()
+sound_id = &"revolver"
+model = ExtResource("1_daafp")
+length_m = 1.2
+grip_offset = Vector3(0, 0.216, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+metadata/template = "res://data/weapons/sturmgewehr.tres"
+metadata/free = true
+metadata/enemy = true
+metadata/factions = ["res://data/missions/rote_sonne.tres"]

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/blaster/blaster-q.tscn" id="1_rwol6"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="2_rlsjb"]
+[ext_resource type="Resource" path="res://data/tables/attack_strahl.tres" id="3_07rvc"]
+
+[resource]
+script = ExtResource("2_rlsjb")
+id = &"eigen_1792130429888"
+name = "Laser MG"
+skill = &"schnellfeuer"
+table = ExtResource("3_07rvc")
+inc_m = 18
+stages = 4
+fumble = 4
+damage = 1.1
+shots = 3
+ammo_type = &"energie"
+magazine = 45
+splash = PackedInt32Array()
+sound_id = &"laser"
+model = ExtResource("1_rwol6")
+length_m = 0.53
+grip_offset = Vector3(0, 0.095, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+metadata/template = "res://data/weapons/mg.tres"
+metadata/free = false
+metadata/enemy = true
+metadata/factions = ["res://data/missions/rote_sonne.tres", "res://data/missions/konzern.tres"]

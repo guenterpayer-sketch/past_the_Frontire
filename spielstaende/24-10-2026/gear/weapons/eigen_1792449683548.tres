@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/melee/sword_2.tscn" id="1_cku8j"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="2_5pqdy"]
+[ext_resource type="Resource" path="res://data/tables/attack_klinge.tres" id="3_uy7kj"]
+
+[resource]
+script = ExtResource("2_5pqdy")
+id = &"eigen_1792449683548"
+name = "Energie Schwert"
+skill = &"einhand"
+table = ExtResource("3_uy7kj")
+melee = true
+fumble = 5
+damage = 1.2
+ob_bonus = 5
+splash = PackedInt32Array()
+model = ExtResource("1_cku8j")
+length_m = 0.95
+grip_offset = Vector3(0, 0.401, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+two_handed = false
+metadata/template = "res://data/weapons/vibroklinge.tres"
+metadata/free = false
+metadata/enemy = true
+metadata/factions = ["res://data/missions/aasgeier.tres", "res://data/missions/eisenwoelfe.tres", "res://data/missions/kinder_der_glut.tres", "res://data/missions/konzern.tres", "res://data/missions/leeres_licht.tres", "res://data/missions/neuntes_haus.tres", "res://data/missions/rote_sonne.tres", "res://data/missions/schmuggler.tres", "res://data/missions/schwarze_flagge.tres", "res://data/missions/stille_hand.tres", "res://data/missions/wacht_hirten.tres", "res://data/missions/wacht_klingen.tres"]

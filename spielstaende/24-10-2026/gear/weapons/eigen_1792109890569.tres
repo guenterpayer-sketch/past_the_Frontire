@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/guns/submachine_gun.glb" id="1_icqfd"]
+[ext_resource type="Script" path="res://data/types/weapon_data.gd" id="2_eepi6"]
+[ext_resource type="Resource" path="res://data/tables/attack_projektil.tres" id="3_qdq8s"]
+
+[resource]
+script = ExtResource("2_eepi6")
+id = &"eigen_1792109890569"
+name = "MP"
+skill = &"pistolen"
+table = ExtResource("3_qdq8s")
+inc_m = 20
+stages = 5
+fumble = 5
+damage = 1.1
+shots = 3
+ammo_type = &"projektil"
+magazine = 30
+splash = PackedInt32Array()
+sound_id = &"mp"
+model = ExtResource("1_icqfd")
+length_m = 0.6
+grip_offset = Vector3(0, 0.108, 0)
+grip_rotation_deg = Vector3(0, 0, 90)
+metadata/template = "res://data/weapons/sturmgewehr.tres"
+metadata/free = false
+metadata/enemy = true
+metadata/factions = ["res://data/missions/leeres_licht.tres", "res://data/missions/rote_sonne.tres"]

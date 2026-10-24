@@ -1,0 +1,1117 @@
+{
+	"figures": [
+		{
+			"armor": "res://data/armor/mittel.tres",
+			"attrs": {
+				"EMP": 53,
+				"GEW": 92,
+				"INT": 90,
+				"KON": 68,
+				"KOO": 93,
+				"MEN": 41,
+				"STA": 54
+			},
+			"color": "c40101",
+			"free_xp": 0,
+			"id": "tulin",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "T",
+			"medkits": 3,
+			"name": "Tulin",
+			"new_list": "",
+			"role": "Steuer",
+			"roster_id": "tulin",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"gewehre": {
+					"rank": 8,
+					"xp": 0
+				},
+				"hwWaffen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 4,
+					"xp": 0
+				},
+				"kochen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 3,
+					"xp": 0
+				},
+				"navigation": {
+					"rank": 2,
+					"xp": 0
+				},
+				"notReparatur": {
+					"rank": 3,
+					"xp": 0
+				},
+				"pilot": {
+					"rank": 8,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"rsReparatur": {
+					"rank": 1,
+					"xp": 0
+				},
+				"strahlGeschuetze": {
+					"rank": 3,
+					"xp": 0
+				},
+				"waffenlos": {
+					"rank": 1,
+					"xp": 0
+				}
+			},
+			"station": "Steuer",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_adventurer.tres",
+			"weapons": [
+				"res://data/weapons/laserkarabiner.tres",
+				"res://data/weapons/laserpistole.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/leicht.tres",
+			"attrs": {
+				"EMP": 90,
+				"GEW": 74,
+				"INT": 86,
+				"KON": 34,
+				"KOO": 57,
+				"MEN": 97,
+				"STA": 27
+			},
+			"color": "aeaa9f",
+			"free_xp": 0,
+			"id": "mireaf",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "M",
+			"medkits": 3,
+			"name": "Mireaf",
+			"new_list": "",
+			"role": "Navigation",
+			"roster_id": "mireaf",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 2,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 1,
+					"xp": 0
+				},
+				"lAngriff": {
+					"rank": 4,
+					"xp": 0
+				},
+				"lHeilung": {
+					"rank": 3,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 8,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 8,
+					"xp": 0
+				},
+				"verhandeln": {
+					"rank": 4,
+					"xp": 0
+				}
+			},
+			"station": "Navigation",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/women_witch.tres",
+			"weapons": [
+				"res://data/weapons/laserpistole.tres",
+				"res://data/weapons/psi_stoss.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/leicht.tres",
+			"attrs": {
+				"EMP": 90,
+				"GEW": 89,
+				"INT": 99,
+				"KON": 63,
+				"KOO": 99,
+				"MEN": 69,
+				"STA": 42
+			},
+			"color": "4dff69",
+			"free_xp": 0,
+			"id": "doc_morris",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "D",
+			"medkits": 3,
+			"name": "Doc Morris",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "doc_morris",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 8,
+					"xp": 0
+				},
+				"gewehre": {
+					"rank": 2,
+					"xp": 0
+				},
+				"handeln": {
+					"rank": 3,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 3,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 2,
+					"xp": 0
+				},
+				"lHeilung": {
+					"rank": 3,
+					"xp": 0
+				},
+				"medikamente": {
+					"rank": 5,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 5,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 2,
+					"xp": 0
+				},
+				"zweiteHilfe": {
+					"rank": 8,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_adventurer.tres",
+			"weapons": [
+				"res://data/weapons/laserkarabiner.tres",
+				"res://data/weapons/laserpistole.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/leicht.tres",
+			"attrs": {
+				"EMP": 79,
+				"GEW": 92,
+				"INT": 82,
+				"KON": 89,
+				"KOO": 90,
+				"MEN": 49,
+				"STA": 98
+			},
+			"color": "453401",
+			"free_xp": 0,
+			"id": "rino",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "R",
+			"medkits": 3,
+			"name": "Rino",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "rino",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 7,
+					"xp": 0
+				},
+				"ballistikGeschuetze": {
+					"rank": 3,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"hwWaffen": {
+					"rank": 4,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 5,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 5,
+					"xp": 0
+				},
+				"panzerung": {
+					"rank": 2,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"raketen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"rsReparatur": {
+					"rank": 4,
+					"xp": 0
+				},
+				"waffenReparatur": {
+					"rank": 3,
+					"xp": 0
+				},
+				"waffenlos": {
+					"rank": 1,
+					"xp": 0
+				},
+				"zweihand": {
+					"rank": 8,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_spacesuit.tres",
+			"weapons": [
+				"res://data/weapons/energiehammer.tres",
+				"res://data/weapons/laserpistole.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/schwer.tres",
+			"attrs": {
+				"EMP": 44,
+				"GEW": 95,
+				"INT": 57,
+				"KON": 86,
+				"KOO": 97,
+				"MEN": 42,
+				"STA": 90
+			},
+			"color": "078226",
+			"free_xp": 0,
+			"id": "bum_gun",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "B",
+			"medkits": 3,
+			"name": "Bum Gun",
+			"new_list": "",
+			"role": "Geschütze",
+			"roster_id": "bum_gun",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 5,
+					"xp": 0
+				},
+				"ballistikGeschuetze": {
+					"rank": 5,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 1,
+					"xp": 0
+				},
+				"gewehre": {
+					"rank": 8,
+					"xp": 0
+				},
+				"hwRuestung": {
+					"rank": 2,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 5,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 4,
+					"xp": 0
+				},
+				"notReparatur": {
+					"rank": 2,
+					"xp": 0
+				},
+				"rsReparatur": {
+					"rank": 2,
+					"xp": 0
+				},
+				"schnellfeuer": {
+					"rank": 8,
+					"xp": 0
+				}
+			},
+			"station": "Geschütze",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_swat.tres",
+			"weapons": [
+				"res://data/weapons/sturmgewehr.tres",
+				"res://data/weapons/laserkarabiner.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/mittel.tres",
+			"attrs": {
+				"EMP": 34,
+				"GEW": 99,
+				"INT": 79,
+				"KON": 75,
+				"KOO": 90,
+				"MEN": 55,
+				"STA": 23
+			},
+			"color": "fb8507",
+			"free_xp": 0,
+			"id": "ilmu",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "I",
+			"medkits": 3,
+			"name": "Ilmu",
+			"new_list": "",
+			"role": "Computer",
+			"roster_id": "ilmu",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 4,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"gassenwissen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"gewehre": {
+					"rank": 5,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 5,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 5,
+					"xp": 0
+				},
+				"lAngriff": {
+					"rank": 2,
+					"xp": 0
+				},
+				"lSchutz": {
+					"rank": 2,
+					"xp": 0
+				},
+				"panzerung": {
+					"rank": 3,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 2,
+					"xp": 0
+				},
+				"raketenwerfer": {
+					"rank": 5,
+					"xp": 0
+				}
+			},
+			"station": "Computer",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_suit.tres",
+			"weapons": [
+				"res://data/weapons/laserkarabiner.tres",
+				"res://data/weapons/raketenwerfer.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/mittel.tres",
+			"attrs": {
+				"EMP": 55,
+				"GEW": 86,
+				"INT": 81,
+				"KON": 69,
+				"KOO": 90,
+				"MEN": 84,
+				"STA": 42
+			},
+			"color": "ffd34d",
+			"free_xp": 0,
+			"id": "vella",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "N",
+			"medkits": 3,
+			"name": "Vella",
+			"new_list": "",
+			"role": "Navigation",
+			"roster_id": "vella",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"computer": {
+					"rank": 3,
+					"xp": 0
+				},
+				"einhand": {
+					"rank": 3,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"gassenwissen": {
+					"rank": 4,
+					"xp": 0
+				},
+				"gewehre": {
+					"rank": 8,
+					"xp": 0
+				},
+				"handeln": {
+					"rank": 1,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 3,
+					"xp": 0
+				},
+				"kochen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 4,
+					"xp": 0
+				},
+				"navigation": {
+					"rank": 5,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 1,
+					"xp": 0
+				},
+				"schild": {
+					"rank": 1,
+					"xp": 0
+				},
+				"schutzschild": {
+					"rank": 3,
+					"xp": 0
+				},
+				"verhandeln": {
+					"rank": 1,
+					"xp": 0
+				}
+			},
+			"station": "Navigation",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/women_scifi.tres",
+			"weapons": [
+				"res://data/weapons/laserkarabiner.tres",
+				"res://data/weapons/vibroklinge.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/schwer.tres",
+			"attrs": {
+				"EMP": 44,
+				"GEW": 56,
+				"INT": 90,
+				"KON": 75,
+				"KOO": 98,
+				"MEN": 38,
+				"STA": 83
+			},
+			"color": "24eed2",
+			"free_xp": 0,
+			"id": "normina",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "N",
+			"medkits": 3,
+			"name": "Normina",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "normina",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 4,
+					"xp": 0
+				},
+				"ballistikGeschuetze": {
+					"rank": 1,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"hwRuestung": {
+					"rank": 2,
+					"xp": 0
+				},
+				"hwWaffen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 8,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 5,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 5,
+					"xp": 0
+				},
+				"raketen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"rsReparatur": {
+					"rank": 1,
+					"xp": 0
+				},
+				"schnellfeuer": {
+					"rank": 8,
+					"xp": 0
+				},
+				"strahlGeschuetze": {
+					"rank": 1,
+					"xp": 0
+				},
+				"zweiteHilfe": {
+					"rank": 1,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/women_worker.tres",
+			"weapons": [
+				"res://data/weapons/mg.tres",
+				"res://data/weapons/laserpistole.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/schwer.tres",
+			"attrs": {
+				"EMP": 71,
+				"GEW": 94,
+				"INT": 72,
+				"KON": 59,
+				"KOO": 90,
+				"MEN": 90,
+				"STA": 99
+			},
+			"color": "5c66f9",
+			"free_xp": 0,
+			"id": "ann",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "N",
+			"medkits": 3,
+			"name": "Angora",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "ann",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"ballistikGeschuetze": {
+					"rank": 1,
+					"xp": 0
+				},
+				"computer": {
+					"rank": 2,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 1,
+					"xp": 0
+				},
+				"hwRuestung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"hwWaffen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 4,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 3,
+					"xp": 0
+				},
+				"lAngriff": {
+					"rank": 4,
+					"xp": 0
+				},
+				"medikamente": {
+					"rank": 1,
+					"xp": 0
+				},
+				"navigation": {
+					"rank": 1,
+					"xp": 0
+				},
+				"notReparatur": {
+					"rank": 8,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 4,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 1,
+					"xp": 0
+				},
+				"raketen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"schnellfeuer": {
+					"rank": 8,
+					"xp": 0
+				},
+				"schutzschild": {
+					"rank": 3,
+					"xp": 0
+				},
+				"zweiteHilfe": {
+					"rank": 1,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/women_scifi.tres",
+			"weapons": [
+				"user://gear/weapons/eigen_1792110419775.tres",
+				"res://data/weapons/laserpistole.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/schwer.tres",
+			"attrs": {
+				"EMP": 71,
+				"GEW": 76,
+				"INT": 46,
+				"KON": 90,
+				"KOO": 83,
+				"MEN": 73,
+				"STA": 95
+			},
+			"color": "f677d9",
+			"free_xp": 0,
+			"id": "lucky",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "L",
+			"medkits": 3,
+			"name": "Lucky",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "lucky",
+			"shield": false,
+			"skills": {
+				"ausweichen": {
+					"rank": 8,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 2,
+					"xp": 0
+				},
+				"gassenwissen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"hwRuestung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"hwWaffen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 5,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 3,
+					"xp": 0
+				},
+				"lTelekinese": {
+					"rank": 5,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 3,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 3,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 2,
+					"xp": 0
+				},
+				"raketen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"waffenReparatur": {
+					"rank": 1,
+					"xp": 0
+				},
+				"zweihand": {
+					"rank": 8,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_swat.tres",
+			"weapons": [
+				"user://gear/weapons/eigen_1792110338276.tres",
+				"user://gear/weapons/eigen_1792109890569.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/mittel.tres",
+			"attrs": {
+				"EMP": 68,
+				"GEW": 90,
+				"INT": 48,
+				"KON": 83,
+				"KOO": 74,
+				"MEN": 96,
+				"STA": 90
+			},
+			"color": "e6e6e6",
+			"free_xp": 0,
+			"id": "luke",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "L",
+			"medkits": 3,
+			"name": "Luke",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "luke",
+			"shield": true,
+			"skills": {
+				"ausweichen": {
+					"rank": 5,
+					"xp": 0
+				},
+				"einhand": {
+					"rank": 8,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 1,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 3,
+					"xp": 0
+				},
+				"lAngriff": {
+					"rank": 2,
+					"xp": 0
+				},
+				"lTelekinese": {
+					"rank": 5,
+					"xp": 0
+				},
+				"medikamente": {
+					"rank": 1,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 5,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 5,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 4,
+					"xp": 0
+				},
+				"raketen": {
+					"rank": 3,
+					"xp": 0
+				},
+				"schild": {
+					"rank": 3,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/men_adventurer.tres",
+			"weapons": [
+				"user://gear/weapons/eigen_1792449683548.tres",
+				"res://data/weapons/laserpistole.tres"
+			],
+			"wear": {}
+		},
+		{
+			"armor": "res://data/armor/leicht.tres",
+			"attrs": {
+				"EMP": 96,
+				"GEW": 90,
+				"INT": 62,
+				"KON": 64,
+				"KOO": 60,
+				"MEN": 98,
+				"STA": 35
+			},
+			"color": "f14dff",
+			"free_xp": 0,
+			"id": "psi_trulla",
+			"injury": "",
+			"injury_days": 0,
+			"letter": "P",
+			"medkits": 3,
+			"name": "PSI Trulla",
+			"new_list": "",
+			"role": "Crew",
+			"roster_id": "psi_trulla",
+			"shield": true,
+			"skills": {
+				"ausweichen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"ersteHilfe": {
+					"rank": 1,
+					"xp": 0
+				},
+				"hwRuestung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"hwWaffen": {
+					"rank": 1,
+					"xp": 0
+				},
+				"kampfsinn": {
+					"rank": 1,
+					"xp": 0
+				},
+				"koerper": {
+					"rank": 2,
+					"xp": 0
+				},
+				"lAngriff": {
+					"rank": 8,
+					"xp": 0
+				},
+				"lHeilung": {
+					"rank": 3,
+					"xp": 0
+				},
+				"notReparatur": {
+					"rank": 1,
+					"xp": 0
+				},
+				"panzerung": {
+					"rank": 1,
+					"xp": 0
+				},
+				"pistolen": {
+					"rank": 2,
+					"xp": 0
+				},
+				"psiAngriff": {
+					"rank": 8,
+					"xp": 0
+				},
+				"psiPunkte": {
+					"rank": 5,
+					"xp": 0
+				},
+				"psiVerteidigung": {
+					"rank": 3,
+					"xp": 0
+				},
+				"psiWirken": {
+					"rank": 4,
+					"xp": 0
+				},
+				"schild": {
+					"rank": 2,
+					"xp": 0
+				}
+			},
+			"station": "",
+			"status": {},
+			"used": {},
+			"visual": "res://data/visuals/characters/women_witch.tres",
+			"weapons": [
+				"res://data/weapons/laserpistole.tres",
+				"res://data/weapons/faeuste.tres"
+			],
+			"wear": {}
+		}
+	],
+	"version": 1
+}

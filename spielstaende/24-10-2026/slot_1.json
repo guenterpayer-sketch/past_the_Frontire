@@ -1,0 +1,5194 @@
+{
+	"crew": {
+		"crew": [
+			{
+				"armor": "res://data/armor/mittel.tres",
+				"attrs": {
+					"EMP": 53.0,
+					"GEW": 92.0,
+					"INT": 91.0,
+					"KON": 68.0,
+					"KOO": 93.0,
+					"MEN": 44.0,
+					"STA": 54.0
+				},
+				"color": "c40101",
+				"free_xp": 0.0,
+				"id": "tulin",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "T",
+				"medkits": 2.0,
+				"name": "Tulin",
+				"new_list": "",
+				"role": "Steuer",
+				"roster_id": "tulin",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 3.0,
+						"xp": 1.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 2.0
+					},
+					"gewehre": {
+						"rank": 9.0,
+						"xp": 12.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"hwWaffen": {
+						"rank": 3.0,
+						"xp": 3.0
+					},
+					"kampfsinn": {
+						"rank": 5.0,
+						"xp": 11.0
+					},
+					"kochen": {
+						"rank": 5.0,
+						"xp": 18.0
+					},
+					"koerper": {
+						"rank": 3.0,
+						"xp": 4.0
+					},
+					"lHeilung": {
+						"rank": 1.0,
+						"xp": 6.0
+					},
+					"medikamente": {
+						"rank": 0.0,
+						"xp": 4.0
+					},
+					"navigation": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"notReparatur": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"pilot": {
+						"rank": 13.0,
+						"xp": 25.0
+					},
+					"pistolen": {
+						"rank": 2.0,
+						"xp": 2.0
+					},
+					"psiPunkte": {
+						"rank": 1.0,
+						"xp": 1.0
+					},
+					"psiWirken": {
+						"rank": 0.0,
+						"xp": 1.0
+					},
+					"rsReparatur": {
+						"rank": 1.0,
+						"xp": 6.0
+					},
+					"strahlGeschuetze": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"waffenlos": {
+						"rank": 1.0,
+						"xp": 0.0
+					}
+				},
+				"station": "Steuer",
+				"status": {
+					"bleed": 0.0,
+					"hp": 52.0,
+					"malus": 0.0,
+					"max_hp": 52.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/men_adventurer.tres",
+				"weapons": [
+					"res://data/weapons/laserpistole.tres",
+					"res://data/weapons/laserkarabiner.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/schwer.tres",
+				"attrs": {
+					"EMP": 81.0,
+					"GEW": 92.0,
+					"INT": 82.0,
+					"KON": 91.0,
+					"KOO": 91.0,
+					"MEN": 52.0,
+					"STA": 100.0
+				},
+				"color": "453401",
+				"free_xp": 0.0,
+				"id": "rino",
+				"injury": "angeschlagen",
+				"injury_days": 1.0,
+				"letter": "R",
+				"medkits": 0.0,
+				"name": "Rino",
+				"new_list": "",
+				"role": "Crew",
+				"roster_id": "rino",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 7.0,
+						"xp": 19.0
+					},
+					"ballistikGeschuetze": {
+						"rank": 3.0,
+						"xp": 15.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 7.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"hwWaffen": {
+						"rank": 4.0,
+						"xp": 12.0
+					},
+					"kampfsinn": {
+						"rank": 11.0,
+						"xp": 14.0
+					},
+					"koerper": {
+						"rank": 6.0,
+						"xp": 0.0
+					},
+					"medikamente": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"notReparatur": {
+						"rank": 2.0,
+						"xp": 8.0
+					},
+					"panzerung": {
+						"rank": 2.0,
+						"xp": 2.0
+					},
+					"pistolen": {
+						"rank": 3.0,
+						"xp": 11.0
+					},
+					"psiPunkte": {
+						"rank": 0.0,
+						"xp": 5.0
+					},
+					"psiVerteidigung": {
+						"rank": 0.0,
+						"xp": 9.0
+					},
+					"raketen": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"rsReparatur": {
+						"rank": 8.0,
+						"xp": 8.0
+					},
+					"schnellfeuer": {
+						"rank": 0.0,
+						"xp": 5.0
+					},
+					"waffenReparatur": {
+						"rank": 3.0,
+						"xp": 2.0
+					},
+					"waffenlos": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"zweihand": {
+						"rank": 15.0,
+						"xp": 19.0
+					}
+				},
+				"station": "Technik",
+				"status": {
+					"bleed": 0.0,
+					"hp": 68.0,
+					"malus": 0.0,
+					"max_hp": 70.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {
+						"eigen_1792109890569": 3.0
+					},
+					"medkits": 2.0
+				},
+				"visual": "res://data/visuals/characters/men_spacesuit.tres",
+				"weapons": [
+					"res://data/weapons/energiehammer.tres",
+					"user://gear/weapons/eigen_1792109890569.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/mittel.tres",
+				"attrs": {
+					"EMP": 57.0,
+					"GEW": 86.0,
+					"INT": 81.0,
+					"KON": 71.0,
+					"KOO": 91.0,
+					"MEN": 84.0,
+					"STA": 44.0
+				},
+				"color": "ffd34d",
+				"free_xp": 0.0,
+				"id": "vella",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "V",
+				"medkits": 2.0,
+				"name": "Vella",
+				"new_list": "",
+				"role": "Navigation",
+				"roster_id": "vella",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 4.0,
+						"xp": 13.0
+					},
+					"computer": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"einhand": {
+						"rank": 10.0,
+						"xp": 8.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 5.0
+					},
+					"gassenwissen": {
+						"rank": 6.0,
+						"xp": 3.0
+					},
+					"gewehre": {
+						"rank": 9.0,
+						"xp": 26.0
+					},
+					"handeln": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 1.0
+					},
+					"hwWaffen": {
+						"rank": 1.0,
+						"xp": 10.0
+					},
+					"kampfsinn": {
+						"rank": 10.0,
+						"xp": 5.0
+					},
+					"kochen": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"koerper": {
+						"rank": 4.0,
+						"xp": 2.0
+					},
+					"lHeilung": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"medikamente": {
+						"rank": 0.0,
+						"xp": 5.0
+					},
+					"navigation": {
+						"rank": 11.0,
+						"xp": 1.0
+					},
+					"psiAngriff": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"psiPunkte": {
+						"rank": 2.0,
+						"xp": 5.0
+					},
+					"psiVerteidigung": {
+						"rank": 1.0,
+						"xp": 6.0
+					},
+					"psiWirken": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"schild": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"schutzschild": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"verhandeln": {
+						"rank": 1.0,
+						"xp": 0.0
+					}
+				},
+				"station": "Navigation",
+				"status": {
+					"bleed": 2.0,
+					"hp": 16.0,
+					"malus": -10.0,
+					"max_hp": 58.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {
+						"laserkarabiner": 2.0
+					},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/women_scifi.tres",
+				"weapons": [
+					"res://data/weapons/laserkarabiner.tres",
+					"res://data/weapons/vibroklinge.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "user://gear/armor/eigen_1792449778181.tres",
+				"attrs": {
+					"EMP": 90.0,
+					"GEW": 74.0,
+					"INT": 86.0,
+					"KON": 34.0,
+					"KOO": 57.0,
+					"MEN": 97.0,
+					"STA": 30.0
+				},
+				"color": "aeaa9f",
+				"free_xp": 0.0,
+				"id": "mireaf",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "M",
+				"medkits": 2.0,
+				"name": "Mireaf",
+				"new_list": "",
+				"role": "Navigation",
+				"roster_id": "mireaf",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 3.0,
+						"xp": 2.0
+					},
+					"computer": {
+						"rank": 7.0,
+						"xp": 15.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 3.0
+					},
+					"hwRuestung": {
+						"rank": 0.0,
+						"xp": 1.0
+					},
+					"hwWaffen": {
+						"rank": 0.0,
+						"xp": 8.0
+					},
+					"kampfsinn": {
+						"rank": 7.0,
+						"xp": 7.0
+					},
+					"koerper": {
+						"rank": 1.0,
+						"xp": 7.0
+					},
+					"lAngriff": {
+						"rank": 6.0,
+						"xp": 0.0
+					},
+					"lHeilung": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"lWahrnehmung": {
+						"rank": 1.0,
+						"xp": 8.0
+					},
+					"medikamente": {
+						"rank": 0.0,
+						"xp": 2.0
+					},
+					"pilot": {
+						"rank": 0.0,
+						"xp": 1.0
+					},
+					"pistolen": {
+						"rank": 2.0,
+						"xp": 4.0
+					},
+					"psiAngriff": {
+						"rank": 14.0,
+						"xp": 11.0
+					},
+					"psiPunkte": {
+						"rank": 4.0,
+						"xp": 0.0
+					},
+					"psiVerteidigung": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"psiWirken": {
+						"rank": 9.0,
+						"xp": 0.0
+					},
+					"verhandeln": {
+						"rank": 5.0,
+						"xp": 19.0
+					}
+				},
+				"station": "Computer",
+				"status": {
+					"bleed": 0.0,
+					"hp": 31.0,
+					"malus": 0.0,
+					"max_hp": 31.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {
+						"laserpistole": 1.0
+					},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/women_witch.tres",
+				"weapons": [
+					"res://data/weapons/laserpistole.tres",
+					"res://data/weapons/psi_stoss.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/schwer.tres",
+				"attrs": {
+					"EMP": 45.0,
+					"GEW": 96.0,
+					"INT": 57.0,
+					"KON": 87.0,
+					"KOO": 99.0,
+					"MEN": 47.0,
+					"STA": 91.0
+				},
+				"color": "078226",
+				"free_xp": 0.0,
+				"id": "bum_gun",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "B",
+				"medkits": 2.0,
+				"name": "Bum Gun",
+				"new_list": "",
+				"role": "Geschütze",
+				"roster_id": "bum_gun",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 5.0,
+						"xp": 4.0
+					},
+					"ballistikGeschuetze": {
+						"rank": 8.0,
+						"xp": 3.0
+					},
+					"ersteHilfe": {
+						"rank": 1.0,
+						"xp": 3.0
+					},
+					"gewehre": {
+						"rank": 14.0,
+						"xp": 29.0
+					},
+					"hwRuestung": {
+						"rank": 2.0,
+						"xp": 13.0
+					},
+					"hwWaffen": {
+						"rank": 1.0,
+						"xp": 5.0
+					},
+					"kampfsinn": {
+						"rank": 10.0,
+						"xp": 0.0
+					},
+					"koerper": {
+						"rank": 5.0,
+						"xp": 0.0
+					},
+					"medikamente": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"notReparatur": {
+						"rank": 2.0,
+						"xp": 10.0
+					},
+					"panzerung": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"psiVerteidigung": {
+						"rank": 0.0,
+						"xp": 5.0
+					},
+					"raketenwerfer": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"rsReparatur": {
+						"rank": 2.0,
+						"xp": 8.0
+					},
+					"schnellfeuer": {
+						"rank": 9.0,
+						"xp": 19.0
+					},
+					"waffenReparatur": {
+						"rank": 0.0,
+						"xp": 8.0
+					}
+				},
+				"station": "Geschütze",
+				"status": {
+					"bleed": 0.0,
+					"hp": 69.0,
+					"malus": 0.0,
+					"max_hp": 69.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {
+						"eigen_1792109982554": 5.0,
+						"eigen_1792130429888": 3.0
+					},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/men_swat.tres",
+				"weapons": [
+					"user://gear/weapons/eigen_1792109982554.tres",
+					"user://gear/weapons/eigen_1792130429888.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/schwer.tres",
+				"attrs": {
+					"EMP": 45.0,
+					"GEW": 57.0,
+					"INT": 91.0,
+					"KON": 76.0,
+					"KOO": 100.0,
+					"MEN": 40.0,
+					"STA": 84.0
+				},
+				"color": "24eed2",
+				"free_xp": 0.0,
+				"id": "normina",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "N",
+				"medkits": 2.0,
+				"name": "Normina",
+				"new_list": "",
+				"role": "Crew",
+				"roster_id": "normina",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 4.0,
+						"xp": 9.0
+					},
+					"ballistikGeschuetze": {
+						"rank": 1.0,
+						"xp": 1.0
+					},
+					"computer": {
+						"rank": 0.0,
+						"xp": 4.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 5.0
+					},
+					"hwRuestung": {
+						"rank": 3.0,
+						"xp": 2.0
+					},
+					"hwWaffen": {
+						"rank": 3.0,
+						"xp": 2.0
+					},
+					"kampfsinn": {
+						"rank": 11.0,
+						"xp": 14.0
+					},
+					"koerper": {
+						"rank": 6.0,
+						"xp": 0.0
+					},
+					"medikamente": {
+						"rank": 1.0,
+						"xp": 4.0
+					},
+					"notReparatur": {
+						"rank": 0.0,
+						"xp": 2.0
+					},
+					"panzerung": {
+						"rank": 0.0,
+						"xp": 2.0
+					},
+					"pistolen": {
+						"rank": 5.0,
+						"xp": 1.0
+					},
+					"psiVerteidigung": {
+						"rank": 0.0,
+						"xp": 4.0
+					},
+					"raketen": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"raketenwerfer": {
+						"rank": 0.0,
+						"xp": 5.0
+					},
+					"rsReparatur": {
+						"rank": 1.0,
+						"xp": 10.0
+					},
+					"schnellfeuer": {
+						"rank": 13.0,
+						"xp": 32.0
+					},
+					"strahlGeschuetze": {
+						"rank": 6.0,
+						"xp": 8.0
+					},
+					"waffenReparatur": {
+						"rank": 0.0,
+						"xp": 7.0
+					},
+					"zweiteHilfe": {
+						"rank": 1.0,
+						"xp": 4.0
+					}
+				},
+				"station": "",
+				"status": {
+					"bleed": 0.0,
+					"hp": 70.0,
+					"malus": 0.0,
+					"max_hp": 70.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/women_worker.tres",
+				"weapons": [
+					"res://data/weapons/mg.tres",
+					"res://data/weapons/laserpistole.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "user://gear/armor/eigen_1792449778181.tres",
+				"attrs": {
+					"EMP": 90.0,
+					"GEW": 89.0,
+					"INT": 99.0,
+					"KON": 63.0,
+					"KOO": 99.0,
+					"MEN": 69.0,
+					"STA": 44.0
+				},
+				"color": "4dff69",
+				"free_xp": 0.0,
+				"id": "doc_morris",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "D",
+				"medkits": 2.0,
+				"name": "Doc Morris",
+				"new_list": "",
+				"role": "Crew",
+				"roster_id": "doc_morris",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"ballistikGeschuetze": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"ersteHilfe": {
+						"rank": 8.0,
+						"xp": 5.0
+					},
+					"gewehre": {
+						"rank": 3.0,
+						"xp": 8.0
+					},
+					"handeln": {
+						"rank": 5.0,
+						"xp": 6.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 8.0
+					},
+					"hwWaffen": {
+						"rank": 0.0,
+						"xp": 7.0
+					},
+					"kampfsinn": {
+						"rank": 4.0,
+						"xp": 6.0
+					},
+					"koerper": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"lHeilung": {
+						"rank": 3.0,
+						"xp": 12.0
+					},
+					"medikamente": {
+						"rank": 5.0,
+						"xp": 14.0
+					},
+					"pistolen": {
+						"rank": 5.0,
+						"xp": 0.0
+					},
+					"psiPunkte": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"psiVerteidigung": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"psiWirken": {
+						"rank": 2.0,
+						"xp": 8.0
+					},
+					"schutzschild": {
+						"rank": 4.0,
+						"xp": 11.0
+					},
+					"zweiteHilfe": {
+						"rank": 8.0,
+						"xp": 24.0
+					}
+				},
+				"station": "Schilde",
+				"status": {
+					"bleed": 0.0,
+					"hp": 46.0,
+					"malus": 0.0,
+					"max_hp": 46.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/men_adventurer.tres",
+				"weapons": [
+					"res://data/weapons/laserkarabiner.tres",
+					"res://data/weapons/laserpistole.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/mittel.tres",
+				"attrs": {
+					"EMP": 35.0,
+					"GEW": 99.0,
+					"INT": 79.0,
+					"KON": 75.0,
+					"KOO": 90.0,
+					"MEN": 56.0,
+					"STA": 31.0
+				},
+				"color": "fb8507",
+				"free_xp": 0.0,
+				"id": "ilmu",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "I",
+				"medkits": 1.0,
+				"name": "Ilmu",
+				"new_list": "",
+				"role": "Computer",
+				"roster_id": "ilmu",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 4.0,
+						"xp": 11.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 1.0
+					},
+					"gassenwissen": {
+						"rank": 3.0,
+						"xp": 12.0
+					},
+					"gewehre": {
+						"rank": 9.0,
+						"xp": 22.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 4.0
+					},
+					"hwWaffen": {
+						"rank": 1.0,
+						"xp": 1.0
+					},
+					"kampfsinn": {
+						"rank": 10.0,
+						"xp": 10.0
+					},
+					"koerper": {
+						"rank": 5.0,
+						"xp": 2.0
+					},
+					"lAngriff": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"lSchutz": {
+						"rank": 3.0,
+						"xp": 9.0
+					},
+					"medikamente": {
+						"rank": 0.0,
+						"xp": 1.0
+					},
+					"notReparatur": {
+						"rank": 2.0,
+						"xp": 2.0
+					},
+					"panzerung": {
+						"rank": 5.0,
+						"xp": 5.0
+					},
+					"psiAngriff": {
+						"rank": 5.0,
+						"xp": 7.0
+					},
+					"psiPunkte": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"psiVerteidigung": {
+						"rank": 1.0,
+						"xp": 1.0
+					},
+					"psiWirken": {
+						"rank": 2.0,
+						"xp": 13.0
+					},
+					"raketen": {
+						"rank": 0.0,
+						"xp": 3.0
+					},
+					"raketenwerfer": {
+						"rank": 5.0,
+						"xp": 18.0
+					},
+					"rsReparatur": {
+						"rank": 2.0,
+						"xp": 0.0
+					}
+				},
+				"station": "",
+				"status": {
+					"bleed": 0.0,
+					"hp": 48.0,
+					"malus": 0.0,
+					"max_hp": 65.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {
+						"laserkarabiner": 2.0,
+						"raketenwerfer": 1.0
+					},
+					"medkits": 1.0
+				},
+				"visual": "res://data/visuals/characters/men_suit.tres",
+				"weapons": [
+					"res://data/weapons/laserkarabiner.tres",
+					"res://data/weapons/raketenwerfer.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/schwer.tres",
+				"attrs": {
+					"EMP": 71.0,
+					"GEW": 94.0,
+					"INT": 72.0,
+					"KON": 60.0,
+					"KOO": 91.0,
+					"MEN": 91.0,
+					"STA": 100.0
+				},
+				"color": "5c66f9",
+				"free_xp": 0.0,
+				"id": "ann",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "A",
+				"medkits": 3.0,
+				"name": "Angora",
+				"new_list": "",
+				"role": "Crew",
+				"roster_id": "ann",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 2.0,
+						"xp": 11.0
+					},
+					"ballistikGeschuetze": {
+						"rank": 1.0,
+						"xp": 3.0
+					},
+					"computer": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"ersteHilfe": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 8.0
+					},
+					"hwWaffen": {
+						"rank": 1.0,
+						"xp": 5.0
+					},
+					"kampfsinn": {
+						"rank": 7.0,
+						"xp": 22.0
+					},
+					"koerper": {
+						"rank": 4.0,
+						"xp": 0.0
+					},
+					"lAngriff": {
+						"rank": 4.0,
+						"xp": 6.0
+					},
+					"medikamente": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"navigation": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"notReparatur": {
+						"rank": 8.0,
+						"xp": 10.0
+					},
+					"panzerung": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"pistolen": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"psiAngriff": {
+						"rank": 5.0,
+						"xp": 4.0
+					},
+					"psiPunkte": {
+						"rank": 1.0,
+						"xp": 7.0
+					},
+					"psiVerteidigung": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"psiWirken": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"raketen": {
+						"rank": 1.0,
+						"xp": 5.0
+					},
+					"rsReparatur": {
+						"rank": 1.0,
+						"xp": 2.0
+					},
+					"schnellfeuer": {
+						"rank": 12.0,
+						"xp": 13.0
+					},
+					"schutzschild": {
+						"rank": 3.0,
+						"xp": 0.0
+					},
+					"zweiteHilfe": {
+						"rank": 2.0,
+						"xp": 8.0
+					}
+				},
+				"station": "",
+				"status": {
+					"bleed": 0.0,
+					"hp": 55.0,
+					"malus": 0.0,
+					"max_hp": 55.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/women_scifi.tres",
+				"weapons": [
+					"res://data/weapons/mg.tres",
+					"res://data/weapons/laserpistole.tres"
+				],
+				"wear": {}
+			},
+			{
+				"armor": "res://data/armor/schwer.tres",
+				"attrs": {
+					"EMP": 71.0,
+					"GEW": 76.0,
+					"INT": 47.0,
+					"KON": 90.0,
+					"KOO": 83.0,
+					"MEN": 73.0,
+					"STA": 95.0
+				},
+				"color": "f677d9",
+				"free_xp": 0.0,
+				"id": "lucky",
+				"injury": "",
+				"injury_days": 0.0,
+				"letter": "L",
+				"medkits": 3.0,
+				"name": "Lucky",
+				"new_list": "",
+				"role": "Crew",
+				"roster_id": "lucky",
+				"shield": false,
+				"skills": {
+					"ausweichen": {
+						"rank": 8.0,
+						"xp": 11.0
+					},
+					"ersteHilfe": {
+						"rank": 2.0,
+						"xp": 3.0
+					},
+					"gassenwissen": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"hwRuestung": {
+						"rank": 1.0,
+						"xp": 5.0
+					},
+					"hwWaffen": {
+						"rank": 1.0,
+						"xp": 3.0
+					},
+					"kampfsinn": {
+						"rank": 7.0,
+						"xp": 1.0
+					},
+					"koerper": {
+						"rank": 3.0,
+						"xp": 14.0
+					},
+					"lSchutz": {
+						"rank": 0.0,
+						"xp": 10.0
+					},
+					"lTelekinese": {
+						"rank": 5.0,
+						"xp": 0.0
+					},
+					"medikamente": {
+						"rank": 1.0,
+						"xp": 1.0
+					},
+					"pistolen": {
+						"rank": 2.0,
+						"xp": 6.0
+					},
+					"psiAngriff": {
+						"rank": 3.0,
+						"xp": 4.0
+					},
+					"psiPunkte": {
+						"rank": 3.0,
+						"xp": 6.0
+					},
+					"psiWirken": {
+						"rank": 2.0,
+						"xp": 0.0
+					},
+					"raketen": {
+						"rank": 1.0,
+						"xp": 3.0
+					},
+					"waffenReparatur": {
+						"rank": 1.0,
+						"xp": 0.0
+					},
+					"zweihand": {
+						"rank": 8.0,
+						"xp": 25.0
+					}
+				},
+				"station": "",
+				"status": {
+					"bleed": 0.0,
+					"hp": 45.0,
+					"malus": 0.0,
+					"max_hp": 60.0,
+					"state": "ok"
+				},
+				"used": {
+					"ammo": {
+						"eigen_1792109890569": 6.0
+					},
+					"medkits": 0.0
+				},
+				"visual": "res://data/visuals/characters/men_swat.tres",
+				"weapons": [
+					"user://gear/weapons/eigen_1792110338276.tres",
+					"user://gear/weapons/eigen_1792109890569.tres"
+				],
+				"wear": {}
+			}
+		],
+		"harbor": [],
+		"squad": [
+			"rino",
+			"vella",
+			"mireaf",
+			"bum_gun",
+			"ilmu",
+			"lucky"
+		],
+		"version": 3.0
+	},
+	"game": {
+		"ammo": {
+			"energie": 233,
+			"projektil": 215,
+			"raketen": 5
+		},
+		"berths": 10,
+		"board_pending": {},
+		"contact": {},
+		"cook": "tulin",
+		"cooklog": [
+			{
+				"cook": "Tulin",
+				"day": 59,
+				"empty": false,
+				"p0": 54,
+				"p1": 45,
+				"result": "teilerfolg",
+				"result_name": "Teilerfolg",
+				"total": 88,
+				"use": 9,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 58,
+				"empty": false,
+				"p0": 63,
+				"p1": 54,
+				"result": "teilerfolg",
+				"result_name": "Teilerfolg",
+				"total": 77,
+				"use": 9,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 57,
+				"empty": false,
+				"p0": 71,
+				"p1": 63,
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"total": 110,
+				"use": 8,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 56,
+				"empty": false,
+				"p0": 80,
+				"p1": 71,
+				"result": "teilerfolg",
+				"result_name": "Teilerfolg",
+				"total": 96,
+				"use": 9,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 55,
+				"empty": false,
+				"p0": 88,
+				"p1": 80,
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"total": 106,
+				"use": 8,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 54,
+				"empty": false,
+				"p0": 96,
+				"p1": 88,
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"total": 130,
+				"use": 8,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 53,
+				"empty": false,
+				"p0": 105,
+				"p1": 96,
+				"result": "teilerfolg",
+				"result_name": "Teilerfolg",
+				"total": 91,
+				"use": 9,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 52,
+				"empty": false,
+				"p0": 115,
+				"p1": 105,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": 24,
+				"use": 10,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 51,
+				"empty": false,
+				"p0": 95,
+				"p1": 85,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": 36,
+				"use": 10,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 50,
+				"empty": false,
+				"p0": 105,
+				"p1": 95,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": 25,
+				"use": 10,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 49,
+				"empty": false,
+				"p0": 118,
+				"p1": 105,
+				"result": "patzer",
+				"result_name": "Patzer",
+				"total": -26,
+				"use": 13,
+				"xp": 0
+			},
+			{
+				"cook": "Tulin",
+				"day": 48,
+				"empty": false,
+				"p0": 125,
+				"p1": 118,
+				"result": "herausragend",
+				"result_name": "Herausragender Erfolg",
+				"total": 193,
+				"use": 7,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 47,
+				"empty": false,
+				"p0": 135,
+				"p1": 125,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": 57,
+				"use": 10,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 46,
+				"empty": false,
+				"p0": 143,
+				"p1": 135,
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"total": 129,
+				"use": 8,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 45,
+				"empty": false,
+				"p0": 151,
+				"p1": 143,
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"total": 130,
+				"use": 8,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 44,
+				"empty": false,
+				"p0": 158,
+				"p1": 151,
+				"result": "herausragend",
+				"result_name": "Herausragender Erfolg",
+				"total": 185,
+				"use": 7,
+				"xp": 2
+			},
+			{
+				"cook": "Tulin",
+				"day": 43,
+				"empty": false,
+				"p0": 168,
+				"p1": 158,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": 43,
+				"use": 10,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 42,
+				"empty": false,
+				"p0": 178,
+				"p1": 168,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": -13,
+				"use": 10,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 39,
+				"empty": false,
+				"p0": 127,
+				"p1": 118,
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"total": 68,
+				"use": 9,
+				"xp": 1
+			},
+			{
+				"cook": "Tulin",
+				"day": 38,
+				"empty": false,
+				"p0": 134,
+				"p1": 127,
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"total": 107,
+				"use": 7,
+				"xp": 2
+			}
+		],
+		"craft_material": 28,
+		"credits": 2403,
+		"cur_sector": 0,
+		"day": 60,
+		"emergency": false,
+		"fuel": 60,
+		"gun_posts": {
+			"backbord": "bum_gun",
+			"bug": "normina",
+			"steuerbord": "lucky",
+			"technik_2": "ilmu",
+			"turm": "ki"
+		},
+		"hull": 89,
+		"jobs": {
+			"tulin": {
+				"days": 1,
+				"key": "hull",
+				"kind": "ship",
+				"material": 0,
+				"name": "Tulin"
+			}
+		},
+		"known_sectors": [
+			0
+		],
+		"loot_pending": {},
+		"material": 4,
+		"medics": [
+			"doc_morris",
+			"ann"
+		],
+		"medlog": [
+			"Tag 60: Lucky ist wieder einsatzbereit",
+			"Tag 60: Ilmu ist wieder einsatzbereit",
+			"Tag 60: Vella ist wieder einsatzbereit",
+			"Tag 60: Zweite Hilfe 16 +85 = 101 → +1 Tag Heilung",
+			"Tag 53: Lucky ist wieder einsatzbereit",
+			"Tag 53: Ilmu ist wieder einsatzbereit",
+			"Tag 53: Rino ist wieder einsatzbereit",
+			"Tag 53: Zweite Hilfe 60 +85 = 145 → +1 Tag Heilung"
+		],
+		"missions_done": 6,
+		"next_id": 34,
+		"offers": [
+			{
+				"blockade": false,
+				"difficulty": "leicht",
+				"expires": 60,
+				"id": 30,
+				"kind": "abfangen",
+				"place": 0,
+				"retry": false,
+				"seed": 15649,
+				"system": 12
+			},
+			{
+				"blockade": false,
+				"difficulty": "mittel",
+				"expires": 67,
+				"id": 31,
+				"kind": "abfangen",
+				"place": 1,
+				"retry": false,
+				"seed": 696743,
+				"system": 15
+			},
+			{
+				"blockade": false,
+				"difficulty": "schwer",
+				"expires": 66,
+				"id": 32,
+				"kind": "boden",
+				"place": 1,
+				"retry": false,
+				"seed": 973431,
+				"system": 14
+			},
+			{
+				"blockade": false,
+				"difficulty": "mittel",
+				"expires": 63,
+				"id": 33,
+				"kind": "abfangen",
+				"place": 2,
+				"retry": false,
+				"seed": 442649,
+				"system": 10
+			}
+		],
+		"papers": [],
+		"pending_offer": -1,
+		"position": 1,
+		"project": {},
+		"provisions": 45,
+		"sectors": [
+			{
+				"gates": [
+					{
+						"dir": [
+							0.650456428527832,
+							-0.759543597698212
+						],
+						"fee": 600,
+						"operator": "res://data/missions/kinder_der_glut.tres",
+						"papers": false,
+						"system": 13,
+						"to_sector": 1,
+						"to_system": 14
+					},
+					{
+						"dir": [
+							0.466676652431488,
+							0.884428024291992
+						],
+						"fee": 550,
+						"operator": "res://data/missions/rote_sonne.tres",
+						"papers": false,
+						"system": 11,
+						"to_sector": 2,
+						"to_system": 17
+					}
+				],
+				"home": 4,
+				"name": "Sektor Aldra",
+				"routes": [
+					{
+						"a": 0,
+						"b": 15,
+						"days": 1
+					},
+					{
+						"a": 0,
+						"b": 17,
+						"days": 1
+					},
+					{
+						"a": 0,
+						"b": 7,
+						"days": 2
+					},
+					{
+						"a": 1,
+						"b": 0,
+						"days": 2
+					},
+					{
+						"a": 1,
+						"b": 17,
+						"days": 2
+					},
+					{
+						"a": 1,
+						"b": 4,
+						"days": 2
+					},
+					{
+						"a": 2,
+						"b": 12,
+						"days": 1
+					},
+					{
+						"a": 2,
+						"b": 9,
+						"days": 1
+					},
+					{
+						"a": 2,
+						"b": 13,
+						"days": 2
+					},
+					{
+						"a": 3,
+						"b": 16,
+						"days": 1
+					},
+					{
+						"a": 3,
+						"b": 5,
+						"days": 2
+					},
+					{
+						"a": 3,
+						"b": 6,
+						"days": 2
+					},
+					{
+						"a": 4,
+						"b": 17,
+						"days": 2
+					},
+					{
+						"a": 4,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 5,
+						"b": 16,
+						"days": 1
+					},
+					{
+						"a": 5,
+						"b": 18,
+						"days": 1
+					},
+					{
+						"a": 6,
+						"b": 7,
+						"days": 1
+					},
+					{
+						"a": 6,
+						"b": 12,
+						"days": 1
+					},
+					{
+						"a": 7,
+						"b": 14,
+						"days": 1
+					},
+					{
+						"a": 8,
+						"b": 16,
+						"days": 1
+					},
+					{
+						"a": 8,
+						"b": 17,
+						"days": 1
+					},
+					{
+						"a": 8,
+						"b": 10,
+						"days": 1
+					},
+					{
+						"a": 9,
+						"b": 11,
+						"days": 1
+					},
+					{
+						"a": 9,
+						"b": 5,
+						"days": 2
+					},
+					{
+						"a": 10,
+						"b": 18,
+						"days": 1
+					},
+					{
+						"a": 10,
+						"b": 16,
+						"days": 2
+					},
+					{
+						"a": 11,
+						"b": 5,
+						"days": 2
+					},
+					{
+						"a": 12,
+						"b": 13,
+						"days": 1
+					},
+					{
+						"a": 13,
+						"b": 6,
+						"days": 2
+					},
+					{
+						"a": 14,
+						"b": 17,
+						"days": 2
+					},
+					{
+						"a": 14,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 15,
+						"b": 1,
+						"days": 2
+					},
+					{
+						"a": 15,
+						"b": 17,
+						"days": 2
+					},
+					{
+						"a": 18,
+						"b": 16,
+						"days": 1
+					}
+				],
+				"seed": 952828,
+				"systems": [
+					{
+						"faction": "",
+						"name": "Tartel",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Tartel"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Tartel-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Tartel b"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Varga“"
+							}
+						],
+						"x": 335.400329589844,
+						"y": 195.126953125
+					},
+					{
+						"faction": "",
+						"name": "Orimar",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Orimar"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Orimar III"
+							}
+						],
+						"x": 94.3484878540039,
+						"y": 390.018188476563
+					},
+					{
+						"faction": "res://data/missions/aasgeier.tres",
+						"name": "Norrix",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Norrix Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Norrix-Ring"
+							}
+						],
+						"x": 1208.49401855469,
+						"y": 347.982482910156
+					},
+					{
+						"faction": "res://data/missions/aasgeier.tres",
+						"name": "Marbel III",
+						"places": [
+							{
+								"done": true,
+								"kind": "wrack",
+								"name": "Wrack „Kormoran“"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Marbel III III"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Sennet“"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Marbel III I"
+							}
+						],
+						"x": 925.258850097656,
+						"y": 426.949768066406
+					},
+					{
+						"faction": "",
+						"name": "Dramo",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Dramo"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Dramo b"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Dramo II"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Dramo Gasriese"
+							}
+						],
+						"x": 184.359130859375,
+						"y": 688.718505859375
+					},
+					{
+						"faction": "res://data/missions/rote_sonne.tres",
+						"name": "Drabel Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Drabel Reach b"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Drabel Reach c"
+							}
+						],
+						"x": 935.82275390625,
+						"y": 699.028625488281
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Kaix Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Tolsk“"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Kaix Tor-Ring"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Kaix Tor b"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Kaix Tor Gasriese"
+							}
+						],
+						"x": 874.836730957031,
+						"y": 143.428863525391
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Solix Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Solix Reach b"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Solix Reach I"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Solix Reach c"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Solix Reach Gasriese"
+							}
+						],
+						"x": 635.023376464844,
+						"y": 144.924652099609
+					},
+					{
+						"faction": "res://data/missions/schmuggler.tres",
+						"name": "Telmar Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Telmar Reach b"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Tolsk“"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Telmar Reach-Ring"
+							}
+						],
+						"x": 554.703857421875,
+						"y": 591.453308105469
+					},
+					{
+						"faction": "res://data/missions/rote_sonne.tres",
+						"name": "Orimar II",
+						"places": [
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Orimar II-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Orimar II b"
+							}
+						],
+						"x": 1218.86694335938,
+						"y": 584.537963867188
+					},
+					{
+						"faction": "res://data/missions/konzern.tres",
+						"name": "Movor",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Movor b"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Movor II"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Movor III"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Movor c"
+							}
+						],
+						"x": 546.77685546875,
+						"y": 831.662414550781
+					},
+					{
+						"faction": "res://data/missions/rote_sonne.tres",
+						"name": "Norqua",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Norqua-Ring"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Norqua Gasriese"
+							}
+						],
+						"x": 1273.99426269531,
+						"y": 830.981018066406
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Pharix",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Pharix I"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Pharix Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Pharix b"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Pharix-Ring"
+							}
+						],
+						"x": 1114.20385742188,
+						"y": 194.595306396484
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Teltel III",
+						"places": [
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Sennet“"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Teltel III-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Teltel III b"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Teltel III c"
+							}
+						],
+						"x": 1273.74377441406,
+						"y": 89.4011993408203
+					},
+					{
+						"faction": "res://data/missions/schmuggler.tres",
+						"name": "Solhal",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Solhal-Ring"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Solhal III"
+							}
+						],
+						"x": 647.239562988281,
+						"y": 332.518737792969
+					},
+					{
+						"faction": "res://data/missions/schmuggler.tres",
+						"name": "Orisol IV",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Orisol IV b"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Orisol IV c"
+							}
+						],
+						"x": 197.151382446289,
+						"y": 85.3632354736328
+					},
+					{
+						"faction": "res://data/missions/rote_sonne.tres",
+						"name": "Rixmo Prime",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Rixmo Prime-Ring"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Rixmo Prime Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Rixmo Prime b"
+							}
+						],
+						"x": 767.043823242188,
+						"y": 607.703674316406
+					},
+					{
+						"faction": "res://data/missions/schmuggler.tres",
+						"name": "Vorzen",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Vorzen b"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Vorzen Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Halcyon“"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Vorzen-Ring"
+							}
+						],
+						"x": 403.428283691406,
+						"y": 416.900390625
+					},
+					{
+						"faction": "res://data/missions/konzern.tres",
+						"name": "Lunser Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Lunser Reach-Ring"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Halcyon“"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Lunser Reach Gasriese"
+							}
+						],
+						"x": 753.335510253906,
+						"y": 851.350830078125
+					}
+				]
+			},
+			{
+				"gates": [
+					{
+						"dir": [
+							-0.650456428527832,
+							0.759543597698212
+						],
+						"fee": 600,
+						"operator": "res://data/missions/neuntes_haus.tres",
+						"papers": false,
+						"system": 14,
+						"to_sector": 0,
+						"to_system": 13
+					},
+					{
+						"dir": [
+							0.852811753749847,
+							-0.522218465805054
+						],
+						"fee": 350,
+						"operator": "",
+						"papers": false,
+						"system": 12,
+						"to_sector": 2,
+						"to_system": 15
+					}
+				],
+				"home": 3,
+				"name": "Sektor Ixul",
+				"routes": [
+					{
+						"a": 0,
+						"b": 4,
+						"days": 1
+					},
+					{
+						"a": 0,
+						"b": 9,
+						"days": 1
+					},
+					{
+						"a": 0,
+						"b": 1,
+						"days": 2
+					},
+					{
+						"a": 1,
+						"b": 4,
+						"days": 2
+					},
+					{
+						"a": 1,
+						"b": 9,
+						"days": 2
+					},
+					{
+						"a": 2,
+						"b": 13,
+						"days": 1
+					},
+					{
+						"a": 2,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 2,
+						"b": 12,
+						"days": 2
+					},
+					{
+						"a": 3,
+						"b": 9,
+						"days": 1
+					},
+					{
+						"a": 3,
+						"b": 14,
+						"days": 2
+					},
+					{
+						"a": 3,
+						"b": 6,
+						"days": 3
+					},
+					{
+						"a": 4,
+						"b": 15,
+						"days": 1
+					},
+					{
+						"a": 5,
+						"b": 8,
+						"days": 1
+					},
+					{
+						"a": 5,
+						"b": 11,
+						"days": 1
+					},
+					{
+						"a": 5,
+						"b": 10,
+						"days": 2
+					},
+					{
+						"a": 6,
+						"b": 7,
+						"days": 1
+					},
+					{
+						"a": 6,
+						"b": 14,
+						"days": 1
+					},
+					{
+						"a": 6,
+						"b": 10,
+						"days": 1
+					},
+					{
+						"a": 7,
+						"b": 11,
+						"days": 1
+					},
+					{
+						"a": 7,
+						"b": 10,
+						"days": 1
+					},
+					{
+						"a": 8,
+						"b": 13,
+						"days": 2
+					},
+					{
+						"a": 9,
+						"b": 6,
+						"days": 2
+					},
+					{
+						"a": 11,
+						"b": 17,
+						"days": 1
+					},
+					{
+						"a": 12,
+						"b": 16,
+						"days": 2
+					},
+					{
+						"a": 12,
+						"b": 13,
+						"days": 2
+					},
+					{
+						"a": 13,
+						"b": 16,
+						"days": 1
+					},
+					{
+						"a": 13,
+						"b": 17,
+						"days": 2
+					},
+					{
+						"a": 14,
+						"b": 10,
+						"days": 2
+					},
+					{
+						"a": 15,
+						"b": 17,
+						"days": 1
+					},
+					{
+						"a": 15,
+						"b": 16,
+						"days": 2
+					},
+					{
+						"a": 16,
+						"b": 17,
+						"days": 1
+					}
+				],
+				"seed": 960747,
+				"systems": [
+					{
+						"faction": "res://data/missions/semidrug.tres",
+						"name": "Zensol",
+						"places": [
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Mira“"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Zensol b"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Zensol-Ring"
+							}
+						],
+						"x": 406.583648681641,
+						"y": 336.367767333984
+					},
+					{
+						"faction": "res://data/missions/rote_sonne.tres",
+						"name": "Tarden Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Tarden Tor Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Tarden Tor II"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Kormoran“"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Tarden Tor-Nebel"
+							}
+						],
+						"x": 160.30012512207,
+						"y": 168.951553344727
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Halmo Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Halmo Tor II"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Halmo Tor I"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Ruun“"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Halmo Tor III"
+							}
+						],
+						"x": 1288.64306640625,
+						"y": 433.562072753906
+					},
+					{
+						"faction": "",
+						"name": "Kasol Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Kasol Tor"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Kasol Tor II"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Kasol Tor b"
+							}
+						],
+						"x": 124.923294067383,
+						"y": 712.1845703125
+					},
+					{
+						"faction": "res://data/missions/aasgeier.tres",
+						"name": "Draix",
+						"places": [
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Fenwick“"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Draix-Ring"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Draix III"
+							}
+						],
+						"x": 467.348052978516,
+						"y": 163.204193115234
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Cyrzen",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Cyrzen III"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Varga“"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Cyrzen b"
+							}
+						],
+						"x": 1007.54071044922,
+						"y": 629.950073242188
+					},
+					{
+						"faction": "res://data/missions/neuntes_haus.tres",
+						"name": "Seral IV",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Seral IV-Ring"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Tolsk“"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Seral IV b"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Seral IV-Nebel"
+							}
+						],
+						"x": 559.261596679688,
+						"y": 685.853149414063
+					},
+					{
+						"faction": "res://data/missions/neuntes_haus.tres",
+						"name": "Almo",
+						"places": [
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Almo-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Almo-Ring"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Almo Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Almo b"
+							}
+						],
+						"x": 708.504028320313,
+						"y": 579.264892578125
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Halmar III",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Halmar III Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Halmar III-Ring"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Halmar III b"
+							}
+						],
+						"x": 1214.86743164063,
+						"y": 713.172180175781
+					},
+					{
+						"faction": "res://data/missions/semidrug.tres",
+						"name": "Drabel IV",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Drabel IV b"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Drabel IV c"
+							}
+						],
+						"x": 253.556518554688,
+						"y": 538.96337890625
+					},
+					{
+						"faction": "res://data/missions/neuntes_haus.tres",
+						"name": "Phaix",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Phaix Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Mira“"
+							}
+						],
+						"x": 777.230224609375,
+						"y": 815.28662109375
+					},
+					{
+						"faction": "res://data/missions/neuntes_haus.tres",
+						"name": "Vesdra III",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Vesdra III Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Vesdra III-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Vesdra III III"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Vesdra III II"
+							}
+						],
+						"x": 844.572570800781,
+						"y": 441.322937011719
+					},
+					{
+						"faction": "",
+						"name": "Sermar Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Sermar Tor"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Sermar Tor II"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Varga“"
+							}
+						],
+						"x": 1307.82556152344,
+						"y": 111.003143310547
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Tartar",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Tartar-Ring"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Tartar Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Tartar b"
+							}
+						],
+						"x": 1084.59704589844,
+						"y": 336.864196777344
+					},
+					{
+						"faction": "res://data/missions/neuntes_haus.tres",
+						"name": "Solcyr",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Solcyr Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Solcyr I"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Solcyr-Ring"
+							}
+						],
+						"x": 454.343139648438,
+						"y": 852.287902832031
+					},
+					{
+						"faction": "",
+						"name": "Oriser Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Oriser Reach"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Oriser Reach Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Oriser Reach-Nebel"
+							}
+						],
+						"x": 695.364624023438,
+						"y": 81.670783996582
+					},
+					{
+						"faction": "res://data/missions/kinder_der_glut.tres",
+						"name": "Almar",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Almar-Ring"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Almar b"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Varga“"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Almar-Nebel"
+							}
+						],
+						"x": 1004.21734619141,
+						"y": 159.599594116211
+					},
+					{
+						"faction": "res://data/missions/aasgeier.tres",
+						"name": "Marhal",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Marhal Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Marhal b"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Marhal I"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Marhal-Ring"
+							}
+						],
+						"x": 850.147705078125,
+						"y": 230.251098632813
+					}
+				]
+			},
+			{
+				"gates": [
+					{
+						"dir": [
+							-0.852811753749847,
+							0.522218465805054
+						],
+						"fee": 350,
+						"operator": "res://data/missions/rote_sonne.tres",
+						"papers": false,
+						"system": 15,
+						"to_sector": 1,
+						"to_system": 12
+					},
+					{
+						"dir": [
+							-0.466676652431488,
+							-0.884428024291992
+						],
+						"fee": 550,
+						"operator": "res://data/missions/leeres_licht.tres",
+						"papers": false,
+						"system": 17,
+						"to_sector": 0,
+						"to_system": 11
+					}
+				],
+				"home": 0,
+				"name": "Sektor Alal",
+				"routes": [
+					{
+						"a": 0,
+						"b": 7,
+						"days": 2
+					},
+					{
+						"a": 0,
+						"b": 5,
+						"days": 2
+					},
+					{
+						"a": 0,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 1,
+						"b": 10,
+						"days": 1
+					},
+					{
+						"a": 1,
+						"b": 4,
+						"days": 1
+					},
+					{
+						"a": 1,
+						"b": 18,
+						"days": 1
+					},
+					{
+						"a": 2,
+						"b": 16,
+						"days": 1
+					},
+					{
+						"a": 2,
+						"b": 8,
+						"days": 1
+					},
+					{
+						"a": 2,
+						"b": 9,
+						"days": 1
+					},
+					{
+						"a": 3,
+						"b": 12,
+						"days": 1
+					},
+					{
+						"a": 3,
+						"b": 4,
+						"days": 1
+					},
+					{
+						"a": 3,
+						"b": 18,
+						"days": 1
+					},
+					{
+						"a": 4,
+						"b": 12,
+						"days": 1
+					},
+					{
+						"a": 5,
+						"b": 6,
+						"days": 1
+					},
+					{
+						"a": 5,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 6,
+						"b": 9,
+						"days": 2
+					},
+					{
+						"a": 6,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 7,
+						"b": 12,
+						"days": 2
+					},
+					{
+						"a": 7,
+						"b": 8,
+						"days": 2
+					},
+					{
+						"a": 8,
+						"b": 9,
+						"days": 2
+					},
+					{
+						"a": 9,
+						"b": 16,
+						"days": 1
+					},
+					{
+						"a": 10,
+						"b": 11,
+						"days": 1
+					},
+					{
+						"a": 10,
+						"b": 13,
+						"days": 2
+					},
+					{
+						"a": 11,
+						"b": 13,
+						"days": 1
+					},
+					{
+						"a": 11,
+						"b": 15,
+						"days": 2
+					},
+					{
+						"a": 12,
+						"b": 1,
+						"days": 2
+					},
+					{
+						"a": 13,
+						"b": 17,
+						"days": 1
+					},
+					{
+						"a": 13,
+						"b": 14,
+						"days": 1
+					},
+					{
+						"a": 14,
+						"b": 16,
+						"days": 2
+					},
+					{
+						"a": 14,
+						"b": 10,
+						"days": 2
+					},
+					{
+						"a": 15,
+						"b": 18,
+						"days": 1
+					},
+					{
+						"a": 15,
+						"b": 10,
+						"days": 2
+					},
+					{
+						"a": 15,
+						"b": 1,
+						"days": 2
+					},
+					{
+						"a": 17,
+						"b": 14,
+						"days": 2
+					},
+					{
+						"a": 17,
+						"b": 11,
+						"days": 2
+					}
+				],
+				"seed": 968666,
+				"systems": [
+					{
+						"faction": "",
+						"name": "Norpha III",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Norpha III"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Norpha III III"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Norpha III-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Norpha III b"
+							}
+						],
+						"x": 1276.44592285156,
+						"y": 625.726379394531
+					},
+					{
+						"faction": "res://data/missions/konzern.tres",
+						"name": "Aldra Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Orgo“"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Aldra Tor III"
+							}
+						],
+						"x": 387.453186035156,
+						"y": 661.763000488281
+					},
+					{
+						"faction": "res://data/missions/schwarze_flagge.tres",
+						"name": "Telnor II",
+						"places": [
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Telnor II-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Telnor II III"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Kormoran“"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Telnor II b"
+							}
+						],
+						"x": 750.391845703125,
+						"y": 376.119201660156
+					},
+					{
+						"faction": "res://data/missions/konzern.tres",
+						"name": "Halbel III",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Halbel III Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Halbel III-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Halbel III III"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Halbel III b"
+							}
+						],
+						"x": 525.317138671875,
+						"y": 862.460632324219
+					},
+					{
+						"faction": "res://data/missions/konzern.tres",
+						"name": "Kaser",
+						"places": [
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Kormoran“"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Kaser II"
+							}
+						],
+						"x": 570.818237304688,
+						"y": 680.039855957031
+					},
+					{
+						"faction": "res://data/missions/schwarze_flagge.tres",
+						"name": "Ixzen III",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Ixzen III II"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Ixzen III-Ring"
+							}
+						],
+						"x": 1179.06201171875,
+						"y": 341.179016113281
+					},
+					{
+						"faction": "res://data/missions/schwarze_flagge.tres",
+						"name": "Quatar",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Quatar II"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Quatar Gasriese"
+							}
+						],
+						"x": 1111.71716308594,
+						"y": 96.8120422363281
+					},
+					{
+						"faction": "res://data/missions/schmuggler.tres",
+						"name": "Norqua III",
+						"places": [
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Norqua III-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Norqua III I"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Norqua III-Ring"
+							}
+						],
+						"x": 1082.37768554688,
+						"y": 830.030639648438
+					},
+					{
+						"faction": "res://data/missions/schwarze_flagge.tres",
+						"name": "Quavor IV",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Quavor IV I"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Quavor IV-Ring"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Quavor IV b"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Quavor IV c"
+							}
+						],
+						"x": 920.767333984375,
+						"y": 475.181945800781
+					},
+					{
+						"faction": "res://data/missions/schwarze_flagge.tres",
+						"name": "Cyrlun",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Cyrlun III"
+							},
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Cyrlun-Nebel"
+							}
+						],
+						"x": 850.225036621094,
+						"y": 167.894714355469
+					},
+					{
+						"faction": "res://data/missions/leeres_licht.tres",
+						"name": "Sermar Tor",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Sermar Tor b"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Sermar Tor Gasriese"
+							}
+						],
+						"x": 269.818389892578,
+						"y": 520.084106445313
+					},
+					{
+						"faction": "res://data/missions/leeres_licht.tres",
+						"name": "Norul III",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Norul III b"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Norul III-Ring"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Norul III c"
+							}
+						],
+						"x": 93.3246459960938,
+						"y": 458.255676269531
+					},
+					{
+						"faction": "",
+						"name": "Quaqua Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Quaqua Reach"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Quaqua Reach b"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Quaqua Reach c"
+							}
+						],
+						"x": 702.034423828125,
+						"y": 852.320190429688
+					},
+					{
+						"faction": "res://data/missions/leeres_licht.tres",
+						"name": "Belsol III",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Belsol III I"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Belsol III b"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Belsol III Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Kormoran“"
+							}
+						],
+						"x": 185.97900390625,
+						"y": 278.762725830078
+					},
+					{
+						"faction": "res://data/missions/leeres_licht.tres",
+						"name": "Kaden IV",
+						"places": [
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Kaden IV b"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Halcyon“"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Kaden IV Gasriese"
+							}
+						],
+						"x": 416.760803222656,
+						"y": 280.726379394531
+					},
+					{
+						"faction": "res://data/missions/rote_sonne.tres",
+						"name": "Cyrsol Prime",
+						"places": [
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Cyrsol Prime III"
+							},
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Cyrsol Prime Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "wrack",
+								"name": "Wrack „Fenwick“"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Cyrsol Prime-Ring"
+							}
+						],
+						"x": 109.722770690918,
+						"y": 763.7353515625
+					},
+					{
+						"faction": "",
+						"name": "Denpha II",
+						"places": [
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Hafen Denpha II"
+							},
+							{
+								"done": false,
+								"kind": "mond",
+								"name": "Mond Denpha II III"
+							}
+						],
+						"x": 674.981384277344,
+						"y": 205.542602539063
+					},
+					{
+						"faction": "res://data/missions/leeres_licht.tres",
+						"name": "Marzen Reach",
+						"places": [
+							{
+								"done": false,
+								"kind": "nebel",
+								"name": "Marzen Reach-Nebel"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Marzen Reach-Ring"
+							}
+						],
+						"x": 136.941741943359,
+						"y": 115.545196533203
+					},
+					{
+						"faction": "res://data/missions/konzern.tres",
+						"name": "Tarnor",
+						"places": [
+							{
+								"done": false,
+								"kind": "gas",
+								"name": "Tarnor Gasriese"
+							},
+							{
+								"done": false,
+								"kind": "planet",
+								"name": "Tarnor b"
+							},
+							{
+								"done": false,
+								"kind": "station",
+								"name": "Tarnor-Ring"
+							}
+						],
+						"x": 325.97021484375,
+						"y": 858.591857910156
+					}
+				]
+			}
+		],
+		"ship_ammo": {
+			"geschosse": 109,
+			"schiffsraketen": 11
+		},
+		"ship_damage": {},
+		"ship_slots": {
+			"backbord": {
+				"damage": 0,
+				"key": "massebeschleuniger"
+			},
+			"bug": {
+				"damage": 0,
+				"key": "laserbank"
+			},
+			"heck": {
+				"damage": 0,
+				"key": "laserbank"
+			},
+			"steuerbord": {
+				"damage": 0,
+				"key": "raketenwerfer"
+			},
+			"turm": {
+				"damage": 0,
+				"key": "abwehrgeschuetz"
+			}
+		},
+		"ship_stock": {
+			"laserbank": 1,
+			"raketenwerfer": 1
+		},
+		"shop": {
+			"11": [
+				"user://gear/weapons/eigen_1792449683548.tres",
+				"user://gear/weapons/eigen_1792130429888.tres",
+				"res://data/weapons/sturmgewehr.tres",
+				"res://data/weapons/laserpistole.tres",
+				"res://data/weapons/raketenwerfer.tres",
+				"res://data/weapons/energiehammer.tres",
+				"res://data/weapons/mg.tres",
+				"user://gear/weapons/eigen_1792110419775.tres",
+				"user://gear/armor/eigen_1792449778181.tres",
+				"res://data/armor/schwer.tres",
+				"res://data/weapons/laserkarabiner.tres",
+				"user://gear/weapons/eigen_1792110338276.tres",
+				"schild",
+				"res://data/armor/leicht.tres",
+				"user://gear/weapons/eigen_1792109890569.tres",
+				"user://gear/armor/eigen_1792110488812.tres",
+				"user://gear/weapons/eigen_1792109982554.tres",
+				"res://data/weapons/vibroklinge.tres",
+				"user://gear/weapons/eigen_1792109772758.tres",
+				"res://data/armor/mittel.tres"
+			],
+			"_period": 5
+		},
+		"slot_name": "First",
+		"stock": {
+			"medkit": 5,
+			"res://data/armor/leicht.tres": 1,
+			"res://data/armor/leicht.tres|-20": 1,
+			"res://data/armor/mittel.tres": 2,
+			"res://data/armor/mittel.tres|-10": 1,
+			"res://data/armor/schwer.tres": 2,
+			"res://data/armor/schwer.tres|-30": 1,
+			"res://data/weapons/energiehammer.tres": 1,
+			"res://data/weapons/energiehammer.tres|-30": 1,
+			"res://data/weapons/laserpistole.tres": 3,
+			"res://data/weapons/laserpistole.tres|-10": 1,
+			"res://data/weapons/mg.tres|-10": 1,
+			"res://data/weapons/mg.tres|-20": 1,
+			"res://data/weapons/raketenwerfer.tres": 2,
+			"res://data/weapons/sturmgewehr.tres": 2,
+			"res://data/weapons/sturmgewehr.tres|-10": 3,
+			"res://data/weapons/sturmgewehr.tres|-20": 1,
+			"res://data/weapons/vibroklinge.tres": 1,
+			"user://gear/armor/eigen_1792449778181.tres": 2,
+			"user://gear/armor/eigen_1792449778181.tres|-20": 1,
+			"user://gear/weapons/eigen_1792109890569.tres": 1,
+			"user://gear/weapons/eigen_1792109982554.tres": 1,
+			"user://gear/weapons/eigen_1792109982554.tres|-10": 1,
+			"user://gear/weapons/eigen_1792109982554.tres|-20": 1,
+			"user://gear/weapons/eigen_1792110419775.tres|-10": 1
+		},
+		"story": {
+			"captured": [],
+			"chains": {
+				"g1_bergen": {
+					"place": {
+						"place": 1,
+						"sector": 0,
+						"system": 8
+					},
+					"scene": "erfolg",
+					"status": "fertig"
+				},
+				"g2_abfangen": {
+					"place": {
+						"place": 0,
+						"sector": 0,
+						"system": 3
+					},
+					"scene": "erfolg",
+					"status": "fertig"
+				},
+				"g3_gespraech": {
+					"place": {},
+					"scene": "erfolg",
+					"status": "fertig"
+				},
+				"g4_wrack": {
+					"place": {},
+					"scene": "ausgang",
+					"status": "fertig"
+				},
+				"g5_hinterhalt": {
+					"place": {},
+					"scene": "bezahlt",
+					"status": "fertig"
+				},
+				"g6_befreien": {
+					"place": {},
+					"scene": "erfolg",
+					"status": "fertig"
+				},
+				"g7_wrack": {
+					"place": {},
+					"scene": "sieg",
+					"status": "fertig"
+				},
+				"g8_passagier": {
+					"place": {},
+					"scene": "sieg",
+					"status": "fertig"
+				},
+				"g9_hinterhalt": {
+					"place": {},
+					"scene": "frei",
+					"status": "fertig"
+				},
+				"kapitel1": {
+					"place": {},
+					"scene": "glaeubiger",
+					"status": "fertig"
+				},
+				"kapitel1_finale": {
+					"place": {},
+					"scene": "befreit",
+					"status": "fertig"
+				},
+				"rueck_verfolgung": {
+					"place": {},
+					"scene": "s",
+					"status": "fertig"
+				}
+			},
+			"flags": {
+				"k2_anheuern": true,
+				"kapitel1_spuren": true
+			},
+			"generated": {
+				"g1_bergen": {
+					"contact": "ein Mann ohne Namen im grauen Mantel",
+					"frame": "kapitel1",
+					"id": "g1_bergen",
+					"kind": "haupt",
+					"scenes": {
+						"entdeckt": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "schwer",
+												"faction": "abteilung_9",
+												"kind": "boden",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Bergung: Die Frachtkiste"
+											}
+										}
+									],
+									"text": "Trotzdem zuschlagen"
+								}
+							],
+							"text": "Jemand hat geredet. Sie erwarten euch.",
+							"title": "Entdeckt"
+						},
+						"erfolg": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"hint": "Die Frachtkiste ist an Bord. Vieles ist verschlüsselt, aber ein Projektname taucht immer wieder auf: Abteilung 9."
+										},
+										{
+											"step_done": true
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"text": "Die Frachtkiste ist an Bord. Vieles ist verschlüsselt, aber ein Projektname taucht immer wieder auf: Abteilung 9.",
+							"title": "Geschafft"
+						},
+						"fehlschlag": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"step_failed": true
+										},
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"text": "Ihr kommt mit leeren Händen zurück. Jemand war schneller.",
+							"title": "Zu spät"
+						},
+						"start": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "abteilung_9",
+												"kind": "boden",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Bergung: Die Frachtkiste"
+											}
+										}
+									],
+									"text": "Zuschlagen"
+								},
+								{
+									"check": {
+										"diff": "mittel",
+										"skill": "computer"
+									},
+									"results": {
+										"erfolg": {
+											"next": "vorteil"
+										},
+										"fehlschlag": {
+											"next": "entdeckt"
+										}
+									},
+									"text": "Das Sicherheitssystem knacken"
+								}
+							],
+							"image": "schritt_bergen",
+							"text": "Ein Hinweis führt zu Wrack „Tolsk“ im System Telmar Reach. In Telmar Reach lagert eine versiegelte Frachtkiste, bewacht von Abteilung 9. Wer das in die Finger bekommt, sieht, wer hier wen bezahlt.",
+							"title": "Die Frachtkiste"
+						},
+						"vorteil": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "leicht",
+												"faction": "abteilung_9",
+												"kind": "boden",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Bergung: Die Frachtkiste"
+											}
+										}
+									],
+									"text": "Zuschlagen"
+								}
+							],
+							"text": "Ihr kennt jetzt Wege, Wachen und Zeiten.",
+							"title": "Gut vorbereitet"
+						}
+					},
+					"start": "start",
+					"template": "bergen",
+					"title": "Bergung: Die Frachtkiste",
+					"trigger": {
+						"type": "ort"
+					}
+				},
+				"g2_abfangen": {
+					"contact": "Tavi, ein Informant mit Schulden",
+					"frame": "kapitel1",
+					"id": "g2_abfangen",
+					"kind": "haupt",
+					"scenes": {
+						"entdeckt": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "abteilung_9",
+												"kind": "blockade",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Abfangen: Das Frachtschiff"
+											}
+										}
+									],
+									"text": "Trotzdem zuschlagen"
+								}
+							],
+							"text": "Jemand hat geredet. Sie erwarten euch.",
+							"title": "Entdeckt"
+						},
+						"erfolg": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"hint": "Das Frachtschiff ist gestellt. Im Bordrechner: Frachtpapiere einer Station, die es offiziell nicht gibt."
+										},
+										{
+											"step_done": true
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"text": "Das Frachtschiff ist gestellt. Im Bordrechner: Frachtpapiere einer Station, die es offiziell nicht gibt.",
+							"title": "Geschafft"
+						},
+						"fehlschlag": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"step_failed": true
+										},
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"text": "Das Schiff entkommt in den Sprung. Die Spur verliert sich.",
+							"title": "Zu spät"
+						},
+						"start": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "leicht",
+												"faction": "abteilung_9",
+												"kind": "blockade",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Abfangen: Das Frachtschiff"
+											}
+										}
+									],
+									"text": "Zuschlagen"
+								},
+								{
+									"check": {
+										"diff": "mittel",
+										"skill": "navigation"
+									},
+									"results": {
+										"erfolg": {
+											"next": "vorteil"
+										},
+										"fehlschlag": {
+											"next": "entdeckt"
+										}
+									},
+									"text": "Den Kurs vorausberechnen"
+								}
+							],
+							"image": "schritt_abfangen",
+							"text": "Ein Hinweis führt zu Wrack „Kormoran“ im System Marbel III. Bei Marbel III kreuzt ein Frachtschiff von {konzern}, unterwegs für Abteilung 9. An Bord: Antworten.",
+							"title": "Das Frachtschiff"
+						},
+						"vorteil": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "leicht",
+												"faction": "abteilung_9",
+												"kind": "blockade",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Abfangen: Das Frachtschiff"
+											}
+										}
+									],
+									"text": "Zuschlagen"
+								}
+							],
+							"text": "Ihr kennt jetzt Wege, Wachen und Zeiten.",
+							"title": "Gut vorbereitet"
+						}
+					},
+					"start": "start",
+					"template": "abfangen",
+					"title": "Abfangen: Das Frachtschiff",
+					"trigger": {
+						"type": "ort"
+					}
+				},
+				"g3_gespraech": {
+					"contact": "ein Mann ohne Namen im grauen Mantel",
+					"frame": "kapitel1",
+					"id": "g3_gespraech",
+					"kind": "haupt",
+					"scenes": {
+						"erfolg": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"hint": "Der Prediger in Marbel III: Das Geld fließt an Abteilung 9."
+										},
+										{
+											"step_done": true
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"text": "Am Ende redet ein Prediger der Wacht: Das Geld kommt nicht vom Gläubiger allein. Es fließt weiter, an ein Projekt namens Abteilung 9.",
+							"title": "Ein Name"
+						},
+						"fehlschlag": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"step_failed": true
+										},
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"text": "Der Prediger schweigt und ist am nächsten Tag verschwunden.",
+							"title": "Kein Wort"
+						},
+						"start": {
+							"choices": [
+								{
+									"check": {
+										"diff": "mittel",
+										"skill": "verhandeln"
+									},
+									"results": {
+										"erfolg": {
+											"next": "erfolg"
+										},
+										"fehlschlag": {
+											"next": "fehlschlag"
+										}
+									},
+									"text": "Überzeugen"
+								},
+								{
+									"check": {
+										"diff": "schwer",
+										"skill": "gassenwissen"
+									},
+									"results": {
+										"erfolg": {
+											"next": "erfolg"
+										},
+										"fehlschlag": {
+											"next": "fehlschlag"
+										}
+									},
+									"text": "Im Hafen herumhören"
+								},
+								{
+									"check": {
+										"diff": "schwer",
+										"skill": "computer"
+									},
+									"results": {
+										"erfolg": {
+											"next": "erfolg"
+										},
+										"fehlschlag": {
+											"next": "fehlschlag"
+										}
+									},
+									"text": "Die Akten knacken"
+								},
+								{
+									"effects": [
+										{
+											"credits": -300.0
+										}
+									],
+									"next": "erfolg",
+									"requires": [
+										{
+											"credits": 300.0
+										}
+									],
+									"text": "Bestechen (300 Credits)"
+								},
+								{
+									"next": "erfolg",
+									"requires": [
+										{
+											"psi": "lWahrnehmung"
+										}
+									],
+									"text": "Gedanken lesen"
+								}
+							],
+							"image": "schritt_gespraech",
+							"text": "Auf der Brücke liegt eine verschlüsselte Nachricht ohne Absender. Der Prediger weiß etwas über die Hintermänner, will aber nicht reden.",
+							"title": "Der Prediger"
+						}
+					},
+					"start": "start",
+					"template": "gespraech",
+					"title": "Gespräch: Der Prediger",
+					"trigger": {
+						"type": "auftrag"
+					}
+				},
+				"g4_wrack": {
+					"ausgang": "beute",
+					"id": "g4_wrack",
+					"kind": "kette",
+					"scenes": {
+						"ausgang": {
+							"choices": [
+								{
+									"check": {
+										"diff": "mittel",
+										"skill": "rsReparatur"
+									},
+									"results": {
+										"erfolg": {
+											"effects": [
+												{
+													"add": 1.0,
+													"item": "res://data/weapons/laserkarabiner.tres"
+												},
+												{
+													"material": 3.0
+												},
+												{
+													"end": "fertig"
+												}
+											],
+											"text": "Ihr schneidet den Frachtraum auf: ein Laserkarabiner und Schiffsmaterial."
+										},
+										"fehlschlag": {
+											"effects": [
+												{
+													"material": 1.0
+												},
+												{
+													"end": "fertig"
+												}
+											],
+											"text": "Die Schotten klemmen. Mehr als ein paar Platten Schiffsmaterial bekommt ihr nicht heraus."
+										}
+									},
+									"text": "Bergen"
+								}
+							],
+							"image": "wrack_beute_ausgang",
+							"text": "Das Wrack ist leer, die Crew längst fort. Im Frachtraum liegt noch einiges.",
+							"title": "Verlassen"
+						},
+						"start": {
+							"choices": [
+								{
+									"next": "ausgang",
+									"text": "Andocken und untersuchen"
+								},
+								{
+									"effects": [
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiterfliegen"
+								}
+							],
+							"image": "ev_wrack",
+							"text": "Ein schwaches Notsignal: die Vagabund treibt manövrierunfähig im All. Keine Antwort auf Funkrufe.",
+							"title": "Notsignal"
+						}
+					},
+					"start": "start",
+					"template": "wrack",
+					"title": "Notruf: die Vagabund",
+					"trigger": {
+						"type": "keiner"
+					}
+				},
+				"g5_hinterhalt": {
+					"id": "g5_hinterhalt",
+					"kind": "haupt",
+					"scenes": {
+						"bezahlt": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "hinterhalt_bezahlt",
+							"text": "Der Anführer zählt nach, nickt und gibt den Weg frei.",
+							"title": "Bezahlt"
+						},
+						"frei": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "hinterhalt_frei",
+							"text": "Die Jäger ziehen ab und lecken ihre Wunden.",
+							"title": "Abgezogen"
+						},
+						"geschlagen": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"credits_pct": -10.0
+										},
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "hinterhalt_geschlagen",
+							"text": "Sie nehmen, was sie kriegen können, und lassen euch liegen.",
+							"title": "Geschlagen"
+						},
+						"start": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "rote_sonne",
+												"kind": "boden",
+												"niederlage": "geschlagen",
+												"rueckzug": "geschlagen",
+												"sieg": "frei",
+												"title": "Kopfgeldjäger in Dramo"
+											}
+										}
+									],
+									"text": "Kämpfen"
+								},
+								{
+									"effects": [
+										{
+											"credits": -500.0
+										},
+										{
+											"add": 500.0,
+											"goal": "schulden",
+											"pay": true
+										}
+									],
+									"next": "bezahlt",
+									"requires": [
+										{
+											"credits": 500.0
+										}
+									],
+									"text": "Sofort eine Rate zahlen (500 Credits)"
+								}
+							],
+							"image": "k1_kopfgeld",
+							"text": "Kaum ist das Schiff in Dramo angedockt, versperren Bewaffnete den Weg: Kopfgeldjäger, bezahlt vom Gläubiger.",
+							"title": "Kopfgeldjäger"
+						}
+					},
+					"start": "start",
+					"template": "hinterhalt",
+					"title": "Kopfgeldjäger in Dramo",
+					"trigger": {
+						"type": "keiner"
+					}
+				},
+				"g6_befreien": {
+					"contact": "Mira Sol, Dockarbeiterin",
+					"frame": "kapitel1",
+					"id": "g6_befreien",
+					"kind": "haupt",
+					"scenes": {
+						"entdeckt": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "schwer",
+												"faction": "wacht_klingen",
+												"kind": "boden",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Befreiung: Der Buchhalter"
+											}
+										}
+									],
+									"text": "Trotzdem zuschlagen"
+								}
+							],
+							"image": "befreien_entdeckt",
+							"text": "Jemand hat geredet. Sie erwarten euch.",
+							"title": "Entdeckt"
+						},
+						"erfolg": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"hint": "Der Buchhalter ist frei und redet: von Geld, das durch zu viele Hände geht, und von einer Station, die auf keiner Karte steht."
+										},
+										{
+											"step_done": true
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "befreien_erfolg",
+							"text": "Der Buchhalter ist frei und redet: von Geld, das durch zu viele Hände geht, und von einer Station, die auf keiner Karte steht.",
+							"title": "Geschafft"
+						},
+						"fehlschlag": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"step_failed": true
+										},
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "befreien_fehlschlag",
+							"text": "Als ihr zurückkommt, ist die Zelle leer. Die Spur ist kalt.",
+							"title": "Zu spät"
+						},
+						"start": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "schwer",
+												"faction": "wacht_klingen",
+												"kind": "boden",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Befreiung: Der Buchhalter"
+											}
+										}
+									],
+									"text": "Zuschlagen"
+								},
+								{
+									"check": {
+										"diff": "mittel",
+										"skill": "gassenwissen"
+									},
+									"results": {
+										"erfolg": {
+											"next": "vorteil"
+										},
+										"fehlschlag": {
+											"next": "entdeckt"
+										}
+									},
+									"text": "Erst auskundschaften"
+								}
+							],
+							"image": "schritt_befreien",
+							"text": "Auf der Brücke liegt eine verschlüsselte Nachricht ohne Absender. In Dramo wird ein Buchhalter von {konzern} festgehalten, bewacht von den Klingen der Wacht. Wer etwas über die Hintermänner weiß, sitzt jetzt hinter Gittern.",
+							"title": "Der Buchhalter"
+						},
+						"vorteil": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "wacht_klingen",
+												"kind": "boden",
+												"niederlage": "fehlschlag",
+												"rueckzug": "start",
+												"sieg": "erfolg",
+												"title": "Befreiung: Der Buchhalter"
+											}
+										}
+									],
+									"text": "Zuschlagen"
+								}
+							],
+							"image": "befreien_vorteil",
+							"text": "Ihr kennt jetzt Wege, Wachen und Zeiten.",
+							"title": "Gut vorbereitet"
+						}
+					},
+					"start": "start",
+					"template": "befreien",
+					"title": "Befreiung: Der Buchhalter",
+					"trigger": {
+						"type": "auftrag"
+					}
+				},
+				"g7_wrack": {
+					"ausgang": "falle",
+					"id": "g7_wrack",
+					"kind": "kette",
+					"scenes": {
+						"ausgang": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "aasgeier",
+												"kind": "boden",
+												"niederlage": "niederlage",
+												"rueckzug": "niederlage",
+												"sieg": "sieg",
+												"title": "Falle im Wrack"
+											}
+										}
+									],
+									"text": "Kämpfen"
+								}
+							],
+							"image": "wrack_falle_ausgang",
+							"text": "Kaum seid ihr drüben, flammen Lampen auf. Das Notsignal war ein Köder von Plünderern.",
+							"title": "Eine Falle"
+						},
+						"niederlage": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "wrack_falle_niederlage",
+							"text": "Ihr schafft es zurück aufs Schiff und legt ab.",
+							"title": "Zurück an Bord"
+						},
+						"sieg": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"credits": 150.0
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "wrack_falle_sieg",
+							"text": "Die Plünderer liegen am Boden. Ihre Kasse auch.",
+							"title": "Abgewehrt"
+						},
+						"start": {
+							"choices": [
+								{
+									"next": "ausgang",
+									"text": "Andocken und untersuchen"
+								},
+								{
+									"effects": [
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiterfliegen"
+								}
+							],
+							"image": "ev_wrack",
+							"text": "Ein schwaches Notsignal: die Eiserne Lilie treibt manövrierunfähig im All. Keine Antwort auf Funkrufe.",
+							"title": "Notsignal"
+						}
+					},
+					"start": "start",
+					"template": "wrack",
+					"title": "Notruf: die Eiserne Lilie",
+					"trigger": {
+						"type": "keiner"
+					}
+				},
+				"g8_passagier": {
+					"ausgang": "begabt",
+					"id": "g8_passagier",
+					"kind": "kette",
+					"scenes": {
+						"ausgang": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "wacht_klingen",
+												"kind": "boden",
+												"niederlage": "niederlage",
+												"rueckzug": "niederlage",
+												"sieg": "sieg",
+												"title": "Die Klingen der Wacht"
+											}
+										}
+									],
+									"text": "Sie beschützen"
+								},
+								{
+									"effects": [
+										{
+											"credits": 200.0
+										},
+										{
+											"hint": "Die Hirten der Wacht nehmen junge Begabte auf. Die Klingen jagen sie."
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Den Hirten der Wacht übergeben"
+								},
+								{
+									"effects": [
+										{
+											"flag": "hirten_feind"
+										},
+										{
+											"credits": 400.0
+										},
+										{
+											"log": "Das Mädchen an die Klingen verraten."
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "An die Klingen verraten"
+								}
+							],
+							"image": "passagier_begabt_ausgang",
+							"text": "Ein Mädchen, vielleicht vierzehn. Als ihr näher kommt, beginnen die Lampen zu flackern. Psi. Die Klingen der Wacht jagen sie.",
+							"title": "Eine Begabte"
+						},
+						"niederlage": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "passagier_begabt_niederlage",
+							"text": "Die Klingen nehmen sie mit.",
+							"title": "Verloren"
+						},
+						"sieg": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"spur": "kapitel1"
+										},
+										{
+											"hint": "Ein gejagtes Mädchen erzählt von Glaszellen und der Nummer 9."
+										},
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "passagier_begabt_sieg",
+							"text": "Die Klingen ziehen ab. Das Mädchen erzählt von Glaszellen und einer Nummer: 9.",
+							"title": "In Sicherheit"
+						},
+						"start": {
+							"choices": [
+								{
+									"next": "ausgang",
+									"text": "Hervorholen"
+								}
+							],
+							"image": "ev_passagier",
+							"text": "Im Frachtraum raschelt es. Zwischen den Kisten hockt jemand, der nicht zur Crew gehört.",
+							"title": "Jemand an Bord"
+						}
+					},
+					"start": "start",
+					"template": "passagier",
+					"title": "Blinder Passagier",
+					"trigger": {
+						"type": "keiner"
+					}
+				},
+				"g9_hinterhalt": {
+					"id": "g9_hinterhalt",
+					"kind": "haupt",
+					"scenes": {
+						"bezahlt": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "hinterhalt_bezahlt",
+							"text": "Der Anführer zählt nach, nickt und gibt den Weg frei.",
+							"title": "Bezahlt"
+						},
+						"frei": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"end": "fertig"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "hinterhalt_frei",
+							"text": "Die Jäger ziehen ab und lecken ihre Wunden.",
+							"title": "Abgezogen"
+						},
+						"geschlagen": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"credits_pct": -10.0
+										},
+										{
+											"end": "gescheitert"
+										}
+									],
+									"text": "Weiter"
+								}
+							],
+							"image": "hinterhalt_geschlagen",
+							"text": "Sie nehmen, was sie kriegen können, und lassen euch liegen.",
+							"title": "Geschlagen"
+						},
+						"start": {
+							"choices": [
+								{
+									"effects": [
+										{
+											"mission": {
+												"difficulty": "mittel",
+												"faction": "rote_sonne",
+												"kind": "boden",
+												"niederlage": "geschlagen",
+												"rueckzug": "geschlagen",
+												"sieg": "frei",
+												"title": "Kopfgeldjäger in Orimar"
+											}
+										}
+									],
+									"text": "Kämpfen"
+								},
+								{
+									"effects": [
+										{
+											"credits": -500.0
+										},
+										{
+											"add": 500.0,
+											"goal": "schulden",
+											"pay": true
+										}
+									],
+									"next": "bezahlt",
+									"requires": [
+										{
+											"credits": 500.0
+										}
+									],
+									"text": "Sofort eine Rate zahlen (500 Credits)"
+								}
+							],
+							"image": "k1_kopfgeld",
+							"text": "Kaum ist das Schiff in Orimar angedockt, versperren Bewaffnete den Weg: Kopfgeldjäger, bezahlt vom Gläubiger.",
+							"title": "Kopfgeldjäger"
+						}
+					},
+					"start": "start",
+					"template": "hinterhalt",
+					"title": "Kopfgeldjäger in Orimar",
+					"trigger": {
+						"type": "keiner"
+					}
+				}
+			},
+			"goals": {
+				"schulden": {
+					"backlash": [
+						"rueck_zins",
+						"rueck_pfaendung",
+						"rueck_gefangen",
+						"rueck_verfolgung"
+					],
+					"chain": "kapitel1",
+					"done": false,
+					"due": 60,
+					"every": 10,
+					"fail": "",
+					"name": "Schulden tilgen",
+					"paid": 0,
+					"rate": 500,
+					"target": 5000,
+					"value": 1500
+				},
+				"spuren": {
+					"backlash": [],
+					"chain": "kapitel1",
+					"done": true,
+					"due": 0,
+					"every": 0,
+					"fail": "",
+					"name": "Spuren: Wer steckt dahinter?",
+					"paid": 0,
+					"rate": 0,
+					"target": 4,
+					"value": 4
+				}
+			},
+			"log": [
+				{
+					"chain": "kapitel1",
+					"day": 5,
+					"kind": "verlauf",
+					"text": "Begonnen: Kapitel 1: Schulden"
+				},
+				{
+					"chain": "kapitel1",
+					"day": 6,
+					"kind": "hinweis",
+					"text": "Der Gläubiger spricht von einer „Begabten“. Wer ist sie?"
+				},
+				{
+					"chain": "kapitel1",
+					"day": 6,
+					"kind": "verlauf",
+					"text": "Besuch an der Schleuse: Bessere Bedingungen aushandeln (Mireaf, Verhandeln: Erfolg)"
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 15,
+					"kind": "verlauf",
+					"text": "Begonnen: Rate an {glaeubiger}"
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 15,
+					"kind": "verlauf",
+					"text": "Rate gezahlt: 500 Credits."
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 15,
+					"kind": "verlauf",
+					"text": "Rate zahlen: 500 Credits zahlen"
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 15,
+					"kind": "verlauf",
+					"text": "Begonnen: Rate an {glaeubiger}"
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 15,
+					"kind": "verlauf",
+					"text": "Rate zahlen: Später"
+				},
+				{
+					"chain": "g1_bergen",
+					"day": 19,
+					"kind": "verlauf",
+					"text": "Begonnen: Bergung: Die Frachtkiste"
+				},
+				{
+					"chain": "g1_bergen",
+					"day": 19,
+					"kind": "verlauf",
+					"text": "Die Frachtkiste: Das Sicherheitssystem knacken (Mireaf, Computer: Teilerfolg)"
+				},
+				{
+					"chain": "g1_bergen",
+					"day": 19,
+					"kind": "verlauf",
+					"text": "Entdeckt: Trotzdem zuschlagen"
+				},
+				{
+					"chain": "g1_bergen",
+					"day": 19,
+					"kind": "verlauf",
+					"text": "Einsatz „Bergung: Die Frachtkiste“: sieg"
+				},
+				{
+					"chain": "g1_bergen",
+					"day": 20,
+					"kind": "hinweis",
+					"text": "Die Frachtkiste ist an Bord. Vieles ist verschlüsselt, aber ein Projektname taucht immer wieder auf: Abteilung 9."
+				},
+				{
+					"chain": "g1_bergen",
+					"day": 20,
+					"kind": "verlauf",
+					"text": "Geschafft: Weiter"
+				},
+				{
+					"chain": "g2_abfangen",
+					"day": 29,
+					"kind": "verlauf",
+					"text": "Begonnen: Abfangen: Das Frachtschiff"
+				},
+				{
+					"chain": "g2_abfangen",
+					"day": 29,
+					"kind": "verlauf",
+					"text": "Das Frachtschiff: Den Kurs vorausberechnen (Vella, Navigation: Fehlschlag)"
+				},
+				{
+					"chain": "g2_abfangen",
+					"day": 29,
+					"kind": "verlauf",
+					"text": "Entdeckt: Trotzdem zuschlagen"
+				},
+				{
+					"chain": "g2_abfangen",
+					"day": 29,
+					"kind": "verlauf",
+					"text": "Einsatz „Abfangen: Das Frachtschiff“: sieg"
+				},
+				{
+					"chain": "g2_abfangen",
+					"day": 30,
+					"kind": "hinweis",
+					"text": "Das Frachtschiff ist gestellt. Im Bordrechner: Frachtpapiere einer Station, die es offiziell nicht gibt."
+				},
+				{
+					"chain": "g2_abfangen",
+					"day": 30,
+					"kind": "verlauf",
+					"text": "Geschafft: Weiter"
+				},
+				{
+					"chain": "kapitel1",
+					"day": 32,
+					"kind": "verlauf",
+					"text": "Rate verpasst: Schulden tilgen"
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 32,
+					"kind": "verlauf",
+					"text": "Begonnen: Rückschlag: Kopfgeld"
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 35,
+					"kind": "hinweis",
+					"text": "Kopfgeldjäger warten im nächsten Raumhafen."
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 35,
+					"kind": "verlauf",
+					"text": "Rückschlag: Kopfgeld"
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 35,
+					"kind": "verlauf",
+					"text": "Kopfgeld: Zähneknirschend weiter"
+				},
+				{
+					"chain": "g4_wrack",
+					"day": 35,
+					"kind": "verlauf",
+					"text": "Begonnen: Notruf: die Vagabund"
+				},
+				{
+					"chain": "g5_hinterhalt",
+					"day": 35,
+					"kind": "verlauf",
+					"text": "Begonnen: Kopfgeldjäger in Dramo"
+				},
+				{
+					"chain": "g4_wrack",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Notsignal: Andocken und untersuchen"
+				},
+				{
+					"chain": "g4_wrack",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Verlassen: Bergen (Rino, Reparatur: Fehlschlag)"
+				},
+				{
+					"chain": "g5_hinterhalt",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Kopfgeldjäger: Sofort eine Rate zahlen (500 Credits)"
+				},
+				{
+					"chain": "g5_hinterhalt",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Bezahlt: Weiter"
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Begonnen: Rate an {glaeubiger}"
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Rate gezahlt: 500 Credits."
+				},
+				{
+					"chain": "glaeubiger_rate",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Rate zahlen: 500 Credits zahlen"
+				},
+				{
+					"chain": "g3_gespraech",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Begonnen: Gespräch: Der Prediger"
+				},
+				{
+					"chain": "g3_gespraech",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Der Prediger: Gedanken lesen"
+				},
+				{
+					"chain": "g3_gespraech",
+					"day": 39,
+					"kind": "hinweis",
+					"text": "Der Prediger in Marbel III: Das Geld fließt an Abteilung 9."
+				},
+				{
+					"chain": "g3_gespraech",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Ein Name: Weiter"
+				},
+				{
+					"chain": "g6_befreien",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Begonnen: Befreiung: Der Buchhalter"
+				},
+				{
+					"chain": "g6_befreien",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Der Buchhalter: Erst auskundschaften (Vella, Gassenwissen: Teilerfolg)"
+				},
+				{
+					"chain": "g6_befreien",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Entdeckt: Trotzdem zuschlagen"
+				},
+				{
+					"chain": "g6_befreien",
+					"day": 39,
+					"kind": "verlauf",
+					"text": "Einsatz „Befreiung: Der Buchhalter“: sieg"
+				},
+				{
+					"chain": "g6_befreien",
+					"day": 40,
+					"kind": "hinweis",
+					"text": "Der Buchhalter ist frei und redet: von Geld, das durch zu viele Hände geht, und von einer Station, die auf keiner Karte steht."
+				},
+				{
+					"chain": "kapitel1",
+					"day": 40,
+					"kind": "verlauf",
+					"text": "Ziel erreicht: Spuren: Wer steckt dahinter?"
+				},
+				{
+					"chain": "g6_befreien",
+					"day": 40,
+					"kind": "verlauf",
+					"text": "Geschafft: Weiter"
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 40,
+					"kind": "verlauf",
+					"text": "Begonnen: Kapitel 1: Die Begabte"
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 40,
+					"kind": "verlauf",
+					"text": "Die Station: Durch die Wartungsschächte (Mireaf, Computer: Herausragender Erfolg)"
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 40,
+					"kind": "verlauf",
+					"text": "Drinnen: Zuschlagen"
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 40,
+					"kind": "verlauf",
+					"text": "Einsatz „Station von Abteilung 9“: sieg"
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 41,
+					"kind": "hinweis",
+					"text": "Die Stille Hand finanziert Abteilung 9. Lio fliegt jetzt mit euch, und jemand wird sie zurückhaben wollen."
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 41,
+					"kind": "verlauf",
+					"text": "Kapitel 1 abgeschlossen: Lio ist an Bord."
+				},
+				{
+					"chain": "kapitel1_finale",
+					"day": 41,
+					"kind": "verlauf",
+					"text": "Lio: Lio an Bord nehmen"
+				},
+				{
+					"chain": "g7_wrack",
+					"day": 44,
+					"kind": "verlauf",
+					"text": "Begonnen: Notruf: die Eiserne Lilie"
+				},
+				{
+					"chain": "g7_wrack",
+					"day": 48,
+					"kind": "verlauf",
+					"text": "Notsignal: Andocken und untersuchen"
+				},
+				{
+					"chain": "g7_wrack",
+					"day": 48,
+					"kind": "verlauf",
+					"text": "Eine Falle: Kämpfen"
+				},
+				{
+					"chain": "g7_wrack",
+					"day": 48,
+					"kind": "verlauf",
+					"text": "Einsatz „Falle im Wrack“: sieg"
+				},
+				{
+					"chain": "g7_wrack",
+					"day": 49,
+					"kind": "verlauf",
+					"text": "Abgewehrt: Weiter"
+				},
+				{
+					"chain": "g8_passagier",
+					"day": 49,
+					"kind": "verlauf",
+					"text": "Begonnen: Blinder Passagier"
+				},
+				{
+					"chain": "kapitel1",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Rate verpasst: Schulden tilgen"
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Begonnen: Rückschlag: Kopfgeld"
+				},
+				{
+					"chain": "g8_passagier",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Jemand an Bord: Hervorholen"
+				},
+				{
+					"chain": "g8_passagier",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Eine Begabte: Sie beschützen"
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 51,
+					"kind": "hinweis",
+					"text": "Kopfgeldjäger warten im nächsten Raumhafen."
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Rückschlag: Kopfgeld"
+				},
+				{
+					"chain": "rueck_verfolgung",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Kopfgeld: Zähneknirschend weiter"
+				},
+				{
+					"chain": "g8_passagier",
+					"day": 51,
+					"kind": "verlauf",
+					"text": "Einsatz „Die Klingen der Wacht“: sieg"
+				},
+				{
+					"chain": "g8_passagier",
+					"day": 52,
+					"kind": "hinweis",
+					"text": "Ein gejagtes Mädchen erzählt von Glaszellen und der Nummer 9."
+				},
+				{
+					"chain": "g8_passagier",
+					"day": 52,
+					"kind": "verlauf",
+					"text": "In Sicherheit: Weiter"
+				},
+				{
+					"chain": "g9_hinterhalt",
+					"day": 53,
+					"kind": "verlauf",
+					"text": "Begonnen: Kopfgeldjäger in Orimar"
+				},
+				{
+					"chain": "g9_hinterhalt",
+					"day": 59,
+					"kind": "verlauf",
+					"text": "Kopfgeldjäger: Kämpfen"
+				},
+				{
+					"chain": "g9_hinterhalt",
+					"day": 59,
+					"kind": "verlauf",
+					"text": "Einsatz „Kopfgeldjäger in Orimar“: sieg"
+				},
+				{
+					"chain": "g9_hinterhalt",
+					"day": 60,
+					"kind": "verlauf",
+					"text": "Abgezogen: Weiter"
+				}
+			],
+			"mission": {},
+			"next_gen": 10,
+			"recruits": [
+				"begabte"
+			],
+			"vars": {
+				"ausgangslage": "pump",
+				"glaeubiger": "person",
+				"hand": "nein",
+				"konzern": "semidrug"
+			}
+		},
+		"story_queue": [],
+		"trade_rolls": {
+			"gassenwissen": {
+				"day": 51,
+				"name": "Vella",
+				"result": "erfolg",
+				"result_name": "Erfolg",
+				"system": 11,
+				"total": 108,
+				"xp": 2
+			},
+			"handeln": {
+				"day": 51,
+				"name": "Doc Morris",
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"system": 11,
+				"total": 74,
+				"xp": 1
+			},
+			"verhandeln": {
+				"day": 51,
+				"name": "Mireaf",
+				"result": "fehlschlag",
+				"result_name": "Fehlschlag",
+				"system": 11,
+				"total": 15,
+				"xp": 1
+			}
+		},
+		"travel_rest": {},
+		"upgrades": {
+			"berths": 2,
+			"engine": 1,
+			"slots": 1,
+			"tank": 1,
+			"workshop": 2
+		}
+	},
+	"game_version": "0.6 (21.10.2026)",
+	"name": "First",
+	"saved_at": 1792800091,
+	"version": 1
+}
