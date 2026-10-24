@@ -88,5 +88,9 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+### Auftrag (24.10.2026): Schild als Beute
+
+Wunsch des Nutzers: Gegner mit Schild können ihn nach dem Kampf fallen lassen (wie andere Beute, Häufigkeit sinnvoll wählen). Im `MissionResult.loot` mit dem Schlüssel `Equipment.SHIELD` liefern; der Hub nimmt ihn ins Lager (Hub Auftrag 11). Tests nach CLAUDE.md, Fertigmeldung.
+
+- Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
