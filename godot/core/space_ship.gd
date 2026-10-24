@@ -32,6 +32,8 @@ var damage := {}
 var crew_skill := 0
 var init_bonus := 0
 var initiative := 0
+## Elite-Gegner (bessere Waffen und Schilde, Besatzung nach Crew-Stärke; docs/Raumkampf.md 4e)
+var elite := false
 var destroyed := false
 var fled := false
 ## Wrack: Schiff mit Besatzung bei Hülle 0 – manövrierunfähig, kämpft nicht mehr, bleibt enterbar

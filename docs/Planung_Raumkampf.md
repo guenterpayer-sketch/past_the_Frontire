@@ -138,6 +138,21 @@ Frage des Nutzers: Infos vom Gegnerschiff (Antrieb beschädigt, Waffen beschädi
 
 Umsetzung: `SpaceShip.known`/`scan_until`/`scan_live`/`scan_seen`, `seen_damage()`, `hull_stage()`; `SpaceCombat.SCAN_ROUNDS`, Computer-Modus `"scan"`; Tooltip `SpaceUI.hover_ship()`/`enemy_info()`, Hover in `SpaceView._input`; Karte in `SpaceShipView` (Balken 3 Stufen, Schildring an/aus). Test `test_space.gd` `_test_scan`, Screenshots `-- --autotest-space` (8_gegner_grob, 9_gegner_scan). Kein Balancing nötig: Gegner-KI und Bord-KI handeln wie vorher (`test_sim -- 10` OK). Auf Touch-Geräten gibt es keinen Mouseover; dort bleibt der Klick (Log).
 
+## 1h. Elite-Gegner, moderate Anpassung, Stationstreffer (24.10.2026, gebaut)
+
+Grundlage: gemeinsame Elite-Regeln in `docs/module/raumkampf.md` (13 % der Kämpfe, Ziel 70–75 % Siege, Stärke aus Ausrüstung, vorher erkennbar). Gemessen mit Prototyp-Skript (nur im Chat), Schwierigkeit wie im Spiel 1:3:1, alle Seiten, 150–200 Kämpfe je Zeile.
+
+- **Crew-Stärke P** = Mittel aus Pilot und den zwei besten Geschützstationen (Turm ausgenommen). Spielstand 24.10.: P 75; derselbe mit KI-Schützen: P 28; Schnellkampf-Testcrew: P 33.
+- **Elite:** Waffen eine Stufe besser (Laserbank → Partikelkanone, Massebeschleuniger → Schnellfeuerkanone, Raketenwerfer → Raketenbatterie, Abwehrgeschütz → Abwehrlaser), Schilde +4 je Seite und +1 Aufladung (nicht bei Jägern), Besatzung **E = (P − 52) × 0,45** (gerundet, −15 bis +30).
+  - Nur Ausrüstung (E 0): Siege 89 / 60 / 53 % (P 75 / 28 / 33) – für schwache Crews schon zu hart, daher E auch negativ.
+  - Mit Formel: **74 / 79 / 70 %** Siege, Runden 5,5 / 9,0 / 10,4, Hüllenverlust Ø 39 / 32 / 46.
+- **Normale Kämpfe moderat:** Besatzung + (P − 52) × 0,2 (0 bis +10), keine Ausrüstung: Spielstand 95 → **92 %**, Hüllenverlust Ø 13 → 20; schwache Crews unverändert (72–73 %).
+- **Stationstreffer** (Anteil der Systemtreffer, heute 15 %): 25 % → Verletzte etwa +30–80 %, 35 % → etwa doppelt so viele; Siegquoten messbar unverändert (Spielstand Ø 0,06 → 0,08 → 0,10 je Kampf, Testcrew 0,10 → 0,15 → 0,24).
+- Schnittstelle: Ergänzung `setup.enemy.elite: bool` (setzt, wer Auftrag/Kontakt erzeugt).
+- **Entscheidungen des Nutzers:** Elite so bauen, normale Kämpfe moderat, Stationstreffer 25 %.
+- **Beim Bauen nachgestimmt** (mit dem eingebauten Code, 200 Kämpfe je Zeile): mit 52 / 0,45 kam die Testcrew nur auf 63 % Elite-Siege, daher **Basis 56, Faktor 0,5, Untergrenze −20**. Ergebnis Elite: Spielstand **73 %** (Bonus +10), mit KI-Schützen 79 % (−14), Testcrew 67 % (−12); normal: Spielstand 92 % (+4), die anderen unverändert (0). `tests/sim_space.gd -- 100` normal 93/72/45 % wie vorher, `-- 100 elite` 95/70/55 % (gemischt 1:3:1 etwa 72 %), Abbruch nach 40 Runden 1–3 %.
+- Kennzeichen: „★ Elite-…“ in Gold am Namen (statt goldenem Ring, der Auswahlring ist schon gold). Selbsttest `-- --autotest-space --elite`.
+
 ## 2. Vorschläge (noch zu bestätigen)
 
 - **Bord-KI:** fester Gesamtbonus +0 (Entscheidung des Nutzers). **Doppelbesetzung:** beide Würfe −30 (aus dem Regelentwurf).
