@@ -47,10 +47,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 11 (24.10.2026): Preise für neue Bodenkampf-Ausrüstung
-
-Bodenkampf ist in `main` (`86cf0e8`). Neu ohne Preis in `Stock.PRICES` (`core/stock.gd`): Standardwaffe `scharfschuetzengewehr` und die Elite-Stücke in `data/weapons/elite/` und `data/armor/elite/`.
-1. Preise ergänzen. Elite-Stücke: verkaufbar, nie im Sortiment (Nutzer 24.10.2026); Preis sinnvoll über der Standardvorlage.
-2. Prüfen, dass Elite-Beute aus dem Bodenkampf (`loot[].elite = true`) im Lager erscheint und sich verkaufen lässt.
-3. **Schild nachträglich bekommen (Nutzer 24.10.2026):** Wer bei der Erschaffung keinen Schild wählt, kommt bisher kaum noch an einen (nur zufällig im Sortiment, nicht baubar). Künftig: Schild **immer im Händler-Sortiment** (wie das Medikit, unabhängig vom Gassenwissen) und **in der Werkstatt baubar** (Material/Preis sinnvoll wählen). Schild als Beute aus dem Bodenkampf im Lager annehmen (Bodenkampf liefert ihn im `loot`).
-4. Tests nach CLAUDE.md, Fertigmeldung.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
