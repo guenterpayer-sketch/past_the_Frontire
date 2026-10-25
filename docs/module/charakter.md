@@ -73,4 +73,9 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (25.10.2026): Waffenkammer läuft rechts aus dem Bild
+
+Fehler (Screenshot des Nutzers, 1920 × 1080, Spielstand mit 10 Figuren): Das Fenster „Waffenkammer“ (`ui/crew/armory_dialog.gd`) ist breiter als der Bildschirm, rechts sind die Reiterzeile der Crew, die Tabelle (Spalte „Besonderes“) und der Knopf „Fertig“ abgeschnitten.
+Vermutung des Koordinators (ungeprüft): Die Reiterzeile mit allen Crewmitgliedern (je Knopf feste Mindestbreite) oder lange Waffennamen („Scharfschützen Gewehr (frei) (−30, unbrauchbar)“) erzwingen die Breite.
+1. Ursache finden; das Fenster bleibt nach `docs/Layout.md` in fester Größe (`max_size`), Inhalte passen sich an (Reiter umbrechen oder scrollen, lange Namen umbrechen/kürzen). Auch mit 10–12 Figuren und UI-Größe 125 % prüfen.
+2. `main` vor dem Arbeiten holen (Branch ist weit zurück). Tests nach CLAUDE.md, Screenshot der Waffenkammer, Fertigmeldung.
