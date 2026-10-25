@@ -18,7 +18,7 @@ var _slot := "w0"            # w0, w1, armor, shield
 var _mode := "equip"         # equip = Plätze und Auswahl, stock = Reiter „Lager“
 var _modes: HBoxContainer
 var _snap := {}              # Character -> {weapons, armor, shield, medkits} beim Öffnen
-var _tabs: HBoxContainer
+var _tabs: HFlowContainer   # Reiter der Crew, brechen bei vielen Figuren in die nächste Zeile um
 var _left: VBoxContainer
 var _right: VBoxContainer
 var _preview: FigurePreview
@@ -42,8 +42,9 @@ func open_for(crew: Array[Character], idx := 0) -> void:
 	open("Waffenkammer")
 	var head := UiTheme.label(("Lager des Schiffs: Ausrüsten nimmt heraus, Ablegen legt zurück" if _g() else "Bestand unbegrenzt (ohne Spielstand)") + " · Änderungen gelten für die Figur in diesem Spiel", 13, UiTheme.MUTED)
 	content.add_child(head)
-	_tabs = HBoxContainer.new()
-	_tabs.add_theme_constant_override("separation", 6)
+	_tabs = HFlowContainer.new()
+	_tabs.add_theme_constant_override("h_separation", 6)
+	_tabs.add_theme_constant_override("v_separation", 6)
 	content.add_child(_tabs)
 	_modes = HBoxContainer.new()
 	_modes.add_theme_constant_override("separation", 0)
@@ -53,7 +54,7 @@ func open_for(crew: Array[Character], idx := 0) -> void:
 	content.add_child(cols)
 	var lp := PanelContainer.new()
 	lp.add_theme_stylebox_override("panel", UiTheme.box(UiTheme.PANEL2, UiTheme.LINE, 8, 12))
-	lp.custom_minimum_size.x = 400
+	lp.custom_minimum_size.x = 360
 	cols.add_child(lp)
 	_left = VBoxContainer.new()
 	lp.add_child(_left)
@@ -107,7 +108,6 @@ func _render() -> void:
 		var o := _crew[i]
 		var b := UiTheme.button("%s %s%s" % [o.letter, o.name.split(" ")[0], " •" if _is_changed(o) else ""], o.name, true)
 		b.button_pressed = i == _idx
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(func() -> void:
 			_idx = i
 			_render())
@@ -265,7 +265,11 @@ func _slot_button(key: String, title: String, value: String, sub: String, bonus:
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var vh := HBoxContainer.new()
 	vh.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vh.add_child(UiTheme.label(value, 14))
+	var vl := UiTheme.label(value, 14)
+	vl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	vl.clip_text = true
+	vl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vh.add_child(vl)
 	if wear != "":
 		vh.add_child(UiTheme.label(wear, 12, UiTheme.GOOD if wear.begins_with("+") else UiTheme.BAD if wear == "unbrauchbar" else Color("ffb04d")))
 	v.add_child(vh)
@@ -283,6 +287,30 @@ func _slot_button(key: String, title: String, value: String, sub: String, bonus:
 		_mode = "equip"
 		_render())
 	return b
+
+
+## Auswahlknopf in einer Tabelle: feste Mindestbreite, lange Namen (eigene Ausrüstung, Zustand) brechen um,
+## statt das Fenster zu verbreitern; die Spalte nimmt den übrigen Platz
+func _pick_button(text: String, tip: String, min_w: int) -> Button:
+	var b := UiTheme.button(text, tip)
+	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	b.custom_minimum_size.x = min_w
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	return b
+
+
+## Zustand eines Stücks als eigene Zeile unter dem Namen („(−30, unbrauchbar)“), "" = heil
+static func _damage_line(d: int) -> String:
+	return "\n" + Stock.damage_text(d).strip_edges() if d != 0 else ""
+
+
+## graue Tabellenzelle mit Umbruch ab min_w
+func _wrap_label(text: String, size: int, min_w: int) -> Label:
+	var l := UiTheme.label(text, size, UiTheme.MUTED)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = min_w
+	return l
 
 
 func _armor_text(a: ArmorData) -> String:
@@ -315,7 +343,7 @@ func _weapon_list(u: Character, slot: int) -> void:
 	_right.add_child(UiTheme.label("Waffe %d wählen" % (slot + 1), 13, UiTheme.ACCENT))
 	var g := GridContainer.new()
 	g.columns = 7
-	g.add_theme_constant_override("h_separation", 12)
+	g.add_theme_constant_override("h_separation", 10)
 	g.add_theme_constant_override("v_separation", 6)
 	for h in ["Waffe", "Lager", "Fertigkeit", "Bonus " + u.letter, "Reichweite", "Schaden", "Besonderes"]:
 		g.add_child(UiTheme.label(h, 11, UiTheme.MUTED))
@@ -326,27 +354,24 @@ func _weapon_list(u: Character, slot: int) -> void:
 		var d: int = row[1]
 		var on := w == cur and d == u.wear_of(key)
 		var why := Equipment.weapon_block(u, slot, w, _g(), d)
-		var b := UiTheme.button(("▸ " if on else "") + Equipment.label(w) + Stock.damage_text(d), why if why != "" else "%s als Waffe %d nehmen" % [w.name, slot + 1])
+		var b := _pick_button(("▸ " if on else "") + Equipment.label(w) + _damage_line(d), why if why != "" else "%s als Waffe %d nehmen" % [w.name, slot + 1], 210)
 		b.disabled = why != "" and not on
 		if on:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
 		elif d != 0 and not b.disabled:
 			b.add_theme_color_override("font_color", _wear_col(d))
-		b.custom_minimum_size.x = 190
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.pressed.connect(func() -> void:
 			Equipment.set_weapon(u, slot, w, _g(), d)
 			_render())
 		g.add_child(b)
 		g.add_child(UiTheme.label(_stock_text(w, d), 12, UiTheme.MUTED))
-		g.add_child(UiTheme.label(Rules.skill_name(w.skill), 12, UiTheme.MUTED))
+		g.add_child(_wrap_label(Rules.skill_name(w.skill), 12, 115))
 		var tot := Rules.skill_total(u, w.skill) + d
 		g.add_child(UiTheme.label(Dice.fmt(tot), 13, _col(tot)))
-		g.add_child(UiTheme.label(_range(w), 12, UiTheme.MUTED))
+		g.add_child(_wrap_label(_range(w), 12, 90))
 		g.add_child(UiTheme.label("×" + _num(w.damage, 1), 13))
-		var ex := UiTheme.label(_extra(w), 12, UiTheme.MUTED)
-		ex.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		ex.custom_minimum_size.x = 150
+		var ex := _wrap_label(_extra(w), 12, 100)
+		ex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		g.add_child(ex)
 	_right.add_child(g)
 	if slot == 1:
@@ -372,13 +397,11 @@ func _armor_list(u: Character) -> void:
 		var a: ArmorData = row[0]
 		var d: int = row[1]
 		var on := a == u.armor and d == u.wear_of("armor")
-		var b := UiTheme.button(("▸ " if on else "") + Equipment.label(a) + Stock.damage_text(d))
+		var b := _pick_button(("▸ " if on else "") + Equipment.label(a) + _damage_line(d), "", 210)
 		if on:
 			b.add_theme_color_override("font_color", UiTheme.ACCENT)
 		elif d != 0:
 			b.add_theme_color_override("font_color", _wear_col(d))
-		b.custom_minimum_size.x = 220
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.pressed.connect(func() -> void:
 			Equipment.set_armor(u, a, _g(), d)
 			_render())
@@ -501,7 +524,7 @@ func _stock_view(u: Character) -> void:
 		var why := "trägt schon einen" if u.shield else Equipment.shield_block(u)
 		gx.add_child(_stock_name(Stock.SHIELD_NAME, 0, ""))
 		gx.add_child(UiTheme.label("×%d" % sn, 13))
-		gx.add_child(UiTheme.label(why if why != "" else "Verteidigung +%d" % Equipment.shield_bonus(u), 12, UiTheme.MUTED))
+		gx.add_child(_wrap_label(why if why != "" else "Verteidigung +%d" % Equipment.shield_bonus(u), 12, 150))
 		gx.add_child(Control.new())
 		var b := UiTheme.button("anlegen", why if why != "" else "Schild aus dem Lager nehmen")
 		b.disabled = why != ""
@@ -558,8 +581,10 @@ func _stock_group(v: VBoxContainer, title: String, tag: String, heads: Array) ->
 func _stock_name(text: String, damage: int, hint: String) -> Control:
 	var nv := VBoxContainer.new()
 	nv.add_theme_constant_override("separation", 0)
+	nv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var l := UiTheme.label(text, 13, _wear_col(damage) if damage != 0 else UiTheme.TEXT)
-	l.custom_minimum_size.x = 210
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = 190
 	nv.add_child(l)
 	if hint != "":
 		nv.add_child(UiTheme.label(hint, 11, UiTheme.MUTED))
@@ -575,7 +600,7 @@ func _stock_empty(g: GridContainer, text: String) -> void:
 
 ## Rest einer Anzeigezeile (Spalten 3–5)
 func _stock_rest(g: GridContainer, text: String) -> void:
-	g.add_child(UiTheme.label(text, 12, UiTheme.MUTED))
+	g.add_child(_wrap_label(text, 12, 150))
 	g.add_child(Control.new())
 	g.add_child(Control.new())
 
