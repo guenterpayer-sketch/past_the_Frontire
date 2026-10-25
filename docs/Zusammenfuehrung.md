@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 25.10.2026 | (dieser Merge) | Charakter `claude/elegant-gauss-hq5bus` (`bb43695`) | Waffenkammer bleibt in fester Breite, lange Namen und Spalten brechen um. Tests rules/hub OK (Koordinator). Version 0.16. |
 | 24.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`7462c15`) | Schildträger mit einhändigen Waffen, Schild als Beute (30 %). Tests rules/hub/sim OK (Koordinator). Version 0.15. |
 | 24.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`caebb88`) | Auftrag 11: Preise Scharfschützengewehr und Elite-Ausrüstung, Schild immer im Sortiment, in der Werkstatt baubar, als Beute ins Lager. Tests rules/hub OK (Koordinator). Version 0.14. |
 | 24.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`86cf0e8`) | Balancing-Paket: neue Gegnertypen, Budget 55/75/100, bis 12 Gegner, Mitwachsen mit dem Trupp, Elite/Leutnant/Hauptmann/Boss mit Elite-Ausrüstung, Elite-Beute 12 %. `Mission.generate(seed, diff, faction, diff_factor, elite)`. Tests story/space OK (Koordinator), rules/hub/sim laut Modul. Version 0.13. Offen: Preise in `Stock.PRICES`. |
