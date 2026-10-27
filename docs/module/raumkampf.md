@@ -130,3 +130,12 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 - Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
 - **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
 - **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
+
+### Auftrag (27.10.2026): Kampfende ohne Erklärung
+
+Fehler (Nutzer, Spiel): Ein Raumkampf endete nach 2 Runden mit „Sieg“, ohne Hinweis warum. Vermutung des Nutzers: Gegner geflohen. Laut Code steht die Flucht nur im Log („… dreht ab und flieht.“, `_do_tech`), das Ergebnisfenster (`ui/space_ui.gd` `show_result`) sagt nur „Sieg“. Ob es wirklich eine Flucht war, ist nicht bekannt.
+1. Im Ergebnisfenster angeben, **wie** der Kampf endete, je Gegner: zerstört, kampfunfähig, geflohen (und ggf. 40-Runden-Abdrehen).
+2. Flucht eines Gegners im Kampf deutlich zeigen (nicht nur im Log, z. B. kurze Einblendung).
+3. Prüfen, ob eine Flucht schon in Runde 2 plausibel ist (`flee_at`) und dem Nutzer berichten, nichts am Balancing ändern ohne Entscheidung.
+4. Tests nach CLAUDE.md, Fertigmeldung.
+
