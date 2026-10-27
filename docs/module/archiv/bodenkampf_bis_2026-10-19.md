@@ -113,3 +113,13 @@ Neue Liste, vom Nutzer beschlossen: Regeln in `docs/Skillsystem.md` 6.1, Abschni
 
 - **Gebaut (27.10.2026):** Schlüssel `lStaerkung/1` Fokus, `/2` Wachheit, `/3` Leichter Schritt, `/4` Klarer Kopf, `/5` Kraftfluss, `/6` Zielsicherheit, `/7` Zähigkeit, `/8` Beschleunigung, `/10` Gemeinsamer Wille (Ziele self/self/ally/ally/ally/ally/ally/ally/area). Alle drei Prüfpunkte gebaut, keiner zu aufwendig: 110 % Aktivität (`_begin_turn`, Ausweichen höchstens 100 %), TP-Puffer (`Combat._hurt` an allen Schadensstellen), STÄ/GEW-Bonus (`Rules.attr_bonus_of` in `skill_total`, `initiative_bonus`, `free_hexes`). KI-Regel in `CombatAI._psi_step`. Test `_test_staerkung`. Charakter-Modul kann die Liste jetzt in `PsiLists.LISTS` eintragen (Stufen 1–8, 10); `PsiCombat.known` findet die Schlüssel dann von selbst. Balancing (KI gegen KI, „mittel“, 30 Kämpfe, Psi-Figur mit allen 9 Kräften): Squad des Nutzers ohne/mit 29/30 bzw. 28/30 Siege, TP-Verlust 43/44 % (ca. 2 Stärkungen je Kampf); Startcrew 10/30 → 15/30 Siege, 89 → 86 %. Zahlen des Entwurfs bleiben; die Wirkung ist spürbar, aber nicht übermächtig.
 
+
+
+### Auftrag (27.10.2026): Mockup Comic-Shader – nichts bauen (vom Nutzer verworfen 27.10.2026; Probe A Nachbearbeitung, B Material-Shader gezeigt, nichts committet)
+
+Wunsch des Nutzers: bessere Grafik, **kostenlos**, in Godot bleiben. Idee: Comic-Look per Shader passend zu den Story-Bildern (`docs/Story_Bilder.md`: Graphic Novel, klare Linien, Schraffur, kräftige Schatten).
+1. Probe auf einer Kampfszene (eigene Testszene oder Testcode, **nicht** in den Spielcode übernehmen): Konturen, Cel-Shading (wenige harte Lichtstufen), optional Schraffur in Schatten.
+2. Screenshots nebeneinander: jetziger Stand / Comic-Look, je mit Renderer „Compatibility“ (jetzt) und, wenn möglich, „Forward+“ bzw. „Mobile“. Bilder ins Repo (z. B. `docs/mockups/comic/`) oder als Artifact.
+3. Kurz einschätzen (Wissen/Annahme getrennt): Aufwand für Boden, Hub-Schiff und Raumkampf, Leistung am Tablet (nur Annahme ohne Gerät), was mit den Quaternius-Modellen gut/schlecht aussieht.
+4. Ergebnis an den Nutzer, Entscheidung abwarten.
+

@@ -88,13 +88,5 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (27.10.2026): Mockup Comic-Shader – nichts bauen
-
-Wunsch des Nutzers: bessere Grafik, **kostenlos**, in Godot bleiben. Idee: Comic-Look per Shader passend zu den Story-Bildern (`docs/Story_Bilder.md`: Graphic Novel, klare Linien, Schraffur, kräftige Schatten).
-1. Probe auf einer Kampfszene (eigene Testszene oder Testcode, **nicht** in den Spielcode übernehmen): Konturen, Cel-Shading (wenige harte Lichtstufen), optional Schraffur in Schatten.
-2. Screenshots nebeneinander: jetziger Stand / Comic-Look, je mit Renderer „Compatibility“ (jetzt) und, wenn möglich, „Forward+“ bzw. „Mobile“. Bilder ins Repo (z. B. `docs/mockups/comic/`) oder als Artifact.
-3. Kurz einschätzen (Wissen/Annahme getrennt): Aufwand für Boden, Hub-Schiff und Raumkampf, Leistung am Tablet (nur Annahme ohne Gerät), was mit den Quaternius-Modellen gut/schlecht aussieht.
-4. Ergebnis an den Nutzer, Entscheidung abwarten.
-
-- Keine offenen Aufträge sonst. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
