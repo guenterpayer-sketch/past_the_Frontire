@@ -337,6 +337,26 @@ Reichweiten im Bodenkampf (`core/psi_combat.gd`, so zeigt sie auch die Übersich
 | 5 | Entwaffnen | Psi-Angriffe | Ziel kann im nächsten Zug nicht angreifen |
 | 8 | Schweben | Psi wirken | selbst: eine Höhenstufe ohne Treppe oder Leiter überwinden |
 
+**Stärkung** (Psi wirken) – beschlossen 27.10.2026 (Nutzer), **noch nicht gebaut**
+
+Verbessert Figuren im Kampf: kleinere Boni als „Schutz“, dafür länger (5 Runden oder bis Kampfende). Niedrige Stufen nur selbst, mittlere ein Verbündeter in Sicht, die höchste die Gruppe.
+
+| Stufe | Kraft | Ziel | Wirkung |
+|---|---|---|---|
+| 1 | Fokus | selbst | +5 Angriff für 5 Runden |
+| 2 | Wachheit | selbst | +5 Initiative bis Kampfende |
+| 3 | Leichter Schritt | Verbündeter | +1 Gratis-Feld je Runde für 5 Runden |
+| 4 | Klarer Kopf | Verbündeter | Betäubung sofort 1 Runde kürzer; 5 Runden lang Malus aus „angeschlagen“ nur −5 statt −10 |
+| 5 | Kraftfluss | Verbündeter | +5 auf die Boni von STÄ und GEW für 5 Runden (Nahkampf, Ausweichen, Bewegung, Initiative) |
+| 6 | Zielsicherheit | Verbündeter | +10 Angriff für 5 Runden |
+| 7 | Zähigkeit | Verbündeter | +10 TP als Puffer bis Kampfende; Schaden geht zuerst auf den Puffer |
+| 8 | Beschleunigung | Verbündeter | 110 % Aktivität je Runde für 3 Runden (weiter höchstens 1 Angriff) |
+| 10 | Gemeinsamer Wille | Verbündete in 2 Hex | +5 Angriff und +5 Initiative bis Kampfende, Wundmalus halbiert |
+
+- Probe wie bei den anderen unterstützenden Kräften; abweichend: herausragend = Dauer +2 Runden, Teilerfolg = halbe Dauer (aufgerundet). Kräfte „bis Kampfende“ bleiben bei Teilerfolg bis Kampfende, aber mit halbem Bonus.
+- Dieselbe Kraft addiert sich nicht mit sich selbst (erneutes Wirken setzt die Dauer neu); verschiedene Kräfte addieren sich, auch mit „Schutz“ und „Wahrnehmung“.
+- Zahlen sind ein erster Entwurf, Balancing über `test_sim` offen.
+
 ---
 
 ## 7. Rundenablauf Bodenkampf (Aktivitätssystem im RMSS-Stil)
