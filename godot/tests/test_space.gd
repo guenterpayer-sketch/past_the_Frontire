@@ -29,6 +29,7 @@ func _init() -> void:
 	_test_elite()
 	_test_boss_loot()
 	_test_factor()
+	_test_end_info()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -384,6 +385,33 @@ func _test_factor() -> void:
 	check(a.difficulty_factor == 1.0 and b.difficulty_factor == 1.25, "Faktor aus setup (fehlend = 1,0)")
 	check(eb.hull_max == roundi(ea.hull_max * 1.125) and ec.hull_max == roundi(ea.hull_max * 0.9), "Hülle halb so stark wie der Faktor")
 	check(eb.crew_skill == ea.crew_skill + 6 and ec.crew_skill == ea.crew_skill - 5, "Besatzung +6 / −5")
+
+
+## Kampfende mit Erklärung (27.10.2026): Ausgang je Gegner, Grund, Flucht als Ereignis, Abdrehen nach 40 Runden
+func _test_end_info() -> void:
+	var c := _combat(51, "piraten", "mittel")
+	var fled: Array = []
+	c.ship_fled.connect(func(s: SpaceShip) -> void: fled.append(s))
+	var big: SpaceShip = c.enemies().filter(func(x: SpaceShip) -> bool: return not x.is_fighter())[0]
+	big.hull = 1
+	c.phase = SpaceCombat.Phase.TECH
+	c._do_tech(big, {})
+	check(big.fled and big.out_round == c.round_no and fled == [big], "Flucht: Ereignis und Runde")
+	for e in c.enemies():
+		if e.is_fighter():
+			e.destroyed = true
+			e.out_round = c.round_no
+	c._check_end()
+	var fates := {}
+	for f in c.enemy_fates():
+		fates[f.name] = f.fate
+	check(c.result == &"sieg" and fates[big.name] == "geflohen", "Sieg mit geflohenem Gegner im Ausgang")
+	check(c.end_reason().contains("geflohen"), "Grund fürs Kampfende genannt")
+	var t := _combat(52)
+	t.round_no = SpaceCombat.MAX_ROUNDS
+	t._start_round()
+	check(t.timed_out and t.retreated and t.end_reason().contains("drehten die Gegner ab")
+		and t.enemy_fates().all(func(f: Dictionary) -> bool: return f.fate != "kämpft noch"), "Abdrehen nach 40 Runden erklärt")
 
 
 func _test_board() -> void:

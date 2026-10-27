@@ -20,6 +20,7 @@ signal ship_moved(ship: SpaceShip, path: Array[Vector2i])
 signal ship_fired(ship: SpaceShip, target: SpaceShip, slot: String, res: Dictionary)
 signal ship_changed(ship: SpaceShip)
 signal ship_destroyed(ship: SpaceShip)
+signal ship_fled(ship: SpaceShip)
 signal ended(result: StringName)
 
 enum Phase { SHIELDS, MOVE, FIRE, TECH }
@@ -144,6 +145,7 @@ var faction_id := ""
 var faction := {}
 var elite := false                 # Elite-Kampf (setup.enemy.elite; Boss-Kämpfe sind auch Elite)
 var boss := false                  # Boss-Kampf (setup.enemy.boss)
+var timed_out := false             # nach MAX_ROUNDS abgedreht (Ergebnis wie Rückzug, aber kein Sprung)
 var difficulty_factor := 1.0       # Spieleinstellung Schwierigkeitsgrad (setup.difficulty_factor)
 var power_bonus := 0               # Besatzungsbonus der Gegner nach Crew-Stärke (beim Start gesetzt)
 var own_vw := 0                    # VW des eigenen Schiffs in dieser Runde (Grund + halber Pilot-Bonus)
@@ -540,6 +542,7 @@ func _start_round() -> void:
 	if round_no > MAX_ROUNDS:
 		log_text("Die Gegner drehen ab – der Kampf endet ohne Entscheidung.", &"round")
 		retreated = true
+		timed_out = true
 		_finish(&"niederlage")
 		return
 	for e in enemies():
@@ -1099,9 +1102,11 @@ func _apply_hit(s: SpaceShip, t: SpaceShip, res: Dictionary) -> void:
 		t.hull = 0
 		if t.is_fighter():
 			t.destroyed = true
+			t.out_round = round_no
 			log_text("%s ist zerstört!" % t.name, &"kill")
 		else:
 			t.wreck = true
+			t.out_round = round_no
 			log_text("%s ist ein Wrack – manövrierunfähig, die Besatzung lebt." % t.name, &"kill")
 		ship_destroyed.emit(t)
 	ship_changed.emit(t)
@@ -1190,8 +1195,10 @@ func _do_tech(s: SpaceShip, o: Dictionary) -> void:
 		var flee := float(faction.get("flee_at", 0.0))
 		if flee > 0.0 and not s.is_fighter() and not s.boss and not s.is_out("antrieb") and s.hull < s.hull_max * flee:
 			s.fled = true
-			log_text("%s dreht ab und flieht." % s.name, &"round")
+			s.out_round = round_no
+			log_text("%s dreht ab und flieht (Hülle unter %d %%)." % [s.name, roundi(flee * 100)], &"round")
 			ship_changed.emit(s)
+			ship_fled.emit(s)
 		return
 	# Zielerfassung und Störsender gelten bis zur nächsten Technikphase
 	own.lock = {}
@@ -1462,6 +1469,48 @@ func ship_loot(e: SpaceShip) -> Dictionary:
 		bw.append({"key": key, "name": ShipWeapons.name(key), "damage": dmg})
 	return {"credits": roundi(int(t.credits) * 1.5), "material": int(t.material) * 2,
 		"ship_ammo": {"schiffsraketen": rng.randi_range(2, 4), "geschosse": rng.randi_range(10, 20)}, "weapons": bw}
+
+
+## Wie der Kampf endete, als ein Satz (Ergebnisfenster)
+func end_reason() -> String:
+	if surrendered:
+		return "Die Crew hat kapituliert."
+	if timed_out:
+		return "Nach %d Runden drehten die Gegner ab – ohne Entscheidung." % MAX_ROUNDS
+	if retreated:
+		return "Die Frontire ist per Sprung entkommen."
+	if boarding:
+		return "Die Gegner entern die Frontire."
+	if emergency:
+		return "Die Frontire ist manövrierunfähig, die Gegner ziehen ab."
+	if boarded:
+		return "Die Crew entert %s; übrige Gegner ziehen ab." % boarded.name
+	if result == &"sieg":
+		return "Kein Gegner kämpft mehr: alle zerstört, kampfunfähig oder geflohen."
+	return ""
+
+
+## Ausgang je Gegner: [{"name", "fate", "round"}] – zerstört, Wrack, geflohen, geentert, zog ab, manövrierunfähig, kämpft
+func enemy_fates() -> Array:
+	var out: Array = []
+	for e in enemies():
+		var fate := "kämpft noch"
+		if e == boarded:
+			fate = "geentert"
+		elif e.destroyed:
+			fate = "zerstört"
+		elif e.wreck:
+			fate = "Wrack (kampfunfähig)"
+		elif e.fled:
+			fate = "geflohen"
+		elif boarded != null:
+			fate = "zog beim Entern ab"
+		elif timed_out:
+			fate = "drehte ab"
+		elif e.is_out("antrieb"):
+			fate = "manövrierunfähig"
+		out.append({"name": e.name, "fate": fate, "round": e.out_round})
+	return out
 
 
 ## Ergebnis im Format MissionResult plus Schiffsteil (Schnittstelle docs/module/raumkampf.md)
