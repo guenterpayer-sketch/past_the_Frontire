@@ -35,6 +35,7 @@ func _ready() -> void:
 		_events.append([&"fire", s, t, slot, r]))
 	combat.ship_changed.connect(func(s: SpaceShip) -> void: _events.append([&"changed", s]))
 	combat.ship_destroyed.connect(func(s: SpaceShip) -> void: _events.append([&"destroyed", s]))
+	combat.ship_fled.connect(func(s: SpaceShip) -> void: _events.append([&"fled", s]))
 	map_view.build(combat)
 	for s in combat.ships:
 		var v := SpaceShipView.new()
@@ -146,6 +147,9 @@ func play_events() -> void:
 			&"destroyed":
 				Sfx.play(&"tod")
 				rig.shake(1.0, 0.3)
+				ship_views[e[1].id].refresh()
+			&"fled":
+				ui.show_notice("%s dreht ab und flieht!" % e[1].name)
 				ship_views[e[1].id].refresh()
 	for v in ship_views.values():
 		v.refresh()
@@ -302,3 +306,5 @@ func _autotest_tip() -> void:
 	ui.hover_ship(e, at)
 	await _shot("9_gegner_scan")
 	ui.hover_ship(null, at)
+	ui.show_notice("%s dreht ab und flieht!" % e.name)
+	await _shot("10_flucht_meldung")

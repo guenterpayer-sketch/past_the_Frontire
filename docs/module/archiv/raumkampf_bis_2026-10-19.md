@@ -40,3 +40,13 @@ Gemeinsame Elite-Regeln stehen in `docs/module/bodenkampf.md` und `docs/module/r
 - Elite-/Boss-Anzahl auf „schwer“ klärt der Nutzer direkt mit dem Bodenkampf.
 
 1. `setup.difficulty_factor` (0,8 / 1,0 / 1,25) im Raumkampf berücksichtigen, sinngemäß wie das Budget am Boden (z. B. Besatzung/Gegneranzahl). Simulation je Stufe melden.
+
+
+### Auftrag (27.10.2026): Kampfende ohne Erklärung (erledigt, `7da55d3`)
+
+Fehler (Nutzer, Spiel): Ein Raumkampf endete nach 2 Runden mit „Sieg“, ohne Hinweis warum. Vermutung des Nutzers: Gegner geflohen. Laut Code steht die Flucht nur im Log („… dreht ab und flieht.“, `_do_tech`), das Ergebnisfenster (`ui/space_ui.gd` `show_result`) sagt nur „Sieg“. Ob es wirklich eine Flucht war, ist nicht bekannt.
+1. Im Ergebnisfenster angeben, **wie** der Kampf endete, je Gegner: zerstört, kampfunfähig, geflohen (und ggf. 40-Runden-Abdrehen).
+2. Flucht eines Gegners im Kampf deutlich zeigen (nicht nur im Log, z. B. kurze Einblendung).
+3. Prüfen, ob eine Flucht schon in Runde 2 plausibel ist (`flee_at`) und dem Nutzer berichten, nichts am Balancing ändern ohne Entscheidung.
+4. Tests nach CLAUDE.md, Fertigmeldung.
+

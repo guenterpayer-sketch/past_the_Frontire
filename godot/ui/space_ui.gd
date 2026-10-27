@@ -178,6 +178,21 @@ func open_briefing() -> void:
 	briefing.open_for(view)
 
 
+## Kurze Einblendung oben in der Mitte (z. B. Flucht eines Gegners), verschwindet nach einigen Sekunden
+func show_notice(text: String) -> void:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UiTheme.box(Color(UiTheme.PANEL2, 0.97), UiTheme.ACCENT, 8, 12))
+	p.add_child(UiTheme.label(text, 16, UiTheme.ACCENT))
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(p)
+	p.reset_size()
+	p.position = Vector2((size.x - p.size.x) / 2.0, 70)
+	var tw := create_tween()
+	tw.tween_interval(3.5)
+	tw.tween_property(p, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(p.queue_free)
+
+
 func log_line(t: String, kind: StringName) -> void:
 	combat_log.add(t, kind)
 
@@ -773,7 +788,7 @@ func _on_surrender() -> void:
 # ---------------------------------------------------------------- Ergebnis
 
 func show_result(r: Dictionary) -> void:
-	var title := "Sieg" if r.outcome == &"sieg" else ("Gesprungen" if r.retreated else "Niederlage")
+	var title := "Sieg" if r.outcome == &"sieg" else ("Abgedreht" if combat.timed_out else ("Gesprungen" if r.retreated else "Niederlage"))
 	if r.board_enemy:
 		title = "Entern"
 	if r.surrendered:
@@ -791,6 +806,10 @@ func show_result(r: Dictionary) -> void:
 		t += "[color=#ff6b6b]Die Frontire ist manövrierunfähig (Notfall).[/color]\n"
 	if r.surrendered:
 		t += "Lösegeld: %d Credits\n" % int(r.ransom.get("credits", 0))
+	t += "[b]Kampfende:[/b] %s\n" % combat.end_reason()
+	for f in combat.enemy_fates():
+		var col := UiTheme.ACCENT.to_html(false) if f.fate == "geflohen" else UiTheme.MUTED.to_html(false)
+		t += "[color=%s]  %s: %s%s[/color]\n" % [col, f.name, f.fate, " (Runde %d)" % int(f.round) if int(f.round) > 0 else ""]
 	t += "[b]Schiff:[/b] Hülle %d/%d nach %d Runden\n" % [int(r.ship.hull), combat.own.hull_max, int(r.rounds)]
 	var dmg := PackedStringArray()
 	for sys in r.ship.damage:
