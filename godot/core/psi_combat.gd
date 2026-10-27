@@ -39,6 +39,16 @@ const SUPPORT := {
 	"lWahrnehmung/3": {"name": "Gedanken orten", "target": "foes", "hint": "Gegner in 10 Hex verlieren 3 Runden ihre Deckung"},
 	"lWahrnehmung/5": {"name": "Vorahnung", "target": "ally", "hint": "+20 Ausweichen gegen den nächsten Angriff"},
 	"lWahrnehmung/7": {"name": "Schwachstelle", "target": "enemy", "hint": "nächster Angriff eines Verbündeten +20"},
+	# Stärkung (Nutzer 27.10.2026, docs/Skillsystem.md 6.1): kleinere Boni, länger; Dauer herausragend +2, Teilerfolg halb
+	"lStaerkung/1": {"name": "Fokus", "target": "self", "hint": "+5 Angriff, 5 Runden"},
+	"lStaerkung/2": {"name": "Wachheit", "target": "self", "hint": "+5 Initiative bis Kampfende"},
+	"lStaerkung/3": {"name": "Leichter Schritt", "target": "ally", "hint": "+1 Gratis-Feld je Runde, 5 Runden"},
+	"lStaerkung/4": {"name": "Klarer Kopf", "target": "ally", "hint": "Betäubung −1; Malus aus „angeschlagen“ halbiert, 5 Runden"},
+	"lStaerkung/5": {"name": "Kraftfluss", "target": "ally", "hint": "+5 auf die Boni von STÄ und GEW, 5 Runden"},
+	"lStaerkung/6": {"name": "Zielsicherheit", "target": "ally", "hint": "+10 Angriff, 5 Runden"},
+	"lStaerkung/7": {"name": "Zähigkeit", "target": "ally", "hint": "+10 TP als Puffer bis Kampfende"},
+	"lStaerkung/8": {"name": "Beschleunigung", "target": "ally", "hint": "110 % Aktivität je Runde, 3 Runden"},
+	"lStaerkung/10": {"name": "Gemeinsamer Wille", "target": "area", "hint": "Verbündete in 2 Hex: +5 Angriff, +5 Initiative, Wundmalus halbiert, bis Kampfende"},
 }
 
 static var _weapons := {}

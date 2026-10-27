@@ -141,7 +141,15 @@ static func skill_rank(ch, id: StringName) -> int:
 
 static func skill_total(ch, id: StringName) -> int:
 	var a: Array = skill(id).attrs
-	return rank_bonus(skill_rank(ch, id)) + attr_bonus(ch.attrs[a[0]]) + attr_bonus(ch.attrs[a[1]])
+	return rank_bonus(skill_rank(ch, id)) + attr_bonus_of(ch, a[0]) + attr_bonus_of(ch, a[1])
+
+
+## Bonus einer Eigenschaft der Figur; im Kampf mit Psi „Kraftfluss“ (Stärkung) +val auf STA und GEW
+static func attr_bonus_of(ch, attr: String) -> int:
+	var b := attr_bonus(ch.attrs[attr])
+	if (attr == "STA" or attr == "GEW") and "buffs" in ch and ch.buffs.has("kraftfluss"):
+		b += int(ch.buffs.kraftfluss.get("val", 0))
+	return b
 
 
 static func rank_cost(rank: int) -> int:
@@ -326,9 +334,9 @@ static func max_pp(ch) -> int:
 
 
 static func initiative_bonus(ch) -> int:
-	return attr_bonus(ch.attrs.GEW) + floori(skill_total(ch, &"kampfsinn") / 5.0)
+	return attr_bonus_of(ch, "GEW") + floori(skill_total(ch, &"kampfsinn") / 5.0)
 
 
 ## Gratis-Hexfelder pro Zug aus der Gewandtheit (abzüglich Rüstung)
 static func free_hexes(ch) -> int:
-	return maxi(0, floori(attr_bonus(ch.attrs.GEW) / 5.0) + ch.armor.move)
+	return maxi(0, floori(attr_bonus_of(ch, "GEW") / 5.0) + ch.armor.move)

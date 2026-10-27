@@ -230,6 +230,21 @@ func _psi_step(c: Combat, u: Combatant, here: BattleMap.Tile, weapons: Array[Wea
 		var st: Dictionary = use.call(k, hurt)
 		if not st.is_empty():
 			return st
+	# Stärkung: Gruppe, Betäubte, dann Verbündete ohne die Wirkung, zuletzt selbst
+	var allies_near := c.units.filter(func(o: Combatant) -> bool: return o.team == u.team and o.is_ok() and Hex.distance(o.pos, u.pos) <= 2 and not o.buffs.has("wille"))
+	if allies_near.size() >= 2:
+		var w10: Dictionary = use.call("lStaerkung/10", func(o: Combatant) -> bool: return true)
+		if not w10.is_empty():
+			return w10
+	var w4: Dictionary = use.call("lStaerkung/4", func(o: Combatant) -> bool: return o.stun > 0)
+	if not w4.is_empty():
+		return w4
+	for spec in [["lStaerkung/8", "beschleunigung"], ["lStaerkung/6", "zielsicherheit"], ["lStaerkung/7", "zaehigkeit"],
+			["lStaerkung/5", "kraftfluss"], ["lStaerkung/3", "leichter_schritt"], ["lStaerkung/2", "wachheit"], ["lStaerkung/1", "fokus"]]:
+		var b: String = spec[1]
+		var sw: Dictionary = use.call(spec[0], func(o: Combatant) -> bool: return not o.buffs.has(b))
+		if not sw.is_empty():
+			return sw
 	var foes := c.opponents(u).filter(func(o: Combatant) -> bool: return Hex.distance(o.pos, u.pos) <= 10 and not o.buffs.has("geortet"))
 	if foes.size() >= 3:
 		var st: Dictionary = use.call("lWahrnehmung/3", func(o: Combatant) -> bool: return true)

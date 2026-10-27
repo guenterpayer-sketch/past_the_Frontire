@@ -64,9 +64,13 @@ var xp_log := {}
 var kills := 0
 var powers: Array[String] = []   # unterstützende Psi-Kräfte (PsiCombat.SUPPORT)
 const BUFF_NAMES := {"abschirmen": "Abgeschirmt", "ablenkfeld": "Ablenkfeld", "kuppel": "Schildkuppel", "barriere": "Letzte Barriere",
-	"schmerz": "Schmerz gedämpft", "gefahrensinn": "Gefahrensinn", "geortet": "geortet", "vorahnung": "Vorahnung", "schwachstelle": "Schwachstelle"}
+	"schmerz": "Schmerz gedämpft", "gefahrensinn": "Gefahrensinn", "geortet": "geortet", "vorahnung": "Vorahnung", "schwachstelle": "Schwachstelle",
+	"fokus": "Fokus", "wachheit": "Wachheit", "leichter_schritt": "Leichter Schritt", "klarer_kopf": "Klarer Kopf", "kraftfluss": "Kraftfluss",
+	"zielsicherheit": "Zielsicherheit", "zaehigkeit": "Zähigkeit", "beschleunigung": "Beschleunigung", "wille": "Gemeinsamer Wille"}
 ## laufende Wirkungen: Name → {rounds, …}; rounds −1 = bis verbraucht (Barriere, Vorahnung, Schwachstelle)
 var buffs := {}
+## Malus aus der Verwundungsstufe „angeschlagen“ (in malus enthalten; Klarer Kopf halbiert ihn)
+var injury_malus := 0
 var disarmed := false            # Entwaffnen: im nächsten eigenen Zug kein Angriff
 var stabilized := false        # sterbend, aber per Erster Hilfe stabilisiert
 var worst_crit := ""           # schwerster erlittener Kritischer (A–E), "" = keiner
@@ -140,6 +144,7 @@ static func from_character(ch: Character, team_id: StringName) -> Combatant:
 		u.wear = (w0 as Dictionary).duplicate()
 	if ch.injury == Injury.LIGHT:
 		u.malus = Injury.LIGHT_MALUS
+		u.injury_malus = Injury.LIGHT_MALUS
 	for slot in u.weapons.size():
 		var w := u.weapons[slot]
 		if w.magazine > 0:   # voll; den Schiffsvorrat legt Ammo.apply() darüber
@@ -221,6 +226,24 @@ func state_name() -> String:
 
 func has_overwatch() -> bool:
 	return not overwatch.is_empty()
+
+
+## Wert einer laufenden Wirkung (0 = keine)
+func buff_val(id: String) -> int:
+	return int(buffs.get(id, {}).get("val", 0))
+
+
+## wirksamer Wundmalus: Schmerz dämpfen hebt ihn auf, Klarer Kopf halbiert den Anteil aus „angeschlagen“,
+## Gemeinsamer Wille halbiert den ganzen Malus
+func wound_malus() -> int:
+	if buffs.has("schmerz"):
+		return 0
+	var m := malus
+	if buffs.has("klarer_kopf"):
+		m -= injury_malus / 2
+	if buffs.has("wille"):
+		m = int(m / 2.0)
+	return m
 
 
 func status_list() -> PackedStringArray:
