@@ -337,7 +337,7 @@ Reichweiten im Bodenkampf (`core/psi_combat.gd`, so zeigt sie auch die Übersich
 | 5 | Entwaffnen | Psi-Angriffe | Ziel kann im nächsten Zug nicht angreifen |
 | 8 | Schweben | Psi wirken | selbst: eine Höhenstufe ohne Treppe oder Leiter überwinden |
 
-**Stärkung** (Psi wirken) – beschlossen 27.10.2026 (Nutzer), **noch nicht gebaut**
+**Stärkung** (Psi wirken) – beschlossen 27.10.2026 (Nutzer); im Bodenkampf gebaut 27.10.2026 (`core/psi_combat.gd`, Schlüssel `lStaerkung/1` … `/8`, `/10`), lernbar erst, wenn das Charakter-Modul die Liste einträgt
 
 Verbessert Figuren im Kampf: kleinere Boni als „Schutz“, dafür länger (5 Runden oder bis Kampfende). Niedrige Stufen nur selbst, mittlere ein Verbündeter in Sicht, die höchste die Gruppe.
 
@@ -355,7 +355,7 @@ Verbessert Figuren im Kampf: kleinere Boni als „Schutz“, dafür länger (5 R
 
 - Probe wie bei den anderen unterstützenden Kräften; abweichend: herausragend = Dauer +2 Runden, Teilerfolg = halbe Dauer (aufgerundet). Kräfte „bis Kampfende“ bleiben bei Teilerfolg bis Kampfende, aber mit halbem Bonus.
 - Dieselbe Kraft addiert sich nicht mit sich selbst (erneutes Wirken setzt die Dauer neu); verschiedene Kräfte addieren sich, auch mit „Schutz“ und „Wahrnehmung“.
-- Zahlen sind ein erster Entwurf, Balancing über `test_sim` offen.
+- Zahlen sind ein erster Entwurf. Umsetzung im Kampf: Puffer von „Zähigkeit“ fängt jeden Schaden ab (auch Blutung); „Beschleunigung“ zählt fürs Ausweichen höchstens als 100 %; „Kraftfluss“ wirkt über den Eigenschaftsbonus auf alle Fertigkeiten mit STÄ oder GEW, auf Gratis-Felder und Initiative; Malus aus „angeschlagen“ getrennt erfasst (`Combatant.injury_malus`).
 
 ---
 

@@ -55,6 +55,7 @@ func _init() -> void:
 	_test_enemy_growth()
 	_test_elite()
 	_test_shield_loot()
+	_test_staerkung()
 	_test_boarding_briefing()
 	print("OK" if fails == 0 else "%d FEHLER" % fails)
 	quit(1 if fails else 0)
@@ -1561,6 +1562,49 @@ func _test_factions() -> void:
 
 
 ## Story-Fraktionen (Bodenkampf Auftrag 3, 19.10.2026): Oberart Story, nie zufällig, nicht im Sektor
+## Psi-Liste „Stärkung“ (Auftrag 27.10.2026): Schlüssel lStaerkung/<Stufe> und ihre Wirkung im Kampf
+func _test_staerkung() -> void:
+	var keys := ["lStaerkung/1", "lStaerkung/2", "lStaerkung/3", "lStaerkung/4", "lStaerkung/5", "lStaerkung/6", "lStaerkung/7", "lStaerkung/8", "lStaerkung/10"]
+	check(keys.all(func(k: String) -> bool: return PsiCombat.SUPPORT.has(k)), "Stärkung: 9 Kräfte in PsiCombat.SUPPORT")
+	var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(Mission.generate(5, "leicht").enemies, &"enemy"))
+	var u: Combatant = c.crew()[0]
+	var t: Combatant = c.crew()[1]
+	var e: Combatant = c.enemies()[0]
+	var w := u.weapons[0]
+	var ob0: int = c._sum(c.attack_info(u, e, w, {"pct": 60}).ob) if c.attack_info(u, e, w, {"pct": 60}).valid else 0
+	c._strengthen(u, "lStaerkung/1", u, 2)
+	c._strengthen(u, "lStaerkung/6", u, 2)
+	var info := c.attack_info(u, e, w, {"pct": 60})
+	check(not info.valid or c._sum(info.ob) == ob0 + 15, "Fokus + Zielsicherheit: +15 Angriff")
+	check(u.buffs.fokus.rounds == 5 and u.buffs.zielsicherheit.rounds == 5, "Dauer 5 Runden bei Erfolg")
+	c._strengthen(u, "lStaerkung/1", u, 3)
+	check(u.buffs.fokus.rounds == 7, "herausragend: +2 Runden, dieselbe Kraft setzt die Dauer neu")
+	c._strengthen(t, "lStaerkung/1", t, 1)
+	check(t.buffs.fokus.rounds == 3, "Teilerfolg: halbe Dauer aufgerundet")
+	c._strengthen(t, "lStaerkung/2", t, 1)
+	check(t.buffs.wachheit.val == 3 and t.buffs.wachheit.rounds == -1, "Wachheit bei Teilerfolg halber Bonus bis Kampfende")
+	var free0 := Rules.free_hexes(t)
+	var total0 := Rules.skill_total(t, &"ausweichen")
+	c._strengthen(u, "lStaerkung/5", t, 2)
+	check(Rules.skill_total(t, &"ausweichen") > total0, "Kraftfluss: Ausweichen steigt (STÄ/GEW-Bonus +5)")
+	c._strengthen(u, "lStaerkung/3", t, 2)
+	c._strengthen(u, "lStaerkung/8", t, 2)
+	c._begin_turn(t)
+	check(t.act == 110 and t.free_hex >= free0 + 1, "Beschleunigung 110 %% Aktivität, Leichter Schritt +1 Gratis-Feld (%d %%, %d Felder)" % [t.act, t.free_hex])
+	c._strengthen(u, "lStaerkung/7", t, 2)
+	var hp0 := t.hp
+	c._hurt(t, 14)
+	check(t.hp == hp0 - 4 and not t.buffs.has("zaehigkeit"), "Zähigkeit fängt 10 TP ab")
+	t.malus = -14
+	t.injury_malus = -10
+	t.stun = 2
+	c._strengthen(u, "lStaerkung/4", t, 2)
+	check(t.stun == 1 and t.wound_malus() == -9, "Klarer Kopf: Betäubung −1, Malus aus „angeschlagen“ halbiert (%d)" % t.wound_malus())
+	t.buffs.erase("klarer_kopf")
+	c._strengthen(t, "lStaerkung/10", t, 2)
+	check(t.wound_malus() == -7 and t.buff_val("wille") == 5, "Gemeinsamer Wille: Wundmalus halbiert, +5")
+
+
 ## Schild als Beute (Auftrag 24.10.2026): nur Träger einhändiger Waffen, 30 % je besiegtem Schildträger, ohne Schaden
 func _test_shield_loot() -> void:
 	var kt: UnitData = load("res://data/units/enemies/klingentaenzer.tres")

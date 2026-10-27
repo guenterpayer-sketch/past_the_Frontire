@@ -239,7 +239,7 @@ func _start_round() -> void:
 				if r - 1 == 0:
 					u.buffs.erase(b)
 		if u.bleed > 0:
-			u.hp -= u.bleed
+			_hurt(u, u.bleed)
 			log_text("%s blutet (−%d TP)." % [u.name, u.bleed], &"dmg")
 			floated.emit(u, "−%d" % u.bleed, &"bleed")
 			_check_state(u)
@@ -252,7 +252,7 @@ func _start_round() -> void:
 	for u in ready:
 		var a := Dice.d(10)
 		var b := Dice.d(10)
-		var bonus: int = Rules.initiative_bonus(u) + u.trait_val("init")
+		var bonus: int = Rules.initiative_bonus(u) + u.trait_val("init") + u.buff_val("wachheit") + u.buff_val("wille")
 		u.init = a + b + bonus
 		u.init_roll = "%d+%d%s" % [a, b, Dice.fmt(bonus)]
 	ready.sort_custom(func(x: Combatant, y: Combatant) -> bool:
@@ -293,12 +293,12 @@ func _begin_turn(u: Combatant) -> void:
 		turn_started.emit(u)
 		return
 	u.acted = false
-	u.act = 100
+	u.act = 100 + u.buff_val("beschleunigung")   # Stärkung „Beschleunigung“: 110 %, weiter höchstens 1 Angriff
 	u.has_attacked = false
 	u.ran = false
 	u.sprinted = false
 	u.move_spare = 0.0
-	u.free_hex = Rules.free_hexes(u)
+	u.free_hex = Rules.free_hexes(u) + u.buff_val("leichter_schritt")
 	u.overwatch = {}  # Feuerbereitschaft endet mit dem eigenen nächsten Zug
 	u.stunned_now = u.stun > 0
 	if u.prone:
@@ -595,13 +595,13 @@ func usable_weapons(u: Combatant) -> Array[WeaponData]:
 
 ## Ausweichen hängt an der zurückgehaltenen Aktivität: ½ immer, die andere ½ anteilig zur Reserve
 func reserve_of(u: Combatant) -> int:
-	return maxi(0, u.act) if current == u else u.reserve
+	return clampi(u.act, 0, 100) if current == u else u.reserve
 
 
 ## Verteidigungswert gegen einen Angriff (wie im Panel angezeigt)
 func dodge_value(u: Combatant) -> int:
 	var dodge := maxi(0, Rules.skill_total(u, &"ausweichen"))
-	return dodge / 2 + int(dodge / 2.0 * maxi(0, u.act) / 100.0) + u.armor_db() + (0 if u.armor == null or u.armor_broken() else int(u.wear.get("armor", 0)))
+	return dodge / 2 + int(dodge / 2.0 * clampi(u.act, 0, 100) / 100.0) + u.armor_db() + (0 if u.armor == null or u.armor_broken() else int(u.wear.get("armor", 0)))
 
 
 func _defense_mods(def: Combatant, w: WeaponData, from: BattleMap.Tile, to: BattleMap.Tile, sense: bool, facing: int) -> Array:
@@ -726,8 +726,12 @@ func attack_info(att: Combatant, def: Combatant, w: WeaponData, opts := {}) -> D
 		ob.append({"label": "Schwachstelle", "val": def.buffs.schwachstelle.val})
 	if att.next_attack_malus:
 		ob.append({"label": "Waffe klemmt", "val": att.next_attack_malus})
-	if att.malus and not att.buffs.has("schmerz"):
-		ob.append({"label": "Wunden", "val": att.malus})
+	var wm := att.wound_malus()
+	if wm:
+		ob.append({"label": "Wunden", "val": wm})
+	var st_ob := att.buff_val("fokus") + att.buff_val("zielsicherheit") + att.buff_val("wille")
+	if st_ob:
+		ob.append({"label": "Psi-Stärkung", "val": st_ob})
 	var db := _defense_mods(def, w, from, to, opts.get("sense", false), def_facing)
 	# Ziel in voller Deckung: nur gezielte Schüsse (mind. 60 % Aktivität), keine Reaktionsschüsse
 	if not w.melee and not w.psi and db.any(func(m: Dictionary) -> bool: return m.get("full_cover", false)):
@@ -808,7 +812,8 @@ func _sense_check(att: Combatant, def: Combatant) -> bool:
 
 
 func _wound_mods(u: Combatant) -> Array:
-	return [{"label": "Wunden", "val": u.malus}] if u.malus and not u.buffs.has("schmerz") else []
+	var wm := u.wound_malus()
+	return [{"label": "Wunden", "val": wm}] if wm else []
 
 
 func _maneuver(u: Combatant, skill_id: StringName, diff: String, mods: Array, label: String) -> Dictionary:
@@ -958,8 +963,22 @@ func _push(att: Combatant, target: Combatant, strong: bool) -> void:
 	unit_changed.emit(target)
 
 
+## Schaden: zuerst auf den Puffer von „Zähigkeit“ (Stärkung), der Rest auf die TP
+func _hurt(u: Combatant, d: int) -> void:
+	var buf := u.buff_val("zaehigkeit")
+	if buf > 0 and d > 0:
+		var a := mini(buf, d)
+		d -= a
+		if buf - a > 0:
+			u.buffs.zaehigkeit.val = buf - a
+		else:
+			u.buffs.erase("zaehigkeit")
+		log_text("  Zähigkeit fängt %d TP ab." % a, &"heal")
+	u.hp -= d
+
+
 func _apply_hit(att: Combatant, target: Combatant, res: Dictionary) -> void:
-	target.hp -= res.dmg
+	_hurt(target, res.dmg)
 	floated.emit(target, "−%d" % res.dmg, &"hit")
 	if res.severity:
 		_apply_crit(target, Tables.roll_crit(res.crit, res.severity), res.severity)
@@ -976,7 +995,7 @@ func _apply_crit(u: Combatant, crit: Dictionary, sev: String) -> void:
 		u.worst_crit = sev
 	if r.kill:
 		u.hp = mini(u.hp, Rules.death_at(u))
-	u.hp -= r.dmg
+	_hurt(u, r.dmg)
 	u.bleed += r.bleed
 	u.stun += r.stun
 	u.malus += r.malus
@@ -1044,7 +1063,7 @@ func _resolve_fumble(u: Combatant, roll: Dictionary, w: WeaponData) -> void:
 		u.prone = true
 	if row.self_damage:
 		var d := Dice.d(10)
-		u.hp -= d
+		_hurt(u, d)
 		log_text("  %s erleidet %d TP." % [u.name, d], &"dmg")
 		floated.emit(u, "−%d" % d, &"hit")
 		_check_state(u)
@@ -1175,7 +1194,7 @@ func do_first_aid(u: Combatant, target: Combatant) -> bool:
 			fx = "keine Wirkung"
 		_:
 			var d := Dice.d(5)
-			target.hp -= d
+			_hurt(target, d)
 			_check_state(target)
 			fx = "verschlimmert die Wunde (−%d TP)" % d
 	log_text("%s leistet Erste Hilfe bei %s (−%d %%): Wurf %s → %d = %s: %s." % [u.name, target.name, COST.aid,
@@ -1341,4 +1360,49 @@ func _power_effect(u: Combatant, k: String, t: Combatant, tier: int) -> String:
 		"lWahrnehmung/7":
 			t.buffs["schwachstelle"] = {"rounds": -1, "val": [0, 10, 20, 30][tier]}
 			return "%s markiert: nächster Angriff +%d" % [t.name, t.buffs.schwachstelle.val]
+	if PsiCombat.list_of(k) == &"lStaerkung":
+		return _strengthen(u, k, t, tier)
+	return "keine Wirkung"
+
+
+## Stärkung (docs/Skillsystem.md 6.1): Dauer herausragend +2 Runden, Teilerfolg halb (aufgerundet); Wirkungen „bis
+## Kampfende“ (rounds −1) bei Teilerfolg mit halbem Bonus. Dieselbe Kraft setzt nur die Dauer neu (gleicher Schlüssel).
+func _strengthen(u: Combatant, k: String, t: Combatant, tier: int) -> String:
+	var dur := func(base: int) -> int: return [0, ceili(base / 2.0), base, base + 2][tier]
+	var full := func(v: int) -> int: return ceili(v / 2.0) if tier == 1 else v
+	match k:
+		"lStaerkung/1":
+			t.buffs["fokus"] = {"rounds": dur.call(5), "val": 5}
+			return "+5 Angriff für %d Runden" % t.buffs.fokus.rounds
+		"lStaerkung/2":
+			t.buffs["wachheit"] = {"rounds": -1, "val": full.call(5)}
+			return "+%d Initiative bis Kampfende" % t.buffs.wachheit.val
+		"lStaerkung/3":
+			t.buffs["leichter_schritt"] = {"rounds": dur.call(5), "val": 1}
+			return "%s: +1 Gratis-Feld je Runde für %d Runden" % [t.name, t.buffs.leichter_schritt.rounds]
+		"lStaerkung/4":
+			var was := t.stun
+			t.stun = maxi(0, t.stun - 1)
+			t.buffs["klarer_kopf"] = {"rounds": dur.call(5)}
+			return "%s: %sMalus aus „angeschlagen“ halbiert für %d Runden" % [t.name, "Betäubung −1, " if was > 0 else "", t.buffs.klarer_kopf.rounds]
+		"lStaerkung/5":
+			t.buffs["kraftfluss"] = {"rounds": dur.call(5), "val": 5}
+			return "%s: +5 auf STÄ- und GEW-Bonus für %d Runden" % [t.name, t.buffs.kraftfluss.rounds]
+		"lStaerkung/6":
+			t.buffs["zielsicherheit"] = {"rounds": dur.call(5), "val": 10}
+			return "%s: +10 Angriff für %d Runden" % [t.name, t.buffs.zielsicherheit.rounds]
+		"lStaerkung/7":
+			t.buffs["zaehigkeit"] = {"rounds": -1, "val": full.call(10)}
+			return "%s: %d TP Puffer bis Kampfende" % [t.name, t.buffs.zaehigkeit.val]
+		"lStaerkung/8":
+			t.buffs["beschleunigung"] = {"rounds": dur.call(3), "val": 10}
+			return "%s: 110 %% Aktivität für %d Runden" % [t.name, t.buffs.beschleunigung.rounds]
+		"lStaerkung/10":
+			var n := 0
+			for o in units:
+				if o.team == u.team and o.is_ok() and Hex.distance(o.pos, u.pos) <= 2:
+					o.buffs["wille"] = {"rounds": -1, "val": full.call(5)}
+					unit_changed.emit(o)
+					n += 1
+			return "%d Verbündete: +%d Angriff und Initiative, Wundmalus halbiert bis Kampfende" % [n, full.call(5)]
 	return "keine Wirkung"
