@@ -73,8 +73,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (27.10.2026): Psi-Liste „Stärkung“ lernbar machen – erledigt (Branch, wartet auf Zusammenführung)
-
-Ergebnis: `lStaerkung` in `PsiLists.LISTS` (Stufen 1–8, 10, Wirkungstexte wie `PsiCombat.SUPPORT`), `Rules` (Gruppe „Psi-Listen“ als „Liste Stärkung“, MEN/EMP, `PSI_SKILLS`), `SkillTexts`; Editor, Aufleveln, Übersicht der Psi-Listen, Briefing und Enzyklopädie lesen die Listen generisch und brauchten keine Änderung. Test `_test_psi_view` prüft Stufen, Art, Ziele und gleiche Namen wie im Bodenkampf. Schnittstellen unverändert.
-
-Bodenkampf ist fertig und in `main` (`2ff16dd`): Kräfte `lStaerkung/1`–`/8` und `/10` in `core/psi_combat.gd` (`PsiCombat.known` findet die Schlüssel selbst). Jetzt: Liste in `core/psi_lists.gd` (`LISTS`, Stufen 1–8 und 10), `core/rules.gd` (`PSI_SKILLS`, Gruppe „Psi-Listen“; der Bodenkampf hat `rules.gd` minimal geändert: `Rules.attr_bonus_of`), `core/skill_texts.gd`, Test in `test_rules.gd`. `main` vorher holen. Tests nach CLAUDE.md, Fertigmeldung.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

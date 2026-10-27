@@ -18,3 +18,10 @@ Fehler (Screenshot des Nutzers, 1920 × 1080, Spielstand mit 10 Figuren): Das Fe
 Vermutung des Koordinators (ungeprüft): Die Reiterzeile mit allen Crewmitgliedern (je Knopf feste Mindestbreite) oder lange Waffennamen („Scharfschützen Gewehr (frei) (−30, unbrauchbar)“) erzwingen die Breite.
 1. Ursache finden; das Fenster bleibt nach `docs/Layout.md` in fester Größe (`max_size`), Inhalte passen sich an (Reiter umbrechen oder scrollen, lange Namen umbrechen/kürzen). Auch mit 10–12 Figuren und UI-Größe 125 % prüfen.
 2. `main` vor dem Arbeiten holen (Branch ist weit zurück). Tests nach CLAUDE.md, Screenshot der Waffenkammer, Fertigmeldung.
+
+
+### Auftrag (27.10.2026): Psi-Liste „Stärkung“ lernbar machen – erledigt (`080ca33`)
+
+Ergebnis: `lStaerkung` in `PsiLists.LISTS` (Stufen 1–8, 10, Wirkungstexte wie `PsiCombat.SUPPORT`), `Rules` (Gruppe „Psi-Listen“ als „Liste Stärkung“, MEN/EMP, `PSI_SKILLS`), `SkillTexts`; Editor, Aufleveln, Übersicht der Psi-Listen, Briefing und Enzyklopädie lesen die Listen generisch und brauchten keine Änderung. Test `_test_psi_view` prüft Stufen, Art, Ziele und gleiche Namen wie im Bodenkampf. Schnittstellen unverändert.
+
+Bodenkampf ist fertig und in `main` (`2ff16dd`): Kräfte `lStaerkung/1`–`/8` und `/10` in `core/psi_combat.gd` (`PsiCombat.known` findet die Schlüssel selbst). Jetzt: Liste in `core/psi_lists.gd` (`LISTS`, Stufen 1–8 und 10), `core/rules.gd` (`PSI_SKILLS`, Gruppe „Psi-Listen“; der Bodenkampf hat `rules.gd` minimal geändert: `Rules.attr_bonus_of`), `core/skill_texts.gd`, Test in `test_rules.gd`. `main` vorher holen. Tests nach CLAUDE.md, Fertigmeldung.

@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 27.10.2026 | (dieser Merge) | Charakter `claude/elegant-gauss-hq5bus` (`080ca33`) | Psi-Liste „Stärkung“ lernbar (`PsiLists`, `Rules`, `SkillTexts`, Test). Version 0.18. |
 | 27.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`2ff16dd`) | Psi-Liste „Stärkung“ im Kampf (9 Kräfte, 110 % Aktivität, TP-Puffer, STÄ/GEW-Bonus, `Combatant.injury_malus`), KI nutzt sie. Noch nicht lernbar (Charakter). Version 0.17. |
 | 27.10.2026 | (dieser Merge) | Charakter `claude/elegant-gauss-hq5bus` (`a8afa01`) | Nur Doku: Psi-Liste „Stärkung“ (Skillsystem 6.1), Anfrage an Bodenkampf. Auftrag an Bodenkampf eingetragen. |
 | 25.10.2026 | (dieser Merge) | Charakter `claude/elegant-gauss-hq5bus` (`bb43695`) | Waffenkammer bleibt in fester Breite, lange Namen und Spalten brechen um. Tests rules/hub OK (Koordinator). Version 0.16. |
