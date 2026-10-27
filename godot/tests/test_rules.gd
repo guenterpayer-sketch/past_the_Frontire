@@ -1672,20 +1672,25 @@ func _test_elite() -> void:
 	for i in 40:
 		easy += Mission.generate(700 + i, "leicht").enemies.filter(func(d: UnitData) -> bool: return d.elite != &"").size()
 	check(mixed > 0 and easy == 0, "Beimischung: schwer %d Elite in 40 Aufträgen, leicht keine" % mixed)
-	# Elite-Beute: nur selten, dann gekennzeichnet und stark beschädigt
-	var found := false
-	for i in 200:
-		Dice.set_seed(9000 + i)
-		var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(tr.enemies, &"enemy"))
-		for e in c.enemies():
-			e.state = Combatant.State.DEAD
-			e.hp = -50
-		c.check_end()
-		var el := c.loot.filter(func(l: Dictionary) -> bool: return l.get("elite", false))
-		if not el.is_empty():
-			found = el.size() >= 2 and el.size() <= 3 and el.all(func(l: Dictionary) -> bool: return l.damage <= -20)
-			break
-	check(found, "Elite-Beute: 2–3 Stücke, beschädigt (−20/−30)")
+	# Elite-Beute (Nutzer 27.10.2026): Elite 25 %, Boss 50 %, dann 2–3 Stück, gekennzeichnet und stark beschädigt
+	var ok := true
+	var hits := {&"elite": 0, &"boss": 0}
+	for kind in [&"elite", &"boss"]:
+		var ms: Mission = tr if kind == &"elite" else bo
+		for i in 400:
+			Dice.set_seed(9000 + i)
+			var c := Combat.new(MapGenerator.generate(5, "klein"), Roster.build_team(GameData.crew(), &"crew"), Roster.build_units(ms.enemies, &"enemy"))
+			for e in c.enemies():
+				e.state = Combatant.State.DEAD
+				e.hp = -50
+			c.check_end()
+			var el := c.loot.filter(func(l: Dictionary) -> bool: return l.get("elite", false))
+			if not el.is_empty():
+				hits[kind] += 1
+				ok = ok and el.size() >= 2 and el.size() <= 3 and el.all(func(l: Dictionary) -> bool: return l.damage <= -20)
+	check(ok, "Elite-Beute: 2–3 Stücke, beschädigt (−20/−30)")
+	check(hits[&"elite"] >= 70 and hits[&"elite"] <= 130 and hits[&"boss"] >= 170 and hits[&"boss"] <= 230,
+		"Elite-Beute: Elite %d/400 (25 %%), Boss %d/400 (50 %%)" % [hits[&"elite"], hits[&"boss"]])
 
 
 ## Balancing 24.10.2026, Schritt 3: Mitwachsen mit dem eingesetzten Trupp

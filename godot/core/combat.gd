@@ -56,8 +56,9 @@ var retreated := false         # Crew hat sich zurückgezogen (zählt als Nieder
 ## Beute bei Sieg (Ausrüstung der Besiegten): [{key (Stock.key_of), name, damage (0 / −10 … −30)}] bzw. Medikits
 ## [{key: Stock.MEDKIT, name, count}]. Entscheidungen des Nutzers 16.10.2026.
 var loot: Array[Dictionary] = []
-## Elite-Beute: Chance in % je Sieg mit Elite-Gegnern
-const ELITE_LOOT_CHANCE := 12
+## Elite-Beute: Chance in % je Sieg mit Elite-Gegnern, mit einem Boss unter den Gegnern BOSS_LOOT_CHANCE (Nutzer 27.10.2026)
+const ELITE_LOOT_CHANCE := 25
+const BOSS_LOOT_CHANCE := 50
 ## Schild eines besiegten Schildträgers als Beute: Chance in %
 const SHIELD_LOOT_CHANCE := 30
 const LOOT_DAMAGE := {"weapon": 30, "armor": 60}   # Chance in %, dass ein Beutestück beschädigt ist
@@ -433,7 +434,7 @@ func _end_gear() -> void:
 	loot.clear()
 	if result != &"sieg":
 		return
-	var elite_gear: Array = []   # [Resource] der Elite-Ausrüstung, nur selten als Beute (ELITE_LOOT_CHANCE)
+	var elite_gear: Array = []   # [Resource] der Elite-Ausrüstung, nur mit loot_chance() als Beute
 	for e in enemies():
 		var gear: Array = []
 		for w in e.weapons:
@@ -458,11 +459,16 @@ func _end_gear() -> void:
 		# Schild (Nutzer 24.10.2026): mit SHIELD_LOOT_CHANCE, nie beschädigt, Lager über Equipment.SHIELD (Hub)
 		if e.shield and Dice.d(100) <= SHIELD_LOOT_CHANCE:
 			loot.append({"key": Equipment.SHIELD, "name": "Schild", "count": 1})
-	# Elite-Beute (Nutzer 24.10.2026): selten, dann 2–3 Stück, stark beschädigt (−20/−30), Kennzeichen elite
-	if not elite_gear.is_empty() and Dice.d(100) <= ELITE_LOOT_CHANCE:
+	# Elite-Beute (Nutzer 24.10./27.10.2026): Elite 25 %, Boss 50 %, dann 2–3 Stück, stark beschädigt (−20/−30), Kennzeichen elite
+	if not elite_gear.is_empty() and Dice.d(100) <= elite_loot_chance():
 		for i in mini(elite_gear.size(), 1 + Dice.d(2)):
 			var r: Resource = elite_gear.pop_at(Dice.d(elite_gear.size()) - 1)
 			loot.append({"key": Stock.key_of(r), "name": r.get("name"), "damage": Combatant.WEAR_STEP * (1 + Dice.d(2)), "elite": true})
+
+
+## Chance in % auf Elite-Beute: BOSS_LOOT_CHANCE, wenn ein Boss unter den Gegnern ist, sonst ELITE_LOOT_CHANCE
+func elite_loot_chance() -> int:
+	return BOSS_LOOT_CHANCE if enemies().any(func(e: Combatant) -> bool: return e.elite == &"boss") else ELITE_LOOT_CHANCE
 
 
 func check_end() -> bool:
