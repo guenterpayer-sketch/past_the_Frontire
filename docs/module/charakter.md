@@ -71,15 +71,10 @@
 
 - Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/charakter_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
 
-## Anfragen an andere Module (über den Koordinator)
-
-### Psi-Liste „Stärkung“ (Nutzer 27.10.2026) – an Bodenkampf, danach Charakter
-Regeln: `docs/Skillsystem.md` 6.1, Abschnitt „Stärkung“ (9 Kräfte, Stufen 1–8 und 10). Vorschlag für die Reihenfolge:
-1. **Bodenkampf:** Kräfte in `core/psi_combat.gd` (`SUPPORT`, Schlüssel `lStaerkung/<Stufe>`) und ihre Wirkung im Kampf (`Combatant.buffs`). Offen und vom Bodenkampf zu prüfen: Aktivität über 100 % (Stufe 8), TP-Puffer (Stufe 7), Bonus auf Eigenschaften (Stufe 5). Wenn eine davon zu aufwendig ist, bitte an den Nutzer zurück, nicht still ändern.
-2. **Charakter (danach):** Liste in `core/psi_lists.gd` (`LISTS`), `core/rules.gd` (Gruppe „Psi-Listen“, `PSI_SKILLS`), `core/skill_texts.gd`, Test in `test_rules.gd`. Erst danach lernbar, damit niemand eine Liste ohne Wirkung im Kampf lernt.
-
 ## Aufträge vom Koordinator
 
-### Auftrag (27.10.2026): Psi-Liste „Stärkung“ lernbar machen
+### Auftrag (27.10.2026): Psi-Liste „Stärkung“ lernbar machen – erledigt (Branch, wartet auf Zusammenführung)
+
+Ergebnis: `lStaerkung` in `PsiLists.LISTS` (Stufen 1–8, 10, Wirkungstexte wie `PsiCombat.SUPPORT`), `Rules` (Gruppe „Psi-Listen“ als „Liste Stärkung“, MEN/EMP, `PSI_SKILLS`), `SkillTexts`; Editor, Aufleveln, Übersicht der Psi-Listen, Briefing und Enzyklopädie lesen die Listen generisch und brauchten keine Änderung. Test `_test_psi_view` prüft Stufen, Art, Ziele und gleiche Namen wie im Bodenkampf. Schnittstellen unverändert.
 
 Bodenkampf ist fertig und in `main` (`2ff16dd`): Kräfte `lStaerkung/1`–`/8` und `/10` in `core/psi_combat.gd` (`PsiCombat.known` findet die Schlüssel selbst). Jetzt: Liste in `core/psi_lists.gd` (`LISTS`, Stufen 1–8 und 10), `core/rules.gd` (`PSI_SKILLS`, Gruppe „Psi-Listen“; der Bodenkampf hat `rules.gd` minimal geändert: `Rules.attr_bonus_of`), `core/skill_texts.gd`, Test in `test_rules.gd`. `main` vorher holen. Tests nach CLAUDE.md, Fertigmeldung.

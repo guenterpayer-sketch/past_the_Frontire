@@ -729,6 +729,13 @@ func _test_psi_view() -> void:
 	for id in PsiLists.LISTS:
 		for p in PsiLists.LISTS[id].powers:
 			check(PsiLists.target(id, p[0]) != "", "Psi: Ziel für %s" % p[1])
+	# Liste „Stärkung“ (27.10.2026): lernbar, jede Kraft im Kampf als Unterstützung, Namen wie im Bodenkampf
+	check(&"lStaerkung" in Rules.PSI_SKILLS and Rules.skill_name(&"lStaerkung") == "Liste Stärkung" and SkillTexts.text(&"lStaerkung") != "", "Stärkung: Fertigkeit mit Name und Text")
+	check(PsiLists.LISTS[&"lStaerkung"].powers.map(func(p: Array) -> int: return p[0]) == [1, 2, 3, 4, 5, 6, 7, 8, 10], "Stärkung: Stufen 1–8 und 10")
+	for p in PsiLists.LISTS[&"lStaerkung"].powers:
+		var k := PsiCombat.key(&"lStaerkung", p[0])
+		check(PsiLists.kind(&"lStaerkung", p[0]) == PsiLists.SUPPORT and PsiCombat.SUPPORT[k].name == p[1], "Stärkung: %s im Kampf" % p[1])
+	check(PsiLists.target(&"lStaerkung", 1) == "selbst" and PsiLists.target(&"lStaerkung", 6) == "Verbündeter in Sicht" and PsiLists.target(&"lStaerkung", 10) == "Verbündete in 2 Hex", "Stärkung: Ziele")
 	var ch := Character.new()
 	ch.attrs = {"KON": 50, "GEW": 50, "STÄ": 50, "INT": 50, "MEN": 50, "EMP": 50, "WAH": 50}
 	ch.skills = {&"lAngriff": {"rank": 4, "xp": 0}, &"lSchutz": {"rank": 1, "xp": 0}}

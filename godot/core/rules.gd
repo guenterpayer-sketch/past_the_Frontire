@@ -65,14 +65,15 @@ const SKILL_GROUPS := [
 		["lHeilung", "Liste Heilung", "MEN", "EMP"],
 		["lAngriff", "Liste Angriff", "MEN", "EMP"],
 		["lWahrnehmung", "Liste Wahrnehmung", "MEN", "EMP"],
-		["lTelekinese", "Liste Telekinese", "MEN", "EMP"]]},
+		["lTelekinese", "Liste Telekinese", "MEN", "EMP"],
+		["lStaerkung", "Liste Stärkung", "MEN", "EMP"]]},
 ]
 
 ## TP je Rang Körperentwicklung, PP je Rang Psi-Punkte-Entwicklung
 const HP_PER_RANK := 5
 const PP_PER_RANK := 2
 const PSI_SKILLS: Array[StringName] = [&"psiAngriff", &"psiVerteidigung", &"psiWirken", &"psiPunkte",
-	&"lSchutz", &"lHeilung", &"lAngriff", &"lWahrnehmung", &"lTelekinese"]
+	&"lSchutz", &"lHeilung", &"lAngriff", &"lWahrnehmung", &"lTelekinese", &"lStaerkung"]
 
 const DIFFICULTY := {
 	"routine": {"name": "Routine", "mod": 30, "xp": 0},

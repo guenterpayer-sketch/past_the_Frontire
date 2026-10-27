@@ -18,7 +18,7 @@ const TEXT := {
 	&"psiVerteidigung": "Widerstand gegen Psi-Angriffe (Psi-VW).",
 	&"ersteHilfe": "Versorgen im Einsatz: Blutungen stillen, Sterbende stabilisieren.",
 	&"zweiteHilfe": "Behandlung nach dem Einsatz. In der Krankenstation des Schiffs würfeln Arzt und Helfer damit die tägliche Heilprobe.",
-	&"psiWirken": "Probe für unterstützende Psi-Kräfte (Schutz, Heilung, Wahrnehmung, Teile der Telekinese).",
+	&"psiWirken": "Probe für unterstützende Psi-Kräfte (Schutz, Heilung, Wahrnehmung, Stärkung, Teile der Telekinese).",
 	&"waffenReparatur": "Waffen im Einsatz instand setzen: eigene Waffe oder die eines Nachbarn, einmal je Stück und Kampf (50 % Aktivität, Mittel). Herausragend +10, Erfolg +5, Patzer −10; höchstens bis −5.",
 	&"rsReparatur": "Instandhaltung des Schiffs. Reiseprobe je Reisetag (Hülle) und große Reparatur durch die Crew.",
 	&"navigation": "Kurs und Sprünge berechnen. Reiseprobe je Reisetag, Erfolge sparen Treibstoff.",
@@ -44,6 +44,7 @@ const TEXT := {
 	&"lAngriff": "Psi-Liste Angriff: Psi-Nadel, Psi-Stoß, Lähmen und mehr. Rang = höchste verfügbare Stufe.",
 	&"lWahrnehmung": "Psi-Liste Wahrnehmung: Gefahrensinn, Gedanken orten und mehr. Rang = höchste verfügbare Stufe.",
 	&"lTelekinese": "Psi-Liste Telekinese: Stoßen, Entwaffnen und mehr. Rang = höchste verfügbare Stufe.",
+	&"lStaerkung": "Psi-Liste Stärkung: Fokus, Wachheit, Zielsicherheit und mehr; kleine Boni, die lange halten. Rang = höchste verfügbare Stufe.",
 }
 
 
