@@ -36,6 +36,8 @@ var initiative := 0
 var elite := false
 ## Boss-Schiff (Ende einer Story-Kette im Raum; docs/Raumkampf.md 4e): Elite, Hülle ×1,3, flieht nie
 var boss := false
+## Runde, in der das Schiff zerstört, zum Wrack oder geflohen ist (0 = kämpft noch); fürs Ergebnisfenster
+var out_round := 0
 var destroyed := false
 var fled := false
 ## Wrack: Schiff mit Besatzung bei Hülle 0 – manövrierunfähig, kämpft nicht mehr, bleibt enterbar
