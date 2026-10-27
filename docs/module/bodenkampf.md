@@ -88,5 +88,12 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+### Auftrag (27.10.2026): Psi-Liste „Stärkung“ im Kampf
+
+Neue Liste, vom Nutzer beschlossen: Regeln in `docs/Skillsystem.md` 6.1, Abschnitt „Stärkung“ (9 Kräfte, Stufen 1–8 und 10). Anfrage des Charakter-Moduls: `docs/module/charakter.md`, „Anfragen an andere Module“.
+1. Kräfte in `core/psi_combat.gd` (`SUPPORT`, Schlüssel `lStaerkung/<Stufe>`) und ihre Wirkung (`Combatant.buffs`) einbauen.
+2. Prüfen und, wenn zu aufwendig, **dem Nutzer zurückmelden statt still ändern**: Aktivität über 100 % (Stufe 8), TP-Puffer (Stufe 7), Bonus auf Eigenschaften (Stufe 5).
+3. Balancing mit `test_sim` (Zahlen sind ein Entwurf). Tests nach CLAUDE.md, Fertigmeldung mit den Schlüsseln, damit das Charakter-Modul die Liste danach lernbar macht.
+
+- Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
