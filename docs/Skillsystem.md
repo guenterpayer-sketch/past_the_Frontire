@@ -86,7 +86,7 @@ Rangbonus nach Rolemaster-Staffel (abnehmender Zuwachs):
 |---|---|---|
 | Erste Hilfe | INT + KOO | im Kampf: Blutung stoppen, Bewusstlose stabilisieren |
 | Zweite Hilfe | INT + EMP | Ärztliche Behandlung nach dem Kampf: tägliche Heilprobe des Arztes in der Krankenstation (`core/medbay.gd`, 8a) |
-| Psi wirken | MEN + EMP | Unterstützende Psi-Kräfte (Schutz, Heilung, Wahrnehmung, Teile der Telekinese), keine Angriffe – Probe im Kampf (`core/combat.gd`) |
+| Psi wirken | MEN + EMP | Unterstützende Psi-Kräfte (Schutz, Heilung, Wahrnehmung, Stärkung, Teile der Telekinese), keine Angriffe – Probe im Kampf (`core/combat.gd`) |
 | Waffen-Reparatur | INT + KOO | im Kampf: beschädigte Waffen instand setzen (eigene oder im Nachbarfeld) |
 
 **Raumschiff-Technik**
@@ -337,7 +337,7 @@ Reichweiten im Bodenkampf (`core/psi_combat.gd`, so zeigt sie auch die Übersich
 | 5 | Entwaffnen | Psi-Angriffe | Ziel kann im nächsten Zug nicht angreifen |
 | 8 | Schweben | Psi wirken | selbst: eine Höhenstufe ohne Treppe oder Leiter überwinden |
 
-**Stärkung** (Psi wirken) – beschlossen 27.10.2026 (Nutzer); im Bodenkampf gebaut 27.10.2026 (`core/psi_combat.gd`, Schlüssel `lStaerkung/1` … `/8`, `/10`), lernbar erst, wenn das Charakter-Modul die Liste einträgt
+**Stärkung** (Psi wirken) – beschlossen 27.10.2026 (Nutzer); im Bodenkampf gebaut (`core/psi_combat.gd`, Schlüssel `lStaerkung/1` … `/8`, `/10`), lernbar seit 27.10.2026 (Fertigkeit „Liste Stärkung“, `lStaerkung`)
 
 Verbessert Figuren im Kampf: kleinere Boni als „Schutz“, dafür länger (5 Runden oder bis Kampfende). Niedrige Stufen nur selbst, mittlere ein Verbündeter in Sicht, die höchste die Gruppe.
 

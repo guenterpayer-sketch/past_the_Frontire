@@ -34,6 +34,16 @@ const LISTS := {
 		[3, "Stoßen", "1 Hex zurück, bei starkem Treffer niedergeworfen"],
 		[5, "Entwaffnen", "kann im nächsten Zug nicht angreifen"],
 		[8, "Schweben", "eine Höhenstufe ohne Treppe überwinden (Psi wirken)"]]},
+	&"lStaerkung": {"name": "Stärkung", "probe": "Psi wirken", "powers": [
+		[1, "Fokus", "+5 Angriff für 5 Runden"],
+		[2, "Wachheit", "+5 Initiative bis Kampfende"],
+		[3, "Leichter Schritt", "+1 Gratis-Feld je Runde für 5 Runden"],
+		[4, "Klarer Kopf", "Betäubung 1 Runde kürzer; 5 Runden lang Malus aus „angeschlagen“ nur −5"],
+		[5, "Kraftfluss", "+5 auf die Boni von STÄ und GEW für 5 Runden"],
+		[6, "Zielsicherheit", "+10 Angriff für 5 Runden"],
+		[7, "Zähigkeit", "+10 TP als Puffer bis Kampfende"],
+		[8, "Beschleunigung", "110 % Aktivität je Runde für 3 Runden"],
+		[10, "Gemeinsamer Wille", "+5 Angriff und +5 Initiative bis Kampfende, Wundmalus halbiert"]]},
 }
 
 ## Art einer Kraft

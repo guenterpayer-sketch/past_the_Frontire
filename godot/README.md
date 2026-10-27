@@ -109,7 +109,7 @@ Im Charakter-Modul über „Neues Crewmitglied“. Regeln: `docs/Skillsystem.md`
 - 7 Würfe 20–100, der niedrigste wird 90; „neu würfeln“ beliebig oft (verteilte Ränge verfallen dann).
 - Würfe per Auswahlfeld auf die Eigenschaften legen (die Eigenschaft, die den Wurf hatte, bekommt den bisherigen).
 - Fertigkeitspunkte = Eigenschaftssumme × 1,2; Rang kostet 10 + 2 × Rang; höchstens Rang 5, zwei Fertigkeiten bis 8; höchstens zwei Psi-Listen. Gesperrte „+“ zeigen den Grund als Tooltip.
-- Neu: **Körperentwicklung** (+5 TP je Rang), **Psi-Punkte-Entwicklung** (+2 PP je Rang), **Psi-Listen** (`core/psi_lists.gd`, Kräfte werden angezeigt; im Kampf nutzbar außer Telekinese „Heranziehen“ und „Schweben“).
+- Neu: **Körperentwicklung** (+5 TP je Rang), **Psi-Punkte-Entwicklung** (+2 PP je Rang), **Psi-Listen** (`core/psi_lists.gd`: Schutz, Heilung, Angriff, Wahrnehmung, Telekinese, Stärkung; Kräfte werden angezeigt; im Kampf nutzbar außer Telekinese „Heranziehen“ und „Schweben“).
 - Station (jede einmal, Jäger mehrfach), Aussehen, zwei Waffen, Rüstung, Schild frei wählbar.
 - „Übernehmen“ als neues Mitglied (bis 6) oder als Ersatz für ein vorhandenes; wird sofort gespeichert.
 - Noch nicht gebaut: die Variante zum Aufleveln.
