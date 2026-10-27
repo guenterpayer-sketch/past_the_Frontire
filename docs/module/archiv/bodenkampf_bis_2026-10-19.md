@@ -102,3 +102,14 @@ Wunsch des Nutzers: Gegner mit Schild können ihn nach dem Kampf fallen lassen (
 
 - **Fertig (24.10.2026):** Schildträger = Gegner nur mit einhändigen Waffen (Nutzer): Klingentänzer, Handagent, Hexer, Seherin, Psi-Meuchler (`shield = true`; bei Waffentausch auf zweihändig entfällt er, `Mission._individualize`). Beute: 30 % je besiegtem Schildträger (`Combat.SHIELD_LOOT_CHANCE`), `loot`-Eintrag `{key: Equipment.SHIELD, name: "Schild", count: 1}` ohne `damage`. Test `_test_shield_loot`.
 
+
+
+### Auftrag (27.10.2026): Psi-Liste „Stärkung“ im Kampf (erledigt, `2ff16dd`)
+
+Neue Liste, vom Nutzer beschlossen: Regeln in `docs/Skillsystem.md` 6.1, Abschnitt „Stärkung“ (9 Kräfte, Stufen 1–8 und 10). Anfrage des Charakter-Moduls: `docs/module/charakter.md`, „Anfragen an andere Module“.
+1. Kräfte in `core/psi_combat.gd` (`SUPPORT`, Schlüssel `lStaerkung/<Stufe>`) und ihre Wirkung (`Combatant.buffs`) einbauen.
+2. Prüfen und, wenn zu aufwendig, **dem Nutzer zurückmelden statt still ändern**: Aktivität über 100 % (Stufe 8), TP-Puffer (Stufe 7), Bonus auf Eigenschaften (Stufe 5).
+3. Balancing mit `test_sim` (Zahlen sind ein Entwurf). Tests nach CLAUDE.md, Fertigmeldung mit den Schlüsseln, damit das Charakter-Modul die Liste danach lernbar macht.
+
+- **Gebaut (27.10.2026):** Schlüssel `lStaerkung/1` Fokus, `/2` Wachheit, `/3` Leichter Schritt, `/4` Klarer Kopf, `/5` Kraftfluss, `/6` Zielsicherheit, `/7` Zähigkeit, `/8` Beschleunigung, `/10` Gemeinsamer Wille (Ziele self/self/ally/ally/ally/ally/ally/ally/area). Alle drei Prüfpunkte gebaut, keiner zu aufwendig: 110 % Aktivität (`_begin_turn`, Ausweichen höchstens 100 %), TP-Puffer (`Combat._hurt` an allen Schadensstellen), STÄ/GEW-Bonus (`Rules.attr_bonus_of` in `skill_total`, `initiative_bonus`, `free_hexes`). KI-Regel in `CombatAI._psi_step`. Test `_test_staerkung`. Charakter-Modul kann die Liste jetzt in `PsiLists.LISTS` eintragen (Stufen 1–8, 10); `PsiCombat.known` findet die Schlüssel dann von selbst. Balancing (KI gegen KI, „mittel“, 30 Kämpfe, Psi-Figur mit allen 9 Kräften): Squad des Nutzers ohne/mit 29/30 bzw. 28/30 Siege, TP-Verlust 43/44 % (ca. 2 Stärkungen je Kampf); Startcrew 10/30 → 15/30 Siege, 89 → 86 %. Zahlen des Entwurfs bleiben; die Wirkung ist spürbar, aber nicht übermächtig.
+

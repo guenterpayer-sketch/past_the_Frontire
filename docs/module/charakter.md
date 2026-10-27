@@ -80,4 +80,6 @@ Regeln: `docs/Skillsystem.md` 6.1, Abschnitt „Stärkung“ (9 Kräfte, Stufen 
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (27.10.2026): Psi-Liste „Stärkung“ lernbar machen
+
+Bodenkampf ist fertig und in `main` (`2ff16dd`): Kräfte `lStaerkung/1`–`/8` und `/10` in `core/psi_combat.gd` (`PsiCombat.known` findet die Schlüssel selbst). Jetzt: Liste in `core/psi_lists.gd` (`LISTS`, Stufen 1–8 und 10), `core/rules.gd` (`PSI_SKILLS`, Gruppe „Psi-Listen“; der Bodenkampf hat `rules.gd` minimal geändert: `Rules.attr_bonus_of`), `core/skill_texts.gd`, Test in `test_rules.gd`. `main` vorher holen. Tests nach CLAUDE.md, Fertigmeldung.
