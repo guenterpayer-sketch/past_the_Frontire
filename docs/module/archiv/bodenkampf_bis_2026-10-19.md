@@ -123,3 +123,11 @@ Wunsch des Nutzers: bessere Grafik, **kostenlos**, in Godot bleiben. Idee: Comic
 3. Kurz einschätzen (Wissen/Annahme getrennt): Aufwand für Boden, Hub-Schiff und Raumkampf, Leistung am Tablet (nur Annahme ohne Gerät), was mit den Quaternius-Modellen gut/schlecht aussieht.
 4. Ergebnis an den Nutzer, Entscheidung abwarten.
 
+
+
+### Auftrag (27.10.2026): Elite-/Boss-Beute häufiger (erledigt, `c60cf75`)
+
+Entscheidung des Nutzers: Beute-Chance je Sieg **Elite 25 %, Boss 50 %** (bisher beide 12 %, `Combat.ELITE_LOOT_CHANCE`). Weiter 2–3 Stück, stark beschädigt (−20/−30). Raumkampf bleibt unverändert (20 %/30 %).
+1. Zwei Werte (Elite, Boss) statt einem, Test anpassen, `docs/Skillsystem.md`/`godot/README.md` nachtragen.
+2. Tests nach CLAUDE.md, Fertigmeldung.
+

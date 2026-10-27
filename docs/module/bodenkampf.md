@@ -88,11 +88,5 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (27.10.2026): Elite-/Boss-Beute häufiger
-
-Entscheidung des Nutzers: Beute-Chance je Sieg **Elite 25 %, Boss 50 %** (bisher beide 12 %, `Combat.ELITE_LOOT_CHANCE`). Weiter 2–3 Stück, stark beschädigt (−20/−30). Raumkampf bleibt unverändert (20 %/30 %).
-1. Zwei Werte (Elite, Boss) statt einem, Test anpassen, `docs/Skillsystem.md`/`godot/README.md` nachtragen.
-2. Tests nach CLAUDE.md, Fertigmeldung.
-
-- Keine offenen Aufträge sonst. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).

@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 27.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`c60cf75`) | Elite-Beute 25 %, Boss-Beute 50 % (`Combat.elite_loot_chance()`). Skillsystem: Schild als Beute nachgetragen (Koordinator). Version 0.20. |
 | 27.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`7da55d3`) | Ergebnisfenster „Kampfende“ mit Ausgang je Gegner, Flucht-Einblendung (`SpaceCombat.ship_fled`), 40-Runden-Ende heißt „Abgedreht“. Version 0.19. |
 | 27.10.2026 | (dieser Merge) | Charakter `claude/elegant-gauss-hq5bus` (`080ca33`) | Psi-Liste „Stärkung“ lernbar (`PsiLists`, `Rules`, `SkillTexts`, Test). Version 0.18. |
 | 27.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`2ff16dd`) | Psi-Liste „Stärkung“ im Kampf (9 Kräfte, 110 % Aktivität, TP-Puffer, STÄ/GEW-Bonus, `Combatant.injury_malus`), KI nutzt sie. Noch nicht lernbar (Charakter). Version 0.17. |
