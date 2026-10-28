@@ -157,8 +157,6 @@ func _type_floor() -> void:
 		_pack_floor()
 		return
 	var base: Color = _type.floor
-	if _type.has("floor_patches"):
-		_floor_patches()
 	for t in map.list:
 		if t.terrain == &"leer" or t.terrain == &"gebaeude" or t.terrain == &"podest":
 			continue
@@ -198,28 +196,6 @@ func _pack_floor() -> void:
 				_flat(_slot(path, VisualSlot.Fit.STRETCH), Vector3(c.x, 0.003, c.y), step)
 			z += step
 		x += step
-
-
-## Teppichflächen aus dem Pack ("floor_patches", Büro): Karte in Blöcke von 6 m, je Block mit 50 % eine Farbe
-## als 2×2-m-Platten über dem Sechseckteppich (nur über begehbaren Bodenfeldern)
-func _floor_patches() -> void:
-	var paths: Array = _type.floor_patches
-	var w := map.cols * Hex.SIZE_M
-	var d := map.rows * Hex.ROW_M
-	var bx := -0.75
-	while bx < w:
-		var bz := -0.65
-		while bz < d:
-			if _rng.randf() < 0.5:
-				var slot := _slot(paths[_rng.randi() % paths.size()], VisualSlot.Fit.STRETCH)
-				for ix in 3:
-					for iz in 3:
-						var c := Vector2(bx + ix * 2.0 + 1.0, bz + iz * 2.0 + 1.0)
-						var t := map.tile(Hex.from_world(c))
-						if t and t.terrain == &"boden":
-							_flat(slot, Vector3(c.x, 0.006, c.y), 2.0)
-			bz += 6.0
-		bx += 6.0
 
 
 ## Flaches Modell (Bodenplatte) auf size × size strecken, Oberseite auf top
@@ -1001,23 +977,58 @@ func _prop(ts: Array) -> void:
 		_stools(ts[0])
 
 
-## Schreibtische: Platte als Grundkörper, je Feld ein Bildschirm und ein Stuhl daneben (Büro)
+## Schreibtische (Büro): je Gruppe alte Platte (Grundkörper) oder Pack-Tische ("alt" schreibtisch, je Reihe einer),
+## Bildschirme je Feld alt oder neu, bei neuen ein Stuhl davor (nur Grafik). Besprechungstisch (Gruppe ab 6 Feldern):
+## Teppich darunter ("meeting_carpet"), mit alt_chance ein großer Tisch aus dem Pack mit Stühlen an den langen Seiten.
 func _desks(ts: Array) -> void:
 	var b := _bounds(ts)
 	var top := 0.78
 	var wood: Color = PROP_COLOR[&"schreibtisch"]
-	_box(b.c + Vector3(0, top - 0.03, 0), Vector3(b.sx - 0.2, 0.06, b.sz - 0.2), wood)
-	_box(b.c + Vector3(0, (top - 0.06) / 2.0, 0), Vector3(b.sx - 0.5, top - 0.06, b.sz - 0.5), wood.darkened(0.35))
 	var props: Dictionary = _type.get("props", {})
-	var alt := _alt_paths(&"computer")   # je Schreibtischgruppe alte oder neue Bildschirme, neue mit Stuhl
-	var chairs: Array = _type.get("alt", {}).get(&"stuhl", []) if not alt.is_empty() else []
+	var alts: Dictionary = _type.get("alt", {})
+	var chairs: Array = alts.get(&"stuhl", [])
+	if ts.size() >= 6 and _type.has("meeting_carpet"):
+		var cs := _slot(_type.meeting_carpet, VisualSlot.Fit.STRETCH)
+		var nx := ceili((b.sx + 1.5) / 2.0)
+		var nz := ceili((b.sz + 1.5) / 2.0)
+		for ix in nx:
+			for iz in nz:
+				var c := Vector2(b.c.x - nx + 1.0 + ix * 2.0, b.c.z - nz + 1.0 + iz * 2.0)
+				var t := map.tile(Hex.from_world(c))
+				if t and (t.terrain == &"boden" or t.terrain == &"schreibtisch"):
+					_flat(cs, Vector3(c.x, 0.006, c.y), 2.0)
+		var big := _alt_paths(&"besprechung")
+		if not big.is_empty():
+			_fit_uniform(_slot(big[_rng.randi() % big.size()]), b.c, Vector3(b.sx - 0.1, top, b.sz - 0.1))
+			if not chairs.is_empty():
+				var chair := _slot(chairs[_rng.randi() % chairs.size()])
+				var long_x: bool = b.sx > b.sz
+				var length: float = maxf(b.sx, b.sz)
+				for i in int(length / 1.2):
+					var off: float = -length / 2.0 + 0.6 + i * 1.2
+					for side in [-1.0, 1.0]:
+						var p: Vector3 = b.c + (Vector3(off, 0, side * (b.sz / 2.0 + 0.25)) if long_x else Vector3(side * (b.sx / 2.0 + 0.25), 0, off))
+						var rot: float = (PI if side > 0 else 0.0) + (0.0 if long_x else PI / 2.0)
+						_fit_uniform(chair, p, Vector3(0.5, 0.95, 0.5), rot)
+			return
+	var desks := _alt_paths(&"schreibtisch")
+	if desks.is_empty():
+		_box(b.c + Vector3(0, top - 0.03, 0), Vector3(b.sx - 0.2, 0.06, b.sz - 0.2), wood)
+		_box(b.c + Vector3(0, (top - 0.06) / 2.0, 0), Vector3(b.sx - 0.5, top - 0.06, b.sz - 0.5), wood.darkened(0.35))
+	else:
+		var rows := maxi(1, roundi(b.sz / Hex.ROW_M))
+		for i in rows:
+			var c: Vector3 = b.c + Vector3(0, 0, -b.sz / 2.0 + (i + 0.5) * b.sz / rows)
+			_fit_uniform(_slot(desks[_rng.randi() % desks.size()]), c, Vector3(b.sx - 0.15, top, b.sz / rows - 0.05), PI if i % 2 else 0.0)
+	var screens := _alt_paths(&"computer")   # je Gruppe alte oder neue Bildschirme, neue mit Stuhl
+	var chair_slot: VisualSlot = _slot(chairs[_rng.randi() % chairs.size()]) if not screens.is_empty() and not chairs.is_empty() else null
 	for t in ts:
 		var p := tile_top(t.pos)
-		if not alt.is_empty():
-			var side := -1.0 if t.row % 2 else 1.0
-			_fit_uniform(_slot(alt[_rng.randi() % alt.size()]), Vector3(p.x, top, p.z - side * 0.15), Vector3(0.55, 0.55, 0.4), PI if t.row % 2 else 0.0)
-			if not chairs.is_empty():
-				_fit_uniform(_slot(chairs[0]), Vector3(p.x, 0.0, p.z + side * 0.62), Vector3(0.5, 0.95, 0.5), 0.0 if t.row % 2 else PI)
+		var side := -1.0 if t.row % 2 else 1.0
+		if not screens.is_empty():
+			_fit_uniform(_slot(screens[_rng.randi() % screens.size()]), Vector3(p.x, top, p.z - side * 0.15), Vector3(0.55, 0.55, 0.4), PI if t.row % 2 else 0.0)
+			if chair_slot:
+				_fit_uniform(chair_slot, Vector3(p.x, 0.0, p.z + side * 0.62), Vector3(0.5, 0.95, 0.5), 0.0 if t.row % 2 else PI)
 		elif props.has(&"computer"):
 			_fit_uniform(_slot(props[&"computer"][0]), Vector3(p.x, top, p.z), Vector3(0.6, 0.5, 0.45), PI if t.row % 2 else 0.0)
 		elif map.map_type == &"schiff":
