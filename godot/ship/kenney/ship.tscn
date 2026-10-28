@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://ship/kenney/rooms/hangar.tscn" id="1_vdp2h"]
+[ext_resource type="PackedScene" path="res://ship/kenney/rooms/armory.tscn" id="2_2lfpd"]
+[ext_resource type="PackedScene" path="res://ship/kenney/rooms/quarters.tscn" id="3_x5qs2"]
+[ext_resource type="PackedScene" path="res://ship/kenney/rooms/medbay.tscn" id="4_tlk21"]
+[ext_resource type="PackedScene" path="res://ship/kenney/rooms/bridge.tscn" id="5_4qwm2"]
+[ext_resource type="PackedScene" path="res://ship/kenney/rooms/galley.tscn" id="6_a0fuy"]
+
+[node name="Ship" type="Node3D" unique_id=1318821191]
+
+[node name="hangar" type="Node3D" parent="." unique_id=1701292789 instance=ExtResource("1_vdp2h")]
+
+[node name="armory" type="Node3D" parent="." unique_id=377142868 instance=ExtResource("2_2lfpd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="quarters" type="Node3D" parent="." unique_id=2039103122 instance=ExtResource("3_x5qs2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 0)
+
+[node name="medbay" type="Node3D" parent="." unique_id=1621224869 instance=ExtResource("4_tlk21")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 8)
+
+[node name="bridge" type="Node3D" parent="." unique_id=2090157875 instance=ExtResource("5_4qwm2")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, 4)
+
+[node name="galley" type="Node3D" parent="." unique_id=673725682 instance=ExtResource("6_a0fuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, 12)

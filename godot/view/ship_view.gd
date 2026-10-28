@@ -22,6 +22,8 @@ const ROOMS := [
 
 ## Gestaltung im Editor: je Raum `ship/rooms/<id>.tscn`, zusammengesetzt in `ship/ship.tscn`
 const SCENE := "res://ship/ship.tscn"
+## Andere Fassung zum Vergleichen, z. B. die Kenney-Probe `res://ship/kenney/ship.tscn`
+@export_file("*.tscn") var scene_path := SCENE
 
 var _walls: Array[Dictionary] = []     # {full, low, normal}
 var _highlights := {}                    # Raum-ID -> MeshInstance3D
@@ -36,7 +38,7 @@ func build() -> void:
 		c.queue_free()
 	_walls.clear()
 	_highlights.clear()
-	var interior: Node3D = (load(SCENE) as PackedScene).instantiate()
+	var interior: Node3D = (load(scene_path) as PackedScene).instantiate()
 	add_child(interior)
 	_collect_cutaway(interior)
 	_build_highlights()
