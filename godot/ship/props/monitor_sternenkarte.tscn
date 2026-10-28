@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/packs/molten/Large_Monitor_Blue.glb" id="1_mon"]
+[ext_resource type="Shader" path="res://ship/props/bildschirm.gdshader" id="2_sh"]
+[ext_resource type="Texture2D" path="res://assets/ship/screens/monitor_sternenkarte.png" id="3_bild"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_1"]
+size = Vector2(2.86, 1.76)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1"]
+shader = ExtResource("2_sh")
+shader_parameter/bild = ExtResource("3_bild")
+shader_parameter/art = 0
+shader_parameter/helligkeit = 1.15
+
+[node name="Monitor_Sternenkarte" type="Node3D"]
+
+[node name="Large_Monitor_Blue" parent="." instance=ExtResource("1_mon")]
+
+[node name="Bildschirm" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.98061, 0.19595, 0, -0.19595, 0.98061, 0, 1.75, -0.22)
+cast_shadow = 0
+mesh = SubResource("QuadMesh_1")
+surface_material_override/0 = SubResource("ShaderMaterial_1")
