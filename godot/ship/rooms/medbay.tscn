@@ -1,0 +1,164 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/ship/floortile_basic.glb" id="1_8eo28"]
+[ext_resource type="PackedScene" path="res://assets/ship/floortile_basic2.glb" id="2_8d7qf"]
+[ext_resource type="PackedScene" path="res://assets/ship/wall_1.glb" id="3_73xem"]
+[ext_resource type="PackedScene" path="res://assets/ship/column_slim.glb" id="4_4ximm"]
+[ext_resource type="PackedScene" path="res://assets/ship/wall_5.glb" id="5_64krv"]
+[ext_resource type="PackedScene" path="res://assets/ship/wall_empty.glb" id="6_cr7io"]
+[ext_resource type="PackedScene" path="res://assets/ship/props_base.glb" id="7_y46y3"]
+[ext_resource type="PackedScene" path="res://assets/ship/props_pod.glb" id="8_tnpa6"]
+[ext_resource type="PackedScene" path="res://assets/ship/props_vessel_tall.glb" id="9_yppv8"]
+[ext_resource type="PackedScene" path="res://assets/ship/props_vessel.glb" id="10_m81gj"]
+[ext_resource type="PackedScene" path="res://assets/ship/props_computersmall.glb" id="11_222nw"]
+
+[node name="Medbay" type="Node3D" unique_id=34524913]
+
+[node name="Boden" type="Node3D" parent="." unique_id=1631925075]
+
+[node name="floortile_basic" type="Node3D" parent="Boden" unique_id=335184367 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -0.09336402, 1)
+
+[node name="floortile_basic2" type="Node3D" parent="Boden" unique_id=256728597 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -0.047609862, 3)
+
+[node name="floortile_basic3" type="Node3D" parent="Boden" unique_id=474978977 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -0.09336402, 5)
+
+[node name="floortile_basic4" type="Node3D" parent="Boden" unique_id=190652285 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, -0.047609862, 7)
+
+[node name="floortile_basic5" type="Node3D" parent="Boden" unique_id=379378062 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -0.047609862, 1)
+
+[node name="floortile_basic6" type="Node3D" parent="Boden" unique_id=656356722 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -0.09336402, 3)
+
+[node name="floortile_basic7" type="Node3D" parent="Boden" unique_id=1874145102 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -0.047609862, 5)
+
+[node name="floortile_basic8" type="Node3D" parent="Boden" unique_id=231262088 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -0.09336402, 7)
+
+[node name="floortile_basic9" type="Node3D" parent="Boden" unique_id=1666569880 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -0.09336402, 1)
+
+[node name="floortile_basic10" type="Node3D" parent="Boden" unique_id=1423927699 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -0.047609862, 3)
+
+[node name="floortile_basic11" type="Node3D" parent="Boden" unique_id=504529774 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -0.09336402, 5)
+
+[node name="floortile_basic12" type="Node3D" parent="Boden" unique_id=1248764522 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, -0.047609862, 7)
+
+[node name="floortile_basic13" type="Node3D" parent="Boden" unique_id=1821468605 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, -0.047609862, 1)
+
+[node name="floortile_basic14" type="Node3D" parent="Boden" unique_id=1432337894 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, -0.09336402, 3)
+
+[node name="floortile_basic15" type="Node3D" parent="Boden" unique_id=1534398669 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, -0.047609862, 5)
+
+[node name="floortile_basic16" type="Node3D" parent="Boden" unique_id=945776811 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, -0.09336402, 7)
+
+[node name="floortile_basic17" type="Node3D" parent="Boden" unique_id=1046802194 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -0.09336402, 1)
+
+[node name="floortile_basic18" type="Node3D" parent="Boden" unique_id=100596310 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -0.047609862, 3)
+
+[node name="floortile_basic19" type="Node3D" parent="Boden" unique_id=1014934012 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -0.09336402, 5)
+
+[node name="floortile_basic20" type="Node3D" parent="Boden" unique_id=1838613518 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, -0.047609862, 7)
+
+[node name="floortile_basic21" type="Node3D" parent="Boden" unique_id=1690016325 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, -0.047609862, 1)
+
+[node name="floortile_basic22" type="Node3D" parent="Boden" unique_id=621898819 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, -0.09336402, 3)
+
+[node name="floortile_basic23" type="Node3D" parent="Boden" unique_id=428028315 instance=ExtResource("2_8d7qf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, -0.047609862, 5)
+
+[node name="floortile_basic24" type="Node3D" parent="Boden" unique_id=1452129857 instance=ExtResource("1_8eo28")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, -0.09336402, 7)
+
+[node name="Waende" type="Node3D" parent="." unique_id=2001826747]
+
+[node name="wall_1" type="Node3D" parent="Waende" unique_id=910271699 instance=ExtResource("3_73xem")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 0.45, 0, -1, 0, -4.371139e-08, 12.016684, 3.4454175e-08, 2.000001)
+
+[node name="column_slim" type="Node3D" parent="Waende" unique_id=1760488923 instance=ExtResource("4_4ximm")]
+transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 12.0023155, 2.0757666e-08, 4.018199)
+
+[node name="column_slim2" type="Node3D" parent="Waende" unique_id=816099360 instance=ExtResource("4_4ximm")]
+transform = Transform3D(0.45, 0, 0, 0, 0.45, 0, 0, 0, 0.45, 12.0023155, 2.0757666e-08, 8.0182)
+
+[node name="Aussenwand" type="Node3D" parent="Waende" unique_id=543306785 groups=["cutaway"]]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 8)
+
+[node name="Voll" type="Node3D" parent="Waende/Aussenwand" unique_id=956701856 instance=ExtResource("5_64krv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.536743e-07, 3.2451243e-08, 0.00828287)
+
+[node name="Niedrig" type="Node3D" parent="Waende/Aussenwand" unique_id=1252670724 instance=ExtResource("6_cr7io")]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 1, -9.536743e-07, 2.902282e-08, -0.006097004)
+visible = false
+
+[node name="Aussenwand2" type="Node3D" parent="Waende" unique_id=1064046281 groups=["cutaway"]]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 8)
+
+[node name="Voll" type="Node3D" parent="Waende/Aussenwand2" unique_id=1202011788 instance=ExtResource("6_cr7io")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.536743e-07, 2.902282e-08, -0.006097004)
+
+[node name="Niedrig" type="Node3D" parent="Waende/Aussenwand2" unique_id=926947849 instance=ExtResource("6_cr7io")]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 1, -9.536743e-07, 2.902282e-08, -0.006097004)
+visible = false
+
+[node name="Aussenwand3" type="Node3D" parent="Waende" unique_id=1078530404 groups=["cutaway"]]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 8)
+
+[node name="Voll" type="Node3D" parent="Waende/Aussenwand3" unique_id=396655823 instance=ExtResource("3_73xem")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.536743e-07, 3.4454175e-08, 0.016683787)
+
+[node name="Niedrig" type="Node3D" parent="Waende/Aussenwand3" unique_id=265670780 instance=ExtResource("6_cr7io")]
+transform = Transform3D(1, 0, 0, 0, 0.1, 0, 0, 0, 1, -9.536743e-07, 2.902282e-08, -0.006097004)
+visible = false
+
+[node name="Einrichtung" type="Node3D" parent="." unique_id=1789498814]
+
+[node name="props_base" type="Node3D" parent="Einrichtung" unique_id=1145691554 instance=ExtResource("7_y46y3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, -0.00015622932, 5)
+
+[node name="props_pod" type="Node3D" parent="Einrichtung" unique_id=1266101323 instance=ExtResource("8_tnpa6")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 3.5, -0.0015568518, 5.0000334)
+
+[node name="props_base2" type="Node3D" parent="Einrichtung" unique_id=1992278346 instance=ExtResource("7_y46y3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, -0.00015622932, 5)
+
+[node name="props_pod2" type="Node3D" parent="Einrichtung" unique_id=1910149673 instance=ExtResource("8_tnpa6")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 8.5, -0.0015568518, 5.0000334)
+
+[node name="props_vessel_tall" type="Node3D" parent="Einrichtung" unique_id=654856955 instance=ExtResource("9_yppv8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0.0011273794, 1.1999998)
+
+[node name="props_vessel" type="Node3D" parent="Einrichtung" unique_id=853215632 instance=ExtResource("10_m81gj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6000004, 0.0024962598, 1.1999998)
+
+[node name="props_vessel_tall2" type="Node3D" parent="Einrichtung" unique_id=979818613 instance=ExtResource("9_yppv8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2000008, 0.0011273794, 1.1999998)
+
+[node name="props_computersmall" type="Node3D" parent="Einrichtung" unique_id=1567981886 instance=ExtResource("11_222nw")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11.09421, 0.0041689603, 2)
+
+[node name="Licht" type="Node3D" parent="." unique_id=17827222]
+
+[node name="Raumlicht" type="OmniLight3D" parent="Licht" unique_id=886692828]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 3.2, 4)
+light_color = Color(0.7, 1, 0.9, 1)
+light_energy = 0.9
+omni_range = 9.6
