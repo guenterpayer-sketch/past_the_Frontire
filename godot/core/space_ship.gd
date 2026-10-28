@@ -12,6 +12,7 @@ var name := ""
 var side: StringName = &"crew"        # &"crew" oder &"enemy"
 var cls := 2                          # Index in CLASSES
 var template := ""                    # Vorlage (Gegner), "" = eigenes Schiff
+var faction := ""                     # Gegnerseite (wählt das Modell; SpaceShipView.enemy_model)
 var pos := Vector2i.ZERO
 var facing := 0
 var speed := 0                        # Felder je Runde (Trägheit: bleibt, bis der Pilot sie ändert)
