@@ -131,3 +131,13 @@ Entscheidung des Nutzers: Beute-Chance je Sieg **Elite 25 %, Boss 50 %** (bisher
 1. Zwei Werte (Elite, Boss) statt einem, Test anpassen, `docs/Skillsystem.md`/`godot/README.md` nachtragen.
 2. Tests nach CLAUDE.md, Fertigmeldung.
 
+
+
+### Auftrag (27.10.2026): Licht-Probe – nichts bauen (abgebrochen 28.10.2026, Nutzer: „am Licht liegt es nicht“; Halle und Schiff gezeigt, Compatibility/Forward+, Software-Renderer, nichts committet)
+
+Wunsch des Nutzers: Grafik wirkt flach/billig, zu wenig Abwechslung; Shader (Comic) verworfen, kostenlos bleiben. Er spielt **auf Tablet und PC**.
+1. Probe (eigene Testszene oder Testcode, nicht in den Spielcode): dieselbe Kampfszene (und, wenn mit wenig Aufwand möglich, ein Raum im Schiff) in drei Fassungen: (a) jetzt (Compatibility), (b) Compatibility mit besserer Lichtsetzung (Lichtquellen, Schatten, Glow, Farbe/Tonwert), (c) Renderer „Forward+“ (PC) bzw. „Mobile“ (Tablet) mit SSAO, Glow, Nebel, Umgebungslicht.
+2. Screenshots nebeneinander (z. B. `docs/mockups/licht/` oder Artifact).
+3. Einschätzung, Wissen/Annahme getrennt: Aufwand für Boden, Schiff, Raumkampf; was am Tablet laufen dürfte (Gerät nicht vorhanden – Annahme; echter Test später über den Export-Chat).
+4. Ergebnis an den Nutzer, Entscheidung abwarten.
+
