@@ -68,11 +68,9 @@ Wartet auf Freigabe durch Koordinator und Nutzer.
 
 ## Aufträge vom Koordinator
 
-### Auftrag (28.10.2026): Probe neue Räume im Schiff – nichts bauen
+### Auftrag 12 (28.10.2026): Schiff als bearbeitbare Szene – freigegeben
 
-Pack: `Modular SciFi MegaKit[Standard]/` (glTF, gleicher Ersteller wie die jetzigen Schiffsteile). Probe: ein oder zwei Räume des Schiffs (z. B. Brücke, Gang).
-Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenlos**; Shader und Licht sind verworfen. Neue Packs liegen in `assets_neu/` (Lizenzen geprüft: `assets_neu/LIZENZEN.md`).
-- **Nur Probe, nichts in den Spielcode übernehmen**, nichts nach `godot/assets/` kopieren (Probe in eigener Testszene/Testordner, nicht committen oder nur Screenshots).
-- Screenshots „jetzt“ und „mit neuem Pack“ nebeneinander, zeigen (Artifact oder `docs/mockups/packs/`).
-- Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
-- Ergebnis an den Nutzer, Entscheidung abwarten.
+Freigabe des Nutzers für den Vorschlag aus der Probe (Abschnitt dazu oben in dieser Datei): Das Schiff wird eine im Godot-Editor bearbeitbare Szene, damit der Nutzer die Räume selbst gestaltet. API von `ShipView` bleibt, andere Module unberührt.
+1. **Zuerst die 4 offenen Entscheidungen mit dem Nutzer klären** (eine Szene oder je Raum, Raumrechtecke im Code oder in der Szene, Licht, welche Packs nach `godot/assets/`), dann bauen.
+2. Übernommene Packs aus `assets_neu/` nach `godot/assets/` kopieren (nur glTF/GLB, Lizenz aus `assets_neu/LIZENZEN.md` in `godot/assets/LICENSES.md`).
+3. Tests nach CLAUDE.md, `--autotest-hub`, Fertigmeldung.
