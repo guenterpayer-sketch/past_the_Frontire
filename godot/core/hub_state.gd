@@ -46,6 +46,8 @@ var last_training := 0
 var upgrades := {}
 ## Lager {Schlüssel: Anzahl} und Sortiment der Häfen {System: [Schlüssel], "_period": n} (Stock)
 var stock := {}
+## Schon erbeutete Elite-/Boss-Stücke (Grundschlüssel); bleiben nach Verkauf in der Enzyklopädie sichtbar (Hub Auftrag 13)
+var elite_seen: Array[String] = []
 ## Handelsproben im Hafen {Fertigkeit: {day, system, result, …}} (TradeSkills)
 var trade_rolls := {}
 var shop := {}
@@ -883,7 +885,7 @@ func to_dict() -> Dictionary:
 		"next_id": next_id, "missions_done": missions_done, "slot_name": slot_name, "difficulty_level": difficulty_level, "berths": berths,
 		"medics": medics.duplicate(), "medlog": medlog.duplicate(),
 		"credits": credits, "fuel": fuel, "hull": hull, "material": material, "emergency": emergency, "ammo": ammo.duplicate(),
-		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "shop": shop.duplicate(true),
+		"upgrades": upgrades.duplicate(), "project": project.duplicate(), "stock": stock.duplicate(), "elite_seen": elite_seen.duplicate(), "shop": shop.duplicate(true),
 		"loot_pending": loot_pending.duplicate(true), "craft_material": craft_material, "jobs": jobs.duplicate(true),
 		"trade_rolls": trade_rolls.duplicate(true), "provisions": provisions, "cook": cook, "cooklog": cooklog.duplicate(true),
 		"ship_slots": ship_slots.duplicate(true), "ship_stock": ship_stock.duplicate(), "ship_ammo": ship_ammo.duplicate(),
@@ -936,6 +938,16 @@ static func from_dict(d: Dictionary, slot_no := 0) -> HubState:
 		g.upgrades[String(k)] = int(d.upgrades[k])
 	for k in d.get("stock", {}):
 		g.stock[String(k)] = int(d.stock[k])
+	if d.has("elite_seen"):
+		g.elite_seen.assign(d.elite_seen.map(func(x) -> String: return String(x)))
+	else:
+		# alte Spielstände: was im Lager liegt oder getragen wird, gilt als erbeutet
+		for k in g.stock:
+			Stock.note_elite(g, k)
+		for ch in Campaign.crew():
+			for w in ch.weapons:
+				Stock.note_elite(g, Stock.key_of(w))
+			Stock.note_elite(g, Stock.key_of(ch.armor))
 	g.shop = d.get("shop", {}).duplicate(true)
 	g.craft_material = int(d.get("craft_material", 0))
 	var jb: Dictionary = d.get("jobs", {})
