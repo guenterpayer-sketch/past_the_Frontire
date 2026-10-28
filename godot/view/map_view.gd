@@ -52,6 +52,8 @@ func build(m: BattleMap) -> void:
 	_groups.clear()
 	_build_floor()
 	_build_objects()
+	if _type.has("deco"):
+		_deco()
 	_commit()
 	_models.build(_group)
 	_build_grid()
@@ -140,6 +142,9 @@ func _floor_tiles(sx: float, sz: float) -> void:
 
 ## Neue Kartentypen: Boden je Feld als flache Sechseckplatte (Farbe je Typ, Gehweg heller, leichte Streuung)
 func _type_floor() -> void:
+	if _type.has("floors"):
+		_pack_floor()
+		return
 	var base: Color = _type.floor
 	for t in map.list:
 		if t.terrain == &"leer" or t.terrain == &"gebaeude" or t.terrain == &"podest":
@@ -148,6 +153,184 @@ func _type_floor() -> void:
 		var k := (hash(t.pos) % 5) * 0.012
 		_hex_slab(Vector3(Hex.to_world(t.pos).x, 0.0 if t.terrain != &"gehweg" else 0.08, Hex.to_world(t.pos).y),
 			0.05 if t.terrain != &"gehweg" else 0.13, c.darkened(k))
+
+
+## Bodenplatten aus einem Pack (Raumschiff, MapTypes "floors"): 2×2 m im Quadratraster unter dem Hexraster,
+## Modell je Zone (Anteil der Kartenbreite) zufällig, Warnstreifen vor der Luftschleuse links
+func _pack_floor() -> void:
+	var step := 2.0
+	var w := map.cols * Hex.SIZE_M
+	var d := map.rows * Hex.ROW_M
+	var x := -0.75
+	while x < w:
+		var z := -0.65
+		while z < d:
+			var c := Vector2(x + step / 2.0, z + step / 2.0)
+			var t := map.tile(Hex.from_world(c))
+			if t and t.terrain != &"leer":
+				var path: String = _type.floor_hazard if c.x < 4.0 and absf(c.y - d / 2.0) < 2.2 else ""
+				if path == "":
+					for zone in _type.floors:
+						if c.x / w < zone[0]:
+							path = zone[1][_rng.randi() % zone[1].size()]
+							break
+				_flat(_slot(path, VisualSlot.Fit.STRETCH), Vector3(c.x, 0.0, c.y), step)
+			z += step
+		x += step
+
+
+## Flaches Modell (Bodenplatte) auf size × size strecken, Oberseite auf top
+func _flat(slot: VisualSlot, top: Vector3, size: float) -> void:
+	var a := _models.aabb(slot)
+	var basis := Basis.from_scale(Vector3(size / maxf(a.size.x, 0.01), 1.0, size / maxf(a.size.z, 0.01)))
+	var anchor := Vector3(a.get_center().x, a.end.y, a.get_center().z)
+	_models.add(slot, Transform3D(basis, top - basis * anchor))
+
+
+## Gerade Wände (MapTypes "wall_panels", Nutzer 28.10.2026) statt Sechseckblöcken: Reihen von Wandfeldern in einer
+## Zeile oder einer Spalte werden je eine gerade Wand durch die Feldmitten, übrige Nachbarn (Bug, Heck-Stufen,
+## Anschlüsse an Reihenenden) schräge Stücke von Feldmitte zu Feldmitte; an Enden und Knicken ein Pfosten.
+## Die Felder bleiben gesperrt wie bisher, nur die Grafik ist schlanker (WALL_THICK).
+func _straight_walls(ts: Array) -> void:
+	var tiles := {}
+	for t in ts:
+		tiles[t.pos] = t
+	var run_of := {}   # pos → [Laufnummer, ist Ende]
+	var runs: Array = []
+	# waagerecht: gleiche Zeile, aufeinanderfolgende Spalten
+	var by_row := {}
+	for t in ts:
+		if not by_row.has(t.row):
+			by_row[t.row] = []
+		by_row[t.row].append(t)
+	for r in by_row:
+		var row: Array = by_row[r]
+		row.sort_custom(func(x, y) -> bool: return x.col < y.col)
+		var i := 0
+		while i < row.size():
+			var j := i
+			while j + 1 < row.size() and row[j + 1].col == row[j].col + 1:
+				j += 1
+			if j > i:
+				_add_run(runs, run_of, row.slice(i, j + 1))
+			i = j + 1
+	# senkrecht: gleiche Spalte (Versatz), aufeinanderfolgende Zeilen, mindestens 3
+	var by_col := {}
+	for t in ts:
+		if run_of.has(t.pos):
+			continue
+		if not by_col.has(t.col):
+			by_col[t.col] = []
+		by_col[t.col].append(t)
+	for c in by_col:
+		var col: Array = by_col[c]
+		col.sort_custom(func(x, y) -> bool: return x.row < y.row)
+		var i := 0
+		while i < col.size():
+			var j := i
+			while j + 1 < col.size() and col[j + 1].row == col[j].row + 1:
+				j += 1
+			if j - i >= 2:
+				_add_run(runs, run_of, col.slice(i, j + 1))
+			i = j + 1
+	for run in runs:
+		var first: Vector2 = Hex.to_world(run[0].pos)
+		var last: Vector2 = Hex.to_world(run[-1].pos)
+		if run[0].row != run[-1].row:   # senkrecht: gerade Linie auf mittlerem x
+			var mx := 0.0
+			for t in run:
+				mx += Hex.to_world(t.pos).x
+			mx /= run.size()
+			first = Vector2(mx, first.y)
+			last = Vector2(mx, last.y)
+		_wall_segment(first, last)
+	# schräge Stücke: zwischen Nachbarn, die nicht in derselben Reihe liegen; Reihen nur über ihre Enden
+	var posts := {}
+	for t in ts:
+		var rt: Array = run_of.get(t.pos, [-1, true])
+		for n in Hex.neighbors(t.pos):
+			if not tiles.has(n) or str(n) < str(t.pos):
+				continue
+			var rn: Array = run_of.get(n, [-2, true])
+			if rt[0] == rn[0] or not rt[1] or not rn[1]:
+				continue
+			_wall_segment(_wall_point(t, run_of, runs), _wall_point(tiles[n], run_of, runs))
+			posts[t.pos] = true
+			posts[n] = true
+	for t in ts:
+		if not run_of.has(t.pos) or run_of[t.pos][1]:
+			posts[t.pos] = true
+	for p in posts:
+		var w := _wall_point(tiles[p], run_of, runs)
+		_box(Vector3(w.x, INNER_H / 2.0 + 0.01, w.y), Vector3(WALL_THICK + 0.08, INNER_H + 0.02, WALL_THICK + 0.08), _type.get("inner", Color(0.4, 0.45, 0.5)))
+
+
+const WALL_THICK := 0.4
+
+
+func _add_run(runs: Array, run_of: Dictionary, run: Array) -> void:
+	for k in run.size():
+		run_of[run[k].pos] = [runs.size(), k == 0 or k == run.size() - 1]
+	runs.append(run)
+
+
+## Mittelpunkt eines Wandfelds auf seiner Wandlinie (senkrechte Reihen: mittleres x)
+func _wall_point(t: BattleMap.Tile, run_of: Dictionary, runs: Array) -> Vector2:
+	var w := Hex.to_world(t.pos)
+	if run_of.has(t.pos):
+		var run: Array = runs[run_of[t.pos][0]]
+		if run[0].row != run[-1].row:
+			var mx := 0.0
+			for r in run:
+				mx += Hex.to_world(r.pos).x
+			w.x = mx / run.size()
+	return w
+
+
+## Gerade Wand von a nach b (Welt x/z) aus Wandplatten, je Stück höchstens etwa 3 m
+func _wall_segment(a: Vector2, b: Vector2) -> void:
+	var paths: Array = _type.wall_panels
+	var length := a.distance_to(b)
+	if length < 0.05:
+		return
+	var dir := (b - a) / length
+	var n := maxi(1, roundi(length / 3.0))
+	var piece := length / n
+	var rot := atan2(-dir.y, dir.x)   # Modell-x entlang der Wand
+	for i in n:
+		var slot := _slot(paths[_rng.randi() % paths.size()], VisualSlot.Fit.STRETCH)
+		var ab := _models.aabb(slot)
+		var m := a + dir * piece * (i + 0.5)
+		var basis := Basis(Vector3.UP, rot) * Basis.from_scale(Vector3((piece + 0.02) / ab.size.x, INNER_H / ab.size.y, WALL_THICK / ab.size.z))
+		var anchor := Vector3(ab.get_center().x, ab.position.y, ab.get_center().z)
+		_models.add(slot, Transform3D(basis, Vector3(m.x, 0.0, m.y) - basis * anchor))
+
+
+## Neues Modell statt des alten (MapTypes "alt", je Objekt mit "alt_chance"): Modellpfade oder leer
+func _alt_paths(terrain: StringName) -> Array:
+	var alt: Dictionary = _type.get("alt", {})
+	if alt.has(terrain) and _rng.randf() < float(_type.get("alt_chance", 1.0)):
+		return alt[terrain]
+	return []
+
+
+## Wenig Deko (nur Grafik, MapTypes "deco"): kleine Modelle an Bodenfeldern neben Wänden, zur Wand gerückt
+func _deco() -> void:
+	var spots: Array = []
+	for t in map.list:
+		if t.terrain != &"boden" or t.reserved:
+			continue
+		for n in Hex.neighbors(t.pos):
+			var nt := map.tile(n)
+			if nt and nt.terrain == &"innenwand":
+				spots.append([t, n])
+				break
+	var paths: Array = _type.deco
+	for i in mini(10, spots.size() / 12):
+		var sp: Array = spots[_rng.randi() % spots.size()]
+		var a := Hex.to_world(sp[0].pos)
+		var p := a + (Hex.to_world(sp[1]) - a).normalized() * 0.42
+		_fit_uniform(_slot(paths[_rng.randi() % paths.size()]), Vector3(p.x, 0.0, p.y), Vector3(0.5, 0.8, 0.5), _rng.randf() * TAU)
 
 
 func _build_grid() -> void:
@@ -252,8 +435,9 @@ func _build_objects() -> void:
 			&"leiter":
 				_ladder(ts[0])
 			&"innenwand":
-				for t in ts:
-					_hex_slab(tile_top(t.pos) + Vector3(0, INNER_H, 0), INNER_H, _type.get("inner", Color(0.3, 0.33, 0.38)))
+				if not _type.has("wall_panels"):   # sonst gerade Wände über alle Wandfelder, nach der Schleife
+					for t in ts:
+						_hex_slab(tile_top(t.pos) + Vector3(0, INNER_H, 0), INNER_H, _type.get("inner", Color(0.3, 0.33, 0.38)))
 			&"gebaeude":
 				for t in ts:
 					_hex_slab(tile_top(t.pos) + Vector3(0, BUILDING_H, 0), BUILDING_H, _type.get("wall", Color(0.3, 0.3, 0.3)).darkened((hash(t.col / 4) % 4) * 0.06))
@@ -265,6 +449,8 @@ func _build_objects() -> void:
 			_:
 				if PROP_H.has(ts[0].terrain):
 					_prop(ts)
+	if _type.has("wall_panels"):
+		_straight_walls(map.list.filter(func(t: BattleMap.Tile) -> bool: return t.terrain == &"innenwand"))
 
 
 ## Umriss einer Feldgruppe: Mitte und Größe (x, z) eines achsenparallelen Quaders
@@ -289,6 +475,10 @@ func _bounds(ts: Array) -> Dictionary:
 func _container(ts: Array) -> void:
 	var b := _bounds(ts)
 	var h: int = ts[0].h
+	var alt := _alt_paths(&"container")
+	if not alt.is_empty():
+		_fit_uniform(_slot(alt[_rng.randi() % alt.size()]), b.c, Vector3(b.sx - 0.1, h * L, b.sz - 0.1), _rng.randi_range(0, 3) * PI / 2.0)
+		return
 	var color: Color = ts[0].color
 	var sx: float = b.sx - 0.1
 	var sz: float = b.sz - 0.1
@@ -383,6 +573,12 @@ func _gallery(ts: Array) -> void:
 
 
 func _crates(ts: Array) -> void:
+	var alt := _alt_paths(&"kiste")
+	if not alt.is_empty():
+		for t in ts:
+			var top := tile_top(t.pos)
+			_fit_uniform(_slot(alt[_rng.randi() % alt.size()]), Vector3(top.x, 0, top.z), Vector3(1.3, top.y, 1.15), _rng.randi_range(0, 3) * PI / 2.0)
+		return
 	if theme and theme.crate:
 		for t in ts:
 			var top := tile_top(t.pos)
@@ -541,6 +737,9 @@ func _prop(ts: Array) -> void:
 	var terrain: StringName = ts[0].terrain
 	var hgt: float = PROP_H[terrain]
 	var paths: Array = _type.get("props", {}).get(terrain, [])
+	var alt := _alt_paths(terrain)
+	if not alt.is_empty():
+		paths = alt
 	var color: Color = PROP_COLOR.get(terrain, Color(0.5, 0.5, 0.5))
 	if terrain == &"schreibtisch":
 		_desks(ts)
@@ -551,7 +750,7 @@ func _prop(ts: Array) -> void:
 		var size := Vector3(b.sx - 0.15, hgt, b.sz - 0.15)
 		if paths.is_empty():
 			_box(base + Vector3(0, hgt / 2.0, 0), size, color)
-		elif terrain in [&"theke", &"schrank", &"server"]:
+		elif terrain in [&"theke", &"schrank", &"server"] and alt.is_empty():
 			_models.fill_repeat(_slot(paths[_rng.randi() % paths.size()], VisualSlot.Fit.STRETCH, 1.5), base, size)
 		else:
 			_fit_uniform(_slot(paths[_rng.randi() % paths.size()]), base, size)

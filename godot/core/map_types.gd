@@ -7,6 +7,9 @@ extends RefCounted
 const GROUND := [&"halle", &"bar", &"strasse", &"tempel", &"buero"]
 const SHIP := &"schiff"
 
+## Ordner der Molten-Maps-Modelle (Raumschiff)
+const M := "res://assets/packs/molten/"
+
 ## light: ambient (Farbe, Stärke), sun (Farbe, Stärke), lamps (Farben im Wechsel), lamp_energy, lamp_range,
 ## lamp_h (Höhe), bg (Hintergrund). props: Gelände → Modellpfade (eins je Objekt zufällig).
 const TYPES := {
@@ -88,6 +91,24 @@ const TYPES := {
 			&"tank": ["res://assets/ship/props_vessel_tall.glb"],
 			&"schrank": ["res://assets/ship/props_shelf_tall.glb"],
 		},
+		# Molten Maps (Nutzer 28.10.2026): Bodenplatten je Raum, Wandplatten an den Kanten der Wandfelder,
+		# je Objekt mit alt_chance das neue Modell statt des alten (gemischt), wenig Deko (nur Grafik)
+		"floors": [[0.22, [M + "Floor_Metal_Square.glb", M + "Floor_Tile_Metal.glb"]],
+			[0.55, [M + "Floor_Metal_Square_Grate.glb", M + "Floor_Tile_Metal.glb", M + "Floor_Metal_Square.glb", M + "Floor_Tile_Metal.glb"]],
+			[0.80, [M + "Floor_Metal_Circles.glb", M + "Floor_Tile_Metal.glb"]],
+			[1.01, [M + "Floor_Tile_Carpet_Grey.glb", M + "Floor_Tile_Carpet_Blue.glb"]]],
+		"floor_hazard": M + "Hazard_Floor_1.glb",
+		"wall_panels": [M + "Wall_Grey.glb", M + "Wall_Grey.glb", M + "Wall_Grey.glb", M + "Wall_Blue.glb",
+			M + "Wall_Light_White.glb", M + "Wall_Pipe.glb", M + "Wall_Blue_Greeblies.glb", M + "Wall_Display_Blue.glb"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"kiste": [M + "Battery_Blue.glb", M + "Battery_Orange.glb", M + "Battery_Grey.glb", M + "Battery_Green.glb", M + "Battery_Red.glb"],
+			&"container": [M + "Generator.glb", M + "Generator_Pile_Chonky.glb"],
+			&"konsole": [M + "Large_Monitor_Blue.glb", M + "Large_Monitor_White.glb", M + "BioMonitor_Blue.glb"],
+			&"tank": [M + "Cryo_Tube_ON.glb", M + "Generator_Pile_Small.glb"],
+			&"schrank": [M + "Bunk_Double_Grey.glb", M + "Bunk_Double_Blue.glb", M + "Briefing_Screen_Blue.glb"],
+		},
+		"deco": [M + "Plant_1.glb", M + "Chair_1.glb", M + "Space_Ketchup.glb", M + "Space_Mayo_Naise.glb"],
 	},
 }
 
