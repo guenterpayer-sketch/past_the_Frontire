@@ -111,6 +111,23 @@ const TYPES := {
 			&"stuhl": ["res://assets/maps/buero/Chair_1.glb"],
 			&"pflanze": ["res://assets/maps/buero/Houseplant_1.glb"],
 		},
+		# MegaKit/Molten (Nutzer 28.10.2026): Außenwände zweiteilig, Innenwände gerade (Wandteil des Paars der Karte),
+		# Stil je Karte (alt oder ein Paar); Teppich gemischt mit Molten-Teppichflächen; Einrichtung gemischt
+		"hall_walls": [[K + "Walls/WallAstra_Straight_Flat.gltf", K + "Walls/TopPlastic_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Flat_Window.gltf", K + "Walls/TopSimple_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopPlastic_Straight.gltf"]],
+		"hall_walls_low": [K + "Walls/ShortWall_WhitePlate2_Straight.gltf", K + "Walls/ShortWall_Simple1_Straight.gltf", K + "Walls/ShortWall_Band2_Straight.gltf"],
+		"wall_panels": [],   # leer: Innenwände aus dem Wandteil des Paars der Karte
+		"floor_patches": [M + "Floor_Tile_Carpet_Grey.glb", M + "Floor_Tile_Carpet_Grey.glb", M + "Floor_Tile_Carpet_Blue.glb"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"computer": [M + "Large_Monitor_Blue.glb", M + "Large_Monitor_White.glb", M + "Large_Monitor_Off.glb"],
+			&"stuhl": [M + "Chair_1.glb"],
+			&"server": [K + "Props/Prop_Computer.gltf", K + "Props/Prop_AccessPoint.gltf"],
+			&"schrank": [M + "Briefing_Screen_Blue.glb", M + "Briefing_Screen_Off.glb", K + "Props/Prop_PipeHolder.gltf"],
+		},
+		"deco": [M + "Plant_1.glb", M + "Floor_Lamp.glb", "res://assets/maps/buero/Houseplant_1.glb"],
 	},
 	&"schiff": {
 		"name": "Raumschiff", "floor_name": "Deckplatten",

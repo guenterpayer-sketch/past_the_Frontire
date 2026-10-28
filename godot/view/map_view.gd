@@ -157,6 +157,8 @@ func _type_floor() -> void:
 		_pack_floor()
 		return
 	var base: Color = _type.floor
+	if _type.has("floor_patches"):
+		_floor_patches()
 	for t in map.list:
 		if t.terrain == &"leer" or t.terrain == &"gebaeude" or t.terrain == &"podest":
 			continue
@@ -198,12 +200,41 @@ func _pack_floor() -> void:
 		x += step
 
 
+## Teppichflächen aus dem Pack ("floor_patches", Büro): Karte in Blöcke von 6 m, je Block mit 50 % eine Farbe
+## als 2×2-m-Platten über dem Sechseckteppich (nur über begehbaren Bodenfeldern)
+func _floor_patches() -> void:
+	var paths: Array = _type.floor_patches
+	var w := map.cols * Hex.SIZE_M
+	var d := map.rows * Hex.ROW_M
+	var bx := -0.75
+	while bx < w:
+		var bz := -0.65
+		while bz < d:
+			if _rng.randf() < 0.5:
+				var slot := _slot(paths[_rng.randi() % paths.size()], VisualSlot.Fit.STRETCH)
+				for ix in 3:
+					for iz in 3:
+						var c := Vector2(bx + ix * 2.0 + 1.0, bz + iz * 2.0 + 1.0)
+						var t := map.tile(Hex.from_world(c))
+						if t and t.terrain == &"boden":
+							_flat(slot, Vector3(c.x, 0.006, c.y), 2.0)
+			bz += 6.0
+		bx += 6.0
+
+
 ## Flaches Modell (Bodenplatte) auf size × size strecken, Oberseite auf top
 func _flat(slot: VisualSlot, top: Vector3, size: float) -> void:
 	var a := _models.aabb(slot)
 	var basis := Basis.from_scale(Vector3(size / maxf(a.size.x, 0.01), 1.0, size / maxf(a.size.z, 0.01)))
 	var anchor := Vector3(a.get_center().x, a.end.y, a.get_center().z)
 	_models.add(slot, Transform3D(basis, top - basis * anchor))
+
+
+## Innenwände als gerade Pack-Wände? Schiff immer, Typen mit Stilwahl nur bei Pack-Stil
+func _kit_inner() -> bool:
+	if not _type.has("wall_panels"):
+		return false
+	return _wall_style >= 0 or not (_type.has("hall_walls") or _type.has("facades"))
 
 
 ## Gerade Wände (MapTypes "wall_panels", Nutzer 28.10.2026) statt Sechseckblöcken: Reihen von Wandfeldern in einer
@@ -309,6 +340,8 @@ func _wall_point(t: BattleMap.Tile, run_of: Dictionary, runs: Array) -> Vector2:
 ## Gerade Wand von a nach b (Welt x/z) aus Wandplatten, je Stück höchstens etwa 3 m
 func _wall_segment(a: Vector2, b: Vector2) -> void:
 	var paths: Array = _type.wall_panels
+	if paths.is_empty():   # Wandteil des Wandpaars der Karte
+		paths = [_type.hall_walls[_wall_style][0]]
 	var length := a.distance_to(b)
 	if length < 0.05:
 		return
@@ -321,6 +354,8 @@ func _wall_segment(a: Vector2, b: Vector2) -> void:
 		var ab := _models.aabb(slot)
 		var m := a + dir * piece * (i + 0.5)
 		var basis := Basis(Vector3.UP, rot) * Basis.from_scale(Vector3((piece + 0.02) / ab.size.x, INNER_H / ab.size.y, WALL_THICK / ab.size.z))
+		if ab.size.z > ab.size.x:   # Modell liegt längs z (MegaKit): z entlang der Wand, eigene Dicke
+			basis = Basis(Vector3.UP, atan2(dir.x, dir.y)) * Basis.from_scale(Vector3(1.0, INNER_H / ab.size.y, (piece + 0.02) / ab.size.z))
 		var anchor := Vector3(ab.get_center().x, ab.position.y, ab.get_center().z)
 		_models.add(slot, Transform3D(basis, Vector3(m.x, 0.0, m.y) - basis * anchor))
 
@@ -454,7 +489,7 @@ func _build_objects() -> void:
 			&"leiter":
 				_ladder(ts[0])
 			&"innenwand":
-				if not _type.has("wall_panels"):   # sonst gerade Wände über alle Wandfelder, nach der Schleife
+				if not _kit_inner():   # sonst gerade Wände über alle Wandfelder, nach der Schleife
 					for t in ts:
 						_hex_slab(tile_top(t.pos) + Vector3(0, INNER_H, 0), INNER_H, _type.get("inner", Color(0.3, 0.33, 0.38)))
 			&"gebaeude":
@@ -470,7 +505,7 @@ func _build_objects() -> void:
 			_:
 				if PROP_H.has(ts[0].terrain):
 					_prop(ts)
-	if _type.has("wall_panels"):
+	if _kit_inner():
 		_straight_walls(map.list.filter(func(t: BattleMap.Tile) -> bool: return t.terrain == &"innenwand"))
 	if _type.has("facades") and _wall_style >= 0:
 		_buildings(map.list.filter(func(t: BattleMap.Tile) -> bool: return t.terrain == &"gebaeude"))
@@ -943,7 +978,7 @@ func _prop(ts: Array) -> void:
 	if terrain == &"schreibtisch":
 		_desks(ts)
 		return
-	if terrain in PROP_GROUP and ts.size() > 1:
+	if terrain in PROP_GROUP and ts.size() > 1 and (alt.is_empty() or terrain in [&"auto", &"sofa"]):
 		var b := _bounds(ts)
 		var base: Vector3 = b.c + Vector3(0, ts[0].h * L, 0)
 		var size := Vector3(b.sx - 0.15, hgt, b.sz - 0.15)
@@ -974,9 +1009,16 @@ func _desks(ts: Array) -> void:
 	_box(b.c + Vector3(0, top - 0.03, 0), Vector3(b.sx - 0.2, 0.06, b.sz - 0.2), wood)
 	_box(b.c + Vector3(0, (top - 0.06) / 2.0, 0), Vector3(b.sx - 0.5, top - 0.06, b.sz - 0.5), wood.darkened(0.35))
 	var props: Dictionary = _type.get("props", {})
+	var alt := _alt_paths(&"computer")   # je Schreibtischgruppe alte oder neue Bildschirme, neue mit Stuhl
+	var chairs: Array = _type.get("alt", {}).get(&"stuhl", []) if not alt.is_empty() else []
 	for t in ts:
 		var p := tile_top(t.pos)
-		if props.has(&"computer"):
+		if not alt.is_empty():
+			var side := -1.0 if t.row % 2 else 1.0
+			_fit_uniform(_slot(alt[_rng.randi() % alt.size()]), Vector3(p.x, top, p.z - side * 0.15), Vector3(0.55, 0.55, 0.4), PI if t.row % 2 else 0.0)
+			if not chairs.is_empty():
+				_fit_uniform(_slot(chairs[0]), Vector3(p.x, 0.0, p.z + side * 0.62), Vector3(0.5, 0.95, 0.5), 0.0 if t.row % 2 else PI)
+		elif props.has(&"computer"):
 			_fit_uniform(_slot(props[&"computer"][0]), Vector3(p.x, top, p.z), Vector3(0.6, 0.5, 0.45), PI if t.row % 2 else 0.0)
 		elif map.map_type == &"schiff":
 			_box(Vector3(p.x, top + 0.2, p.z), Vector3(0.5, 0.35, 0.06), Color(0.2, 0.6, 0.9))
