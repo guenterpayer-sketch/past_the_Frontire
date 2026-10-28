@@ -16,24 +16,46 @@ extends RefCounted
 const SHIELD := "schild"
 const MAX_MEDKITS := 3
 
-## wählbare Waffen: mitgelieferte (außer Psi) nach Name, danach die eigenen aus dem Ausrüstungs-Editor (Gear)
-static func weapons() -> Array[WeaponData]:
+## Elite-Stücke des Bodenkampfs (Unterordner, Stock.is_elite): nur aus dem Lager (Beute), nie im Sortiment
+const ELITE_WEAPON_DIR := "res://data/weapons/elite"
+const ELITE_ARMOR_DIR := "res://data/armor/elite"
+
+
+## wählbare Waffen: mitgelieferte (außer Psi) nach Name, danach die eigenen aus dem Ausrüstungs-Editor (Gear);
+## mit Spiel (g) dazu die Elite-Waffen – angezeigt wird ohnehin nur, was im Lager liegt oder getragen wird
+static func weapons(g: HubState = null) -> Array[WeaponData]:
 	var out: Array[WeaponData] = GameData.weapons().filter(func(w: WeaponData) -> bool: return not w.psi)
 	var have := out.map(func(w: WeaponData) -> String: return w.resource_path)
 	for w in Gear.weapons():
 		if not w.psi and not w.resource_path in have:
 			out.append(w)
+	if g:
+		for r in _elite(ELITE_WEAPON_DIR):
+			out.append(r as WeaponData)
 	return out
 
 
-## wählbare Rüstungen: mitgelieferte nach Klasse, danach die eigenen (Gear)
-static func armors() -> Array[ArmorData]:
+## wählbare Rüstungen: mitgelieferte nach Klasse, danach die eigenen (Gear); mit Spiel (g) dazu die Elite-Rüstungen
+static func armors(g: HubState = null) -> Array[ArmorData]:
 	var out: Array[ArmorData] = []
 	for f in ResourceLoader.list_directory("res://data/armor"):
 		if f.ends_with(".tres"):
 			out.append(load("res://data/armor/" + f))
 	out.sort_custom(func(a: ArmorData, b: ArmorData) -> bool: return a.cls < b.cls)
 	out.append_array(Gear.armors())
+	if g:
+		for r in _elite(ELITE_ARMOR_DIR):
+			out.append(r as ArmorData)
+	return out
+
+
+## Elite-Stücke eines Ordners nach Name
+static func _elite(dir: String) -> Array[Resource]:
+	var out: Array[Resource] = []
+	for f in ResourceLoader.list_directory(dir):
+		if f.ends_with(".tres"):
+			out.append(load(dir.path_join(f)))
+	out.sort_custom(func(a: Resource, b: Resource) -> bool: return String(a.get("name")) < String(b.get("name")))
 	return out
 
 

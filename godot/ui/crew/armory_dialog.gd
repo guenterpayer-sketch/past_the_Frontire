@@ -32,8 +32,8 @@ func open_for(crew: Array[Character], idx := 0) -> void:
 	_idx = clampi(idx, 0, maxi(0, crew.size() - 1))
 	_slot = "w0"
 	_mode = "equip"
-	_weapons = Equipment.weapons()
-	_armors = Equipment.armors()
+	_weapons = Equipment.weapons(_g())
+	_armors = Equipment.armors(_g())
 	_snap.clear()
 	for c in crew:
 		_snap[c] = Equipment.snapshot(c)
@@ -410,7 +410,10 @@ func _armor_list(u: Character) -> void:
 		g.add_child(UiTheme.label(str(a.cls), 13))
 		g.add_child(UiTheme.label("×" + _num(Equipment.damage_taken(a), 2), 13))
 		var db := a.db + d
-		g.add_child(UiTheme.label(Dice.fmt(db) if db else "–", 13, _col(db)))
+		if d <= Combatant.WEAR_BROKEN:
+			g.add_child(UiTheme.label("wie keine", 13, UiTheme.MUTED))
+		else:
+			g.add_child(UiTheme.label(Dice.fmt(db) if db else "–", 13, _col(db)))
 		g.add_child(UiTheme.label(("%d Gratis-Feld" % a.move) if a.move else "–", 13, _col(a.move)))
 	_right.add_child(g)
 	var note := UiTheme.label("Die Klasse bestimmt die Spalte der Angriffstabelle. „Schaden erhalten“ gilt nicht gegen Psi. Verteidigung mit Zustand des Stücks (−10 je Schaden, ab −30 unbrauchbar und wie keine Rüstung; gutes Stück +5); beschädigte und gute Stücke stehen einzeln und gehen beim Ablegen mit Schaden zurück ins Lager. Angezeigt wird nur, was im Lager liegt oder getragen wird.", 11, UiTheme.MUTED)

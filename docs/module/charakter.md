@@ -59,7 +59,7 @@
   armory.done.connect(...)           # nach „Fertig“; Campaign.save() ist dann schon erfolgt
   ```
   Schließen per Klick daneben/Esc wie jedes `Modal` (dann **ohne** Speichern der Datei; die Änderungen bleiben aber an den `Character`-Objekten im Speicher – der nächste `Campaign.save()` schreibt sie).
-- `Equipment` (`core/equipment.gd`): `weapons()` (ohne Psi, dazu eigene aus `Gear.weapons()`), `armors()` (dazu `Gear.armors()`), `label(r)` (Name, „(frei)“ bei `Gear.is_free`), `weapon(ch, slot)`, `weapon_block/set_weapon(ch, slot, w)` (Platz 1 = `null` → Waffe 2 leer), `blocks_shield(w)`, `shield_block/set_shield(ch, on, g)`, `shield_bonus(ch)`, `damage_taken(armor)`. Lager (`g = HubState.game`, null = unbegrenzt): `set_weapon(ch, slot, w, g)`, `set_armor(ch, a, g)`, `set_medkits(ch, n, g)` (0 … `MAX_MEDKITS` = 3), `restore(ch, snap, g)`, `in_stock(g, r)`, `listed(g, r, worn)`, `is_free_item(r)`, `SHIELD` (Lager-Schlüssel des Schilds).
+- `Equipment` (`core/equipment.gd`): `weapons(g = null)` (ohne Psi, dazu eigene aus `Gear.weapons()`; mit Spiel `g` auch die Elite-Waffen aus `data/weapons/elite/`), `armors(g = null)` (dazu `Gear.armors()`; mit Spiel auch `data/armor/elite/`), `label(r)` (Name, „(frei)“ bei `Gear.is_free`), `weapon(ch, slot)`, `weapon_block/set_weapon(ch, slot, w)` (Platz 1 = `null` → Waffe 2 leer), `blocks_shield(w)`, `shield_block/set_shield(ch, on, g)`, `shield_bonus(ch)`, `damage_taken(armor)`. Lager (`g = HubState.game`, null = unbegrenzt): `set_weapon(ch, slot, w, g)`, `set_armor(ch, a, g)`, `set_medkits(ch, n, g)` (0 … `MAX_MEDKITS` = 3), `restore(ch, snap, g)`, `in_stock(g, r)`, `listed(g, r, worn)`, `is_free_item(r)`, `SHIELD` (Lager-Schlüssel des Schilds).
 - Regeln (Nutzer 15.10.2026): Waffe 1 Pflicht, Waffe 2 darf leer sein; keine Waffe doppelt; Psi-Waffen nicht wählbar; Schild nur mit einhändigen Waffen (Fäuste zählen nicht als zweihändig); eine zweihändige Waffe legt den Schild ab.
 - **In Dateien des Bodenkampfs geändert (auf Anweisung des Nutzers):** `data/weapons/vibroklinge.tres` → `two_handed = false` (einhändig; wirkt auch auf die Haltung des 3D-Modells), `data/weapons/laserkarabiner.tres` → Fertigkeit `gewehre` statt `pistolen`. Folge: Ikko und Rhea (Laserkarabiner, keine Ränge in Gewehre) treffen damit deutlich schlechter (Pistolen +65/+40 → Gewehre −15); Nutzer: „so lassen“, umrüsten in der Waffenkammer.
 
@@ -73,7 +73,9 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (28.10.2026): Elite-Ausrüstung lässt sich nicht ausrüsten
+### Auftrag (28.10.2026): Elite-Ausrüstung lässt sich nicht ausrüsten – erledigt (Branch, wartet auf Zusammenführung)
+
+Ergebnis: Ursache wie vermutet (`Equipment.weapons()/armors()` lasen die Unterordner `elite/` nicht; der Reiter „Lager“ zeigte Elite-Stücke schon). Jetzt `Equipment.weapons(g)`/`armors(g)` mit Elite-Ordnern, nur mit Spiel (ohne Spielstand ist der Bestand unbegrenzt, dort keine Elite). Angezeigt wird weiter nur, was im Lager liegt oder getragen wird; Schaden bleibt beim Anlegen/Ablegen erhalten. Sortiment unverändert (`Stock.goods` filtert `is_elite`). Nebenbei: Rüstungsliste zeigt bei unbrauchbaren Stücken „wie keine“ statt eines Minuswerts (wie der Reiter „Lager“). Test in `test_hub.gd` (`_test_elite`).
 
 Fehler (Nutzer, Spiel): Im Lager liegt „Sturmgewehr (Boss)“, in der Waffenkammer erscheint es nicht zur Auswahl.
 Vermutung des Koordinators aus dem Code (nicht im Spiel geprüft): Die Waffenkammer listet nur `Equipment.weapons()` / `Equipment.armors()`. Diese lesen die Ordner `res://data/weapons` bzw. `res://data/armor` ohne Unterordner (`GameData.weapons()`, `list_directory`), die Elite-Stücke liegen aber in `data/weapons/elite/` und `data/armor/elite/` (Bodenkampf, Balancing-Paket 24.10.2026).
