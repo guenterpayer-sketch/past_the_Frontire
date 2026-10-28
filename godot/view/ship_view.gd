@@ -22,7 +22,7 @@ const ROOMS := [
 
 ## Gestaltung im Editor: je Raum `ship/rooms/<id>.tscn`, zusammengesetzt in `ship/ship.tscn`
 const SCENE := "res://ship/ship.tscn"
-## Andere Fassung zum Vergleichen, z. B. die Kenney-Probe `res://ship/kenney/ship.tscn`
+## Andere Fassung zum Vergleichen (im Inspektor von hub.tscn umstellbar, nicht committen)
 @export_file("*.tscn") var scene_path := SCENE
 
 var _walls: Array[Dictionary] = []     # {full, low, normal}
