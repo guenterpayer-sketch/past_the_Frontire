@@ -53,10 +53,11 @@ func build(m: BattleMap) -> void:
 	_hall = m.map_type == &"halle"
 	_rng.seed = m.map_seed
 	_wall_style = -1
-	if _type.has("hall_walls"):   # eigener Zufall, damit die übrige Karte gleich bleibt
+	var styles: Array = _type.get("hall_walls", _type.get("facades", []))
+	if not styles.is_empty():   # eigener Zufall, damit die übrige Karte gleich bleibt
 		var wr := RandomNumberGenerator.new()
 		wr.seed = hash([m.map_seed, "wandstil"])
-		_wall_style = wr.randi_range(0, _type.hall_walls.size()) - 1
+		_wall_style = wr.randi_range(0, styles.size()) - 1
 	_groups.clear()
 	_build_floor()
 	_build_objects()
@@ -163,6 +164,14 @@ func _type_floor() -> void:
 		var k := (hash(t.pos) % 5) * 0.012
 		_hex_slab(Vector3(Hex.to_world(t.pos).x, 0.0 if t.terrain != &"gehweg" else 0.08, Hex.to_world(t.pos).y),
 			0.05 if t.terrain != &"gehweg" else 0.13, c.darkened(k))
+		if t.terrain == &"gehweg" and _type.has("sidewalk") and _wall_style >= 0:
+			# Gehwegplatte je Feld (1,5 × 1,3 m, lückenlos in der Reihe)
+			var sw: Array = _type.sidewalk
+			var slot := _slot(sw[_rng.randi() % sw.size()], VisualSlot.Fit.STRETCH)
+			var a := _models.aabb(slot)
+			var w := Hex.to_world(t.pos)
+			var basis := Basis.from_scale(Vector3(Hex.SIZE_M / maxf(a.size.x, 0.01), 1.0, Hex.ROW_M / maxf(a.size.z, 0.01)))
+			_models.add(slot, Transform3D(basis, Vector3(w.x, 0.083, w.y) - basis * Vector3(a.get_center().x, a.end.y, a.get_center().z)))
 
 
 ## Bodenplatten aus einem Pack (MapTypes "floors"): Quadratraster ("floor_step", sonst 2 m) unter dem Hexraster,
@@ -449,6 +458,8 @@ func _build_objects() -> void:
 					for t in ts:
 						_hex_slab(tile_top(t.pos) + Vector3(0, INNER_H, 0), INNER_H, _type.get("inner", Color(0.3, 0.33, 0.38)))
 			&"gebaeude":
+				if _type.has("facades") and _wall_style >= 0:
+					continue   # Häuser mit Fassaden nach der Schleife
 				for t in ts:
 					_hex_slab(tile_top(t.pos) + Vector3(0, BUILDING_H, 0), BUILDING_H, _type.get("wall", Color(0.3, 0.3, 0.3)).darkened((hash(t.col / 4) % 4) * 0.06))
 			&"podest":
@@ -461,6 +472,8 @@ func _build_objects() -> void:
 					_prop(ts)
 	if _type.has("wall_panels"):
 		_straight_walls(map.list.filter(func(t: BattleMap.Tile) -> bool: return t.terrain == &"innenwand"))
+	if _type.has("facades") and _wall_style >= 0:
+		_buildings(map.list.filter(func(t: BattleMap.Tile) -> bool: return t.terrain == &"gebaeude"))
 
 
 ## Umriss einer Feldgruppe: Mitte und Größe (x, z) eines achsenparallelen Quaders
@@ -752,6 +765,106 @@ func _kit_wall(center: Vector3, size: Vector3, normal: Vector3, gid: String) -> 
 			var la := _models.aabb(ls)
 			var lb := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, WALL_LOW / maxf(la.size.y, 0.01), (piece + 0.02) / la.size.z))
 			_models.add(ls, Transform3D(lb, p - lb * Vector3(-2.0, 0.0, la.get_center().z)), gid + "_low")
+
+
+## Häuser mit geraden Fassaden (Straße, MapTypes "facades", Nutzer 28.10.2026): Häuserfelder zeilenweise zu Läufen,
+## gleiche Läufe in aufeinanderfolgenden Zeilen zu Rechtecken; je Rechteck zufällig Hochhaus (zwei Wandlagen und
+## Abschluss, Schnitt zur Kamera wie die Hallenwand) oder Hütte (eine Wandlage), Fassaden nach außen, Dach oben.
+func _buildings(ts: Array) -> void:
+	var by_row := {}
+	for t in ts:
+		if not by_row.has(t.row):
+			by_row[t.row] = []
+		by_row[t.row].append(t.col)
+	var rows: Array = by_row.keys()
+	rows.sort()
+	var open := {}    # "c0|c1" → Rechteck {c0, c1, r0, r1}
+	var rects: Array = []
+	for r in rows:
+		var cols: Array = by_row[r]
+		cols.sort()
+		var runs: Array = []
+		var i := 0
+		while i < cols.size():
+			var j := i
+			while j + 1 < cols.size() and cols[j + 1] == cols[j] + 1:
+				j += 1
+			runs.append([cols[i], cols[j]])
+			i = j + 1
+		var next := {}
+		for run in runs:
+			var key := "%d|%d" % run
+			if open.has(key) and open[key].r1 == r - 1:
+				open[key].r1 = r
+				next[key] = open[key]
+			else:
+				var rect := {"c0": run[0], "c1": run[1], "r0": r, "r1": r}
+				rects.append(rect)
+				next[key] = rect
+		open = next
+	var mid_z := map.rows * Hex.ROW_M / 2.0
+	for rect in rects:
+		var x0 := 0.0
+		var x1 := 0.0
+		for r in range(rect.r0, rect.r1 + 1):
+			x0 += Hex.to_world(Hex.from_offset(rect.c0, r)).x - Hex.SIZE_M / 2.0
+			x1 += Hex.to_world(Hex.from_offset(rect.c1, r)).x + Hex.SIZE_M / 2.0
+		var n: int = rect.r1 - rect.r0 + 1
+		x0 /= n
+		x1 /= n
+		var z0 := Hex.to_world(Hex.from_offset(rect.c0, rect.r0)).y - Hex.ROW_M / 2.0
+		var z1 := Hex.to_world(Hex.from_offset(rect.c0, rect.r1)).y + Hex.ROW_M / 2.0
+		var tall := _rng.randf() < 0.5 and x1 - x0 > 3.0
+		_house(Vector2(x0, z0), Vector2(x1, z1), tall, Vector3(0, 0, -1) if (z0 + z1) / 2.0 < mid_z else Vector3(0, 0, 1))
+
+
+## Ein Haus im Rechteck a–b (Welt x/z): Fassaden aus dem Wandpaar der Karte, Dach; Hochhaus mit Schnitt (normal = Kartenrand)
+func _house(a: Vector2, b: Vector2, tall: bool, normal: Vector3) -> void:
+	var pair: Array = _type.facades[_wall_style]
+	var levels := 2 if tall else 1
+	var gid := "house_%d" % _walls.size()
+	var full := gid + "_full" if tall else ""
+	var c := (a + b) / 2.0
+	var sides := [[Vector2(c.x, a.y), Vector2(0, -1), b.x - a.x], [Vector2(c.x, b.y), Vector2(0, 1), b.x - a.x],
+		[Vector2(a.x, c.y), Vector2(-1, 0), b.y - a.y], [Vector2(b.x, c.y), Vector2(1, 0), b.y - a.y]]
+	var lower := _slot(pair[0], VisualSlot.Fit.STRETCH)
+	var la := _models.aabb(lower)
+	var top_slot := _slot(pair[1], VisualSlot.Fit.STRETCH)
+	var height := la.size.y * levels + (2.0 if tall else 0.0)
+	for sd in sides:
+		var out: Vector2 = sd[1]
+		var length: float = sd[2]
+		var n := maxi(1, roundi(length / 4.0))
+		var piece := length / n
+		var r := atan2(out.y, -out.x)   # Schmuckseite (Modell −x) nach außen
+		var along_x := absf(out.y) > 0.5
+		for i in n:
+			var off := -length / 2.0 + piece * (i + 0.5)
+			var p: Vector2 = sd[0] + (Vector2(off, 0) if along_x else Vector2(0, off)) - out * (la.end.x + 2.0)
+			for lv in levels:
+				var basis := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, 1.0, (piece + 0.02) / la.size.z))
+				var xf := Transform3D(basis, Vector3(p.x, lv * la.size.y, p.y) - basis * Vector3(-2.0, 0.0, la.get_center().z))
+				_models.add(lower, xf, full)
+				if tall and lv == levels - 1:
+					_models.add(top_slot, xf, full)
+	var roof: Color = _type.get("roof", Color(0.22, 0.22, 0.25))
+	_box(Vector3(c.x, height - 0.1, c.y), Vector3(b.x - a.x - 0.1, 0.2, b.y - a.y - 0.1), roof, full)
+	if not tall:
+		return
+	# niedriger Schnitt zur Kamera: kurze Wand rundum, Dach darauf
+	var lows: Array = _type.get("facades_low", [])
+	var low := gid + "_low"
+	if not lows.is_empty():
+		var ls := _slot(lows[_wall_style % lows.size()], VisualSlot.Fit.STRETCH)
+		var lw := _models.aabb(ls)
+		for sd in sides:
+			var out: Vector2 = sd[1]
+			var r := atan2(out.y, -out.x)
+			var lb := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, WALL_LOW / maxf(lw.size.y, 0.01), sd[2] / lw.size.z))
+			_models.add(ls, Transform3D(lb, Vector3(sd[0].x, 0.0, sd[0].y) - lb * Vector3(-2.0, 0.0, lw.get_center().z)), low)
+	_box(Vector3(c.x, WALL_LOW - 0.05, c.y), Vector3(b.x - a.x - 0.1, 0.1, b.y - a.y - 0.1), roof, low)
+	_group(low).visible = false
+	_walls.append({"full": _group(full), "low": _group(low), "normal": normal})
 
 
 ## Treppe als echte Stufen (vorher ein Block, sah aus wie ein Container; Spieltest 15.10.2026).

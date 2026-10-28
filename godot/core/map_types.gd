@@ -69,6 +69,19 @@ const TYPES := {
 			&"laterne": ["res://assets/maps/strasse/Streetlight_Single.glb"],
 			&"tonne": ["res://assets/maps/strasse/Trashcan_Large.glb"],
 		},
+		# MegaKit (Nutzer 28.10.2026): gerade Fassaden statt Sechsecksäulen, je Haus Hochhaus oder Hütte,
+		# Stil je Karte (alt oder ein Paar); Gehweg mit MegaKit-Platten; Barrieren und Tonnen gemischt
+		"facades": [[K + "Walls/WallAstra_Straight_Window.gltf", K + "Walls/TopWindow_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Flat_Window.gltf", K + "Walls/TopPlastic_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopCables_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopAstra_Straight.gltf"]],
+		"facades_low": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Metal2_Straight.gltf", K + "Walls/ShortWall_DarkMetal2_Straight.gltf"],
+		"sidewalk": [K + "Platforms/Platform_Simple.gltf", K + "Platforms/Platform_Squares.gltf", K + "Platforms/Platform_3Plates.gltf"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"tonne": [K + "Props/Prop_Chest.gltf", K + "Props/Prop_Barrel_Large.gltf"],
+			&"barriere": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Triangles_Straight.gltf", K + "Walls/ShortWall_AccentStrip_Straight.gltf"],
+		},
 	},
 	&"tempel": {
 		"name": "Antiker Tempel", "floor_name": "Steinboden",
