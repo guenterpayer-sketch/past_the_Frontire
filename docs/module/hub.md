@@ -57,9 +57,4 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag 12 (28.10.2026): Schiff als bearbeitbare Szene – freigegeben
-
-Freigabe des Nutzers für den Vorschlag aus der Probe (Abschnitt dazu oben in dieser Datei): Das Schiff wird eine im Godot-Editor bearbeitbare Szene, damit der Nutzer die Räume selbst gestaltet. API von `ShipView` bleibt, andere Module unberührt.
-1. **Zuerst die 4 offenen Entscheidungen mit dem Nutzer klären** (eine Szene oder je Raum, Raumrechtecke im Code oder in der Szene, Licht, welche Packs nach `godot/assets/`), dann bauen.
-2. Übernommene Packs aus `assets_neu/` nach `godot/assets/` kopieren (nur glTF/GLB, Lizenz aus `assets_neu/LIZENZEN.md` in `godot/assets/LICENSES.md`).
-3. Tests nach CLAUDE.md, `--autotest-hub`, Fertigmeldung.
+- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
