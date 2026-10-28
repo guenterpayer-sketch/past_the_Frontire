@@ -38,6 +38,9 @@ var _box_meshes := {}
 ## Kartentyp (MapTypes.info) und Modelle der Typen (Pfad → VisualSlot)
 var _type: Dictionary = {}
 var _hall := true
+## Hallenstil je Karte (Nutzer 28.10.2026): -1 = alte Wände und alter Boden, sonst Nummer des Wandpaars aus
+## MapTypes "hall_walls" (dann MegaKit-Boden); Einrichtung bleibt gemischt
+var _wall_style := -1
 static var _slots := {}
 
 
@@ -49,6 +52,11 @@ func build(m: BattleMap) -> void:
 	_type = MapTypes.info(m.map_type)
 	_hall = m.map_type == &"halle"
 	_rng.seed = m.map_seed
+	_wall_style = -1
+	if _type.has("hall_walls"):   # eigener Zufall, damit die übrige Karte gleich bleibt
+		var wr := RandomNumberGenerator.new()
+		wr.seed = hash([m.map_seed, "wandstil"])
+		_wall_style = wr.randi_range(0, _type.hall_walls.size()) - 1
 	_groups.clear()
 	_build_floor()
 	_build_objects()
@@ -115,7 +123,7 @@ func _build_floor() -> void:
 	if not _hall:
 		_type_floor()
 		return
-	if _type.has("floors"):
+	if _type.has("floors") and _wall_style >= 0:
 		_pack_floor()
 	elif theme and theme.floor_tile:
 		_floor_tiles(sx, sz)
@@ -693,7 +701,7 @@ func _wall(ts: Array) -> void:
 	var c: Color = _type.get("wall", Color(0.24, 0.27, 0.32))
 	var gid := "wall_%d" % _walls.size()
 	var full := _group(gid + "_full")
-	if _type.has("hall_walls"):
+	if _type.has("hall_walls") and _wall_style >= 0:
 		_kit_wall(b.c, size, normal, gid)
 		low_done = true
 	elif theme and theme.wall and _hall:
@@ -716,7 +724,7 @@ func _wall(ts: Array) -> void:
 
 
 ## Außenwand aus Pack-Teilen (MapTypes "hall_walls": Paare Wandteil unten + Abschluss oben, gleicher Ursprung):
-## Stücke von etwa 4 m entlang der Wand, beide zusammen auf WALL_H gestreckt, Schmuckseite zur Halle;
+## Stücke von etwa 4 m entlang der Wand, Paar je Karte (_wall_style), beide zusammen auf WALL_H gestreckt, Schmuckseite zur Halle;
 ## niedriger Schnitt ("hall_walls_low") als kurze Wand auf WALL_LOW
 func _kit_wall(center: Vector3, size: Vector3, normal: Vector3, gid: String) -> void:
 	var along_x := size.x > size.z
@@ -730,7 +738,7 @@ func _kit_wall(center: Vector3, size: Vector3, normal: Vector3, gid: String) -> 
 	for i in n:
 		var off := -length / 2.0 + piece * (i + 0.5)
 		var p := center + (Vector3(off, 0, 0) if along_x else Vector3(0, 0, off))
-		var pair: Array = pairs[_rng.randi() % pairs.size()]
+		var pair: Array = pairs[_wall_style]
 		var lower := _slot(pair[0], VisualSlot.Fit.STRETCH)
 		var a := _models.aabb(lower)
 		var k := WALL_H / (a.size.y + 2.0)   # Wandteil + 2 m Abschluss = WALL_H
@@ -740,7 +748,7 @@ func _kit_wall(center: Vector3, size: Vector3, normal: Vector3, gid: String) -> 
 		_models.add(lower, xf, gid + "_full")
 		_models.add(_slot(pair[1], VisualSlot.Fit.STRETCH), xf, gid + "_full")
 		if not lows.is_empty():
-			var ls := _slot(lows[_rng.randi() % lows.size()], VisualSlot.Fit.STRETCH)
+			var ls := _slot(lows[_wall_style % lows.size()], VisualSlot.Fit.STRETCH)
 			var la := _models.aabb(ls)
 			var lb := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, WALL_LOW / maxf(la.size.y, 0.01), (piece + 0.02) / la.size.z))
 			_models.add(ls, Transform3D(lb, p - lb * Vector3(-2.0, 0.0, la.get_center().z)), gid + "_low")
