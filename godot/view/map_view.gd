@@ -476,6 +476,12 @@ func _build_objects() -> void:
 			&"podest":
 				for t in ts:
 					_hex_slab(tile_top(t.pos), t.h * L, _type.get("podest", Color(0.4, 0.4, 0.42)))
+				if _type.has("podest_floor"):   # Bühne: ein Bodenmodell über das ganze Podest
+					var pb := _bounds(ts)
+					var ps := _slot(_type.podest_floor, VisualSlot.Fit.STRETCH)
+					var pa := _models.aabb(ps)
+					var basis := Basis.from_scale(Vector3((pb.sx - 0.2) / maxf(pa.size.x, 0.01), 1.0, (pb.sz - 0.2) / maxf(pa.size.z, 0.01)))
+					_models.add(ps, Transform3D(basis, pb.c + Vector3(0, ts[0].h * L + 0.004, 0) - basis * Vector3(pa.get_center().x, pa.end.y, pa.get_center().z)))
 			&"boden", &"gehweg", &"leer":
 				pass
 			_:
@@ -1037,7 +1043,8 @@ func _desks(ts: Array) -> void:
 
 ## Hocker an freie Nachbarfelder eines Bartischs (nur Grafik)
 func _stools(t: BattleMap.Tile) -> void:
-	var slot := _slot(_type.props[&"hocker"][0])
+	var alt := _alt_paths(&"hocker")   # je Tisch alte Hocker oder neue Stühle
+	var slot := _slot(_type.props[&"hocker"][0] if alt.is_empty() else alt[_rng.randi() % alt.size()])
 	var k := 0
 	for n in Hex.neighbors(t.pos):
 		var nt := map.tile(n)

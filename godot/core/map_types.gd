@@ -55,6 +55,23 @@ const TYPES := {
 			&"schrank": ["res://assets/maps/bar/Shelf_Large.glb"],
 			&"hocker": ["res://assets/maps/bar/Stool.glb"],
 		},
+		# MegaKit/Molten/Essentials (Nutzer 28.10.2026): Wände wie im Büro (Stil je Karte), Bühne mit Molten-Boden,
+		# Einrichtung gemischt, wenig Deko
+		"hall_walls": [[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopCables_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopPlastic_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopSimple_Straight.gltf"]],
+		"hall_walls_low": [K + "Walls/ShortWall_DarkMetal2_Straight.gltf", K + "Walls/ShortWall_DarkPlastic_Straight.gltf", K + "Walls/ShortWall_Band2_Straight.gltf"],
+		"wall_panels": [],   # leer: Innenwände aus dem Wandteil des Paars der Karte
+		"podest_floor": M + "Floor_Command_Large.glb",
+		"alt_chance": 0.5,
+		"alt": {
+			&"tisch": [M + "Cafeteria_Table.glb", M + "End_Table.glb", M + "Octo_Table.glb"],
+			&"hocker": [M + "Chair_1.glb", "res://assets/packs/essentials/Prop_Chair.gltf"],
+			&"kiste": [K + "Props/Prop_Crate3.gltf", K + "Props/Prop_Crate4.gltf", "res://assets/packs/essentials/Prop_Crate.gltf", "res://assets/packs/essentials/Prop_Crate_Tarp.gltf", "res://assets/packs/essentials/Prop_Barrel1.gltf"],
+			&"schrank": ["res://assets/packs/essentials/Prop_Shelves_WideTall.gltf", "res://assets/packs/essentials/Prop_Shelves_WideShort.gltf"],
+		},
+		"deco": [M + "Lava_Lamp.glb", M + "Floor_Lamp.glb", M + "Large_Monitor_Purple.glb"],
 	},
 	&"strasse": {
 		"name": "Straße", "floor_name": "Fahrbahn",
