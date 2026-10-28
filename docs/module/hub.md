@@ -60,4 +60,6 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag 13 (28.10.2026): Elite-Ausrüstung in der Enzyklopädie, sobald erbeutet
+
+Entscheidung des Nutzers: Elite- und Boss-Stücke (`data/weapons/elite/`, `data/armor/elite/`, `Stock.is_elite`) erscheinen in der Enzyklopädie erst, wenn sie einmal im Lager waren (Beute). Dafür im Spielstand merken, welche Elite-Stücke schon erbeutet wurden (auch nach Verkauf weiter sichtbar). Alte Spielstände: was jetzt im Lager liegt oder getragen wird, gilt als erbeutet. Tests nach CLAUDE.md (test_sim nicht nötig), Fertigmeldung.
