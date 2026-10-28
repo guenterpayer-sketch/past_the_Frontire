@@ -36,6 +36,7 @@ func _init() -> void:
 	_test_trade_skills()
 	_test_station_trade()
 	_test_elite()
+	_test_elite_seen()
 	_test_loot()
 	_test_crafting()
 	_test_galley()
@@ -962,6 +963,37 @@ func _test_stock() -> void:
 
 
 ## Elite und Boss, Schwierigkeitsgrad, Elite-Beute (Auftrag 10, Entscheidungen des Nutzers 24.10.2026)
+## Elite-Stücke erscheinen in der Enzyklopädie erst nach der Beute, auch nach Verkauf (Hub Auftrag 13)
+func _test_elite_seen() -> void:
+	Campaign.new_game(GlobalRoster.entries())
+	var g := HubState.new_game(74, "Elite gesehen", 1)
+	HubState.game = g
+	var gun := "res://data/weapons/elite/sturmgewehr_elite.tres"
+	var field := "res://data/armor/elite/keine_vw5.tres"
+	check(Encyclopedia.elite_seen(Gear.WEAPON_DIR).is_empty() and Encyclopedia.elite_seen(Gear.ARMOR_DIR).is_empty(), "Elite: anfangs nichts in der Enzyklopädie")
+	Stock.add(g, Stock.damaged_key(gun, -10))
+	Stock.add(g, "res://data/weapons/sturmgewehr.tres")
+	Stock.add(g, Stock.MEDKIT)
+	check(Array(g.elite_seen) == [gun], "Elite: Beute (auch beschädigt) wird gemerkt, Normales nicht")
+	var names := Encyclopedia.elite_seen(Gear.WEAPON_DIR).map(func(w: WeaponData) -> String: return w.name)
+	check(names == ["Sturmgewehr Elite"], "Elite: erbeutetes Stück in der Enzyklopädie")
+	Stock.take(g, Stock.damaged_key(gun, -10))
+	check(Encyclopedia.elite_seen(Gear.WEAPON_DIR).size() == 1, "Elite: nach Verkauf weiter sichtbar")
+	var h := HubState.from_dict(JSON.parse_string(JSON.stringify(g.to_dict())))
+	check(Array(h.elite_seen) == [gun], "Elite: im Spielstand")
+	# alter Spielstand ohne Feld: Lager und getragene Ausrüstung gelten als erbeutet
+	var d: Dictionary = g.to_dict()
+	d.erase("elite_seen")
+	d.stock = {gun + "|+5": 1}
+	var ch: Character = Campaign.crew()[0]
+	var old_armor := ch.armor
+	ch.armor = load(field)
+	h = HubState.from_dict(JSON.parse_string(JSON.stringify(d)))
+	ch.armor = old_armor
+	check(gun in h.elite_seen and field in h.elite_seen and h.elite_seen.size() == 2, "Elite: alter Spielstand übernimmt Lager und Getragenes")
+	HubState.game = null
+
+
 func _test_elite() -> void:
 	var hits := 0
 	for i in 2000:

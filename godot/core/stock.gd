@@ -186,6 +186,16 @@ static func add(g: HubState, key: String, n := 1) -> void:
 	if g == null or key == "" or n <= 0:
 		return
 	g.stock[key] = count(g, key) + n
+	note_elite(g, key)
+
+
+## Elite-Stück als erbeutet merken (Enzyklopädie, Hub Auftrag 13); andere Schlüssel bleiben unbeachtet
+static func note_elite(g: HubState, key: String) -> void:
+	var base := base_of(key)
+	if g == null or base == "" or base in g.elite_seen:
+		return
+	if "/elite/" in base or (base.begins_with("res://") and ResourceLoader.exists(base) and is_elite(load(base))):
+		g.elite_seen.append(base)
 
 
 ## Ein Stück herausnehmen (Ausrüsten); false, wenn keins da ist. Ohne Spiel immer true.
