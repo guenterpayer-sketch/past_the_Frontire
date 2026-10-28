@@ -9,6 +9,8 @@ const SHIP := &"schiff"
 
 ## Ordner der Molten-Maps-Modelle (Raumschiff)
 const M := "res://assets/packs/molten/"
+## Ordner des Quaternius Modular Sci-Fi MegaKit (Halle und andere urbane Karten)
+const K := "res://assets/packs/megakit/"
 
 ## light: ambient (Farbe, Stärke), sun (Farbe, Stärke), lamps (Farben im Wechsel), lamp_energy, lamp_range,
 ## lamp_h (Höhe), bg (Hintergrund). props: Gelände → Modellpfade (eins je Objekt zufällig).
@@ -20,6 +22,24 @@ const TYPES := {
 		"lamps": [Color(1.0, 0.92, 0.78)], "lamp_energy": 1.1, "lamp_range": 16.0, "lamp_h": 8.0,
 		"bg": Color(0.035, 0.045, 0.07),
 		"props": {},
+		# MegaKit (Nutzer 28.10.2026): Bodenplatten 4×4 m im Wechsel, Außenwände aus Wandteil unten + Abschluss oben
+		# (zusammen auf WALL_H gestreckt), niedriger Schnitt als kurze Wand; Objekte gemischt alt/neu
+		"floor_step": 4.0,
+		"floors": [[1.01, [K + "Platforms/Platform_Metal.gltf", K + "Platforms/Platform_Metal2.gltf", K + "Platforms/Platform_DarkPlates.gltf",
+			K + "Platforms/Platform_CenterPlate.gltf", K + "Platforms/Platform_Squares.gltf", K + "Platforms/Platform_3Plates.gltf"]]],
+		"hall_walls": [[K + "Walls/WallAstra_Straight.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopCables_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Window.gltf", K + "Walls/TopWindow_Straight.gltf"]],
+		"hall_walls_low": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Metal2_Straight.gltf", K + "Walls/ShortWall_DarkMetal2_Straight.gltf"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"kiste": [K + "Props/Prop_Crate3.gltf", K + "Props/Prop_Crate4.gltf"],
+			&"fass": [K + "Props/Prop_Barrel_Large.gltf"],
+			&"saeule": [K + "Columns/Column_Pipes.gltf", K + "Columns/Column_Round.gltf", K + "Columns/Column_Simple.gltf"],
+			&"barriere": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Triangles_Straight.gltf", K + "Walls/ShortWall_AccentStrip_Straight.gltf"],
+			&"regal": [K + "Props/Prop_PipeHolder.gltf"],
+		},
 	},
 	&"bar": {
 		"name": "Bar", "floor_name": "Dielenboden",

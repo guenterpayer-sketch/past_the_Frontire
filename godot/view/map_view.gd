@@ -115,7 +115,9 @@ func _build_floor() -> void:
 	if not _hall:
 		_type_floor()
 		return
-	if theme and theme.floor_tile:
+	if _type.has("floors"):
+		_pack_floor()
+	elif theme and theme.floor_tile:
 		_floor_tiles(sx, sz)
 	# Fahrspuren und Markierungen
 	var lane := Color(0.85, 0.68, 0.15)
@@ -155,10 +157,10 @@ func _type_floor() -> void:
 			0.05 if t.terrain != &"gehweg" else 0.13, c.darkened(k))
 
 
-## Bodenplatten aus einem Pack (Raumschiff, MapTypes "floors"): 2×2 m im Quadratraster unter dem Hexraster,
-## Modell je Zone (Anteil der Kartenbreite) zufällig, Warnstreifen vor der Luftschleuse links
+## Bodenplatten aus einem Pack (MapTypes "floors"): Quadratraster ("floor_step", sonst 2 m) unter dem Hexraster,
+## Modell je Zone (Anteil der Kartenbreite) zufällig, Warnstreifen ("floor_hazard") vor der Luftschleuse links
 func _pack_floor() -> void:
-	var step := 2.0
+	var step: float = _type.get("floor_step", 2.0)
 	var w := map.cols * Hex.SIZE_M
 	var d := map.rows * Hex.ROW_M
 	var x := -0.75
@@ -168,13 +170,13 @@ func _pack_floor() -> void:
 			var c := Vector2(x + step / 2.0, z + step / 2.0)
 			var t := map.tile(Hex.from_world(c))
 			if t and t.terrain != &"leer":
-				var path: String = _type.floor_hazard if c.x < 4.0 and absf(c.y - d / 2.0) < 2.2 else ""
+				var path: String = _type.floor_hazard if _type.has("floor_hazard") and c.x < 4.0 and absf(c.y - d / 2.0) < 2.2 else ""
 				if path == "":
 					for zone in _type.floors:
 						if c.x / w < zone[0]:
 							path = zone[1][_rng.randi() % zone[1].size()]
 							break
-				_flat(_slot(path, VisualSlot.Fit.STRETCH), Vector3(c.x, 0.0, c.y), step)
+				_flat(_slot(path, VisualSlot.Fit.STRETCH), Vector3(c.x, 0.003, c.y), step)
 			z += step
 		x += step
 
@@ -506,6 +508,15 @@ func _container(ts: Array) -> void:
 func _shelf(ts: Array) -> void:
 	var b := _bounds(ts)
 	var top: float = ts[0].h * L
+	var alt := _alt_paths(&"regal")
+	if not alt.is_empty():
+		# Rohrlager: Lagen von Rohrhaltern übereinander, Deckplatte oben (begehbar)
+		var slot := _slot(alt[_rng.randi() % alt.size()], VisualSlot.Fit.STRETCH, 4.0)
+		var layers := maxi(1, roundi(top / 1.0))
+		for i in layers:
+			_models.fill_repeat(slot, b.c + Vector3(0, i * top / layers, 0), Vector3(b.sx - 0.1, top / layers - 0.05, b.sz - 0.1))
+		_box(b.c + Vector3(0, top - 0.04, 0), Vector3(b.sx - 0.1, 0.08, b.sz - 0.1), Color(0.4, 0.42, 0.46))
+		return
 	if theme and theme.shelf:
 		_models.fill_repeat(theme.shelf, b.c, Vector3(b.sx - 0.1, top, b.sz - 0.1))
 		# Deckplatte oben (begehbar)
@@ -597,6 +608,10 @@ func _crates(ts: Array) -> void:
 func _barrier(ts: Array) -> void:
 	var b := _bounds(ts)
 	var hgt: float = ts[0].obj_h * L
+	var alt := _alt_paths(&"barriere")
+	if not alt.is_empty():
+		_kit_barrier(b, hgt, alt[_rng.randi() % alt.size()])
+		return
 	var concrete := Color(0.62, 0.62, 0.6)
 	var long_x: bool = b.sx > b.sz
 	var thick := 0.6
@@ -607,9 +622,31 @@ func _barrier(ts: Array) -> void:
 	_box(b.c + Vector3(0, hgt * 0.8, 0), Vector3(top.x + 0.02, 0.12, top.z + 0.02), Color(0.85, 0.3, 0.2))
 
 
+## Barriere aus zwei kurzen Wandplatten (Pack, flach) Rücken an Rücken, dazwischen ein Block, oben eine Kappe
+func _kit_barrier(b: Dictionary, hgt: float, path: String) -> void:
+	var slot := _slot(path, VisualSlot.Fit.STRETCH)
+	var a := _models.aabb(slot)
+	var along_x: bool = b.sx > b.sz
+	var length: float = (b.sx if along_x else b.sz) - 0.2
+	var thick := 0.5
+	for side in [-1.0, 1.0]:
+		var r := (0.0 if side > 0 else PI) + (PI / 2.0 if along_x else 0.0)
+		var basis := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, hgt / maxf(a.size.y, 0.01), length / a.size.z))
+		var p: Vector3 = b.c + (Vector3(0, 0, side * thick / 2.0) if along_x else Vector3(side * thick / 2.0, 0, 0))
+		_models.add(slot, Transform3D(basis, p - basis * Vector3(-2.0, 0.0, a.get_center().z)))
+	var core := Vector3(length, hgt - 0.02, thick - 0.04) if along_x else Vector3(thick - 0.04, hgt - 0.02, length)
+	_box(b.c + Vector3(0, hgt / 2.0, 0), core, Color(0.3, 0.32, 0.36))
+	_box(b.c + Vector3(0, hgt, 0), Vector3(core.x + 0.06, 0.06, core.z + 0.06), Color(0.55, 0.57, 0.6))
+
+
 func _barrels(t: BattleMap.Tile) -> void:
 	var top := tile_top(t.pos)
 	var hgt := t.obj_h * L
+	var alt := _alt_paths(&"fass")
+	if not alt.is_empty():
+		for off in [Vector2(-0.3, -0.15), Vector2(0.3, 0.2)]:
+			_fit_uniform(_slot(alt[_rng.randi() % alt.size()]), top + Vector3(off.x, 0, off.y), Vector3(0.6, hgt * 0.95, 0.6), _rng.randf() * TAU)
+		return
 	if theme and theme.barrel:
 		for off in [Vector2(-0.3, -0.15), Vector2(0.3, 0.2)]:
 			_models.add(theme.barrel, _models.fit_box(theme.barrel, top + Vector3(off.x, 0, off.y), Vector3(0.6, hgt * 0.95, 0.6), _rng.randf() * TAU))
@@ -627,6 +664,11 @@ func _barrels(t: BattleMap.Tile) -> void:
 
 func _pillar(t: BattleMap.Tile) -> void:
 	var top := tile_top(t.pos)
+	var alt := _alt_paths(&"saeule")
+	if not alt.is_empty():
+		var slot := _slot(alt[_rng.randi() % alt.size()], VisualSlot.Fit.STRETCH)
+		_models.add(slot, _models.fit_box(slot, top, Vector3(0.8, WALL_H, 0.8)))
+		return
 	if theme and theme.pillar:
 		_models.add(theme.pillar, _models.fit_box(theme.pillar, top, Vector3(0.7, WALL_H, 0.7)))
 		return
@@ -647,25 +689,61 @@ func _wall(ts: Array) -> void:
 	else:
 		normal = Vector3(1, 0, 0)
 	var size := Vector3(b.sx, WALL_H, b.sz)
+	var low_done := false
 	var c: Color = _type.get("wall", Color(0.24, 0.27, 0.32))
 	var gid := "wall_%d" % _walls.size()
 	var full := _group(gid + "_full")
-	if theme and theme.wall and _hall:
+	if _type.has("hall_walls"):
+		_kit_wall(b.c, size, normal, gid)
+		low_done = true
+	elif theme and theme.wall and _hall:
 		_models.fill_repeat(theme.wall, b.c, Vector3(size.x, WALL_H, size.z), gid + "_full")
 	else:
 		_box(b.c + Vector3(0, WALL_H / 2.0, 0), size, c, gid + "_full", 0.0, _mat(c, 0.85, 0.1))
 	# senkrechte Paneele
 	var long_x := size.x > size.z
 	var length := size.x if long_x else size.z
-	for i in (0 if theme and theme.wall and _hall else int(length / 3.0)):
+	for i in (0 if (theme and theme.wall and _hall) or low_done else int(length / 3.0)):
 		var off := -length / 2.0 + 1.5 + i * 3.0
 		var p: Vector3 = b.c + (Vector3(off, WALL_H / 2.0, -normal.z * (size.z / 2.0 + 0.03)) if long_x else Vector3(-normal.x * (size.x / 2.0 + 0.03), WALL_H / 2.0, off))
 		_box(p, Vector3(0.12, WALL_H, 0.12), c.lightened(0.08), gid + "_full")
 	var low := _group(gid + "_low")
-	_box(b.c + Vector3(0, WALL_LOW / 2.0, 0), Vector3(size.x, WALL_LOW, size.z), c, gid + "_low")
-	_box(b.c + Vector3(0, WALL_LOW, 0), Vector3(size.x + 0.02, 0.06, size.z + 0.02), Color(0.85, 0.68, 0.15), gid + "_low")
+	if not low_done:
+		_box(b.c + Vector3(0, WALL_LOW / 2.0, 0), Vector3(size.x, WALL_LOW, size.z), c, gid + "_low")
+		_box(b.c + Vector3(0, WALL_LOW, 0), Vector3(size.x + 0.02, 0.06, size.z + 0.02), Color(0.85, 0.68, 0.15), gid + "_low")
 	low.visible = false
 	_walls.append({"full": full, "low": low, "normal": normal})
+
+
+## Außenwand aus Pack-Teilen (MapTypes "hall_walls": Paare Wandteil unten + Abschluss oben, gleicher Ursprung):
+## Stücke von etwa 4 m entlang der Wand, beide zusammen auf WALL_H gestreckt, Schmuckseite zur Halle;
+## niedriger Schnitt ("hall_walls_low") als kurze Wand auf WALL_LOW
+func _kit_wall(center: Vector3, size: Vector3, normal: Vector3, gid: String) -> void:
+	var along_x := size.x > size.z
+	var length := size.x if along_x else size.z
+	var n := maxi(1, roundi(length / 4.0))
+	var piece := length / n
+	var inward := Vector2(-normal.x, -normal.z)
+	var r := atan2(inward.y, -inward.x)   # Modell −x (Schmuckseite) zur Halle
+	var pairs: Array = _type.hall_walls
+	var lows: Array = _type.get("hall_walls_low", [])
+	for i in n:
+		var off := -length / 2.0 + piece * (i + 0.5)
+		var p := center + (Vector3(off, 0, 0) if along_x else Vector3(0, 0, off))
+		var pair: Array = pairs[_rng.randi() % pairs.size()]
+		var lower := _slot(pair[0], VisualSlot.Fit.STRETCH)
+		var a := _models.aabb(lower)
+		var k := WALL_H / (a.size.y + 2.0)   # Wandteil + 2 m Abschluss = WALL_H
+		var basis := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, k, (piece + 0.02) / a.size.z))
+		var anchor := Vector3(-2.0, 0.0, a.get_center().z)   # Rasterlinie der Teile (x = −2)
+		var xf := Transform3D(basis, p - basis * anchor)
+		_models.add(lower, xf, gid + "_full")
+		_models.add(_slot(pair[1], VisualSlot.Fit.STRETCH), xf, gid + "_full")
+		if not lows.is_empty():
+			var ls := _slot(lows[_rng.randi() % lows.size()], VisualSlot.Fit.STRETCH)
+			var la := _models.aabb(ls)
+			var lb := Basis(Vector3.UP, r) * Basis.from_scale(Vector3(1.0, WALL_LOW / maxf(la.size.y, 0.01), (piece + 0.02) / la.size.z))
+			_models.add(ls, Transform3D(lb, p - lb * Vector3(-2.0, 0.0, la.get_center().z)), gid + "_low")
 
 
 ## Treppe als echte Stufen (vorher ein Block, sah aus wie ein Container; Spieltest 15.10.2026).
