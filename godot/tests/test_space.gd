@@ -30,6 +30,7 @@ func _init() -> void:
 	_test_boss_loot()
 	_test_factor()
 	_test_end_info()
+	_test_models()
 	_test_board()
 	_test_preview()
 	_test_repost()
@@ -412,6 +413,18 @@ func _test_end_info() -> void:
 	t._start_round()
 	check(t.timed_out and t.retreated and t.end_reason().contains("drehten die Gegner ab")
 		and t.enemy_fates().all(func(f: Dictionary) -> bool: return f.fate != "kämpft noch"), "Abdrehen nach 40 Runden erklärt")
+
+
+## Gegnermodelle (28.10.2026): je Seite und Klasse fest, Datei vorhanden, Lila für Elite, Seite am Schiff
+func _test_models() -> void:
+	for f in SpaceTemplates.faction_ids():
+		for c in 4:
+			var k := SpaceShipView.enemy_model(f, c)
+			check(ResourceLoader.exists(SpaceShipView.ENEMY_DIR + k + ".glb") and ResourceLoader.exists(SpaceShipView.ENEMY_DIR + k + "_lila.png"),
+				"Modell %s/%d: %s" % [f, c, k])
+	check(SpaceShipView.enemy_model("story_fraktion", 2) == SpaceShipView.enemy_model("story_fraktion", 2), "unbekannte Seite: fest")
+	var c := _combat(61, "aasgeier")
+	check(c.enemies().all(func(e: SpaceShip) -> bool: return e.faction == "aasgeier"), "Seite am Gegnerschiff")
 
 
 func _test_board() -> void:
