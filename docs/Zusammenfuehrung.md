@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 28.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`592edf9`) | Schiff aus Kenney-Teilen (vom Nutzer im Editor angepasst), Brücken-Monitore mit Bildern und Shader, Erzeuger-Werkzeuge entfernt. Tests rules/hub OK (Koordinator). Version 0.22. |
 | 28.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`dae0325`) | Auftrag 12: Schiff als Szenen (`godot/ship/`), Packs nach `godot/assets/packs/` (megakit, essentials, molten, kenney_space, ultimate; ca. 150 MB). Version 0.21. Offen: Exportgröße (Export). |
 | 27.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`c60cf75`) | Elite-Beute 25 %, Boss-Beute 50 % (`Combat.elite_loot_chance()`). Skillsystem: Schild als Beute nachgetragen (Koordinator). Version 0.20. |
 | 27.10.2026 | (dieser Merge) | Raumkampf `claude/raumkampf-modul` (`7da55d3`) | Ergebnisfenster „Kampfende“ mit Ausgang je Gegner, Flucht-Einblendung (`SpaceCombat.ship_fled`), 40-Runden-Ende heißt „Abgedreht“. Version 0.19. |
