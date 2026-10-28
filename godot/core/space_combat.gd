@@ -256,6 +256,7 @@ func _build_enemies(difficulty: String) -> void:
 		var row := MAP_H / 2 + (((i + 1) / 2) * (1 if i % 2 == 0 else -1)) * 2
 		s.pos = _free_cell(Hex.from_offset(MAP_W - 3 - (i % 2), clampi(row, 1, MAP_H - 2)))
 		s.facing = 3
+		s.faction = faction_id
 		if elite:
 			_make_elite(s)
 		ships.append(s)
@@ -277,6 +278,7 @@ func _build_boss(boss_name: String) -> void:
 		var row := MAP_H / 2 + (((i + 1) / 2) * (1 if i % 2 == 0 else -1)) * 2
 		s.pos = _free_cell(Hex.from_offset(MAP_W - 3 - (i % 2), clampi(row, 1, MAP_H - 2)))
 		s.facing = 3
+		s.faction = faction_id
 		if i == 0:
 			_make_elite(s)
 			s.boss = true

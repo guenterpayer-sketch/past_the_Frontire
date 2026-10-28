@@ -3,7 +3,22 @@ extends Node3D
 ## Ein Schiff auf der Karte: 3D-Modell (passend skaliert), Schildring mit 6 Segmenten und Hüllenbalken darüber
 ## (Entscheidung des Nutzers: immer sichtbar, für alle Schiffe).
 
-const MODELS := ["res://assets/ship/ship_imperial.glb", "res://assets/ship/dropship_insurgent.glb"]
+const OWN_MODEL := "res://assets/ship/ship_imperial.glb"
+## Gegnermodelle je Klasse (Quaternius Ultimate Spaceships, rote Pack-Textur; Entscheidung des Nutzers 28.10.2026:
+## keine Einfärbung mehr, je Fraktion ein festes Modell je Klasse, Elite/Boss in Lila)
+const ENEMY_DIR := "res://assets/ship/space/"
+const ENEMY_MODELS := [["striker", "spitfire", "dispatcher"], ["bob", "pancake", "challenger"],
+	["insurgent", "executioner"], ["omen", "zenith"]]
+## Feste Flotte je Seite (Jäger, leicht, mittel, schwer); fehlende Seiten wählen über eine Prüfsumme
+const FLEETS := {
+	"piraten": ["spitfire", "bob", "insurgent", "zenith"], "schmuggler": ["dispatcher", "pancake", "insurgent", "omen"],
+	"aasgeier": ["striker", "bob", "executioner", "zenith"], "schwarze_flagge": ["spitfire", "challenger", "insurgent", "omen"],
+	"konzern": ["dispatcher", "challenger", "executioner", "omen"], "semidrug": ["striker", "challenger", "executioner", "zenith"],
+	"militaer": ["striker", "pancake", "executioner", "omen"], "rote_sonne": ["spitfire", "pancake", "insurgent", "zenith"],
+	"eisenwoelfe": ["dispatcher", "bob", "executioner", "omen"], "kinder_der_glut": ["spitfire", "bob", "executioner", "omen"],
+	"neuntes_haus": ["dispatcher", "challenger", "insurgent", "zenith"], "drohnen": ["striker", "pancake", "executioner", "zenith"],
+	"leeres_licht": ["dispatcher", "pancake", "executioner", "zenith"],
+}
 ## Länge des Modells in Metern je Klasse (Jäger, leicht, mittel, schwer)
 const LENGTH := [1.9, 2.8, 3.4, 4.0]
 
@@ -19,10 +34,13 @@ func setup(s: SpaceShip) -> void:
 	ship = s
 	_body = Node3D.new()
 	add_child(_body)
-	var path: String = MODELS[0] if s.side == &"crew" else MODELS[1]
+	var key := enemy_model(s.faction, s.cls) if s.side == &"enemy" else ""
+	var path: String = OWN_MODEL if key == "" else ENEMY_DIR + key + ".glb"
 	var model: Node3D = null
 	if ResourceLoader.exists(path):
 		model = (load(path) as PackedScene).instantiate()
+		if s.elite and ResourceLoader.exists(ENEMY_DIR + key + "_lila.png"):
+			_retexture(model, load(ENEMY_DIR + key + "_lila.png"))
 	if model == null:
 		var mi := MeshInstance3D.new()
 		var pm := PrismMesh.new()
@@ -31,8 +49,6 @@ func setup(s: SpaceShip) -> void:
 		model = mi
 	_body.add_child(model)
 	_fit(model, LENGTH[s.cls])
-	if s.side == &"enemy":
-		_tint(model, UiTheme.ENEMY)
 	_ring = MeshInstance3D.new()
 	_ring.position.y = 0.1
 	add_child(_ring)
@@ -69,7 +85,8 @@ func setup(s: SpaceShip) -> void:
 	place()
 
 
-## Modell auf die gewünschte Länge bringen und mittig setzen (Bug zeigt nach −Z)
+## Modell auf die gewünschte Größe bringen und mittig setzen (Bug zeigt nach −Z; die Quaternius-Schiffe liegen
+## alle entlang Z, breite Schiffe werden nicht gedreht)
 func _fit(model: Node3D, length: float) -> void:
 	var box := _aabb(model, Transform3D.IDENTITY)
 	if box.size == Vector3.ZERO:
@@ -78,9 +95,6 @@ func _fit(model: Node3D, length: float) -> void:
 	var k := length / maxf(long, 0.001)
 	model.scale = Vector3.ONE * k
 	model.position = -box.get_center() * k
-	if box.size.x > box.size.z:
-		model.rotation_degrees.y = 90.0
-		model.position = Vector3(box.get_center().z, -box.get_center().y, -box.get_center().x) * k
 
 
 func _aabb(n: Node, xf: Transform3D) -> AABB:
@@ -101,16 +115,43 @@ func _aabb(n: Node, xf: Transform3D) -> AABB:
 	return out
 
 
-func _tint(n: Node, col: Color) -> void:
-	if n is GeometryInstance3D:
-		var m := StandardMaterial3D.new()
-		m.albedo_color = col.darkened(0.35)
-		m.metallic = 0.4
-		m.roughness = 0.5
-		(n as GeometryInstance3D).material_overlay = null
-		(n as GeometryInstance3D).material_override = m
+## Modell eines Gegners: je Fraktion und Klasse fest (gleiche Fraktion = gleiche „Flotte“)
+static func enemy_model(faction: String, cls: int) -> String:
+	cls = clampi(cls, 0, ENEMY_MODELS.size() - 1)
+	if FLEETS.has(faction):
+		return String(FLEETS[faction][cls])
+	var pool: Array = ENEMY_MODELS[cls]
+	return String(pool[absi(hash("%s:%d" % [faction, cls])) % pool.size()])
+
+
+## Abdunkeln ohne Einfärben: Farbtextur bleibt, nur mit einem Grauton multipliziert
+func _darken(n: Node, col: Color) -> void:
+	if n is MeshInstance3D and (n as MeshInstance3D).mesh:
+		var mi := n as MeshInstance3D
+		for si in mi.mesh.get_surface_count():
+			var m := mi.get_surface_override_material(si)
+			if m == null:
+				m = mi.mesh.surface_get_material(si)
+			if m is StandardMaterial3D:
+				var d := (m as StandardMaterial3D).duplicate() as StandardMaterial3D
+				d.albedo_color = col
+				mi.set_surface_override_material(si, d)
 	for c in n.get_children():
-		_tint(c, col)
+		_darken(c, col)
+
+
+## Andere Pack-Farbe (z. B. Lila für Elite): Material behalten, nur die Farbtextur tauschen
+func _retexture(n: Node, tex: Texture2D) -> void:
+	if n is MeshInstance3D and (n as MeshInstance3D).mesh:
+		var mi := n as MeshInstance3D
+		for si in mi.mesh.get_surface_count():
+			var m := mi.mesh.surface_get_material(si)
+			if m is StandardMaterial3D:
+				var d := (m as StandardMaterial3D).duplicate() as StandardMaterial3D
+				d.albedo_texture = tex
+				mi.set_surface_override_material(si, d)
+	for c in n.get_children():
+		_retexture(c, tex)
 
 
 func place() -> void:
@@ -186,11 +227,11 @@ func refresh() -> void:
 var _wreck_shown := false
 
 
-## Wrack: grau, leicht gekippt
+## Wrack: abgedunkelt (Textur bleibt sichtbar), leicht gekippt
 func _set_wreck(on: bool) -> void:
 	if on == _wreck_shown:
 		return
 	_wreck_shown = on
 	if on:
-		_tint(_body, Color(0.45, 0.45, 0.45))
+		_darken(_body, Color(0.4, 0.4, 0.42))
 		_body.rotation.z = deg_to_rad(12.0)
