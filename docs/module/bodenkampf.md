@@ -88,18 +88,5 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (28.10.2026): Kampfkarten mit neuen Packs – bauen
-
-Entscheidungen des Nutzers (28.10.2026, Katalog `docs/mockups/packs/katalog/` gesehen):
-- **Molten Maps** → Kampfkarte „schiff“ (Raumschiff), künftig auch Raumstation. Passt ohne Anpassung.
-- **Quaternius Modular Sci-Fi MegaKit** → alles Urbane: Halle, Straße, Büro, Bar, zusammen mit den vorhandenen Modellen.
-- niko-Stadt nicht übernehmen.
-
-Hinweise:
-- Die Packs liegen schon in `godot/assets/packs/` (`molten`, `megakit`, dazu `essentials`, `ultimate`, `kenney_space`; vom Hub übernommen, Lizenzen in `godot/assets/LICENSES.md`). Keine zweite Kopie anlegen. MegaKit hat dort schon Metallic 0,25 (sonst fast schwarz im Renderer Compatibility).
-- Texturen 2048 → 1024 fürs Tablet prüfen (Annahme aus der Probe); nicht die Dateien des Hubs ändern, ohne es zu melden (der Hub nutzt dieselben Packs im Schiff).
-- In Schritten bauen, **je Kartentyp ein Schritt** (Reihenfolge nach Wahl, z. B. schiff → halle → straße → büro → bar), nach jedem Schritt Screenshot an den Nutzer. Kartengenerator und Karteneditor müssen weiter funktionieren.
-- Tests: `test_rules`, `test_hub`, `--autotest` mit Screenshots der geänderten Karten; `test_sim` nur, wenn Kartenlogik (Startfelder, Deckung) geändert wird. Fertigmeldung je Schritt oder gesammelt.
-
-- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+- Keine offenen Aufträge. Erledigt 28.10.2026: Kampfkarten mit neuen Packs (`92c9f04`, Version 0.24). Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
