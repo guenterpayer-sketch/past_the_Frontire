@@ -12,5 +12,11 @@ Branch `claude/inspiring-hypatia-5l2tq8`. Zuständig für Exporte und das App-Ic
 
 ## Aufträge vom Koordinator
 
-- Später (Nutzer 28.10.2026): Exportgröße prüfen. Seit Hub Auftrag 12 liegen ca. 150 MB Packs in `godot/assets/packs/`; der Export nimmt alle Ressourcen (`all_resources`), ungenutzte Teile ggf. per Filter ausschließen. MegaKit-Texturen sind 2048 px (Hub und Bodenkampf nutzen dieselben Dateien); ob 1024 fürs Tablet nötig ist, mit prüfen. Erst angehen, wenn Hub und Bodenkampf die Packs eingebaut haben.
+### Auftrag (28.10.2026): Exportgröße und Texturen fürs Tablet
+
+Seit 28.10.2026 liegen neue Packs im Spiel: `godot/assets/packs/` (megakit, essentials, molten, kenney_space, ultimate; ca. 150 MB) und `godot/assets/ship/space/` (26 MB). Genutzt von Hub (Schiff) und Bodenkampf (Kampfkarten). Der Export nimmt alle Ressourcen (`all_resources`).
+1. APK bzw. Export **messen** (vorher/nachher, soweit möglich) und berichten.
+2. **Vorschlag**: ungenutzte Pack-Teile vom Export ausschließen (Filter in `export_presets.cfg` oder Export-Modus „nur benutzte Ressourcen“; prüfen, was mit Karten-Generator/Editor kompatibel ist, die Modelle zur Laufzeit laden).
+3. **Texturen**: MegaKit-Texturen sind 2048 px. Vorschlag, ob/wie fürs Tablet verkleinert wird (z. B. Import-Einstellung Größenbegrenzung nur für Android), ohne die Dateien selbst zu ändern; Hub und Bodenkampf nutzen dieselben Dateien.
+4. Erst nach Freigabe des Nutzers umsetzen. Test am Gerät macht der Nutzer.
 - Keine offenen Aufträge. Nächster Schritt: neuen Export bauen und am Tablet prüfen (Nutzer).
