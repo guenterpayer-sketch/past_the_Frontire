@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://ship/rooms/hangar.tscn" id="1_niecj"]
+[ext_resource type="PackedScene" path="res://ship/rooms/armory.tscn" id="2_6v61j"]
+[ext_resource type="PackedScene" path="res://ship/rooms/quarters.tscn" id="3_mysf1"]
+[ext_resource type="PackedScene" path="res://ship/rooms/medbay.tscn" id="4_ufgy0"]
+[ext_resource type="PackedScene" path="res://ship/rooms/bridge.tscn" id="5_xpm83"]
+[ext_resource type="PackedScene" path="res://ship/rooms/galley.tscn" id="6_gcsj1"]
+
+[node name="Ship" type="Node3D" unique_id=1230971239]
+
+[node name="hangar" type="Node3D" parent="." unique_id=96897650 instance=ExtResource("1_niecj")]
+
+[node name="armory" type="Node3D" parent="." unique_id=630904444 instance=ExtResource("2_6v61j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="quarters" type="Node3D" parent="." unique_id=1416269591 instance=ExtResource("3_mysf1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 0)
+
+[node name="medbay" type="Node3D" parent="." unique_id=34524913 instance=ExtResource("4_ufgy0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 8)
+
+[node name="bridge" type="Node3D" parent="." unique_id=1002906448 instance=ExtResource("5_xpm83")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, 4)
+
+[node name="galley" type="Node3D" parent="." unique_id=1491315789 instance=ExtResource("6_gcsj1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 0, 12)
