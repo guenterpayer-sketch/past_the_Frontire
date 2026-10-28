@@ -47,4 +47,11 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
+### Auftrag (28.10.2026): Probe neue Räume im Schiff – nichts bauen
+
+Pack: `Modular SciFi MegaKit[Standard]/` (glTF, gleicher Ersteller wie die jetzigen Schiffsteile). Probe: ein oder zwei Räume des Schiffs (z. B. Brücke, Gang).
+Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenlos**; Shader und Licht sind verworfen. Neue Packs liegen in `assets_neu/` (Lizenzen geprüft: `assets_neu/LIZENZEN.md`).
+- **Nur Probe, nichts in den Spielcode übernehmen**, nichts nach `godot/assets/` kopieren (Probe in eigener Testszene/Testordner, nicht committen oder nur Screenshots).
+- Screenshots „jetzt“ und „mit neuem Pack“ nebeneinander, zeigen (Artifact oder `docs/mockups/packs/`).
+- Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
+- Ergebnis an den Nutzer, Entscheidung abwarten.

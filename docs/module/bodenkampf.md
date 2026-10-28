@@ -88,5 +88,14 @@
 
 ## Aufträge vom Koordinator
 
-- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+### Auftrag (28.10.2026): Probe neue Kartenteile – nichts bauen
+
+Packs: `Modular SciFi MegaKit[Standard]/`, `Molten Maps SciFi Asset Pack/` (GLB), `futuristic low poly city by niko/` (FBX, `.blend` daneben). Probe: eine Halle bzw. Karte mit mehr Abwechslung, die Stadt für eine Straßenkarte.
+Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenlos**; Shader und Licht sind verworfen. Neue Packs liegen in `assets_neu/` (Lizenzen geprüft: `assets_neu/LIZENZEN.md`).
+- **Nur Probe, nichts in den Spielcode übernehmen**, nichts nach `godot/assets/` kopieren (Probe in eigener Testszene/Testordner, nicht committen oder nur Screenshots).
+- Screenshots „jetzt“ und „mit neuem Pack“ nebeneinander, zeigen (Artifact oder `docs/mockups/packs/`).
+- Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
+- Ergebnis an den Nutzer, Entscheidung abwarten.
+
+- Keine offenen Aufträge sonst. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
