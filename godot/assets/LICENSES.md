@@ -24,6 +24,7 @@ Alle Modelle sind frei nutzbar (auch kommerziell). Quelle, Lizenz und Verwendung
 | `packs/essentials/*` (37 Modelle, glTF mit Texturen; Metallanteil auf 0,25 gesenkt) | Sci-Fi Essentials Kit – Quaternius | CC0 1.0 (`packs/essentials/License.txt`) | https://quaternius.com/packs/scifiessentialskit.html (vom Nutzer geladen) |
 | `packs/molten/*.glb` (136 Modelle) | Molten Maps SciFi Asset Pack – Moltenbolt (Farbverlauf-Textur von Imphenzia) | CC0 1.0 (`packs/molten/License.txt`); Nennung freiwillig erwünscht | www.moltenbolt.com (vom Nutzer geladen) |
 | `packs/kenney_space/*.glb`, `packs/kenney_space/Textures/colormap.png` (40 Modelle) | Modular Space Kit 1.0 – Kenney (www.kenney.nl) | CC0 1.0 (`packs/kenney_space/License.txt`) | https://kenney.nl/assets/modular-space-kit (vom Nutzer geladen) |
+| `packs/ultimate/*.glb` (91 Teile, das ganze Pack; mit Godot aus den FBX-Dateien in GLB umgewandelt, 28.10.2026) | Ultimate Modular Sci-Fi Pack – Quaternius | CC0 1.0 (`packs/ultimate/License.txt`) | https://quaternius.com/packs/ultimatemodularscifi.html (vom Nutzer geladen) |
 | `hall/tank.glb` | Cyberpunk Game Kit – Quaternius | CC0 1.0 | https://quaternius.com/packs/cyberpunkgamekit.html |
 | `source/kaykit/Knight.glb` (nur Quelle der Animationen) | KayKit Character Pack: Adventurers – Kay Lousberg | CC0 1.0 | https://kaylousberg.itch.io/kaykit-adventurers, `source/kaykit/LICENSE.txt` |
 | `characters/anims/*.res` | aus den KayKit-Animationen auf die Quaternius-Skelette übertragen (`tools/bake_animations.gd`) | CC0 1.0 | – |

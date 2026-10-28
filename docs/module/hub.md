@@ -51,7 +51,9 @@
   - `ShipView`: lädt `ship/ship.tscn`. Raumgrenzen (`ROOMS`, ohne das frühere Feld `light`), Hervorhebung und Sterne bleiben im Code; die API ist unverändert. `DOORS`, `WINDOWS`, `WALL_VARIANTS`, `PROPS` und die Aufbaufunktionen stehen nur noch im Werkzeug.
   - Cutaway: Außenwand = Knoten der Gruppe `cutaway` mit Kindern `Voll` und `Niedrig`. Die Richtung nach außen ergibt sich automatisch (Seite ohne Raum) oder aus der Meta `cutaway_normal`. Zwischenwände und Durchgangssäulen liegen im Raum links bzw. oben (−x/−z).
   - Packs in `godot/assets/packs/`: `megakit` (189, glTF, Texturen gemeinsam in `Textures/`, Pfade umgestellt, Metallanteil 0,25; `Decal_Line_90` weggelassen, Datei fehlt im Original), `essentials` (37, glTF, Metallanteil 0,25), `molten` (136 GLB), `kenney_space` (40 GLB). Lizenzen in `assets/LICENSES.md`. Größe zusammen etwa 146 MB, davon Essentials 80 MB (Texturen 2048²).
-  - **Ultimate Modular Sci-Fi als GLB (Prüfung, Wunsch des Nutzers):** Alle 91 FBX lassen sich ohne Blender mit Godot (`FBXDocument` → `GLTFDocument`) in GLB umwandeln, ohne Fehler, zusammen 5,3 MB. 4 Teile habe ich mit den vorhandenen GLB verglichen: gleiche Größe und gleiche Farben. Die übrigen 87 sind nicht einzeln geprüft. **Nicht übernommen**, die Entscheidung des Nutzers steht aus.
+  - **Ultimate Modular Sci-Fi** (Wunsch des Nutzers): alle 91 FBX ohne Blender mit Godot (`FBXDocument` → `GLTFDocument`) in GLB umgewandelt, ohne Fehler, 5,3 MB, nach `assets/packs/ultimate/` übernommen (Namen klein geschrieben wie in `assets/ship/`). 4 Teile mit den vorhandenen GLB verglichen (gleiche Größe und Farben), die übrigen 87 nicht einzeln geprüft.
+  - Tests: `test_rules` OK, `test_hub` OK, `--autotest-hub` ohne Fehler (Schiff sieht aus wie vorher), `test_sim -- 10` OK (0 hängengeblieben).
+  - **Annahme, nicht geprüft:** Die Android-Ausgabe exportiert alle Ressourcen (`export_filter="all_resources"`). Die Packs (zusammen etwa 150 MB) machen die APK deshalb wahrscheinlich deutlich größer. Das ist Sache des Export-Moduls, z. B. über einen Ausschlussfilter für ungenutzte Teile.
 
 ## Aufträge vom Koordinator
 
