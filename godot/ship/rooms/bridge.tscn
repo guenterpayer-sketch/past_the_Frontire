@@ -36,27 +36,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 2)
 [node name="template-floor6" parent="Boden" unique_id=1575342166 instance=ExtResource("1_e7376")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 6)
 
-[node name="Prop_Chair2" parent="Boden" unique_id=737513616 instance=ExtResource("2_h4ctw")]
-transform = Transform3D(0.41252714, 0, 0.9109453, 0, 1, 0, -0.9109453, 0, 0.41252714, 6.236684, 0, 3.9784844)
-
-[node name="Prop_Chair3" parent="Boden" unique_id=600685725 instance=ExtResource("2_h4ctw")]
-transform = Transform3D(0.43699083, 0, -0.899466, 0, 1, 0, 0.899466, 0, 0.43699083, 7.8387856, 0, 3.954955)
-
-[node name="Prop_Chair4" parent="Boden" unique_id=393617603 instance=ExtResource("2_h4ctw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1015296, 0, 1.5937729)
-
-[node name="Node" parent="Boden" unique_id=760347078 instance=ExtResource("3_g54m7")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.728561, 4.7683716e-07, 5.6256475)
-
-[node name="Prop_Chair5" parent="Boden" unique_id=991392968 instance=ExtResource("2_h4ctw")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7162628, 0, 6.678401)
-
-[node name="Prop_HealthPack2" parent="Boden" unique_id=309202403 instance=ExtResource("4_d1glk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4849007, 1.7104266, 0.09551227)
-
-[node name="Prop_HealthPack3" parent="Boden" unique_id=1522659190 instance=ExtResource("4_d1glk")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.933, 1.717, 0.09)
-
 [node name="Waende" type="Node3D" parent="." unique_id=426127664]
 
 [node name="Aussenwand" type="Node3D" parent="Waende" unique_id=2131400209 groups=["cutaway"]]
@@ -173,3 +152,24 @@ omni_range = 9.6
 
 [node name="Node" parent="." unique_id=280329812 instance=ExtResource("13_mnoma")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 5.9811344, 0, 6.588164)
+
+[node name="Prop_Chair6" parent="Einrichtung" unique_id=737513616 instance=ExtResource("2_h4ctw")]
+transform = Transform3D(0.41252714, 0, 0.9109453, 0, 1, 0, -0.9109453, 0, 0.41252714, 6.236684, 0, 3.9784844)
+
+[node name="Prop_Chair7" parent="Einrichtung" unique_id=600685725 instance=ExtResource("2_h4ctw")]
+transform = Transform3D(0.43699083, 0, -0.899466, 0, 1, 0, 0.899466, 0, 0.43699083, 7.8387856, 0, 3.954955)
+
+[node name="Prop_Chair8" parent="Einrichtung" unique_id=393617603 instance=ExtResource("2_h4ctw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1015296, 0, 1.5937729)
+
+[node name="props_computersmall" parent="Einrichtung" unique_id=760347078 instance=ExtResource("3_g54m7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.728561, 4.7683716e-07, 5.6256475)
+
+[node name="Prop_Chair5" parent="Einrichtung" unique_id=991392968 instance=ExtResource("2_h4ctw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.7162628, 0, 6.678401)
+
+[node name="Prop_HealthPack2" parent="Einrichtung" unique_id=309202403 instance=ExtResource("4_d1glk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4849007, 1.7104266, 0.09551227)
+
+[node name="Prop_HealthPack3" parent="Einrichtung" unique_id=1522659190 instance=ExtResource("4_d1glk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.933, 1.717, 0.09)
