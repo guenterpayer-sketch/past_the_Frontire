@@ -88,13 +88,5 @@
 
 ## Aufträge vom Koordinator
 
-### Auftrag (27.10.2026): Licht-Probe – nichts bauen
-
-Wunsch des Nutzers: Grafik wirkt flach/billig, zu wenig Abwechslung; Shader (Comic) verworfen, kostenlos bleiben. Er spielt **auf Tablet und PC**.
-1. Probe (eigene Testszene oder Testcode, nicht in den Spielcode): dieselbe Kampfszene (und, wenn mit wenig Aufwand möglich, ein Raum im Schiff) in drei Fassungen: (a) jetzt (Compatibility), (b) Compatibility mit besserer Lichtsetzung (Lichtquellen, Schatten, Glow, Farbe/Tonwert), (c) Renderer „Forward+“ (PC) bzw. „Mobile“ (Tablet) mit SSAO, Glow, Nebel, Umgebungslicht.
-2. Screenshots nebeneinander (z. B. `docs/mockups/licht/` oder Artifact).
-3. Einschätzung, Wissen/Annahme getrennt: Aufwand für Boden, Schiff, Raumkampf; was am Tablet laufen dürfte (Gerät nicht vorhanden – Annahme; echter Test später über den Export-Chat).
-4. Ergebnis an den Nutzer, Entscheidung abwarten.
-
-- Keine offenen Aufträge sonst. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).
