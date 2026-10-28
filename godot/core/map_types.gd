@@ -7,6 +7,11 @@ extends RefCounted
 const GROUND := [&"halle", &"bar", &"strasse", &"tempel", &"buero"]
 const SHIP := &"schiff"
 
+## Ordner der Molten-Maps-Modelle (Raumschiff)
+const M := "res://assets/packs/molten/"
+## Ordner des Quaternius Modular Sci-Fi MegaKit (Halle und andere urbane Karten)
+const K := "res://assets/packs/megakit/"
+
 ## light: ambient (Farbe, Stärke), sun (Farbe, Stärke), lamps (Farben im Wechsel), lamp_energy, lamp_range,
 ## lamp_h (Höhe), bg (Hintergrund). props: Gelände → Modellpfade (eins je Objekt zufällig).
 const TYPES := {
@@ -17,6 +22,24 @@ const TYPES := {
 		"lamps": [Color(1.0, 0.92, 0.78)], "lamp_energy": 1.1, "lamp_range": 16.0, "lamp_h": 8.0,
 		"bg": Color(0.035, 0.045, 0.07),
 		"props": {},
+		# MegaKit (Nutzer 28.10.2026): Bodenplatten 4×4 m im Wechsel, Außenwände aus Wandteil unten + Abschluss oben
+		# (zusammen auf WALL_H gestreckt), niedriger Schnitt als kurze Wand; Objekte gemischt alt/neu
+		"floor_step": 4.0,
+		"floors": [[1.01, [K + "Platforms/Platform_Metal.gltf", K + "Platforms/Platform_Metal2.gltf", K + "Platforms/Platform_DarkPlates.gltf",
+			K + "Platforms/Platform_CenterPlate.gltf", K + "Platforms/Platform_Squares.gltf", K + "Platforms/Platform_3Plates.gltf"]]],
+		"hall_walls": [[K + "Walls/WallAstra_Straight.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopCables_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Window.gltf", K + "Walls/TopWindow_Straight.gltf"]],
+		"hall_walls_low": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Metal2_Straight.gltf", K + "Walls/ShortWall_DarkMetal2_Straight.gltf"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"kiste": [K + "Props/Prop_Crate3.gltf", K + "Props/Prop_Crate4.gltf"],
+			&"fass": [K + "Props/Prop_Barrel_Large.gltf"],
+			&"saeule": [K + "Columns/Column_Pipes.gltf", K + "Columns/Column_Round.gltf", K + "Columns/Column_Simple.gltf"],
+			&"barriere": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Triangles_Straight.gltf", K + "Walls/ShortWall_AccentStrip_Straight.gltf"],
+			&"regal": [K + "Props/Prop_PipeHolder.gltf"],
+		},
 	},
 	&"bar": {
 		"name": "Bar", "floor_name": "Dielenboden",
@@ -32,6 +55,23 @@ const TYPES := {
 			&"schrank": ["res://assets/maps/bar/Shelf_Large.glb"],
 			&"hocker": ["res://assets/maps/bar/Stool.glb"],
 		},
+		# MegaKit/Molten/Essentials (Nutzer 28.10.2026): Wände wie im Büro (Stil je Karte), Bühne mit Molten-Boden,
+		# Einrichtung gemischt, wenig Deko
+		"hall_walls": [[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopCables_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopPlastic_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopSimple_Straight.gltf"]],
+		"hall_walls_low": [K + "Walls/ShortWall_DarkMetal2_Straight.gltf", K + "Walls/ShortWall_DarkPlastic_Straight.gltf", K + "Walls/ShortWall_Band2_Straight.gltf"],
+		"wall_panels": [],   # leer: Innenwände aus dem Wandteil des Paars der Karte
+		"podest_floor": M + "Floor_Command_Large.glb",
+		"alt_chance": 0.5,
+		"alt": {
+			&"tisch": [M + "Cafeteria_Table.glb", M + "End_Table.glb", M + "Octo_Table.glb"],
+			&"hocker": [M + "Chair_1.glb", "res://assets/packs/essentials/Prop_Chair.gltf"],
+			&"kiste": [K + "Props/Prop_Crate3.gltf", K + "Props/Prop_Crate4.gltf", "res://assets/packs/essentials/Prop_Crate.gltf", "res://assets/packs/essentials/Prop_Crate_Tarp.gltf", "res://assets/packs/essentials/Prop_Barrel1.gltf"],
+			&"schrank": ["res://assets/packs/essentials/Prop_Shelves_WideTall.gltf", "res://assets/packs/essentials/Prop_Shelves_WideShort.gltf"],
+		},
+		"deco": [M + "Lava_Lamp.glb", M + "Floor_Lamp.glb", M + "Large_Monitor_Purple.glb"],
 	},
 	&"strasse": {
 		"name": "Straße", "floor_name": "Fahrbahn",
@@ -45,6 +85,19 @@ const TYPES := {
 				"res://assets/maps/strasse/vehicle-truck-yellow.glb"],
 			&"laterne": ["res://assets/maps/strasse/Streetlight_Single.glb"],
 			&"tonne": ["res://assets/maps/strasse/Trashcan_Large.glb"],
+		},
+		# MegaKit (Nutzer 28.10.2026): gerade Fassaden statt Sechsecksäulen, je Haus Hochhaus oder Hütte,
+		# Stil je Karte (alt oder ein Paar); Gehweg mit MegaKit-Platten; Barrieren und Tonnen gemischt
+		"facades": [[K + "Walls/WallAstra_Straight_Window.gltf", K + "Walls/TopWindow_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Flat_Window.gltf", K + "Walls/TopPlastic_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopCables_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopAstra_Straight.gltf"]],
+		"facades_low": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Metal2_Straight.gltf", K + "Walls/ShortWall_DarkMetal2_Straight.gltf"],
+		"sidewalk": [K + "Platforms/Platform_Simple.gltf", K + "Platforms/Platform_Squares.gltf", K + "Platforms/Platform_3Plates.gltf"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"tonne": [K + "Props/Prop_Chest.gltf", K + "Props/Prop_Barrel_Large.gltf"],
+			&"barriere": [K + "Walls/ShortWall_Band2_Straight.gltf", K + "Walls/ShortWall_Triangles_Straight.gltf", K + "Walls/ShortWall_AccentStrip_Straight.gltf"],
 		},
 	},
 	&"tempel": {
@@ -75,6 +128,26 @@ const TYPES := {
 			&"stuhl": ["res://assets/maps/buero/Chair_1.glb"],
 			&"pflanze": ["res://assets/maps/buero/Houseplant_1.glb"],
 		},
+		# MegaKit/Molten (Nutzer 28.10.2026): Außenwände zweiteilig, Innenwände gerade (Wandteil des Paars der Karte),
+		# Stil je Karte (alt oder ein Paar); Teppich gemischt mit Molten-Teppichflächen; Einrichtung gemischt
+		"hall_walls": [[K + "Walls/WallAstra_Straight_Flat.gltf", K + "Walls/TopPlastic_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Flat_Window.gltf", K + "Walls/TopSimple_Straight.gltf"],
+			[K + "Walls/WallBand_Straight.gltf", K + "Walls/TopAstra_Straight.gltf"],
+			[K + "Walls/WallAstra_Straight_Divided.gltf", K + "Walls/TopPlastic_Straight.gltf"]],
+		"hall_walls_low": [K + "Walls/ShortWall_WhitePlate2_Straight.gltf", K + "Walls/ShortWall_Simple1_Straight.gltf", K + "Walls/ShortWall_Band2_Straight.gltf"],
+		"wall_panels": [],   # leer: Innenwände aus dem Wandteil des Paars der Karte
+		"meeting_carpet": M + "Floor_Tile_Carpet_Grey.glb",   # nur unter dem Besprechungstisch
+		"alt_chance": 0.5,
+		"alt": {
+			&"computer": [M + "Large_Monitor_Blue.glb", M + "Large_Monitor_White.glb", M + "Large_Monitor_Off.glb"],
+			&"stuhl": [M + "Chair_1.glb", "res://assets/packs/essentials/Prop_Chair.gltf", "res://assets/maps/buero/Chair_1.glb"],
+			&"schreibtisch": ["res://assets/packs/essentials/Prop_Desk_Small.gltf", "res://assets/packs/essentials/Prop_Desk_Medium.gltf"],
+			&"besprechung": [M + "Meeting_Table.glb", M + "Octo_Table.glb"],
+			&"server": [K + "Props/Prop_Computer.gltf", K + "Props/Prop_AccessPoint.gltf", "res://assets/packs/ultimate/props_computer.glb", "res://assets/packs/ultimate/props_computersmall.glb"],
+			&"schrank": [M + "Briefing_Screen_Blue.glb", M + "Briefing_Screen_Off.glb", K + "Props/Prop_PipeHolder.gltf",
+				"res://assets/packs/essentials/Prop_Locker.gltf", "res://assets/packs/essentials/Prop_Shelves_WideTall.gltf", "res://assets/packs/essentials/Prop_Shelves_ThinTall.gltf"],
+		},
+		"deco": [M + "Plant_1.glb", M + "Floor_Lamp.glb", "res://assets/maps/buero/Houseplant_1.glb"],
 	},
 	&"schiff": {
 		"name": "Raumschiff", "floor_name": "Deckplatten",
@@ -88,6 +161,24 @@ const TYPES := {
 			&"tank": ["res://assets/ship/props_vessel_tall.glb"],
 			&"schrank": ["res://assets/ship/props_shelf_tall.glb"],
 		},
+		# Molten Maps (Nutzer 28.10.2026): Bodenplatten je Raum, Wandplatten an den Kanten der Wandfelder,
+		# je Objekt mit alt_chance das neue Modell statt des alten (gemischt), wenig Deko (nur Grafik)
+		"floors": [[0.22, [M + "Floor_Metal_Square.glb", M + "Floor_Tile_Metal.glb"]],
+			[0.55, [M + "Floor_Metal_Square_Grate.glb", M + "Floor_Tile_Metal.glb", M + "Floor_Metal_Square.glb", M + "Floor_Tile_Metal.glb"]],
+			[0.80, [M + "Floor_Metal_Circles.glb", M + "Floor_Tile_Metal.glb"]],
+			[1.01, [M + "Floor_Tile_Carpet_Grey.glb", M + "Floor_Tile_Carpet_Blue.glb"]]],
+		"floor_hazard": M + "Hazard_Floor_1.glb",
+		"wall_panels": [M + "Wall_Grey.glb", M + "Wall_Grey.glb", M + "Wall_Grey.glb", M + "Wall_Blue.glb",
+			M + "Wall_Light_White.glb", M + "Wall_Pipe.glb", M + "Wall_Blue_Greeblies.glb", M + "Wall_Display_Blue.glb"],
+		"alt_chance": 0.5,
+		"alt": {
+			&"kiste": [M + "Battery_Blue.glb", M + "Battery_Orange.glb", M + "Battery_Grey.glb", M + "Battery_Green.glb", M + "Battery_Red.glb"],
+			&"container": [M + "Generator.glb", M + "Generator_Pile_Chonky.glb"],
+			&"konsole": [M + "Large_Monitor_Blue.glb", M + "Large_Monitor_White.glb", M + "BioMonitor_Blue.glb"],
+			&"tank": [M + "Cryo_Tube_ON.glb", M + "Generator_Pile_Small.glb"],
+			&"schrank": [M + "Bunk_Double_Grey.glb", M + "Bunk_Double_Blue.glb", M + "Briefing_Screen_Blue.glb"],
+		},
+		"deco": [M + "Plant_1.glb", M + "Chair_1.glb", M + "Space_Ketchup.glb", M + "Space_Mayo_Naise.glb"],
 	},
 }
 

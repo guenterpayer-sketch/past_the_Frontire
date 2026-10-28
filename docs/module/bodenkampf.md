@@ -88,12 +88,5 @@
 
 ## Aufträge vom Koordinator
 
-### Entscheidungen Grafik-Packs (Nutzer 28.10.2026, noch kein Bauauftrag)
-
-- **Molten Maps** → Raumschiff (Kampfkarte „schiff“) und künftig Raumstation; passt ohne Anpassung.
-- **Quaternius Modular Sci-Fi MegaKit** → alles Urbane (Halle, Straße, Büro, Bar), zusammen mit den vorhandenen Modellen. Beim Bau: Metallic senken (sonst im Renderer Compatibility fast schwarz), Texturen 2048 → 1024 für das Tablet (Annahme).
-- niko-Stadt: nicht übernommen (FBX ohne Farbe, falscher Maßstab).
-- Bauauftrag folgt, wenn der Nutzer die Teile-Übersicht (`docs/mockups/packs/katalog/`) gesehen hat. Aufwand je Kartentyp etwa eine Arbeitssitzung (Annahme).
-
-- Keine offenen Aufträge. Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
+- Keine offenen Aufträge. Erledigt 28.10.2026: Kampfkarten mit neuen Packs (`92c9f04`, Version 0.24). Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
 - Offen beim Nutzer: Boss auf „mittel“ mit 90 % Siegen leichter als das Ziel 70–75 % (später nachschärfen?).

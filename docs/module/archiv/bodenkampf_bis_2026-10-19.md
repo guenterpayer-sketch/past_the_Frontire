@@ -152,3 +152,18 @@ Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenl
 - Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
 - Ergebnis an den Nutzer, Entscheidung abwarten.
 
+
+
+### Auftrag (28.10.2026): Kampfkarten mit neuen Packs – erledigt (`92c9f04`)
+
+Entscheidungen des Nutzers (28.10.2026, Katalog `docs/mockups/packs/katalog/` gesehen):
+- **Molten Maps** → Kampfkarte „schiff“ (Raumschiff), künftig auch Raumstation. Passt ohne Anpassung.
+- **Quaternius Modular Sci-Fi MegaKit** → alles Urbane: Halle, Straße, Büro, Bar, zusammen mit den vorhandenen Modellen.
+- niko-Stadt nicht übernehmen.
+
+Hinweise:
+- Die Packs liegen schon in `godot/assets/packs/` (`molten`, `megakit`, dazu `essentials`, `ultimate`, `kenney_space`; vom Hub übernommen, Lizenzen in `godot/assets/LICENSES.md`). Keine zweite Kopie anlegen. MegaKit hat dort schon Metallic 0,25 (sonst fast schwarz im Renderer Compatibility).
+- Texturen 2048 → 1024 fürs Tablet prüfen (Annahme aus der Probe); nicht die Dateien des Hubs ändern, ohne es zu melden (der Hub nutzt dieselben Packs im Schiff).
+- In Schritten bauen, **je Kartentyp ein Schritt** (Reihenfolge nach Wahl, z. B. schiff → halle → straße → büro → bar), nach jedem Schritt Screenshot an den Nutzer. Kartengenerator und Karteneditor müssen weiter funktionieren.
+- Tests: `test_rules`, `test_hub`, `--autotest` mit Screenshots der geänderten Karten; `test_sim` nur, wenn Kartenlogik (Startfelder, Deckung) geändert wird. Fertigmeldung je Schritt oder gesammelt.
+

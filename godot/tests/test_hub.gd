@@ -1025,6 +1025,28 @@ func _test_elite() -> void:
 	check(Stock.count(g, lk) == 1 and Stock.can_sell(g, lk) and Stock.sell(g, lk) and g.credits > cr and Stock.count(g, lk) == 0,
 		"Elite-Beute im Lager und verkaufbar")
 	check(not Stock.shop(g, g.position).has(ek), "Elite nicht im Sortiment des Hafens")
+	# Elite-Stücke aus dem Lager ausrüsten (Charakter-Auftrag 28.10.2026): Waffenkammer listet die Elite-Ordner nur mit Spiel
+	var bw: WeaponData = load("res://data/weapons/elite/sturmgewehr_boss.tres")
+	var ba: ArmorData = load("res://data/armor/elite/mittel_vw10.tres")
+	Stock.add(g, Stock.damaged_key(bw.resource_path, -20))
+	Stock.add(g, Stock.damaged_key(ba.resource_path, -30))
+	check(bw in Equipment.weapons(g) and ba in Equipment.armors(g) and not bw in Equipment.weapons() and not ba in Equipment.armors(),
+		"Elite in der Auswahl der Waffenkammer nur mit Spiel")
+	check(Equipment.stock_damages(g, bw) == [-20] and Equipment.listed(g, ba, false), "Elite-Stück im Lager angezeigt (mit Schaden)")
+	var ec: Character = Campaign.crew()[0]
+	var w_old: WeaponData = ec.weapons[0]
+	var a_old: ArmorData = ec.armor
+	check(Equipment.weapon_block(ec, 0, bw, g, -20) == "", "Elite-Waffe ausrüstbar")
+	Equipment.set_weapon(ec, 0, bw, g, -20)
+	Equipment.set_armor(ec, ba, g, -30)
+	check(ec.weapons[0] == bw and ec.wear_of("w0") == -20 and ec.armor == ba and ec.wear_of("armor") == -30
+		and Stock.count(g, Stock.damaged_key(bw.resource_path, -20)) == 0, "Elite angelegt, Schaden übernommen, aus dem Lager genommen")
+	var ed := Character.from_dict(JSON.parse_string(JSON.stringify(ec.to_dict())))
+	check(ed.weapons[0].resource_path == bw.resource_path and ed.armor.resource_path == ba.resource_path, "Elite-Ausrüstung im Spielstand")
+	Equipment.set_weapon(ec, 0, w_old, g, 0)
+	Equipment.set_armor(ec, a_old, g, 0)
+	check(Stock.count(g, Stock.damaged_key(bw.resource_path, -20)) == 1 and Stock.count(g, Stock.damaged_key(ba.resource_path, -30)) == 1,
+		"Elite abgelegt: mit Schaden zurück ins Lager")
 	# Schild (Auftrag 11, Punkt 3): immer im Sortiment, in der Werkstatt baubar (heil), als Beute direkt ins Lager
 	check(Stock.shop(g, g.position).has(Equipment.SHIELD), "Schild immer im Sortiment")
 	check(Equipment.SHIELD in Crafting.buildable() and Crafting.skill_of(Equipment.SHIELD) == Crafting.SKILL_ARMOR
