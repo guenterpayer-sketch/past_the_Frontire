@@ -58,6 +58,18 @@ const PACKS = [
   { id: "niko", name: "niko Schiffe", pages: 1, facts: {
     "Was": "3 Raumschiffe: Bomber, Träger, Jäger.", "Anzahl": "3 Modelle", "Stil": "Weiß mit blauen (oder roten) Streifen, detailliert.",
     "Format": "FBX ohne Verweis auf die Texturen: für den Katalog habe ich die blaue Textur zugewiesen. Im Spiel müsste das Material eingerichtet werden." } },
+  { id: "ultimate", name: "Ultimate Modular Sci-Fi", pages: 3, facts: {
+    "Was": "Das ganze Pack, aus dem unser Schiff stammt: Säulen, Wände, Türen, Fenster, Böden, Treppen, Geländer, Aufsatz-Details (Rohre, Lüftungen, Platten) und Einrichtung.",
+    "Anzahl": "91 Teile (wir nutzen 32)", "Stil": "Genau unser heutiger Stil: Grau mit Kupfer/Gold-Akzenten, flache Farben.",
+    "Format": "OBJ und FBX (kein glTF). Passt ohne Umbau zum Schiff, wäre die einfachste Erweiterung." } },
+  { id: "essentials", name: "Sci-Fi Essentials Kit", pages: 1, facts: {
+    "Was": "Einrichtung und Kleinkram: Kisten, Truhen, Fässer, Munitionskisten, Schreibtische, Stuhl, Spind, Regale, Medikit, Spritze, Granate, Mine, Schlüsselkarte, Tasse, Satellitenschale; dazu 3 Roboter-Gegner und 4 Waffen (Pistole, Revolver, Gewehr, Scharfschützengewehr) mit Magazinen.",
+    "Anzahl": "37 Modelle (freie Fassung; die bezahlte hat mehr)", "Stil": "Wie das MegaKit: Texturen, Weiß/Grau mit gelben und blauen Akzenten. Gezeigt mit Metallanteil 25 %.",
+    "Format": "glTF mit Texturen, gemacht als Ergänzung zum Modular SciFi MegaKit." } },
+  { id: "turrets", name: "Turret Pack", pages: 1, facts: {
+    "Was": "Geschütztürme: Kanonen, MGs, Laser, Langrohre, Bomber, Teleporter-Türme, Sockel.",
+    "Anzahl": "37 Modelle", "Stil": "Kupfer/Rost in zwei Tönen. Im Original heller als hier: die OBJ-Farben sind sehr dunkel und wirken in Godot dunkler als in der Vorschau des Herstellers.",
+    "Format": "OBJ und FBX. Eher für Bodenkampf-Karten oder Stationen als für das Schiff." } },
 ];
 const tabs = document.getElementById("tabs"), facts = document.getElementById("facts"), sheets = document.getElementById("sheets");
 function show(id) {
