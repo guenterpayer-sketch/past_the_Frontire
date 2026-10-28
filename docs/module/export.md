@@ -12,4 +12,5 @@ Branch `claude/inspiring-hypatia-5l2tq8`. Zuständig für Exporte und das App-Ic
 
 ## Aufträge vom Koordinator
 
+- Später (Nutzer 28.10.2026): Exportgröße prüfen. Seit Hub Auftrag 12 liegen ca. 150 MB Packs in `godot/assets/packs/`; der Export nimmt alle Ressourcen (`all_resources`), ungenutzte Teile ggf. per Filter ausschließen. Erst angehen, wenn Hub und Bodenkampf die Packs eingebaut haben.
 - Keine offenen Aufträge. Nächster Schritt: neuen Export bauen und am Tablet prüfen (Nutzer).

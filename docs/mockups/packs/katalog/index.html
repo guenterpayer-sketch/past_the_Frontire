@@ -1,0 +1,107 @@
+<title>Grafik-Packs Katalog</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* Layout: Leiste mit Packs oben (Reiter), darunter Steckbrief und die Katalogbögen untereinander, volle Breite */
+:root {
+  --bg: #eef0f4; --panel: #ffffff; --line: #cfd5e0; --fg: #1c2230; --muted: #5d6779; --accent: #a8760c;
+  --display: "Chakra Petch", "Segoe UI", sans-serif; --body: "IBM Plex Sans", system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12161f; --panel: #1b2130; --line: #2d3547; --fg: #e3e7ef; --muted: #8b95a8; --accent: #f0c24f; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #12161f; --panel: #1b2130; --line: #2d3547; --fg: #e3e7ef; --muted: #8b95a8; --accent: #f0c24f; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1640px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 20px; }
+h1 { font: 600 28px/1.2 var(--display); margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); max-width: 70ch; margin: 4px 0 0; }
+nav { display: flex; flex-wrap: wrap; gap: 8px; }
+nav button { font: 500 14px var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+nav button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); }
+nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+nav small { color: var(--muted); font-family: var(--mono); margin-left: 6px; }
+.facts { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; display: grid; gap: 10px; }
+.facts h2 { font: 600 20px var(--display); margin: 0; }
+.facts dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; }
+.facts dt { color: var(--muted); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; padding-top: 2px; }
+.facts dd { margin: 0; min-width: 0; }
+.sheets { display: grid; gap: 14px; }
+.sheets img { width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--line); display: block; }
+@media (max-width: 560px) { .facts dl { grid-template-columns: 1fr; } .facts dt { padding-top: 6px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Grafik-Packs im Vergleich</h1>
+    <p class="lead">Jedes Teil einzeln, mit gleicher Kamera und gleichem Licht fotografiert, mit Dateinamen. Oben wählen, unten blättern. Die Bilder liegen auch im Projekt unter <code>docs/mockups/packs/katalog/</code>.</p>
+  </header>
+  <nav id="tabs" role="tablist"></nav>
+  <section class="facts" id="facts"></section>
+  <section class="sheets" id="sheets"></section>
+</div>
+
+<script>
+const PACKS = [
+  { id: "jetzt", name: "Jetzt im Spiel", pages: 1, facts: {
+    "Was": "Unsere heutigen Schiffsteile (assets/ship): Böden, Wände mit Fenstern und Türen, Kisten, Regale, Konsolen, Kapseln, dazu zwei Schiffe.",
+    "Anzahl": "32 Teile", "Stil": "Flache Farben, Grau mit Gold-Akzenten.", "Format": "GLB, im Spiel eingebaut." } },
+  { id: "megakit", name: "Modular SciFi MegaKit", pages: 5, facts: {
+    "Was": "Baukasten für Innenräume: Böden, Wände, Decken, Säulen, Türen, Treppen, Geländer, Einrichtung (Kisten, Konsolen, Lüftungen, Lampen, Kabel), Markierungen, 3 Aliens.",
+    "Anzahl": "189 Teile (eine Markierung ließ sich nicht laden)", "Stil": "Echte Oberflächen mit Texturen, Weiß, Grau und dunkles Metall, rote Akzente. Gezeigt mit Metallanteil 25 %, wie im Schiffstest.",
+    "Format": "glTF mit gemeinsamen Texturen (28 MB), passt zum 4-m-Raster des Schiffs.", "Einrichtung": "Seite 1: Einrichtung (blaue Namen) und Türen. Möbel eher technisch: keine Betten, Tische oder Stühle." } },
+  { id: "molten", name: "Molten Maps", pages: 4, facts: {
+    "Was": "Viel Einrichtung: Betten (einzeln, doppelt, in Farben), Kantinen- und Besprechungstische, Stühle, Kommandokonsole, Bildschirme, Kryokapseln, Biomonitore, Batterien, Generatoren, Hydrokultur-Beete, Pflanze, Lampen, Schach-Brett. Dazu Raumteile: Böden (Metall, Krankenstation, Teppich), Wände mit Tür, Glas, Licht oder Rohren, Rampen, Geländer, Laufsteg.",
+    "Anzahl": "136 Modelle", "Stil": "Flache, kräftige Farben (Low Poly), ähnlich unseren heutigen Teilen, aber bunter.",
+    "Format": "GLB mit einer Farbverlaufs-Textur, lädt ohne Nacharbeit." } },
+  { id: "blocks", name: "Spaceship Blocks", pages: 3, facts: {
+    "Was": "Außenteile für Schiffe und Stationen: Rumpfteile, Cockpits, Triebwerke, Antennen, Schüsseln, Tore.",
+    "Anzahl": "95 Bauteile", "Stil": "Einfache Formen in Blau, Grau und Dunkelblau (Low Poly).",
+    "Format": "OBJ mit Farben, lädt ohne Nacharbeit. Für Innenräume nicht gedacht, eher für Raumkampf-Schiffe." } },
+  { id: "niko", name: "niko Schiffe", pages: 1, facts: {
+    "Was": "3 Raumschiffe: Bomber, Träger, Jäger.", "Anzahl": "3 Modelle", "Stil": "Weiß mit blauen (oder roten) Streifen, detailliert.",
+    "Format": "FBX ohne Verweis auf die Texturen: für den Katalog habe ich die blaue Textur zugewiesen. Im Spiel müsste das Material eingerichtet werden." } },
+  { id: "ultimate", name: "Ultimate Modular Sci-Fi", pages: 3, facts: {
+    "Was": "Das ganze Pack, aus dem unser Schiff stammt: Säulen, Wände, Türen, Fenster, Böden, Treppen, Geländer, Aufsatz-Details (Rohre, Lüftungen, Platten) und Einrichtung.",
+    "Anzahl": "91 Teile (wir nutzen 32)", "Stil": "Genau unser heutiger Stil: Grau mit Kupfer/Gold-Akzenten, flache Farben.",
+    "Format": "OBJ und FBX (kein glTF). Passt ohne Umbau zum Schiff, wäre die einfachste Erweiterung." } },
+  { id: "essentials", name: "Sci-Fi Essentials Kit", pages: 1, facts: {
+    "Was": "Einrichtung und Kleinkram: Kisten, Truhen, Fässer, Munitionskisten, Schreibtische, Stuhl, Spind, Regale, Medikit, Spritze, Granate, Mine, Schlüsselkarte, Tasse, Satellitenschale; dazu 3 Roboter-Gegner und 4 Waffen (Pistole, Revolver, Gewehr, Scharfschützengewehr) mit Magazinen.",
+    "Anzahl": "37 Modelle (freie Fassung; die bezahlte hat mehr)", "Stil": "Wie das MegaKit: Texturen, Weiß/Grau mit gelben und blauen Akzenten. Gezeigt mit Metallanteil 25 %.",
+    "Format": "glTF mit Texturen, gemacht als Ergänzung zum Modular SciFi MegaKit." } },
+  { id: "kenney", name: "Kenney Modular Space Kit", pages: 1, facts: {
+    "Was": "Fertige Raum- und Gangstücke (Ecken, Kreuzungen, Enden, kleine/große/breite Räume, Treppen), Tore mit Tür, Fenster oder Laserschranke, dazu Bauteile (Boden, Wand, Säule, Bodenebenen) und Kabel. Keine Möbel.",
+    "Anzahl": "40 Modelle", "Stil": "Weiß und Lavendel mit gelben Akzenten, weich und sauber, sehr hell. Eine gemeinsame Farbtextur (512 × 512).",
+    "Format": "GLB (auch FBX/OBJ), lädt ohne Nacharbeit, sehr klein (21 MB mit allen Formaten). CC0." } },
+  { id: "turrets", name: "Turret Pack", pages: 1, facts: {
+    "Was": "Geschütztürme: Kanonen, MGs, Laser, Langrohre, Bomber, Teleporter-Türme, Sockel.",
+    "Anzahl": "37 Modelle", "Stil": "Kupfer/Rost in zwei Tönen. Im Original heller als hier: die OBJ-Farben sind sehr dunkel und wirken in Godot dunkler als in der Vorschau des Herstellers.",
+    "Format": "OBJ und FBX. Eher für Bodenkampf-Karten oder Stationen als für das Schiff." } },
+];
+const tabs = document.getElementById("tabs"), facts = document.getElementById("facts"), sheets = document.getElementById("sheets");
+function show(id) {
+  const p = PACKS.find(x => x.id === id) || PACKS[1];
+  for (const b of tabs.children) b.setAttribute("aria-selected", String(b.dataset.id === p.id));
+  facts.innerHTML = "<h2></h2><dl></dl>";
+  facts.querySelector("h2").textContent = p.name;
+  const dl = facts.querySelector("dl");
+  for (const [k, v] of Object.entries(p.facts)) {
+    const dt = document.createElement("dt"); dt.textContent = k;
+    const dd = document.createElement("dd"); dd.textContent = v;
+    dl.append(dt, dd);
+  }
+  sheets.innerHTML = "";
+  for (let i = 1; i <= p.pages; i++) {
+    const img = document.createElement("img");
+    img.src = `katalog_${p.id}_${i}.jpg`; img.alt = `${p.name}, Seite ${i} von ${p.pages}`; img.loading = i > 1 ? "lazy" : "eager";
+    sheets.append(img);
+  }
+  if (location.hash !== "#" + p.id) history.replaceState(null, "", "#" + p.id);
+}
+for (const p of PACKS) {
+  const b = document.createElement("button");
+  b.type = "button"; b.role = "tab"; b.dataset.id = p.id; b.id = "tab-" + p.id;
+  b.innerHTML = `${p.name}<small>${p.facts.Anzahl.split(" ")[0]}</small>`;
+  b.addEventListener("click", () => show(p.id));
+  tabs.append(b);
+}
+show(location.hash.slice(1) || "megakit");
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+</script>
