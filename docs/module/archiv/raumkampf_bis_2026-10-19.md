@@ -50,3 +50,22 @@ Fehler (Nutzer, Spiel): Ein Raumkampf endete nach 2 Runden mit „Sieg“, ohne 
 3. Prüfen, ob eine Flucht schon in Runde 2 plausibel ist (`flee_at`) und dem Nutzer berichten, nichts am Balancing ändern ohne Entscheidung.
 4. Tests nach CLAUDE.md, Fertigmeldung.
 
+
+
+### Auftrag (24.10.2026): Balancing – Ursache finden (erledigt 24.10.2026)
+
+Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen so stark, dass Kämpfe keine Herausforderung mehr sind. Betrifft Boden- **und** Raumkampf. Anzeichen laut Nutzer: Gegner fallen zu schnell, keine Verletzungen oder Verluste, zu wenige Gegner. Entscheidung des Nutzers: erst die Ursache finden, dann Wege vorschlagen.
+
+1. Spielstand des Nutzers lesen: `spielstaende/24-10-2026/` (`slot_1.json`, `auto.json`, `crew.json`, `roster.json`; Tag 60, 6 Einsätze, 10 Figuren). Eigene Ausrüstung: `spielstaende/24-10-2026/gear/` (7 Waffen, 2 Rüstungen).
+2. Raumkampf prüfen: Gegnerschiffe, Anzahl und Stärke gegen das Schiff und die Crew des Nutzers (Stationen, Fertigkeiten, Schiffswaffen, Ausbauten im Spielstand). Woran liegt es, dass Gegner schnell fallen und es kaum Schaden gibt?
+3. Ergebnis als Bericht an den Nutzer: Ursachen mit Zahlen (was ist Wissen, was Annahme), dazu 2–3 Wege zum Ausgleich mit Vor- und Nachteilen. Bericht kurz in die Moduldatei unter „Stand“ eintragen. Kein Code ändern, bis der Nutzer entschieden hat.
+
+
+### Auftrag (28.10.2026): Probe neue Schiffe – nichts bauen (ersetzt: Nutzer wählte Quaternius Ultimate Spaceships, gebaut `2555684`)
+
+Packs: `niko-3d-models/` (Jäger, Bomber, Träger, rot/blau, FBX+TGA) und `spaceship_blocks_collection/` (Bauteile, OBJ). Probe: Gegner- und eigenes Schiff im Raumkampf.
+Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenlos**; Shader und Licht sind verworfen. Neue Packs liegen in `assets_neu/` (Lizenzen geprüft: `assets_neu/LIZENZEN.md`).
+- **Nur Probe, nichts in den Spielcode übernehmen**, nichts nach `godot/assets/` kopieren (Probe in eigener Testszene/Testordner, nicht committen oder nur Screenshots).
+- Screenshots „jetzt“ und „mit neuem Pack“ nebeneinander, zeigen (Artifact oder `docs/mockups/packs/`).
+- Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
+- Ergebnis an den Nutzer, Entscheidung abwarten.

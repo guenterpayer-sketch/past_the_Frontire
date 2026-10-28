@@ -116,14 +116,6 @@ Der Hub bucht: Hülle, Systemschäden, Slots, Schiffsmunition, Treibstoff, Löse
 - Schnittstellen nur ergänzen und dem Hub über den Nutzer melden.
 - Story-Fraktionen im Raum erst, wenn Kapitel 1 sie braucht.
 
-### Auftrag (24.10.2026): Balancing – Ursache finden
-
-Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen so stark, dass Kämpfe keine Herausforderung mehr sind. Betrifft Boden- **und** Raumkampf. Anzeichen laut Nutzer: Gegner fallen zu schnell, keine Verletzungen oder Verluste, zu wenige Gegner. Entscheidung des Nutzers: erst die Ursache finden, dann Wege vorschlagen.
-
-1. Spielstand des Nutzers lesen: `spielstaende/24-10-2026/` (`slot_1.json`, `auto.json`, `crew.json`, `roster.json`; Tag 60, 6 Einsätze, 10 Figuren). Eigene Ausrüstung: `spielstaende/24-10-2026/gear/` (7 Waffen, 2 Rüstungen).
-2. Raumkampf prüfen: Gegnerschiffe, Anzahl und Stärke gegen das Schiff und die Crew des Nutzers (Stationen, Fertigkeiten, Schiffswaffen, Ausbauten im Spielstand). Woran liegt es, dass Gegner schnell fallen und es kaum Schaden gibt?
-3. Ergebnis als Bericht an den Nutzer: Ursachen mit Zahlen (was ist Wissen, was Annahme), dazu 2–3 Wege zum Ausgleich mit Vor- und Nachteilen. Bericht kurz in die Moduldatei unter „Stand“ eintragen. Kein Code ändern, bis der Nutzer entschieden hat.
-
 ### Elite-Gegner – gemeinsame Regeln Boden und Raum (Nutzer 24.10.2026)
 
 - **Häufigkeit:** etwa jeder 7.–8. Kampf (Zufall, ca. 13 %), gleich für Boden und Raum.
@@ -134,11 +126,4 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 - **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
 - **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
 
-### Auftrag (28.10.2026): Probe neue Schiffe – nichts bauen
-
-Packs: `niko-3d-models/` (Jäger, Bomber, Träger, rot/blau, FBX+TGA) und `spaceship_blocks_collection/` (Bauteile, OBJ). Probe: Gegner- und eigenes Schiff im Raumkampf.
-Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenlos**; Shader und Licht sind verworfen. Neue Packs liegen in `assets_neu/` (Lizenzen geprüft: `assets_neu/LIZENZEN.md`).
-- **Nur Probe, nichts in den Spielcode übernehmen**, nichts nach `godot/assets/` kopieren (Probe in eigener Testszene/Testordner, nicht committen oder nur Screenshots).
-- Screenshots „jetzt“ und „mit neuem Pack“ nebeneinander, zeigen (Artifact oder `docs/mockups/packs/`).
-- Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
-- Ergebnis an den Nutzer, Entscheidung abwarten.
+- Keine offenen Aufträge. Neue Gegnerschiffe (Ultimate Spaceships) seit 28.10.2026 in `main` (`2555684`); niko-Schiffe und Spaceship Blocks nicht übernommen.
