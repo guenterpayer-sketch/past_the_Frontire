@@ -131,3 +131,12 @@ Analyse, **nichts bauen**. Anlass (Nutzer 24.10.2026): Die Crew ist inzwischen s
 - Keine Extra-Belohnung festgelegt (Nutzer hat sie nicht gewählt).
 - **Elite-Wurf (Nutzer 24.10.2026):** Der Hub entscheidet schon beim Erstellen des Auftrags bzw. Feindkontakts (ca. 13 %), zeigt „Elite“ im Angebot und gibt nur „Elite ja/nein“ an den Kampf weiter. Boden wählt die Form selbst. Story kann Elite für eigene Missionen fest setzen.
 - **Ablauf:** Bodenkampf und Raumkampf legen dieselbe Auswahl (Häufigkeit, Kennzeichen „Elite“ im Angebot/Kontakt) fest; Wer das Angebot erzeugt (Hub), bekommt die Kennzeichnung über den Koordinator. Erst Vorschlag mit Simulation an den Nutzer, dann bauen.
+
+### Auftrag (28.10.2026): Probe neue Schiffe – nichts bauen
+
+Packs: `niko-3d-models/` (Jäger, Bomber, Träger, rot/blau, FBX+TGA) und `spaceship_blocks_collection/` (Bauteile, OBJ). Probe: Gegner- und eigenes Schiff im Raumkampf.
+Wunsch des Nutzers (28.10.2026): mehr Abwechslung und bessere Modelle, **kostenlos**; Shader und Licht sind verworfen. Neue Packs liegen in `assets_neu/` (Lizenzen geprüft: `assets_neu/LIZENZEN.md`).
+- **Nur Probe, nichts in den Spielcode übernehmen**, nichts nach `godot/assets/` kopieren (Probe in eigener Testszene/Testordner, nicht committen oder nur Screenshots).
+- Screenshots „jetzt“ und „mit neuem Pack“ nebeneinander, zeigen (Artifact oder `docs/mockups/packs/`).
+- Kurz einschätzen (Wissen/Annahme getrennt): Passt der Stil zu den übrigen Quaternius-Modellen? Aufwand für die Übernahme, Größe, Leistung am Tablet (Annahme). FBX ohne Farbe: melden, nicht selbst in Blender umbauen.
+- Ergebnis an den Nutzer, Entscheidung abwarten.
