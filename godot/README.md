@@ -142,6 +142,8 @@ Missionsgenerator (`core/mission.gd`): Punktebudget je Schwierigkeit (Balancing 
 
 Figuren, Waffen und Teile der Halle sind 3D-Modelle (frei lizenziert, siehe `assets/LICENSES.md`). Was kein Modell hat, wird weiter aus Grundkörpern gebaut.
 
+**Texturgröße der Packs:** Die Texturen von `assets/packs/essentials` und `assets/packs/megakit` werden mit höchstens 1024 px importiert (`process/size_limit=1024` in den `.png.import`, Bilder unverändert; Export 28.10.2026: Android-Paket 441 → 321 MB, am PC kaum sichtbar). Neue Texturen aus diesen Packs bekommen die Grenze nicht von selbst: im Import-Dock „Size Limit“ auf 1024 setzen.
+
 | Was | Modell | Einstellen im Godot-Editor |
 |---|---|---|
 | Figuren (mit Animationen: stehen, gehen, laufen, zielen, schießen, Nahkampf, Psi, getroffen, fallen, Hocke, Erste Hilfe, nachladen) | Quaternius Modular Men/Women, Brecher = Mech | Figur in `data/units/…/*.tres` → Feld **Visual** → `data/visuals/characters/*.tres` (Modell, Größe, Animationen) |

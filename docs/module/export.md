@@ -4,7 +4,8 @@ Branch `claude/inspiring-hypatia-5l2tq8`. Zuständig für Exporte und das App-Ic
 
 ## Stand
 
-- Alles in `main` (19.10.2026), keine offenen Aufträge. Verlauf: `docs/module/archiv/export_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- Alles bis 19.10.2026 in `main`. Verlauf: `docs/module/archiv/export_bis_2026-10-19.md`; Funktionen: `godot/README.md`.
+- Auftrag „Exportgröße und Texturen“ (29.10.2026) erledigt, Ergebnis unten.
 
 ## Gültige Absprachen
 
@@ -19,4 +20,10 @@ Seit 28.10.2026 liegen neue Packs im Spiel: `godot/assets/packs/` (megakit, esse
 2. **Vorschlag**: ungenutzte Pack-Teile vom Export ausschließen (Filter in `export_presets.cfg` oder Export-Modus „nur benutzte Ressourcen“; prüfen, was mit Karten-Generator/Editor kompatibel ist, die Modelle zur Laufzeit laden).
 3. **Texturen**: MegaKit-Texturen sind 2048 px. Vorschlag, ob/wie fürs Tablet verkleinert wird (z. B. Import-Einstellung Größenbegrenzung nur für Android), ohne die Dateien selbst zu ändern; Hub und Bodenkampf nutzen dieselben Dateien.
 4. Erst nach Freigabe des Nutzers umsetzen. Test am Gerät macht der Nutzer.
-- Keine offenen Aufträge. Nächster Schritt: neuen Export bauen und am Tablet prüfen (Nutzer).
+
+**Ergebnis (29.10.2026):**
+- Gemessen (Spielpaket PCK, Godot 4.7.2, Profile aus `export_presets.cfg`; APK selbst nicht gemessen, kein Android-SDK im Cloud-Container): Android und Windows je **441 MB**. Größte Blöcke: Musik 142 MB, essentials 123 MB, Story-Bilder 47 MB, molten 41 MB, megakit 40 MB, Raumschiffe 22 MB. Ohne die neuen Packs gerechnet ca. 212 MB.
+- Ungenutzte Pack-Teile: ca. 37 MB. Modus „nur benutzte Ressourcen“ geht nicht (`core/map_types.gd` und `view/space_ship_view.gd` laden Modelle über zusammengesetzte Pfade). Ausschlussliste: Nutzer hat abgelehnt („vorerst nicht“, Risiko fehlender Modelle).
+- Texturen: eine Größenbegrenzung nur für Android gibt es in Godot 4 nach Kenntnis des Export-Chats nicht. Nutzer hat Variante B gewählt (nach Vergleichsbildern): **essentials und megakit mit höchstens 1024 px** (`process/size_limit=1024` in 48 `.png.import`, Bilder unverändert, gilt auch am PC). Android-Paket danach **321 MB** (−120 MB). Tests `test_rules`, `test_hub` OK.
+- **Für Hub und Bodenkampf:** neue Texturen aus essentials/megakit im Import-Dock auf „Size Limit“ 1024 setzen, sonst kommen sie in voller Größe in den Export.
+- Nächster Schritt: neuen Export bauen und am Tablet prüfen (Nutzer).
