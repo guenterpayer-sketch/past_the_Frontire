@@ -20,6 +20,7 @@ Stand: 19.10.2026. Ältere Verläufe: `docs/module/archiv/Zusammenfuehrung_bis_2
 
 | Datum | Commit in `main` | Branch (Commit) | Ergebnis |
 |---|---|---|---|
+| 29.10.2026 | (dieser Merge) | Export `claude/inspiring-hypatia-5l2tq8` (`8284c35`) | Pack-Texturen essentials/megakit mit höchstens 1024 px (nur `.import`). Spielpaket gemessen 441 MB. Version 0.27. |
 | 28.10.2026 | (dieser Merge) | Hub `claude/happy-lamport-u4fvya` (`7ddc129`) | Auftrag 13: `HubState.elite_seen`, Enzyklopädie zeigt erbeutete Elite-Stücke. Version 0.26. |
 | 28.10.2026 | (dieser Merge) | Charakter `claude/elegant-gauss-hq5bus` (`ade715b`) | Elite-Ausrüstung in der Waffenkammer ausrüstbar (`Equipment.weapons(g)`/`armors(g)`), unbrauchbare Rüstung „wie keine“. Version 0.25. |
 | 28.10.2026 | (dieser Merge) | Bodenkampf `claude/confident-edison-6mxzke` (`92c9f04`) | Kampfkarten mit neuen Packs: Raumschiff (Molten), Halle/Straße/Büro/Bar (MegaKit, Essentials, Ultimate), je Objekt 50 % alt/neu. Nur `map_types.gd`/`map_view.gd`. Version 0.24. |

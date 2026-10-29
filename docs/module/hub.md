@@ -59,6 +59,8 @@
 - Danach (Wünsche des Nutzers 28.10.2026): Brücke – Stühle von `Boden` nach `Einrichtung`. **Bildschirme mit Inhalt** (Mockup `docs/mockups/bruecke/` freigegeben): `ship/props/monitor_sternenkarte.tscn` und `monitor_schiffsstatus.tscn` ersetzen die zwei Monitore. Feste Bilder mit leichter Bewegung (Shader), Werte und Systemnamen sind Dekoration. Fenster: keine (Wunsch des Nutzers). Molten-Leuchtflächen (Stärke 5,9) unverändert.
 - Danach: **Auftrag 13, Elite-Ausrüstung in der Enzyklopädie (28.10.2026).** `HubState.elite_seen` (Grundschlüssel, im Spielstand) merkt erbeutete Elite-/Boss-Stücke; gesetzt in `Stock.add` über `Stock.note_elite` (auch beschädigte oder gute Stücke). Alte Spielstände ohne Feld: Lager und getragene Ausrüstung der Crew (`Campaign.crew()`, beim Laden schon geladen) gelten als erbeutet. Enzyklopädie: unter Waffen bzw. Rüstungen nach den Grundstücken ein Abschnitt „erbeutet (Elite)“ (`Encyclopedia.elite_seen`). Ohne laufendes Spiel (Startmenü vor dem Laden) zeigt sie keine Elite-Stücke. Test `_test_elite_seen`.
 
+- **Pack-Texturen (Export, 29.10.2026):** Texturen aus `godot/assets/packs/essentials` und `megakit` werden mit höchstens 1024 px importiert. Neue Texturen aus diesen Packs im Import-Dock auf „Size Limit“ 1024 setzen, sonst kommen sie in voller Größe in den Export.
+
 ## Aufträge vom Koordinator
 
 - Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.
