@@ -215,6 +215,11 @@ func _build(sec: StringName) -> Array:
 		&"waffen":
 			for w in Gear.base_weapons():
 				out.append({"name": w.name, "text": weapon_text(w)})
+			var elite := elite_seen(Gear.WEAPON_DIR)
+			if not elite.is_empty():
+				out.append({"name": "— erbeutet (Elite) —", "head": true, "text": ""})
+			for w in elite:
+				out.append({"name": w.name, "text": weapon_text(w)})
 			var own := Gear.weapons()
 			if not own.is_empty():
 				out.append({"name": "— eigene —", "head": true, "text": ""})
@@ -223,6 +228,11 @@ func _build(sec: StringName) -> Array:
 		&"ruestungen":
 			for a in Gear.base_armors() + Gear.armors():
 				out.append({"name": a.name + ("  [frei]" if Gear.is_free(a) else ""), "text": armor_text(a)})
+			var elite := elite_seen(Gear.ARMOR_DIR)
+			if not elite.is_empty():
+				out.append({"name": "— erbeutet (Elite) —", "head": true, "text": ""})
+			for a in elite:
+				out.append({"name": a.name, "text": armor_text(a)})
 		&"tabellen":
 			for t in Gear.tables():
 				out.append({"name": t.name, "text": table_text(t)})
@@ -249,6 +259,20 @@ func _build(sec: StringName) -> Array:
 			out = world_entries(sec)
 		_:
 			out = space_entries(sec)
+	return out
+
+
+## Elite-/Boss-Stücke aus <dir>/elite, die im laufenden Spiel schon erbeutet wurden (HubState.elite_seen), nach Namen
+static func elite_seen(dir: String) -> Array:
+	var out := []
+	var g := HubState.game
+	if g == null:
+		return out
+	var d := dir.path_join("elite")
+	for f in ResourceLoader.list_directory(d):
+		if f.ends_with(".tres") and d.path_join(f) in g.elite_seen:
+			out.append(load(d.path_join(f)))
+	out.sort_custom(func(a: Resource, b: Resource) -> bool: return String(a.name) < String(b.name))
 	return out
 
 
