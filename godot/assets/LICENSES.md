@@ -37,6 +37,8 @@ Die Quaternius-Dateien stammen aus dem GLB-Archiv https://github.com/trebeljahr/
 
 Vom Nutzer ausgewählt und abgelegt (15.10.2026). Zuordnung zur Quelle nach dem Dateinamen (Pixabay-Dateien enden auf eine Nummer), vom Nutzer nicht einzeln bestätigt.
 
+Alle Stücke am 30.10.2026 auf 128 kbit/s MP3 neu kodiert (ffmpeg/LAME, Länge und Dateinamen unverändert), um den Export fürs Tablet zu verkleinern (Export-Chat, Freigabe des Nutzers).
+
 | Dateien | Quelle | Lizenz |
 |---|---|---|
 | `arpmedia-instrumental-588483.mp3`, `uniquecreativeaudio-ambient-dream-stream-…-258513.mp3`, `ame_atmos-…-487106.mp3`, `ame_atmos-…-534132.mp3`, `foggysunrise-chill-synthwave-1-451092.mp3` | Pixabay (https://pixabay.com/music/) | Pixabay Content License |
