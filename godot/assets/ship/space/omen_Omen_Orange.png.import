@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dyap6box8ghiw"
-path="res://.godot/imported/omen_Omen_Orange.png-1352d2e2aacbb85d4983022d80f0b768.ctex"
+path.s3tc="res://.godot/imported/omen_Omen_Orange.png-1352d2e2aacbb85d4983022d80f0b768.s3tc.ctex"
+path.etc2="res://.godot/imported/omen_Omen_Orange.png-1352d2e2aacbb85d4983022d80f0b768.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "987dd46de90df2f2b1d889b056ff27e2"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/ship/space/omen_Omen_Orange.png"
-dest_files=["res://.godot/imported/omen_Omen_Orange.png-1352d2e2aacbb85d4983022d80f0b768.ctex"]
+dest_files=["res://.godot/imported/omen_Omen_Orange.png-1352d2e2aacbb85d4983022d80f0b768.s3tc.ctex", "res://.godot/imported/omen_Omen_Orange.png-1352d2e2aacbb85d4983022d80f0b768.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

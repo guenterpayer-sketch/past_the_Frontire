@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mr81thdg7dfo"
-path="res://.godot/imported/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png-4e5210292348cbaa0f6e9fe18f963503.ctex"
+path.s3tc="res://.godot/imported/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png-4e5210292348cbaa0f6e9fe18f963503.s3tc.ctex"
+path.etc2="res://.godot/imported/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png-4e5210292348cbaa0f6e9fe18f963503.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "7a8d8266f012b68447fd3729ba1d5b1b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/packs/molten/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png"
-dest_files=["res://.godot/imported/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png-4e5210292348cbaa0f6e9fe18f963503.ctex"]
+dest_files=["res://.godot/imported/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png-4e5210292348cbaa0f6e9fe18f963503.s3tc.ctex", "res://.godot/imported/Floor_Command_Large_Gradient Texture Atlas by Imphenzia.png-4e5210292348cbaa0f6e9fe18f963503.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

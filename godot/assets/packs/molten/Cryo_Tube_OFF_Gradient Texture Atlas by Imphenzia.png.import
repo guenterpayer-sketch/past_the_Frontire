@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bn4dcp2su8ayv"
-path="res://.godot/imported/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png-349cecd31a883e2832c0e736a0d0b7d7.ctex"
+path.s3tc="res://.godot/imported/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png-349cecd31a883e2832c0e736a0d0b7d7.s3tc.ctex"
+path.etc2="res://.godot/imported/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png-349cecd31a883e2832c0e736a0d0b7d7.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "7a8d8266f012b68447fd3729ba1d5b1b"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/packs/molten/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png"
-dest_files=["res://.godot/imported/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png-349cecd31a883e2832c0e736a0d0b7d7.ctex"]
+dest_files=["res://.godot/imported/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png-349cecd31a883e2832c0e736a0d0b7d7.s3tc.ctex", "res://.godot/imported/Cryo_Tube_OFF_Gradient Texture Atlas by Imphenzia.png-349cecd31a883e2832c0e736a0d0b7d7.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +42,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
