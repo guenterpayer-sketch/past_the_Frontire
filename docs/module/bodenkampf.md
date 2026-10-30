@@ -86,6 +86,8 @@
 
 - **Stand 24.10.2026, Entscheidungen:** Typpreise übernommen (Klingentänzer 15, Psi-Soldat 14, Schatten 12, Entermeister 14, Sicherheitsagent 8, Kopfgeldjäger 9, Handagent 8; Plünderer bleibt 8). Elite-/Boss-Begegnungen: Anzahl je Stufe verschieden; gemessen leicht 6 → 87–93 % Siege, mittel 7 → 63–73 %, schwer 7 → 73–83 %, schwer 8 → 50–60 %; Vorschlag leicht 6, mittel 7, schwer 7 (Nutzer entscheidet). Vor dem Bauen Abstimmung mit dem Koordinator (Hub/Story-Teile).
 
+- **Pack-Texturen (Export, 29.10.2026):** Texturen aus `godot/assets/packs/essentials` und `megakit` werden mit höchstens 1024 px importiert. Neue Texturen aus diesen Packs im Import-Dock auf „Size Limit“ 1024 setzen, sonst kommen sie in voller Größe in den Export.
+
 ## Aufträge vom Koordinator
 
 - Keine offenen Aufträge. Erledigt 28.10.2026: Kampfkarten mit neuen Packs (`92c9f04`, Version 0.24). Erledigt 24.10.2026: Balancing-Paket (`86cf0e8`, Version 0.13); Aufträge und Absprachen dazu im Archiv `docs/module/archiv/bodenkampf_bis_2026-10-19.md`. Gemeinsame Elite-Regeln: `docs/module/raumkampf.md`.
