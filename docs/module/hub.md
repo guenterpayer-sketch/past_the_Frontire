@@ -61,6 +61,8 @@
 
 - **Pack-Texturen (Export, 29.10.2026):** Texturen aus `godot/assets/packs/essentials` und `megakit` werden mit höchstens 1024 px importiert. Neue Texturen aus diesen Packs im Import-Dock auf „Size Limit“ 1024 setzen, sonst kommen sie in voller Größe in den Export.
 
+- **Musik (Export, 30.10.2026):** Neue Musik in `godot/audio/music/` mit 128 kbit/s ablegen (Spielpaketgröße).
+
 ## Aufträge vom Koordinator
 
 - Keine offenen Aufträge. Nächste Aufgabe kommt vom Nutzer.

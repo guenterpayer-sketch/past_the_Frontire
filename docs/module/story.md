@@ -23,6 +23,8 @@
 
 - Bilder: Gleiche Szene in mehreren Vorlagen (Abfangen, Befreien, Bergen) bekommt **ein eigenes Bild pro Vorlage** (Nutzer 21.10.2026), kein geteiltes Bild.
 
+- **Story-Bilder (Export, 30.10.2026):** Neue Bilder in `godot/art/story/` im Import-Dock auf „Lossy“ 0.8 stellen (Spielpaketgröße).
+
 ## Aufträge vom Koordinator
 
 - Offen beim Nutzer: Bilder malen (`docs/Story_Bilder.md`, Abschnitt „Ergänzt am 21.10.2026“, 41 Motive).
